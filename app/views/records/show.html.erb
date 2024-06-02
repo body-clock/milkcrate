@@ -1,0 +1,19 @@
+<%= render(Breadcrumbs::BreadcrumbsComponent.new) do |component| %>
+  <% component.with_breadcrumb(href: '/') do %>Crates
+  <% end %>
+  <% component.with_breadcrumb(href: crate_path(@record.crate)) do %><%= @record.crate.name %>
+  <% end %>
+  <% component.with_breadcrumb(active: true) do %><%= @record.title %>
+  <% end %>
+<% end %>
+
+<div class="card">
+  <div class="card-header">
+    <h4 class="my-0 fw-normal"><%= @record.title %></h4>
+  </div>
+  <div class="card-body">
+    <div class="youtube-embed">
+      <iframe class="responsive-iframe" src="<%= Youtube::Service.embed_url(url: @record.url) %>"></iframe>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,11 @@
+<% flash.each do |k, v| %>
+  <% type = (k.to_sym == :alert) ? :warning : :primary %>
+  <div class="row">
+    <div class="col-sm-12">
+      <div class="alert alert-<%= type %> alert-dismissible fade show" role="alert">
+        <%= v %>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    </div>
+  </div>
+<% end %>

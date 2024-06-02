@@ -1,0 +1,18 @@
+<%= render(Breadcrumbs::BreadcrumbsComponent.new) do |component| %>
+  <% component.with_breadcrumb(active: true) do %>
+    Crates
+  <% end %>
+<% end %>
+
+<h1 class="mb-3">Crates</h1>
+<%= render 'crates/modal', user: current_user %>
+<ul class="list-group mb-2 col-12">
+  <% @crates.select(&:persisted?).each do |crate| %>
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+      <%= link_to crate.name, crate %>
+      <%= button_to "Delete", crate, method: :delete,
+                    data: { turbo_confirm: "Are you sure you want to delete this crate?" },
+                    class: 'btn btn-danger' %>
+    </li>
+  <% end %>
+</ul>

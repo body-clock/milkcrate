@@ -1,0 +1,19 @@
+<button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#crateModal">
+  Add Crate
+</button>
+<div class="add-crate">
+  <!-- Modal -->
+  <div class="modal fade" id="crateModal" tabindex="-1" aria-labelledby="crateModal" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="crateModal">Add a new Crate</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <%= render 'crates/form', user: user %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

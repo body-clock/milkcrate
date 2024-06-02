@@ -1,0 +1,9 @@
+<%= form_with(model: user.crates.build) do |f| %>
+  <div class="field mb-2">
+    <%= f.label :name, { class: 'form-label' } %><br>
+    <%= f.text_field :name, { class: 'form-control' } %>
+  </div>
+  <div class="actions mb-1">
+    <%= f.submit 'Create', { class: 'btn btn-primary' } %>
+  </div>
+<% end %>

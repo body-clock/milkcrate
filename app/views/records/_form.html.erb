@@ -1,0 +1,11 @@
+<%= form_with(model: [crate, crate.records.build], local: true) do |form| %>
+  <div class="field">
+    <%= form.label :url, "YouTube URL", { class: 'form-label' } %>
+    <%= form.text_field :url, { class: 'form-control' } %>
+  </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+    <%= form.submit "Add Record", { class: 'btn btn-primary' } %>
+  </div>
+<% end %>
