@@ -8,16 +8,13 @@
 <div class="crate">
   <h1 class="mb-3"><%= @crate.name %></h1>
   <%= render 'records/modal', crate: @crate %>
-  <div class="record-list">
-    <% if @crate.records.select(&:persisted?).present? %>
-      <div class="row mx-n3">
-        <% @crate.records.select(&:persisted?).each do |record| %>
-          <%= render RecordCardComponent.new(record: record) %>
-        <% end %>
-      </div>
-    <% else %>
-      No records yet.
-    <% end %>
-  </div>
-  <%= link_to "Back", crates_path %>
+  <% if @crate.records.select(&:persisted?).present? %>
+    <div class="row mx-n3">
+      <% @crate.records.select(&:persisted?).each do |record| %>
+        <%= render RecordCardComponent.new(record: record) %>
+      <% end %>
+    </div>
+  <% else %>
+    No records yet.
+  <% end %>
 </div>

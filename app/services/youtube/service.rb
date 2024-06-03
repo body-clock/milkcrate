@@ -4,7 +4,7 @@ module Youtube
   # The Youtube service
   class Service
     def self.video_data(url:)
-      return unless valid_youtube_url?(url: url)
+      return unless valid_youtube_url?(url:)
 
       response = Faraday.get("https://www.youtube.com/oembed?url=#{url}&format=json")
       return unless response.success?
@@ -13,7 +13,7 @@ module Youtube
     end
 
     def self.embed_url(url:)
-      return unless valid_youtube_url?(url: url)
+      return unless valid_youtube_url?(url:)
 
       regexp = %r{
         (?:https?://)?
