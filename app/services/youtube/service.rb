@@ -3,19 +3,20 @@
 module Youtube
   # The Youtube service
   class Service
-    def self.video_data(url:)
-      return unless valid_youtube_url?(url:)
+    class << self
+      def video_data(url:)
+        return unless valid_youtube_url?(url: url)
 
-      response = Faraday.get("https://www.youtube.com/oembed?url=#{url}&format=json")
-      return unless response.success?
+        response = Faraday.get("https://www.youtube.com/oembed?url=#{url}&format=json")
+        return unless response.success?
 
-      JSON.parse(response.body)
-    end
+        JSON.parse(response.body)
+      end
 
-    def self.embed_url(url:)
-      return unless valid_youtube_url?(url:)
+      def embed_url(url:)
+        return unless valid_youtube_url?(url: url)
 
-      regexp = %r{
+        regexp = %r{
         (?:https?://)?
         (?:www\.)?
         (?:
@@ -32,16 +33,17 @@ module Youtube
         )
         ([a-zA-Z0-9_-]{11})
       }x
-      match = url.match(regexp)
-      youtube_id = match[1]
-      "https://www.youtube.com/embed/#{youtube_id}"
-    end
+        match = url.match(regexp)
+        youtube_id = match[1]
+        "https://www.youtube.com/embed/#{youtube_id}"
+      end
 
-    def self.valid_youtube_url?(url:)
-      # TODO: Implement URL validation
-      true
-    end
+      private
 
-    private_class_method :valid_youtube_url?
+      def valid_youtube_url?(url:)
+        # TODO: Implement URL validation
+        true if url
+      end
+    end
   end
 end
