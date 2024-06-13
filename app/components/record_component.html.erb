@@ -1,0 +1,26 @@
+<div class="card" data-controller="record">
+  <div class="card-header">
+    <h4 class="my-0 fw-normal"><%= record.title %></h4>
+  </div>
+  <div class="card-body d-flex flex-column">
+    <div class="youtube-embed rounded">
+      <iframe class="responsive-iframe" src="<%= Youtube::Service.embed_url(url: record.url) %>"
+              data-record-target="youtubePlayer"></iframe>
+    </div>
+    <div class="toolbar d-flex mt-2 bg-light p-2 rounded">
+      <%#= link_to 'Add Mark', '#', { class: 'btn btn-success', data: { action: 'click->record#printCurrentTime' } } %>
+      <a href="#" data-action="click->record#printCurrentTime">Add Mark</a>
+    </div>
+    <ul class="list-group mt-2">
+      <li class="list-group-item">
+        <%= link_to '0:52:00', '' %>
+      </li>
+      <li class="list-group-item">
+        <%= link_to '0:52:00', '' %>
+      </li>
+      <li class="list-group-item">
+        <%= link_to '0:52:00', '' %>
+      </li>
+    </ul>
+  </div>
+</div>

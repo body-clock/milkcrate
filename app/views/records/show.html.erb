@@ -8,19 +8,7 @@
 <% end %>
 
 <div class="d-flex justify-content-center">
-  <div class="col-lg-6 col-md-8 col-sm-12 col-xs-12">
-    <div class="card">
-      <div class="card-header">
-        <h4 class="my-0 fw-normal"><%= @record.title %></h4>
-      </div>
-      <div class="card-body d-flex flex-column">
-        <div class="youtube-embed">
-          <iframe class="responsive-iframe" src="<%= Youtube::Service.embed_url(url: @record.url) %>"></iframe>
-        </div>
-        <div class="d-flex">
-          <%= link_to 'test', root_path, class: 'btn btn-outline-primary' %>
-        </div>
-      </div>
-    </div>
+  <div class="col-lg-8 col-md-10 col-sm-12 col-xs-12">
+    <%= render(RecordComponent.new(record: @record)) %>
   </div>
 </div>

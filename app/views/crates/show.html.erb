@@ -11,10 +11,12 @@
   <% if @crate.records.select(&:persisted?).present? %>
     <div class="row mx-n3">
       <% @crate.records.select(&:persisted?).each do |record| %>
-        <%= render RecordCardComponent.new(record: record) %>
+        <div class="col-lg-3 col-md-6 col-sm-12 mb-4">
+          <%= render RecordCardComponent.new(record: record) %>
+        </div>
       <% end %>
-    </div>
   <% else %>
     No records yet.
   <% end %>
+  </div>
 </div>
