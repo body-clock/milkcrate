@@ -1,0 +1,5 @@
+<li class="list-group-item">
+  <%= link_to formatted_timestamp(mark.timestamp), '', data: { action: 'click->record#seekTo',
+                                                               timestamp: mark.timestamp,
+                                                               record_target: 'markButton' } %>
+</li>

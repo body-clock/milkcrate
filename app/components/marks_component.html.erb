@@ -1,0 +1,5 @@
+<ul class="list-group mt-2">
+  <% marks.each do |mark| %>
+    <%= render MarkComponent.new(mark: mark) %>
+  <% end %>
+</ul>

@@ -58,4 +58,9 @@ export default class extends Controller {
             console.log(response);
         })
     }
+
+    seekTo(event) {
+        event.preventDefault();
+        this.player.seekTo(event.currentTarget.dataset.timestamp);
+    }
 }
