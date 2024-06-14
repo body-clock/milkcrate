@@ -3,24 +3,21 @@
     <h4 class="my-0 fw-normal"><%= record.title %></h4>
   </div>
   <div class="card-body d-flex flex-column">
-    <div class="youtube-embed rounded">
-      <iframe class="responsive-iframe" src="<%= Youtube::Service.embed_url(url: record.url) %>"
-              data-record-target="youtubePlayer"></iframe>
+    <div class="youtube-player rounded">
+      <div id="player" class="responsive-iframe"></div>
     </div>
     <div class="toolbar d-flex mt-2 bg-light p-2 rounded">
-      <%#= link_to 'Add Mark', '#', { class: 'btn btn-success', data: { action: 'click->record#printCurrentTime' } } %>
-      <a href="#" data-action="click->record#printCurrentTime">Add Mark</a>
+      <%= link_to 'Add Mark', '#', { class: 'btn btn-success', data: { action: 'click->record#addMark' } } %>
     </div>
     <ul class="list-group mt-2">
-      <li class="list-group-item">
-        <%= link_to '0:52:00', '' %>
-      </li>
-      <li class="list-group-item">
-        <%= link_to '0:52:00', '' %>
-      </li>
-      <li class="list-group-item">
-        <%= link_to '0:52:00', '' %>
-      </li>
+      <% record.marks.each do |mark| %>
+        <li class="list-group-item">
+          <%= link_to formatted_timestamp(mark.timestamp), '' %>
+        </li>
+      <% end %>
     </ul>
   </div>
+  <%= hidden_field_tag 'crate_id', record.crate_id, data: { record_target: 'crateID'} %>
+  <%= hidden_field_tag 'record_id', record.id, data: { record_target: 'recordID'} %>
+  <%= hidden_field_tag 'youtube_id', Youtube::Service.video_id(url: record.url), data: { record_target: 'youtubeID'} %>
 </div>

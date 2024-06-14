@@ -13,29 +13,27 @@ module Youtube
         JSON.parse(response.body)
       end
 
-      def embed_url(url:)
+      def video_id(url:)
         return unless valid_youtube_url?(url: url)
 
         regexp = %r{
-        (?:https?://)?
-        (?:www\.)?
-        (?:
-          youtube\.com/
+          (?:https?://)?
+          (?:www\.)?
           (?:
-            [^/\n\s]+/\S+/
+            youtube\.com/
+            (?:
+              [^/\n\s]+/\S+/
+              |
+              (?:v|e(?:mbed)?)/
+              |
+              .*[?&]v=
+            )
             |
-            (?:v|e(?:mbed)?)/
-            |
-            .*[?&]v=
+            youtu\.be/
           )
-          |
-          youtu\.be/
-        )
-        ([a-zA-Z0-9_-]{11})
-      }x
-        match = url.match(regexp)
-        youtube_id = match[1]
-        "https://www.youtube.com/embed/#{youtube_id}"
+          ([a-zA-Z0-9_-]{11})
+        }x
+        url.match(regexp)[1]
       end
 
       private

@@ -18,6 +18,8 @@ Rails.application.routes.draw do
   root to: redirect('/users/sign_in')
 
   resources :crates do
-    resources :records
+    resources :records do
+      resources :marks
+    end
   end
 end

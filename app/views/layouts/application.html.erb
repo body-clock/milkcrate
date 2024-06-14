@@ -8,15 +8,17 @@
 
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
+    <!-- Include the YouTube IFrame API script -->
+    <script src="https://www.youtube.com/iframe_api"></script>
   </head>
 
   <body>
-  <%= render partial: 'shared/top_navbar' %>
+    <%= render partial: 'shared/top_navbar' %>
 
-  <div class="container mt-3">
-    <%= render partial: 'shared/flash_messages' %>
+    <div class="container mt-3">
+      <%= render partial: 'shared/flash_messages' %>
 
-    <%= yield %>
-  </div>
+      <%= yield %>
+    </div>
   </body>
 </html>
