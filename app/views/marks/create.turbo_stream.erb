@@ -1,0 +1,3 @@
+<%= turbo_stream.append 'marks_list' do %>
+  <%= render MarkComponent.new(mark: @mark) %>
+<% end %>
