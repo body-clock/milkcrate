@@ -9,15 +9,9 @@
     <div class="toolbar d-flex mt-2 bg-light p-2 rounded">
       <%= link_to 'Add Mark', '#', { class: 'btn btn-success', data: { action: 'click->record#addMark' } } %>
     </div>
-    <ul class="list-group mt-2">
-      <% record.marks.each do |mark| %>
-        <li class="list-group-item">
-          <%= link_to formatted_timestamp(mark.timestamp), '' %>
-        </li>
-      <% end %>
-    </ul>
+    <%= render MarksComponent.new(marks: record.marks) %>
   </div>
-  <%= hidden_field_tag 'crate_id', record.crate_id, data: { record_target: 'crateID'} %>
-  <%= hidden_field_tag 'record_id', record.id, data: { record_target: 'recordID'} %>
-  <%= hidden_field_tag 'youtube_id', Youtube::Service.video_id(url: record.url), data: { record_target: 'youtubeID'} %>
+  <%= hidden_field_tag 'crate_id', record.crate_id, data: { record_target: 'crateID' } %>
+  <%= hidden_field_tag 'record_id', record.id, data: { record_target: 'recordID' } %>
+  <%= hidden_field_tag 'youtube_id', Youtube::Service.video_id(url: record.url), data: { record_target: 'youtubeID' } %>
 </div>
