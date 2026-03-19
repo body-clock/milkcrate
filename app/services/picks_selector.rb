@@ -40,10 +40,14 @@ class PicksSelector
   def score_all(listing_ids: nil)
     scope = @store.listings.where.not(genres: "{}")
     scope = scope.where(id: listing_ids) if listing_ids&.any?
-    scope.map { |listing| [ listing, score(listing) ] }
+    listings = scope.to_a
+
+    genre_counts = @store.listings.pluck(:genres).flatten.tally
+
+    listings.map { |listing| [ listing, score(listing, genre_counts) ] }
   end
 
-  def score(listing)
+  def score(listing, genre_counts)
     points = 0
 
     # Discovery styles — the stuff worth digging for
@@ -60,8 +64,7 @@ class PicksSelector
     points += 1 if %w[Mint NM M VG+].include?(listing.condition&.strip)
 
     # Small section penalty reversed — records from tiny sections deserve a spotlight
-    genre_count = @store.listings.by_genre(listing.primary_genre).count rescue 0
-    points += 3 if genre_count < 5
+    points += 3 if genre_counts.fetch(listing.primary_genre, 0) < 5
 
     points
   end

@@ -22,14 +22,6 @@ class Store < ApplicationRecord
     find_by(discogs_username: entry["username"])
   end
 
-  def self.featured_today
-    featured_on(Date.current)
-  end
-
-  def synced?
-    last_synced_at.present?
-  end
-
   def stale?
     last_synced_at.nil? || last_synced_at < 23.hours.ago
   end

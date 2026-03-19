@@ -1,17 +1,8 @@
 <% content_for :title, "#{@store.name} — Milkcrate" %>
 
-<div class="flex items-baseline justify-between mb-1 flex-wrap gap-3">
-  <div>
-    <h1 class="text-xl font-bold mc-text" style="font-family: ui-sans-serif, system-ui, sans-serif;"><%= @store.name %></h1>
-    <p class="text-xs mc-dim mt-0.5">@<%= @store.discogs_username %> &middot; <%= @store.total_listings || "?" %> vinyl listings</p>
-  </div>
-  <div class="flex gap-2 items-center">
-    <% if @store.syncing? %>
-      <span class="text-xs mc-dim">Syncing…</span>
-    <% else %>
-      <%= button_to "Sync now", sync_store_path(@store), method: :post, class: "mc-btn" %>
-    <% end %>
-  </div>
+<div class="mb-1">
+  <h1 class="text-xl font-bold mc-text" style="font-family: ui-sans-serif, system-ui, sans-serif;"><%= @store.name %></h1>
+  <p class="text-xs mc-dim mt-0.5">@<%= @store.discogs_username %> &middot; <%= @store.total_listings || "?" %> vinyl listings</p>
 </div>
 
 <% if @description.present? %>
@@ -26,9 +17,9 @@
     <% if @store.syncing? %>
       <p>Syncing inventory… check back in a moment.</p>
     <% elsif @store.failed? %>
-      <p>Sync failed. Check your Discogs token and try again.</p>
+      <p>Sync failed.</p>
     <% else %>
-      <p>No vinyl found yet. Hit "Sync now" to pull inventory from Discogs.</p>
+      <p>No vinyl found yet.</p>
     <% end %>
   </div>
 <% else %>

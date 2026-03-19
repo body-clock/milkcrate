@@ -1,10 +1,6 @@
 class StoreSectionsController < ApplicationController
   before_action :set_store
 
-  def index
-    redirect_to root_path
-  end
-
   def show
     @section_slug = params[:id]
     @section_name = @section_slug == "new-arrivals" ? "New Arrivals" : @section_slug.titleize
@@ -19,10 +15,7 @@ class StoreSectionsController < ApplicationController
   end
 
   def daily_selection_ids
-    @daily_selection_ids ||= begin
-      selection = DailySelection.on(@store) || DailySelectionService.new(@store).generate
-      selection.listing_ids
-    end
+    @daily_selection_ids ||= DailySelection.fetch_or_generate(@store).listing_ids
   end
 
   def fetch_section_listings

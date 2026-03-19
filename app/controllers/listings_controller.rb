@@ -1,9 +1,6 @@
 class ListingsController < ApplicationController
   before_action :set_listing
 
-  def show
-  end
-
   def add_to_session
     @dig_session = @current_dig_session || DigSession.create!(store: @listing.store)
     @dig_session.dig_session_items.find_or_create_by!(listing: @listing)

@@ -1,5 +1,5 @@
 class StoreSyncService
-  VINYL_FORMATS = %w[Vinyl LP EP Single].freeze
+  VINYL_FORMATS = Listing::VINYL_FORMATS
 
   def initialize(store)
     @store = store
@@ -43,28 +43,6 @@ class StoreSyncService
     raise e
   end
 
-  # Delta sync: grabs first N pages (newest listings). Run hourly.
-  def delta_sync(pages: 5)
-    @store.update!(sync_status: "syncing")
-
-    pages.times do |i|
-      data = @client.seller_inventory(@store.discogs_username, page: i + 1)
-      listings = data["listings"] || []
-      break if listings.empty?
-
-      import_listings(listings)
-      sleep(0.3)
-    end
-
-    @store.update!(
-      sync_status: "idle",
-      last_synced_at: Time.current,
-      total_listings: @store.listings.count
-    )
-  rescue StandardError => e
-    @store.update!(sync_status: "failed")
-    raise e
-  end
 
   private
 

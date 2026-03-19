@@ -42,23 +42,6 @@
 .mc-dim         { color: var(--mc-text-dim); }
 .mc-notice      { background: var(--mc-notice); color: var(--mc-text); }
 
-/* ─── Store Index ────────────────────────────────────────────────────────── */
-
-.mc-store-grid  { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.5rem; }
-
-.mc-store-card {
-  background: var(--mc-bg-raised);
-  border: 1px solid var(--mc-border);
-  border-radius: 4px;
-  padding: 1.5rem;
-  text-decoration: none;
-  display: block;
-  transition: border-color 0.15s, transform 0.15s;
-}
-.mc-store-card:hover { border-color: var(--mc-accent); transform: translateY(-1px); }
-.mc-store-card h2 { color: var(--mc-text); font-size: 1.1rem; margin-bottom: 0.25rem; }
-.mc-store-card p  { color: var(--mc-text-dim); font-size: 0.8rem; font-family: ui-sans-serif, system-ui, sans-serif; }
-
 /* ─── Section Dividers ───────────────────────────────────────────────────── */
 
 .mc-sections    { display: flex; flex-direction: column; gap: 3rem; }
@@ -92,42 +75,6 @@
   margin-left: auto;
 }
 .mc-section-browse:hover { color: var(--mc-accent); }
-
-/* ─── Crate / Card Stack ─────────────────────────────────────────────────── */
-
-.mc-crate {
-  position: relative;
-  height: 280px;
-  cursor: pointer;
-  /* Reserve horizontal space for offset cards */
-  margin-right: 1.5rem;
-}
-
-.mc-crate-stack {
-  position: relative;
-  width: 220px;
-  height: 220px;
-}
-
-/* Background "depth" cards */
-.mc-crate-stack::before,
-.mc-crate-stack::after {
-  content: "";
-  position: absolute;
-  background: var(--mc-bg-card);
-  border: 1px solid var(--mc-border);
-  border-radius: 2px;
-}
-.mc-crate-stack::before {
-  width: 100%; height: 100%;
-  top: 6px; left: 6px;
-  opacity: 0.6;
-}
-.mc-crate-stack::after {
-  width: 100%; height: 100%;
-  top: 12px; left: 12px;
-  opacity: 0.35;
-}
 
 /* Scrollable crate row */
 .mc-crate-row {
@@ -396,8 +343,6 @@
 
 @media (min-width: 768px) {
   .mc-record-card { width: 240px; height: 240px; }
-  .mc-crate-stack { width: 240px; height: 240px; }
-  .mc-crate        { height: 300px; }
 
   .mc-dig-stack { width: calc(380px + 24px); height: calc(380px + 24px); }
   .mc-dig-stack .mc-record-card { width: 380px; height: 380px; }

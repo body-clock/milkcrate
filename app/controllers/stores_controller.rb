@@ -25,12 +25,6 @@ class StoresController < ApplicationController
     end
   end
 
-  def sync
-    @store = Store.find(params[:id])
-    FullStoreSyncJob.perform_later(@store.id)
-    redirect_to root_path, notice: "Full sync started."
-  end
-
   def picks_preview
     @store = Store.find(params[:id])
     daily_ids = daily_selection_ids(@store)
@@ -65,7 +59,6 @@ class StoresController < ApplicationController
   end
 
   def daily_selection_ids(store)
-    selection = DailySelection.on(store) || DailySelectionService.new(store).generate
-    selection.listing_ids
+    DailySelection.fetch_or_generate(store).listing_ids
   end
 end
