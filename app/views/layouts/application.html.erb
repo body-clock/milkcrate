@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html data-theme="dark" data-controller="theme">
+  <head>
+    <title><%= content_for(:title) || "Milkcrate" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= yield :head %>
+    <link rel="icon" href="/icon.png" type="image/png">
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body class="mc-body min-h-screen">
+    <header class="mc-header flex items-center justify-between px-4 py-3 border-b mc-border">
+      <%= link_to root_path, class: "mc-wordmark text-xl font-bold tracking-widest uppercase" do %>
+        🥛 Milkcrate
+      <% end %>
+
+      <nav class="flex items-center gap-4 text-sm">
+        <%= link_to "Sessions", dig_sessions_path, class: "mc-nav-link" %>
+        <%= link_to "+ Store", new_store_path, class: "mc-nav-link" %>
+        <button data-action="click->theme#toggle" class="mc-nav-link" title="Toggle light/dark">
+          ◑
+        </button>
+      </nav>
+    </header>
+
+    <div id="session-bar">
+      <%= render "shared/session_bar", dig_session: @current_dig_session %>
+    </div>
+
+    <% if notice %>
+      <div class="px-4 py-2 text-sm mc-notice" role="alert">
+        <%= notice %>
+      </div>
+    <% end %>
+
+    <main class="px-4 py-6">
+      <%= yield %>
+    </main>
+  </body>
+</html>

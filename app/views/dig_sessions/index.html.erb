@@ -1,0 +1,24 @@
+<% content_for :title, "Dig Sessions — Milkcrate" %>
+
+<h1 class="text-xl font-bold mc-text mb-6" style="font-family: ui-sans-serif, system-ui, sans-serif;">Dig Sessions</h1>
+
+<% if @dig_sessions.any? %>
+  <div class="flex flex-col gap-2">
+    <% @dig_sessions.each do |session| %>
+      <%= link_to dig_session_path(session), class: "mc-store-card flex items-center justify-between" do %>
+        <div>
+          <h2 class="text-sm"><%= session.name %></h2>
+          <p><%= session.store.name %> &middot; <%= session.listings.count %> records</p>
+          <p><%= session.active? ? "Active" : "Closed" %> &middot; <%= time_ago_in_words(session.created_at) %> ago</p>
+        </div>
+        <% if session.active? %>
+          <span class="mc-accent-link text-xs">Active →</span>
+        <% end %>
+      <% end %>
+    <% end %>
+  </div>
+<% else %>
+  <div class="py-16 text-center mc-dim text-sm">
+    <p>No dig sessions yet. Head to a store and start pulling records.</p>
+  </div>
+<% end %>

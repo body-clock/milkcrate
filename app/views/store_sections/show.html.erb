@@ -1,0 +1,50 @@
+<% content_for :title, "#{@section_name} — #{@store.name} — Milkcrate" %>
+
+<div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+  <%= link_to "← #{@store.name}", store_path(@store), class: "mc-dim text-sm" %>
+  <div class="mc-section-name"><%= @section_name %></div>
+  <span class="mc-dim text-xs"><%= @listings.size %> records</span>
+</div>
+
+<% if @listings.empty? %>
+  <div class="py-16 text-center mc-dim text-sm">
+    <p>No records in this section yet.</p>
+  </div>
+<% else %>
+  <div class="mc-dig-view"
+       data-controller="crate"
+       data-action="touchstart->crate#touchStart touchend->crate#touchEnd">
+
+    <%# The stacked crate %>
+    <div class="mc-dig-stack">
+      <% @listings.each do |listing| %>
+        <div class="mc-dig-slot" data-crate-target="card">
+          <%= render RecordCardComponent.new(
+                listing: listing,
+                in_session: @session_listing_ids.include?(listing.id)
+              ) %>
+        </div>
+      <% end %>
+    </div>
+
+    <%# Navigation %>
+    <div class="mc-dig-nav">
+      <button class="mc-dig-nav-btn"
+              data-crate-target="prevBtn"
+              data-action="click->crate#prev"
+              title="Previous (←)">‹</button>
+
+      <span class="mc-dig-counter" data-crate-target="counter">
+        1 / <%= @listings.size %>
+      </span>
+
+      <button class="mc-dig-nav-btn"
+              data-crate-target="nextBtn"
+              data-action="click->crate#next"
+              title="Next (→)">›</button>
+    </div>
+
+    <p class="mc-dig-hint">Tap a record to flip it · ← → to browse · swipe on mobile</p>
+
+  </div>
+<% end %>

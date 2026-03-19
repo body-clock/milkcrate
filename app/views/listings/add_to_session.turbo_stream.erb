@@ -1,0 +1,11 @@
+<%# Update the action buttons on the card %>
+<%= turbo_stream.replace "listing-actions-#{@listing.id}" do %>
+  <div id="listing-actions-<%= @listing.id %>" class="mc-record-back-actions">
+    <%= render "listings/actions", listing: @listing, in_session: true %>
+  </div>
+<% end %>
+
+<%# Update the session bar count %>
+<%= turbo_stream.replace "session-bar" do %>
+  <%= render "shared/session_bar", dig_session: @dig_session %>
+<% end %>

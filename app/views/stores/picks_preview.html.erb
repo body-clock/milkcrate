@@ -1,0 +1,7 @@
+<%= turbo_frame_tag "picks-preview" do %>
+  <div class="mc-crate-row">
+    <% @picks.each do |listing| %>
+      <%= render RecordCardComponent.new(listing: listing, in_session: @session_listing_ids.include?(listing.id)) %>
+    <% end %>
+  </div>
+<% end %>

@@ -1,0 +1,40 @@
+<div class="mc-record-card"
+     data-controller="record-card"
+     data-action="click->record-card#flip"
+     data-listing-id="<%= @listing.id %>">
+  <div class="mc-record-card-inner">
+
+    <%# Front: album cover %>
+    <div class="mc-record-front">
+      <% if cover_image? %>
+        <img src="<%= @listing.cover_image_url %>"
+             alt="<%= @listing.title %>"
+             loading="lazy">
+      <% else %>
+        <div class="mc-record-no-image">♪</div>
+      <% end %>
+    </div>
+
+    <%# Back: sleeve info — clicks on non-interactive areas flip back via the parent handler %>
+    <div class="mc-record-back">
+      <div class="mc-record-back-title"><%= @listing.title %></div>
+      <div class="mc-record-back-artist"><%= @listing.artist %></div>
+
+      <% if tracklist_lines.any? %>
+        <div class="mc-record-back-tracklist">
+          <% tracklist_lines.each do |line| %>
+            <div><%= line %></div>
+          <% end %>
+        </div>
+      <% end %>
+
+      <div class="mc-record-back-meta"><%= meta %></div>
+      <div class="mc-record-back-price"><%= @listing.display_price %></div>
+
+      <div id="listing-actions-<%= @listing.id %>" class="mc-record-back-actions">
+        <%= render "listings/actions", listing: @listing, in_session: in_session? %>
+      </div>
+    </div>
+
+  </div>
+</div>

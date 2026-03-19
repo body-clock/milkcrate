@@ -1,0 +1,65 @@
+<% content_for :title, "#{@store.name} — Milkcrate" %>
+
+<div class="flex items-baseline justify-between mb-6 flex-wrap gap-3">
+  <div>
+    <h1 class="text-xl font-bold mc-text" style="font-family: ui-sans-serif, system-ui, sans-serif;"><%= @store.name %></h1>
+    <p class="text-xs mc-dim mt-0.5">@<%= @store.discogs_username %> &middot; <%= @store.total_listings || "?" %> vinyl listings</p>
+  </div>
+  <div class="flex gap-2 items-center">
+    <% if @store.syncing? %>
+      <span class="text-xs mc-dim">Syncing…</span>
+    <% else %>
+      <%= button_to "Sync now", sync_store_path(@store), method: :post, class: "mc-btn" %>
+    <% end %>
+  </div>
+</div>
+
+<% if @sections.empty? %>
+  <div class="py-16 text-center mc-dim text-sm">
+    <p class="text-4xl mb-4">⏳</p>
+    <% if @store.syncing? %>
+      <p>Syncing inventory… check back in a moment.</p>
+    <% elsif @store.failed? %>
+      <p>Sync failed. Check your Discogs token and try again.</p>
+    <% else %>
+      <p>No vinyl found yet. Hit "Sync now" to pull inventory from Discogs.</p>
+    <% end %>
+  </div>
+<% else %>
+  <% session_listing_ids = @current_dig_session&.listing_ids&.to_set %>
+  <div class="mc-sections">
+    <% @sections.each do |section| %>
+      <div class="mc-section" data-section-slug="<%= section[:slug] %>">
+        <div class="mc-section-header">
+          <span class="mc-section-name"><%= section[:name] %></span>
+          <span class="mc-section-count"><%= section[:count] %> records</span>
+          <% if section[:slug] == "picks" %>
+            <%= link_to "⇄",
+                picks_preview_store_path(@store, seed: rand(10_000)),
+                data: { turbo_frame: "picks-preview" },
+                class: "mc-section-browse",
+                title: "Shuffle picks" %>
+          <% end %>
+          <%= link_to "Browse all →", store_section_path(@store, section[:slug]), class: "mc-section-browse" %>
+        </div>
+
+        <% if section[:slug] == "picks" %>
+          <%= turbo_frame_tag "picks-preview" do %>
+            <div class="mc-crate-row">
+              <% section[:listings].first(20).each do |listing| %>
+                <%= render RecordCardComponent.new(listing: listing, in_session: session_listing_ids&.include?(listing.id)) %>
+              <% end %>
+            </div>
+          <% end %>
+        <% else %>
+          <div class="mc-crate-row">
+            <% preview = section[:listings].limit(20) %>
+            <% preview.each do |listing| %>
+              <%= render RecordCardComponent.new(listing: listing, in_session: session_listing_ids&.include?(listing.id)) %>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+<% end %>

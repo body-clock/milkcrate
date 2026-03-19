@@ -1,0 +1,404 @@
+@import "tailwindcss";
+
+/* ─── Milkcrate Design Tokens ────────────────────────────────────────────── */
+
+:root {
+  /* Dark mode (default) — warm charcoal, cream, amber */
+  --mc-bg:          #1a1714;
+  --mc-bg-raised:   #231f1b;
+  --mc-bg-card:     #2a2420;
+  --mc-text:        #e8dcc8;
+  --mc-text-dim:    #8a7b68;
+  --mc-accent:      #c8854a;
+  --mc-accent-dim:  #7a5230;
+  --mc-border:      #3a3028;
+  --mc-notice:      #3a2e1a;
+}
+
+[data-theme="light"] {
+  --mc-bg:          #f5f0e8;
+  --mc-bg-raised:   #ece6d8;
+  --mc-bg-card:     #e0d8c8;
+  --mc-text:        #1a1410;
+  --mc-text-dim:    #6b5a44;
+  --mc-accent:      #b07030;
+  --mc-accent-dim:  #d4a870;
+  --mc-border:      #c8bca8;
+  --mc-notice:      #f0e8d0;
+}
+
+/* ─── Base ───────────────────────────────────────────────────────────────── */
+
+.mc-body        { background: var(--mc-bg); color: var(--mc-text); font-family: ui-serif, Georgia, serif; transition: background 0.2s, color 0.2s; }
+.mc-header      { background: var(--mc-bg-raised); }
+.mc-session-bar { background: var(--mc-bg-raised); color: var(--mc-text-dim); }
+.mc-border      { border-color: var(--mc-border); }
+.mc-wordmark    { color: var(--mc-text); font-family: ui-sans-serif, system-ui, sans-serif; letter-spacing: 0.15em; }
+.mc-nav-link    { color: var(--mc-text-dim); text-decoration: none; transition: color 0.15s; cursor: pointer; background: none; border: none; font: inherit; }
+.mc-nav-link:hover { color: var(--mc-text); }
+.mc-accent-link { color: var(--mc-accent); text-decoration: none; }
+.mc-accent-link:hover { text-decoration: underline; }
+.mc-text        { color: var(--mc-text); }
+.mc-dim         { color: var(--mc-text-dim); }
+.mc-notice      { background: var(--mc-notice); color: var(--mc-text); }
+
+/* ─── Store Index ────────────────────────────────────────────────────────── */
+
+.mc-store-grid  { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.5rem; }
+
+.mc-store-card {
+  background: var(--mc-bg-raised);
+  border: 1px solid var(--mc-border);
+  border-radius: 4px;
+  padding: 1.5rem;
+  text-decoration: none;
+  display: block;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.mc-store-card:hover { border-color: var(--mc-accent); transform: translateY(-1px); }
+.mc-store-card h2 { color: var(--mc-text); font-size: 1.1rem; margin-bottom: 0.25rem; }
+.mc-store-card p  { color: var(--mc-text-dim); font-size: 0.8rem; font-family: ui-sans-serif, system-ui, sans-serif; }
+
+/* ─── Section Dividers ───────────────────────────────────────────────────── */
+
+.mc-sections    { display: flex; flex-direction: column; gap: 3rem; }
+
+.mc-section-header {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--mc-border);
+  padding-bottom: 0.5rem;
+}
+.mc-section-name {
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--mc-accent);
+}
+.mc-section-count {
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.65rem;
+  color: var(--mc-text-dim);
+}
+.mc-section-browse {
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.7rem;
+  color: var(--mc-text-dim);
+  text-decoration: none;
+  margin-left: auto;
+}
+.mc-section-browse:hover { color: var(--mc-accent); }
+
+/* ─── Crate / Card Stack ─────────────────────────────────────────────────── */
+
+.mc-crate {
+  position: relative;
+  height: 280px;
+  cursor: pointer;
+  /* Reserve horizontal space for offset cards */
+  margin-right: 1.5rem;
+}
+
+.mc-crate-stack {
+  position: relative;
+  width: 220px;
+  height: 220px;
+}
+
+/* Background "depth" cards */
+.mc-crate-stack::before,
+.mc-crate-stack::after {
+  content: "";
+  position: absolute;
+  background: var(--mc-bg-card);
+  border: 1px solid var(--mc-border);
+  border-radius: 2px;
+}
+.mc-crate-stack::before {
+  width: 100%; height: 100%;
+  top: 6px; left: 6px;
+  opacity: 0.6;
+}
+.mc-crate-stack::after {
+  width: 100%; height: 100%;
+  top: 12px; left: 12px;
+  opacity: 0.35;
+}
+
+/* Scrollable crate row */
+.mc-crate-row {
+  display: flex;
+  gap: 2.5rem;
+  overflow-x: auto;
+  padding: 1rem 0 1.5rem;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.mc-crate-row::-webkit-scrollbar { display: none; }
+.mc-crate-row > * { scroll-snap-align: start; }
+
+/* ─── Record Card ────────────────────────────────────────────────────────── */
+
+.mc-record-card {
+  position: relative;
+  width: 220px;
+  height: 220px;
+  flex-shrink: 0;
+  cursor: pointer;
+  perspective: 800px;
+}
+
+.mc-record-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mc-record-card.flipped .mc-record-card-inner {
+  transform: rotateY(180deg);
+}
+
+.mc-record-front,
+.mc-record-back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 2px;
+  overflow: hidden;
+  border: 1px solid var(--mc-border);
+}
+
+.mc-record-front {
+  background: var(--mc-bg-card);
+}
+
+.mc-record-back {
+  background: var(--mc-bg-raised);
+  transform: rotateY(180deg);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
+.mc-record-front img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.mc-record-front .mc-record-no-image {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  color: var(--mc-text-dim);
+  background: var(--mc-bg-card);
+}
+
+.mc-record-back-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--mc-text);
+  line-height: 1.3;
+}
+.mc-record-back-artist {
+  font-size: 0.7rem;
+  color: var(--mc-text-dim);
+}
+.mc-record-back-meta {
+  font-size: 0.65rem;
+  color: var(--mc-text-dim);
+  margin-top: auto;
+}
+.mc-record-back-price {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--mc-accent);
+}
+.mc-record-back-tracklist {
+  font-size: 0.6rem;
+  color: var(--mc-text-dim);
+  overflow: hidden;
+  flex: 1;
+  line-height: 1.6;
+}
+.mc-record-back-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+.mc-btn {
+  font-size: 0.65rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 2px;
+  border: 1px solid var(--mc-border);
+  background: transparent;
+  color: var(--mc-text-dim);
+  cursor: pointer;
+  text-decoration: none;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  transition: all 0.15s;
+}
+.mc-btn:hover { border-color: var(--mc-accent); color: var(--mc-accent); }
+.mc-btn-primary { background: var(--mc-accent); color: var(--mc-bg); border-color: var(--mc-accent); }
+.mc-btn-primary:hover { opacity: 0.85; color: var(--mc-bg); }
+
+/* ─── Forms ──────────────────────────────────────────────────────────────── */
+
+.mc-form { max-width: 480px; display: flex; flex-direction: column; gap: 1.25rem; }
+.mc-label { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mc-text-dim); display: block; margin-bottom: 0.4rem; }
+.mc-input {
+  width: 100%;
+  background: var(--mc-bg-raised);
+  border: 1px solid var(--mc-border);
+  border-radius: 2px;
+  color: var(--mc-text);
+  padding: 0.6rem 0.75rem;
+  font-family: ui-serif, Georgia, serif;
+  font-size: 0.9rem;
+  transition: border-color 0.15s;
+}
+.mc-input:focus { outline: none; border-color: var(--mc-accent); }
+.mc-submit { align-self: flex-start; }
+
+/* ─── Dig Session ────────────────────────────────────────────────────────── */
+
+.mc-pile-list { display: flex; flex-direction: column; gap: 0; }
+.mc-pile-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--mc-border);
+}
+.mc-pile-thumb {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 1px;
+  flex-shrink: 0;
+  background: var(--mc-bg-card);
+}
+.mc-pile-info { flex: 1; min-width: 0; font-family: ui-sans-serif, system-ui, sans-serif; }
+.mc-pile-title { font-size: 0.8rem; font-weight: 600; color: var(--mc-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mc-pile-artist { font-size: 0.7rem; color: var(--mc-text-dim); }
+.mc-pile-price { font-size: 0.8rem; font-weight: 700; color: var(--mc-accent); flex-shrink: 0; }
+
+/* ─── Dig View (immersive crate experience) ──────────────────────────────── */
+
+.mc-dig-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  padding: 1.5rem 0 3rem;
+  min-height: 80vh;
+}
+
+/* The stack container — sized to the card + depth offset */
+.mc-dig-stack {
+  position: relative;
+  width: calc(300px + 24px); /* card + max offset */
+  height: calc(300px + 24px);
+}
+
+/* Each card slot in the stack */
+.mc-dig-slot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.35s ease,
+              z-index 0s;
+}
+
+.mc-dig-slot[data-stack-pos="0"] {
+  transform: translate(0, 0);
+  opacity: 1;
+  z-index: 10;
+}
+
+.mc-dig-slot[data-stack-pos="1"] {
+  transform: translate(10px, 10px);
+  opacity: 0.55;
+  z-index: 9;
+  pointer-events: none;
+}
+
+.mc-dig-slot[data-stack-pos="2"] {
+  transform: translate(20px, 20px);
+  opacity: 0.25;
+  z-index: 8;
+  pointer-events: none;
+}
+
+/* Override card size in dig view */
+.mc-dig-stack .mc-record-card {
+  width: 300px;
+  height: 300px;
+}
+
+/* Navigation row */
+.mc-dig-nav {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.mc-dig-nav-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--mc-border);
+  background: var(--mc-bg-raised);
+  color: var(--mc-text);
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s, opacity 0.15s;
+}
+
+.mc-dig-nav-btn:hover:not(:disabled) { border-color: var(--mc-accent); color: var(--mc-accent); }
+.mc-dig-nav-btn:disabled { opacity: 0.2; cursor: default; }
+
+.mc-dig-counter {
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.75rem;
+  color: var(--mc-text-dim);
+  min-width: 5rem;
+  text-align: center;
+}
+
+.mc-dig-hint {
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.65rem;
+  color: var(--mc-text-dim);
+  text-align: center;
+  opacity: 0.6;
+}
+
+/* ─── Responsive ─────────────────────────────────────────────────────────── */
+
+@media (min-width: 768px) {
+  .mc-record-card { width: 240px; height: 240px; }
+  .mc-crate-stack { width: 240px; height: 240px; }
+  .mc-crate        { height: 300px; }
+
+  .mc-dig-stack { width: calc(380px + 24px); height: calc(380px + 24px); }
+  .mc-dig-stack .mc-record-card { width: 380px; height: 380px; }
+}

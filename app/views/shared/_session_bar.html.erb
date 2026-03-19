@@ -1,0 +1,9 @@
+<% if dig_session %>
+  <div class="mc-session-bar flex items-center justify-between px-4 py-2 text-xs border-b mc-border">
+    <span class="mc-dim">
+      Active dig: <strong class="mc-text"><%= dig_session.name %></strong>
+      — <%= dig_session.dig_session_items.count %> records
+    </span>
+    <%= link_to "View pile →", dig_session_path(dig_session), class: "mc-accent-link" %>
+  </div>
+<% end %>

@@ -1,0 +1,24 @@
+<% content_for :title, "Add a Store — Milkcrate" %>
+
+<div class="mb-8">
+  <h1 class="text-xl font-bold mc-text mb-1" style="font-family: ui-sans-serif, system-ui, sans-serif;">Add a Store</h1>
+  <p class="text-sm mc-dim">Enter any Discogs seller username to index their vinyl inventory.</p>
+</div>
+
+<%= form_with model: @store, class: "mc-form" do |f| %>
+  <div>
+    <%= f.label :name, "Store Name", class: "mc-label" %>
+    <%= f.text_field :name, placeholder: "Philadelphia Music", class: "mc-input", autofocus: true %>
+  </div>
+
+  <div>
+    <%= f.label :discogs_username, "Discogs Username", class: "mc-label" %>
+    <div class="flex items-center gap-2">
+      <span class="mc-dim text-sm">discogs.com/seller/</span>
+      <%= f.text_field :discogs_username, placeholder: "philadelphiamusic", class: "mc-input" %>
+    </div>
+    <p class="text-xs mc-dim mt-1">Find this in the URL of the store's Discogs page.</p>
+  </div>
+
+  <%= f.submit "Add Store & Start Syncing", class: "mc-btn mc-btn-primary mc-submit" %>
+<% end %>

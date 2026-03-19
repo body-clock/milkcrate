@@ -1,0 +1,12 @@
+<% if in_session %>
+  <%= button_to "✓ In pile", remove_from_session_listing_path(listing),
+      method: :delete,
+      class: "mc-btn",
+      data: { turbo_stream: true } %>
+<% else %>
+  <%= button_to "+ Pile", add_to_session_listing_path(listing),
+      method: :post,
+      class: "mc-btn mc-btn-primary",
+      data: { turbo_stream: true } %>
+<% end %>
+<%= link_to "Discogs ↗", listing.discogs_url, target: "_blank", rel: "noopener", class: "mc-btn" %>

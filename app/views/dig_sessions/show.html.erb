@@ -1,0 +1,46 @@
+<% content_for :title, "#{@dig_session.name} — Milkcrate" %>
+
+<div class="flex items-baseline justify-between mb-6 flex-wrap gap-3">
+  <div>
+    <h1 class="text-xl font-bold mc-text" style="font-family: ui-sans-serif, system-ui, sans-serif;"><%= @dig_session.name %></h1>
+    <p class="text-xs mc-dim mt-0.5"><%= @dig_session.store.name %> &middot; <%= @items.count %> records &middot; Total: $<%= number_with_precision(@dig_session.total_price, precision: 2) %></p>
+  </div>
+  <% if @dig_session.active? %>
+    <%= button_to "Close session", close_dig_session_path(@dig_session), method: :patch, class: "mc-btn" %>
+  <% end %>
+</div>
+
+<% if @items.any? %>
+  <div class="mc-pile-list" id="pile-list">
+    <% @items.each do |listing| %>
+      <div class="mc-pile-item" id="pile-item-<%= listing.id %>">
+        <% if listing.thumbnail_url.present? %>
+          <img src="<%= listing.thumbnail_url %>" alt="" class="mc-pile-thumb">
+        <% else %>
+          <div class="mc-pile-thumb flex items-center justify-center mc-dim">♪</div>
+        <% end %>
+
+        <div class="mc-pile-info">
+          <div class="mc-pile-title"><%= listing.title %></div>
+          <div class="mc-pile-artist"><%= listing.artist %></div>
+        </div>
+
+        <span class="mc-pile-price"><%= listing.display_price %></span>
+
+        <%= link_to "↗", listing.discogs_url, target: "_blank", rel: "noopener", class: "mc-btn text-xs" %>
+
+        <% if @dig_session.active? %>
+          <%= button_to "✕", remove_from_session_listing_path(listing),
+              method: :delete,
+              class: "mc-btn",
+              title: "Remove from pile",
+              data: { turbo_stream: true } %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <div class="py-16 text-center mc-dim text-sm">
+    <p>Your pile is empty. Head back to a store and start pulling records.</p>
+  </div>
+<% end %>
