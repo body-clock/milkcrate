@@ -23,8 +23,8 @@ class PicksSelector
     @store = store
   end
 
-  def select(count: 20, seed: nil)
-    candidates = score_all
+  def select(count: 20, seed: nil, listing_ids: nil)
+    candidates = score_all(listing_ids: listing_ids)
 
     # Prefer scored records but pad with unscored ones if the pool is thin
     scored    = candidates.select { |_, s| s > 0 }.max_by(POOL_SIZE) { |_, s| s }.map(&:first)
@@ -37,10 +37,10 @@ class PicksSelector
 
   private
 
-  def score_all
-    @store.listings
-      .where.not(genres: "{}")
-      .map { |listing| [ listing, score(listing) ] }
+  def score_all(listing_ids: nil)
+    scope = @store.listings.where.not(genres: "{}")
+    scope = scope.where(id: listing_ids) if listing_ids&.any?
+    scope.map { |listing| [ listing, score(listing) ] }
   end
 
   def score(listing)

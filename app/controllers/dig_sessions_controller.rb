@@ -11,7 +11,7 @@ class DigSessionsController < ApplicationController
   def create
     store = Store.find(params[:store_id])
     @dig_session = DigSession.create!(store: store)
-    redirect_to store_path(store), notice: "New dig session started."
+    redirect_to root_path, notice: "New dig session started."
   end
 
   def close

@@ -1,0 +1,10 @@
+# Stores in rotation order.
+# One is featured each day, cycling through the list in order.
+#
+# username:    Discogs seller username (must match an existing Store record)
+# name:        Display name shown on the homepage
+# description: 1-2 sentences — why is this store worth digging?
+
+- username: philadelphiamusic
+  name: Philadelphia Music
+  description: Independent record store in South Philly. Deep soul, jazz, and funk sections built over decades of digging.

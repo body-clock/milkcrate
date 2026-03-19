@@ -1,6 +1,6 @@
 <% content_for :title, "#{@store.name} — Milkcrate" %>
 
-<div class="flex items-baseline justify-between mb-6 flex-wrap gap-3">
+<div class="flex items-baseline justify-between mb-1 flex-wrap gap-3">
   <div>
     <h1 class="text-xl font-bold mc-text" style="font-family: ui-sans-serif, system-ui, sans-serif;"><%= @store.name %></h1>
     <p class="text-xs mc-dim mt-0.5">@<%= @store.discogs_username %> &middot; <%= @store.total_listings || "?" %> vinyl listings</p>
@@ -13,6 +13,12 @@
     <% end %>
   </div>
 </div>
+
+<% if @description.present? %>
+  <p class="text-sm mc-dim mb-6 max-w-prose"><%= @description %></p>
+<% else %>
+  <div class="mb-6"></div>
+<% end %>
 
 <% if @sections.empty? %>
   <div class="py-16 text-center mc-dim text-sm">

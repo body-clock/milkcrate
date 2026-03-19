@@ -26,6 +26,10 @@ class StoreSyncService
 
       page += 1
       sleep(0.5) # be kind to the API
+    rescue DiscogsClient::ApiError => e
+      raise unless e.message.include?("Pagination above 100")
+      Rails.logger.info "[StoreSyncService] Hit Discogs 100-page limit for #{@store.discogs_username}, stopping at page #{page}"
+      break
     end
 
     @store.update!(

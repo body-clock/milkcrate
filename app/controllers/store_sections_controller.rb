@@ -2,7 +2,7 @@ class StoreSectionsController < ApplicationController
   before_action :set_store
 
   def index
-    redirect_to store_path(@store)
+    redirect_to root_path
   end
 
   def show
@@ -18,15 +18,23 @@ class StoreSectionsController < ApplicationController
     @store = Store.find(params[:store_id])
   end
 
+  def daily_selection_ids
+    @daily_selection_ids ||= begin
+      selection = DailySelection.on(@store) || DailySelectionService.new(@store).generate
+      selection.listing_ids
+    end
+  end
+
   def fetch_section_listings
     case @section_slug
     when "new-arrivals"
       @store.listings.recent
     when "picks"
-      Listing.where(id: PicksSelector.new(@store).select(count: 100).map(&:id))
+      Listing.where(id: PicksSelector.new(@store).select(count: 100, listing_ids: daily_selection_ids).map(&:id))
     else
       genre = @section_slug.gsub("-", " ").split.map(&:capitalize).join(" ")
-      @store.listings.by_genre(genre).daily_shuffle
+      daily_scope = daily_selection_ids.any? ? @store.listings.where(id: daily_selection_ids) : @store.listings
+      daily_scope.by_genre(genre).daily_shuffle
     end
   end
 end

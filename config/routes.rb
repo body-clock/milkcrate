@@ -2,9 +2,9 @@ Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
   mount Lookbook::Engine, at: "/lookbook" if Rails.env.development?
 
-  root "stores#index"
+  root "stores#featured"
 
-  resources :stores, only: %i[index new create show] do
+  resources :stores, only: %i[new create] do
     member do
       post :sync
       get :picks_preview
