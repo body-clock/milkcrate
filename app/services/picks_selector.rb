@@ -35,6 +35,13 @@ class PicksSelector
     pool.sort_by { |listing| Digest::MD5.hexdigest("#{listing.id}#{shuffle_seed}") }.first(count)
   end
 
+  def reasons_for(listings)
+    genre_counts = @store.listings.pluck(:genres).flatten.tally
+    listings.index_with do |listing|
+      PickNarrative.new(listing, genre_counts: genre_counts).reasons
+    end
+  end
+
   private
 
   def score_all(listing_ids: nil)

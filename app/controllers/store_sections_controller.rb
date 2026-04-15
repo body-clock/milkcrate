@@ -6,6 +6,7 @@ class StoreSectionsController < ApplicationController
     @section_name = @section_slug == "new-arrivals" ? "New Arrivals" : @section_slug.titleize
     @listings = fetch_section_listings.limit(100).to_a
     @session_listing_ids = @current_dig_session&.listing_ids&.to_set || Set.new
+    @pick_reasons = @section_slug == "picks" ? PicksSelector.new(@store).reasons_for(@listings) : {}
   end
 
   private

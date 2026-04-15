@@ -6,6 +6,9 @@
 
     <%# Front: album cover %>
     <div class="mc-record-front">
+      <% if pick_reasons? %>
+        <div class="mc-record-pick-stamp">Milkcrate Pick</div>
+      <% end %>
       <% if cover_image? %>
         <img src="<%= @listing.cover_image_url %>"
              alt="<%= @listing.title %>"
@@ -19,6 +22,14 @@
     <div class="mc-record-back">
       <div class="mc-record-back-title"><%= @listing.title %></div>
       <div class="mc-record-back-artist"><%= @listing.artist %></div>
+
+      <% if pick_reasons? %>
+        <div class="mc-record-pick-reasons">
+          <% @pick_reasons.each do |reason| %>
+            <div class="mc-record-pick-reason"><%= reason %></div>
+          <% end %>
+        </div>
+      <% end %>
 
       <% if tracklist_lines.any? %>
         <div class="mc-record-back-tracklist">

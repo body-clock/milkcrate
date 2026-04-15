@@ -27,7 +27,7 @@
   --mc-notice:      #f0e8d0;
 }
 
-/* ─── Base ───────────────────────────────────────────────────────────────── */
+/* ─── Base ──────────────────────────────────────────────────────────────── */
 
 .mc-body        { background: var(--mc-bg); color: var(--mc-text); font-family: ui-serif, Georgia, serif; transition: background 0.2s, color 0.2s; }
 .mc-header      { background: var(--mc-bg-raised); }
@@ -89,7 +89,7 @@
 .mc-crate-row::-webkit-scrollbar { display: none; }
 .mc-crate-row > * { scroll-snap-align: start; }
 
-/* ─── Record Card ────────────────────────────────────────────────────────── */
+/* ─── Record Card ──────────────────────────────────────────────────────── */
 
 .mc-record-card {
   position: relative;
@@ -125,6 +125,22 @@
 
 .mc-record-front {
   background: var(--mc-bg-card);
+}
+
+.mc-record-pick-stamp {
+  position: absolute;
+  top: 0.6rem;
+  left: 0.6rem;
+  z-index: 1;
+  padding: 0.25rem 0.45rem;
+  border: 1px solid color-mix(in srgb, var(--mc-accent) 65%, transparent);
+  background: color-mix(in srgb, var(--mc-bg) 80%, transparent);
+  color: var(--mc-accent);
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .mc-record-back {
@@ -181,6 +197,18 @@
   overflow: hidden;
   flex: 1;
   line-height: 1.6;
+}
+.mc-record-pick-reasons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.mc-record-pick-reason {
+  font-size: 0.6rem;
+  line-height: 1.4;
+  color: var(--mc-text);
+  border-left: 2px solid var(--mc-accent);
+  padding-left: 0.45rem;
 }
 .mc-record-back-actions {
   display: flex;
@@ -339,7 +367,7 @@
   opacity: 0.6;
 }
 
-/* ─── Responsive ─────────────────────────────────────────────────────────── */
+/* ─── Responsive ────────────────────────────────────────────────────────── */
 
 @media (min-width: 768px) {
   .mc-record-card { width: 240px; height: 240px; }

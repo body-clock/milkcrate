@@ -21,7 +21,8 @@
         <div class="mc-dig-slot" data-crate-target="card">
           <%= render RecordCardComponent.new(
                 listing: listing,
-                in_session: @session_listing_ids.include?(listing.id)
+                in_session: @session_listing_ids.include?(listing.id),
+                pick_reasons: @pick_reasons[listing.id]
               ) %>
         </div>
       <% end %>

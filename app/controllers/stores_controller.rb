@@ -3,7 +3,7 @@ class StoresController < ApplicationController
     entries = Store.rotation
     return render :no_stores if entries.empty?
 
-    entry = entries[Date.current.jd % entries.count]
+    entry = entry[Date.current.jd % entries.count]
     @store = Store.find_by(discogs_username: entry["username"])
     return render :no_stores unless @store
 
@@ -28,7 +28,9 @@ class StoresController < ApplicationController
   def picks_preview
     @store = Store.find(params[:id])
     daily_ids = daily_selection_ids(@store)
-    @picks = PicksSelector.new(@store).select(count: 20, seed: params[:seed], listing_ids: daily_ids)
+    selector = PicksSelector.new(@store)
+    @picks = selector.select(count: 20, seed: params[:seed], listing_ids: daily_ids)
+    @pick_reasons = selector.reasons_for(@picks)
     @session_listing_ids = @current_dig_session&.listing_ids&.to_set || Set.new
   end
 
@@ -42,8 +44,18 @@ class StoresController < ApplicationController
     sections = []
     daily_ids = daily_selection_ids(store)
 
-    picks = PicksSelector.new(store).select(listing_ids: daily_ids)
-    sections << { name: "Milkcrate Picks", slug: "picks", listings: picks, count: picks.size, preloaded: true } if picks.any?
+    selector = PicksSelector.new(store)
+    picks = selector.select(listing_ids: daily_ids)
+    if picks.any?
+      sections << {
+        name: "Milkcrate Picks",
+        slug: "picks",
+        listings: picks,
+        count: picks.size,
+        preloaded: true,
+        pick_reasons: selector.reasons_for(picks)
+      }
+    end
 
     new_arrivals = store.listings.new_arrivals
     sections << { name: "New Arrivals", slug: "new-arrivals", listings: new_arrivals, count: new_arrivals.size } if new_arrivals.any?

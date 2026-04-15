@@ -47,6 +47,18 @@ RSpec.describe RecordCardComponent, type: :component do
     expect(page).to have_text("B1 Pursuance")
   end
 
+  it "renders pick reasons when present" do
+    render_inline(described_class.new(
+      listing: listing,
+      in_session: false,
+      pick_reasons: [ "Discovery styles: Spiritual Jazz", "Vintage press: 1965" ]
+    ))
+
+    expect(page).to have_text("Milkcrate Pick")
+    expect(page).to have_text("Discovery styles: Spiritual Jazz")
+    expect(page).to have_text("Vintage press: 1965")
+  end
+
   it "renders meta info" do
     render_inline(component)
     expect(page).to have_text("Impulse!")
