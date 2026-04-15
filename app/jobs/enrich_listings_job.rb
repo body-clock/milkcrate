@@ -5,13 +5,17 @@ class EnrichListingsJob < ApplicationJob
   RATE_LIMIT_SLEEP = 1.1
   RATE_LIMIT_BACKOFF = 30
 
-  def perform(store_id)
+  def perform(store_id, listing_ids: nil)
     store = Store.find(store_id)
     client = DiscogsClient.new
+
+    cold_start = store.listings.where.not(genres: "{}").none?
+    Rails.logger.info("[EnrichListings] Cold start detected for #{store.discogs_username} — enriching full catalog") if cold_start
 
     listings = store.listings
       .where.not(discogs_release_id: [ nil, "" ])
       .where("cover_image_url = thumbnail_url OR cover_image_url IS NULL OR genres = '{}'")
+    listings = listings.where(id: listing_ids) if listing_ids&.any? && !cold_start
 
     enriched = 0
     listings.find_each do |listing|

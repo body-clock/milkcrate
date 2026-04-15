@@ -5,7 +5,8 @@ class GenerateDailySelectionsJob < ApplicationJob
     store = Store.featured_on(date)
     return Rails.logger.warn("[GenerateDailySelectionsJob] No stores in rotation") unless store
 
-    DailySelectionService.new(store).generate(date: date)
+    selection = DailySelectionService.new(store).generate(date: date)
+    EnrichListingsJob.perform_later(store.id, listing_ids: selection.listing_ids)
   rescue => e
     Rails.logger.error "[GenerateDailySelectionsJob] Failed for store #{store&.id}: #{e.message}"
   end

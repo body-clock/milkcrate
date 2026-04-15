@@ -6,6 +6,6 @@ class FullStoreSyncJob < ApplicationJob
     count = StoreSyncService.new(store).full_sync(max_pages: max_pages)
     Rails.logger.info("FullStoreSync: imported #{count} listings for #{store.discogs_username}")
 
-    EnrichListingsJob.perform_later(store_id)
+    GenerateDailySelectionsJob.perform_later
   end
 end
