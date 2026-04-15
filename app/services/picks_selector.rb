@@ -18,6 +18,7 @@ class PicksSelector
 
   # Vintage cutoff — anything from these eras gets a bump
   VINTAGE_BEFORE = 1980
+  CROWDED_SECTION_THRESHOLD = 15
 
   def initialize(store)
     @store = store
@@ -65,6 +66,12 @@ class PicksSelector
 
     # Small section penalty reversed — records from tiny sections deserve a spotlight
     points += 3 if genre_counts.fetch(listing.primary_genre, 0) < 5
+
+    # Buried bin bonus — discovery records hidden in crowded sections are
+    # exactly the kind of finds that reward patient digging in a real shop.
+    if matching_styles.any? && genre_counts.fetch(listing.primary_genre, 0) >= CROWDED_SECTION_THRESHOLD
+      points += 3
+    end
 
     points
   end
