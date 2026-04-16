@@ -18,6 +18,8 @@ class PicksSelector
 
   # Vintage cutoff — anything from these eras gets a bump
   VINTAGE_BEFORE = 1980
+  RARE_STYLE_THRESHOLD = 3
+  RARE_STYLE_BOOST = 2
 
   def initialize(store)
     @store = store
@@ -43,11 +45,12 @@ class PicksSelector
     listings = scope.to_a
 
     genre_counts = @store.listings.pluck(:genres).flatten.tally
+    style_counts = @store.listings.pluck(:styles).flatten.tally
 
-    listings.map { |listing| [ listing, score(listing, genre_counts) ] }
+    listings.map { |listing| [ listing, score(listing, genre_counts, style_counts) ] }
   end
 
-  def score(listing, genre_counts)
+  def score(listing, genre_counts, style_counts)
     points = 0
 
     # Discovery styles — the stuff worth digging for
@@ -65,6 +68,10 @@ class PicksSelector
 
     # Small section penalty reversed — records from tiny sections deserve a spotlight
     points += 3 if genre_counts.fetch(listing.primary_genre, 0) < 5
+
+    # Rare styles are closer to the record-store "wait, what's this?" feeling
+    rare_styles = listing.styles.select { |style| style_counts.fetch(style, 0) < RARE_STYLE_THRESHOLD }
+    points += rare_styles.size * RARE_STYLE_BOOST
 
     points
   end
