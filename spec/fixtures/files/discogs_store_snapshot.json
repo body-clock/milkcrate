@@ -1,0 +1,101 @@
+{
+  "snapshot_version": 1,
+  "captured_at": "2026-04-17T16:30:00Z",
+  "source": {
+    "discogs_username": "philadelphiamusic",
+    "max_pages": 1,
+    "per_page": 100
+  },
+  "store": {
+    "name": "Philadelphia Music",
+    "discogs_username": "philadelphiamusic",
+    "description": "Fixture store for importer spec"
+  },
+  "listings": [
+    {
+      "discogs_listing_id": "2350448891",
+      "discogs_release_id": "171624",
+      "artist": "Basic Channel",
+      "title": "Phylyps Trak",
+      "label": "Basic Channel",
+      "format": "Vinyl, 12\"",
+      "year": 1993,
+      "genres": ["Electronic"],
+      "styles": ["Dub Techno", "Minimal"],
+      "condition": "VG+",
+      "sleeve_condition": "VG",
+      "price": "34.00",
+      "currency": "USD",
+      "listed_at": "2026-04-17T16:00:00Z",
+      "notes": "Clean copy"
+    },
+    {
+      "discogs_listing_id": "2350448892",
+      "discogs_release_id": "171625",
+      "artist": "Maurizio",
+      "title": "M4",
+      "label": "Maurizio",
+      "format": "Vinyl, 12\"",
+      "year": 1995,
+      "genres": ["Electronic"],
+      "styles": ["Techno"],
+      "condition": "VG",
+      "sleeve_condition": "VG",
+      "price": "26.00",
+      "currency": "USD",
+      "listed_at": "2026-04-17T16:01:00Z",
+      "notes": "Minor sleeve wear"
+    },
+    {
+      "discogs_listing_id": "2350448893",
+      "discogs_release_id": "171626",
+      "artist": "Quadrant",
+      "title": "Infinition",
+      "label": "Basic Channel",
+      "format": "Vinyl, 12\"",
+      "year": 1994,
+      "genres": ["Electronic"],
+      "styles": ["Dub Techno"],
+      "condition": "NM",
+      "sleeve_condition": "VG+",
+      "price": "31.50",
+      "currency": "USD",
+      "listed_at": "2026-04-17T16:02:00Z",
+      "notes": "Strong copy"
+    },
+    {
+      "discogs_listing_id": "2350448894",
+      "discogs_release_id": "171627",
+      "artist": "Vainqueur",
+      "title": "Lyot",
+      "label": "Chain Reaction",
+      "format": "Vinyl, 12\"",
+      "year": 1996,
+      "genres": ["Electronic"],
+      "styles": ["Techno", "Dub"],
+      "condition": "VG+",
+      "sleeve_condition": "VG+",
+      "price": "29.00",
+      "currency": "USD",
+      "listed_at": "2026-04-17T16:03:00Z",
+      "notes": "Great sounding pressing"
+    },
+    {
+      "discogs_listing_id": "2350448895",
+      "discogs_release_id": "171628",
+      "artist": "Porter Ricks",
+      "title": "Biokinetics",
+      "label": "Chain Reaction",
+      "format": "Vinyl, 2xLP",
+      "year": 1996,
+      "genres": ["Electronic"],
+      "styles": ["Dub Techno", "Ambient"],
+      "condition": "VG",
+      "sleeve_condition": "VG",
+      "price": "45.00",
+      "currency": "USD",
+      "listed_at": "2026-04-17T16:04:00Z",
+      "notes": "Light surface marks"
+    }
+  ]
+}

@@ -13,6 +13,34 @@ This README is only for local development.
 - Scores a smaller "Milkcrate Picks" set for quick browsing
 - Lets you save records into a dig session and review past sessions
 
+## Algorithm Status
+
+Current curation behavior is intentionally simple and still in active refinement.
+
+`DailySelectionService` currently mixes:
+
+- recent arrivals
+- good-condition records
+- discovery styles
+- unseen inventory from the last week
+
+`PicksSelector` currently boosts:
+
+- discovery styles
+- multi-genre crossover
+- vintage records
+- good-condition copies
+- records from tiny sections
+- discovery records buried inside crowded sections
+
+Working notes for the picks algorithm live in [docs/milkcrate-picks-algorithm-research.md](docs/milkcrate-picks-algorithm-research.md).
+
+Current gaps:
+
+- condition text is not yet normalized beyond a small allowlist
+- picks can still over-reward obvious catalog anchors
+- low-information listings do not yet receive a penalty
+
 ## Stack
 
 - Ruby `3.4.8`
@@ -188,6 +216,30 @@ Run the test suite with:
 ```bash
 bundle exec rspec
 ```
+
+## Local Corpus Workflow
+
+To avoid repeated high-volume Discogs API calls during local resets, Milkcrate supports a committed JSON corpus snapshot.
+
+- Seed from committed snapshot:
+
+  ```bash
+  bin/rails corpus:seed
+  ```
+
+- Refresh snapshot manually from Discogs:
+
+  ```bash
+  bin/rails "corpus:refresh[philadelphiamusic,20]"
+  ```
+
+- Inspect snapshot composition:
+
+  ```bash
+  bin/rails corpus:stats
+  ```
+
+The snapshot lives at `db/corpus/discogs_store_snapshot.json` and should remain metadata-only (no binary assets).
 
 There is also a CI helper:
 
