@@ -28,8 +28,8 @@ This README is only for local development.
 Install these before setup:
 
 - Ruby `3.4.8`
-- PostgreSQL running locally
 - Bundler
+- Docker with Docker Compose support
 
 You will also need a Discogs personal access token.
 
@@ -45,6 +45,14 @@ Required variables:
 
 - `DISCOGS_TOKEN`
   Used for inventory sync and release enrichment.
+- `DB_HOST`
+  Local Postgres host. Use `127.0.0.1` for the compose setup.
+- `DB_PORT`
+  Local Postgres port. The example setup uses `5433` to avoid colliding with another local Postgres instance.
+- `DB_USER`
+  Local Postgres username.
+- `DB_PASSWORD`
+  Local Postgres password.
 - `MILKCRATE_USER`
   HTTP basic auth username for the app.
 - `MILKCRATE_PASSWORD`
@@ -54,7 +62,15 @@ Without `MILKCRATE_PASSWORD`, requests will fail because the app always checks b
 
 ## Local Setup
 
-Install dependencies and prepare the database:
+Start Postgres first:
+
+```bash
+docker compose up -d postgres
+```
+
+The compose file binds the container's Postgres port to `${DB_PORT}` on the host and defaults to `5433`.
+
+Then install dependencies and prepare the database:
 
 ```bash
 bin/setup
@@ -78,9 +94,15 @@ The local databases are:
 - `milkcrate_development`
 - `milkcrate_test`
 
+To stop the database later:
+
+```bash
+docker compose down
+```
+
 ## Running The App
 
-Start the full local development stack with:
+With the Postgres container running, start the full local development stack with:
 
 ```bash
 bin/dev
@@ -175,7 +197,8 @@ bin/ci
 
 ## Notes For Developers
 
-- This repo includes a production `Dockerfile` and Kamal config, but they are not part of the local development flow.
+- Local development uses `docker-compose.yml` only for Postgres. The Rails server, Tailwind watcher, and job worker still run on the host via `bin/dev`.
+- This repo also includes a production `Dockerfile` and Kamal config, which are separate from the local development flow.
 - `config/recurring.yml` defines recurring jobs for production; local development usually relies on manual actions and the running job worker.
 - Store rotation is file-driven. If a store exists in the database but not in `config/stores.yml`, it will not appear on the homepage.
 - Inventory import is Discogs-rate-limited by design, so large syncs and enrichment runs can take a while.

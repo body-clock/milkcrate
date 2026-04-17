@@ -23,6 +23,18 @@ default: &default
 development:
   <<: *default
   database: milkcrate_development
+  <% if ENV["DB_USER"] && !ENV["DB_USER"].empty? %>
+  username: <%= ENV["DB_USER"] %>
+  <% end %>
+  <% if ENV["DB_PASSWORD"] && !ENV["DB_PASSWORD"].empty? %>
+  password: <%= ENV["DB_PASSWORD"] %>
+  <% end %>
+  <% if ENV["DB_HOST"] && !ENV["DB_HOST"].empty? %>
+  host: <%= ENV["DB_HOST"] %>
+  <% end %>
+  <% if ENV["DB_PORT"] && !ENV["DB_PORT"].empty? %>
+  port: <%= ENV["DB_PORT"] %>
+  <% end %>
 
   # The specified database role being used to connect to PostgreSQL.
   # To create additional roles in PostgreSQL see `$ createuser --help`.
@@ -57,6 +69,18 @@ development:
 test:
   <<: *default
   database: milkcrate_test
+  <% if ENV["DB_USER"] && !ENV["DB_USER"].empty? %>
+  username: <%= ENV["DB_USER"] %>
+  <% end %>
+  <% if ENV["DB_PASSWORD"] && !ENV["DB_PASSWORD"].empty? %>
+  password: <%= ENV["DB_PASSWORD"] %>
+  <% end %>
+  <% if ENV["DB_HOST"] && !ENV["DB_HOST"].empty? %>
+  host: <%= ENV["DB_HOST"] %>
+  <% end %>
+  <% if ENV["DB_PORT"] && !ENV["DB_PORT"].empty? %>
+  port: <%= ENV["DB_PORT"] %>
+  <% end %>
 
 # As with config/credentials.yml, you never want to store sensitive information,
 # like your database password, in your source code. If your source code is
