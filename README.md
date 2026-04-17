@@ -217,6 +217,30 @@ Run the test suite with:
 bundle exec rspec
 ```
 
+## Local Corpus Workflow
+
+To avoid repeated high-volume Discogs API calls during local resets, Milkcrate supports a committed JSON corpus snapshot.
+
+- Seed from committed snapshot:
+
+  ```bash
+  bin/rails corpus:seed
+  ```
+
+- Refresh snapshot manually from Discogs:
+
+  ```bash
+  bin/rails "corpus:refresh[philadelphiamusic,20]"
+  ```
+
+- Inspect snapshot composition:
+
+  ```bash
+  bin/rails corpus:stats
+  ```
+
+The snapshot lives at `db/corpus/discogs_store_snapshot.json` and should remain metadata-only (no binary assets).
+
 There is also a CI helper:
 
 ```bash
