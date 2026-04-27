@@ -114,5 +114,29 @@ RSpec.describe PicksSelector do
 
       expect(rare_score).to be > common_score
     end
+
+    it "normalizes condition variants (NM, Near Mint, M-) to good condition" do
+      selector = described_class.new(double("store"))
+      conditions = %w[NM Near\ Mint M- VG+]
+      conditions.each do |cond|
+        listing = FakeListing.new(id: 200, genres: ["Rock"], styles: ["Classic Rock"], condition: cond)
+        score = selector.send(:score, listing, { "Rock" => 10 }, { "Classic Rock" => 10 })
+        expect(score).to be > 0, "expected #{cond.inspect} to count as good condition"
+      end
+    end
+
+    it "penalizes records with no style, no genre diversity, and no year" do
+      selector = described_class.new(double("store"))
+      weak = FakeListing.new(id: 300, genres: ["Rock"], styles: [], condition: "Generic", year: nil)
+      strong = FakeListing.new(id: 301, genres: ["Rock"], styles: ["Classic Rock"], year: 1975, condition: "VG+")
+
+      genre_counts = { "Rock" => 10 }
+      style_counts = { "Classic Rock" => 10 }
+
+      weak_score = selector.send(:score, weak, genre_counts, style_counts)
+      strong_score = selector.send(:score, strong, genre_counts, style_counts)
+
+      expect(strong_score).to be > weak_score
+    end
   end
 end

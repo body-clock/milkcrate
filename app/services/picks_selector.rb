@@ -22,6 +22,14 @@ class PicksSelector
   RARE_STYLE_THRESHOLD = 3
   RARE_STYLE_BOOST = 2
 
+  # Condition variants that count as "good"
+  GOOD_CONDITIONS = %w[Mint NM M VG+].freeze
+  CONDITION_ALIASES = {
+    "near mint" => "NM",
+    "m-" => "M",
+    "mint-" => "M"
+  }.freeze
+
   def initialize(store)
     @store = store
   end
@@ -64,8 +72,10 @@ class PicksSelector
     # Vintage
     points += 2 if listing.year && listing.year < VINTAGE_BEFORE
 
-    # Good condition
-    points += 1 if %w[Mint NM M VG+].include?(listing.condition&.strip)
+    # Good condition (normalized: NM, Near Mint, M-, etc.)
+    good = GOOD_CONDITIONS.include?(listing.condition&.strip) ||
+           CONDITION_ALIASES.include?(listing.condition&.strip&.downcase)
+    points += 1 if good
 
     # Small section penalty reversed — records from tiny sections deserve a spotlight
     points += 3 if genre_counts.fetch(listing.primary_genre, 0) < 5
@@ -79,6 +89,12 @@ class PicksSelector
     # Rare styles are closer to the record-store "wait, what's this?" feeling
     rare_styles = listing.styles.select { |style| style_counts.fetch(style, 0) < RARE_STYLE_THRESHOLD }
     points += rare_styles.size * RARE_STYLE_BOOST
+
+    # Weak metadata penalty — records with no style, single genre, and no year
+    # are low-information and probably not worth digging for
+    if listing.styles.empty? && listing.genres.size <= 1 && listing.year.nil?
+      points -= 1
+    end
 
     points
   end
