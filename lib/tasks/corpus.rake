@@ -2,7 +2,7 @@ require "json"
 
 namespace :corpus do
   desc "Refresh committed Discogs snapshot: corpus:refresh[username,max_pages]"
-  task :refresh, [:username, :max_pages] => :environment do |_task, args|
+  task :refresh, [ :username, :max_pages ] => :environment do |_task, args|
     username = args[:username].presence || ENV["DISCOGS_USERNAME"]
     raise ArgumentError, "username is required (arg or DISCOGS_USERNAME)" if username.blank?
 
