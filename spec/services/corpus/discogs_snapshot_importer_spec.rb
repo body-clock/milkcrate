@@ -29,8 +29,8 @@ RSpec.describe Corpus::DiscogsSnapshotImporter do
       expect(listing.artist).to eq("Basic Channel")
       expect(listing.title).to eq("Phylyps Trak")
       expect(listing.discogs_release_id).to eq("171624")
-      expect(listing.genres).to eq(["Electronic"])
-      expect(listing.styles).to eq(["Dub Techno", "Minimal"])
+      expect(listing.genres).to eq([ "Electronic" ])
+      expect(listing.styles).to eq([ "Dub Techno", "Minimal" ])
       expect(listing.price).to eq(BigDecimal("34.00"))
     end
 
@@ -66,7 +66,7 @@ RSpec.describe Corpus::DiscogsSnapshotImporter do
             title: "Untitled",
             label: "Private Press",
             format: "Vinyl, LP",
-            genres: ["Electronic"],
+            genres: [ "Electronic" ],
             condition: "VG",
             price: "9.99",
             currency: "USD",

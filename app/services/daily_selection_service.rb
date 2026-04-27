@@ -62,7 +62,7 @@ class DailySelectionService
     # Each listing gets rand^(1/weight) — higher weight = higher probability.
     # Produces a proper weighted random sample in one pass.
     candidates
-      .map { |listing, weight| [ listing, rand**( 1.0 / [ weight, 0.1 ].max) ] }
+      .map { |listing, weight| [ listing, rand**(1.0 / [ weight, 0.1 ].max) ] }
       .max_by(fresh_count) { |_, v| v }
       .map { |l, _| l.id }
   end

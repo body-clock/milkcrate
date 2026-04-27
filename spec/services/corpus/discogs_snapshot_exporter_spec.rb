@@ -29,12 +29,12 @@ RSpec.describe Corpus::DiscogsSnapshotExporter do
             "artist" => "Artist B",
             "title" => "Record B",
             "year" => 1984,
-            "genres" => ["Electronic"],
-            "styles" => ["Ambient"],
+            "genres" => [ "Electronic" ],
+            "styles" => [ "Ambient" ],
             "thumbnail" => "https://example.com/t2.jpg",
             "cover_image" => "https://example.com/c2.jpg",
-            "labels" => [{ "name" => "Label B" }],
-            "formats" => [{ "name" => "Vinyl", "descriptions" => ["LP"] }]
+            "labels" => [ { "name" => "Label B" } ],
+            "formats" => [ { "name" => "Vinyl", "descriptions" => [ "LP" ] } ]
           }
         }
       ]
@@ -56,12 +56,12 @@ RSpec.describe Corpus::DiscogsSnapshotExporter do
             "artist" => "Artist A",
             "title" => "Record A",
             "year" => 1979,
-            "genres" => ["Jazz"],
-            "styles" => ["Fusion"],
+            "genres" => [ "Jazz" ],
+            "styles" => [ "Fusion" ],
             "thumbnail" => "https://example.com/t1.jpg",
             "cover_image" => "https://example.com/c1.jpg",
-            "labels" => [{ "name" => "Label A" }],
-            "formats" => [{ "name" => "Vinyl", "descriptions" => ["LP"] }]
+            "labels" => [ { "name" => "Label A" } ],
+            "formats" => [ { "name" => "Vinyl", "descriptions" => [ "LP" ] } ]
           }
         }
       ]
