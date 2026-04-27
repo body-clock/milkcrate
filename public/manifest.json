@@ -1,0 +1,10 @@
+{
+  "name": "Milkcrate",
+  "short_name": "Milkcrate",
+  "description": "Dig through record store crates",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#15120e",
+  "background_color": "#15120e",
+  "orientation": "portrait-primary"
+}

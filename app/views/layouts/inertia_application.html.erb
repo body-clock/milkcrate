@@ -3,6 +3,10 @@
   <head>
     <title><%= content_for(:title) || "Milkcrate" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="theme-color" content="#15120e" data-theme="dark">
+    <meta name="theme-color" content="#f2ebe0" data-theme="light">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="/manifest.json">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <%= yield :head %>
@@ -11,6 +15,9 @@
     <%= vite_client_tag %>
     <%= vite_react_refresh_tag %>
     <%= vite_javascript_tag "application.tsx" %>
+    <% if Rails.env.production? %>
+      <script>addEventListener("load", () => navigator.serviceWorker?.register("/sw.js"))</script>
+    <% end %>
   </head>
   <body class="mc-body min-h-screen">
     <%= yield %>
