@@ -49,6 +49,12 @@ gem "faraday-retry"
 # View components
 gem "view_component"
 
+# Inertia Rails — server-driven single-page app
+gem "inertia_rails"
+
+# Vite asset pipeline for Inertia
+gem "vite_rails"
+
 group :development, :test do
   gem "dotenv-rails"
 
@@ -69,6 +75,7 @@ group :development, :test do
   gem "rspec-rails"
   gem "factory_bot_rails"
   gem "capybara"
+  gem "inertia_rails-contrib", require: "inertia_rails/rspec"
 end
 
 group :development do
