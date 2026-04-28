@@ -36,6 +36,8 @@ class DiscogsClient
 
   def build_connection
     Faraday.new(url: BASE_URL) do |f|
+      f.options.timeout = 10
+      f.options.open_timeout = 5
       f.request :retry, max: 3, interval: 2.0, retry_statuses: [ 503 ]
       f.request :url_encoded
       f.response :json

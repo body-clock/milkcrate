@@ -46,8 +46,9 @@ gem "image_processing", "~> 1.2"
 gem "faraday"
 gem "faraday-retry"
 
-# View components
-gem "view_component"
+# HTTP client for Discogs API
+gem "faraday"
+gem "faraday-retry"
 
 # Inertia Rails — server-driven single-page app
 gem "inertia_rails"
@@ -81,7 +82,4 @@ end
 group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console"
-
-  # Component previews
-  gem "lookbook"
 end
