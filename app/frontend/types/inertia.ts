@@ -1,0 +1,48 @@
+export interface Store {
+  id: number
+  name: string
+  discogs_username: string
+  description: string | null
+  total_listings: number | null
+  sync_status: string
+}
+
+export interface Listing {
+  id: number
+  discogs_listing_id: string
+  artist: string | null
+  title: string | null
+  label: string | null
+  year: number | null
+  format: string | null
+  genres: string[]
+  styles: string[]
+  condition: string | null
+  price: string
+  currency: string
+  cover_image_url: string | null
+  thumbnail_url: string | null
+  notes: string | null
+  discogs_url: string
+  in_pile: boolean
+}
+
+export interface Crate {
+  slug: string
+  name: string
+  count: number
+  records: Listing[]
+}
+
+export interface CurrentSession {
+  id: number
+  name: string
+  item_ids: number[]
+}
+
+export interface FeaturedProps {
+  store: Store
+  crates: Crate[]
+  active_crate_slug: string
+  current_session: CurrentSession | null
+}
