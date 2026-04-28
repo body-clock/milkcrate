@@ -14,6 +14,18 @@ interface Props {
 const ease = { duration: 0.2, ease: "easeOut" }
 const DRAG_THRESHOLD = 80
 
+function usePreload(records: { id: number; cover_image_url?: string | null }[], index: number) {
+  useEffect(() => {
+    for (let offset = 1; offset <= 3; offset++) {
+      const r = records[index + offset]
+      if (r?.cover_image_url) {
+        const img = new Image()
+        img.src = r.cover_image_url
+      }
+    }
+  }, [records, index])
+}
+
 export default function CrateView({ crates, activeSlug, onSelectCrate, onToggleMode }: Props) {
   const activeCrate = crates.find((c) => c.slug === activeSlug) ?? crates[0]
   const records = activeCrate?.records ?? []
@@ -58,6 +70,8 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, onToggleM
   }
 
   const progress = total > 0 ? ((index + 1) / total) * 100 : 0
+
+  usePreload(records, index)
 
   return (
     <div className="flex flex-col">
