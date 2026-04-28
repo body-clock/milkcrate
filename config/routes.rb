@@ -6,12 +6,7 @@ Rails.application.routes.draw do
 
   root "stores#featured"
 
-  resources :stores, only: %i[new create] do
-    member do
-      get :picks_preview
-    end
-    resources :sections, only: %i[show], controller: "store_sections"
-  end
+  resources :stores, only: %i[new create]
 
   resources :listings, only: [] do
     member do
