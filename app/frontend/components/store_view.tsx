@@ -9,7 +9,7 @@ interface Props {
   onToggleMode: () => void
 }
 
-export default function StoreView({ crates, onOpenCrate, onToggleMode }: Props) {
+export default function StoreView({ crates, onOpenCrate, mode, onToggleMode }: Props) {
   const picks = crates.find((c) => c.slug === "picks")
   const genreCrates = crates.filter((c) => c.slug !== "picks")
 
