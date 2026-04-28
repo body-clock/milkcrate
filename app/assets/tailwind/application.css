@@ -1,18 +1,43 @@
 @import "tailwindcss";
 
+@theme {
+  --color-mc-bg:         var(--mc-bg);
+  --color-mc-bg-raised:  var(--mc-bg-raised);
+  --color-mc-bg-card:    var(--mc-bg-card);
+  --color-mc-text:       var(--mc-text);
+  --color-mc-text-dim:   var(--mc-text-dim);
+  --color-mc-accent:     var(--mc-accent);
+  --color-mc-accent-dim: var(--mc-accent-dim);
+  --color-mc-border:     var(--mc-border);
+  --color-mc-notice:     var(--mc-notice);
+}
+
 /* ─── Milkcrate Design Tokens ────────────────────────────────────────────── */
 
 :root {
-  /* Dark mode (default) — warm charcoal, cream, amber */
-  --mc-bg:          #1a1714;
-  --mc-bg-raised:   #231f1b;
-  --mc-bg-card:     #2a2420;
-  --mc-text:        #e8dcc8;
-  --mc-text-dim:    #8a7b68;
-  --mc-accent:      #c8854a;
-  --mc-accent-dim:  #7a5230;
-  --mc-border:      #3a3028;
-  --mc-notice:      #3a2e1a;
+  /* Dark mode — deep charcoal, warm tones, oxblood accent */
+  --mc-bg:          #15120e;
+  --mc-bg-raised:   #1e1a15;
+  --mc-bg-card:     #26211b;
+  --mc-text:        #e6ddd0;
+  --mc-text-dim:    #807060;
+  --mc-accent:      #c84830;
+  --mc-accent-dim:  #8a3020;
+  --mc-border:      #352a20;
+  --mc-notice:      #352020;
+}
+
+[data-theme="light"] {
+  /* Light mode — warm kraft paper, oxblood accent */
+  --mc-bg:          #f2ebe0;
+  --mc-bg-raised:   #e8e0d0;
+  --mc-bg-card:     #ddd4c0;
+  --mc-text:        #1c1814;
+  --mc-text-dim:    #807060;
+  --mc-accent:      #b84028;
+  --mc-accent-dim:  #d47060;
+  --mc-border:      #c8bca8;
+  --mc-notice:      #f0e0d0;
 }
 
 [data-theme="light"] {
