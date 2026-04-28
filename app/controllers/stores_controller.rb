@@ -36,13 +36,6 @@ class StoresController < ApplicationController
     end
   end
 
-  def picks_preview
-    @store = Store.find(params[:id])
-    daily_ids = daily_selection_ids(@store)
-    @picks = PicksSelector.new(@store).select(count: 20, seed: params[:seed], listing_ids: daily_ids)
-    @session_listing_ids = @current_dig_session&.listing_ids&.to_set || Set.new
-  end
-
   private
 
   def store_params
