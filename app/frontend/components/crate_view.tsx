@@ -28,7 +28,7 @@ function usePreload(records: { id: number; cover_image_url?: string | null }[], 
   }, [records, index])
 }
 
-export default function CrateView({ crates, activeSlug, onSelectCrate, onToggleMode }: Props) {
+export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onToggleMode }: Props) {
   const activeCrate = crates.find((c) => c.slug === activeSlug) ?? crates[0]
   const records = activeCrate?.records ?? []
   const total = records.length
