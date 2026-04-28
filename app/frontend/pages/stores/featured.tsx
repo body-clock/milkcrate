@@ -39,12 +39,14 @@ export default function Featured({ store, crates, active_crate_slug }: FeaturedP
           crates={crates}
           activeSlug={activeSlug}
           onSelectCrate={setActiveSlug}
+          mode={mode}
           onToggleMode={() => setMode("store")}
         />
       ) : (
         <StoreView
           crates={crates}
           onOpenCrate={handleOpenCrate}
+          mode={mode}
           onToggleMode={() => setMode("crate")}
         />
       )}

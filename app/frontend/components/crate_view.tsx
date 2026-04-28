@@ -2,12 +2,14 @@ import React, { useState, useCallback, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import CrateTabs from "./crate_tabs"
 import RecordCard from "./record_card"
+import ToggleView from "./toggle_view"
 import type { Crate } from "../types/inertia"
 
 interface Props {
   crates: Crate[]
   activeSlug: string
   onSelectCrate: (slug: string) => void
+  mode: "crate" | "store"
   onToggleMode: () => void
 }
 
@@ -62,7 +64,7 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, onToggleM
       <div>
         <div className="flex items-center justify-between mb-3">
           <CrateTabs crates={crates} activeSlug={activeSlug} onSelect={onSelectCrate} />
-          <button onClick={onToggleMode} className="text-xs border border-mc-border rounded px-2 py-1 cursor-pointer hover:border-mc-accent transition-colors">🏪 Store</button>
+          <ToggleView mode={mode} onToggle={onToggleMode} />
         </div>
         <div className="py-16 text-center mc-dim text-sm">No records in this crate yet.</div>
       </div>
@@ -78,9 +80,9 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, onToggleM
       {/* Top bar: crate tabs + store toggle */}
       <div className="flex items-center justify-between mb-4">
         <CrateTabs crates={crates} activeSlug={activeSlug} onSelect={onSelectCrate} />
-        <button onClick={onToggleMode} className="shrink-0 text-xs border border-mc-border rounded px-2 py-1 cursor-pointer hover:border-mc-accent transition-colors ml-2">
-          🏪 Store
-        </button>
+        <div className="ml-2 shrink-0">
+          <ToggleView mode={mode} onToggle={onToggleMode} />
+        </div>
       </div>
 
       {/* Record display — single card, no depth */}

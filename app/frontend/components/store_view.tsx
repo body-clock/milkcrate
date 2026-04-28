@@ -1,9 +1,11 @@
 import React from "react"
+import ToggleView from "./toggle_view"
 import type { Crate } from "../types/inertia"
 
 interface Props {
   crates: Crate[]
   onOpenCrate: (slug: string) => void
+  mode: "crate" | "store"
   onToggleMode: () => void
 }
 
@@ -31,12 +33,7 @@ export default function StoreView({ crates, onOpenCrate, onToggleMode }: Props) 
     <div>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-sm font-semibold">Store Overview</h2>
-        <button
-          onClick={onToggleMode}
-          className="text-xs border border-mc-accent rounded px-2 py-1 cursor-pointer hover:bg-mc-accent-dim transition-colors"
-        >
-          📦 Crate view
-        </button>
+        <ToggleView mode={mode} onToggle={onToggleMode} />
       </div>
 
       {picks && picks.records.length > 0 && (

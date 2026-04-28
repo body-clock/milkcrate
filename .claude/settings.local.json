@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ruby --version)",
+      "Bash(bundle exec:*)",
+      "Bash(grep:*)"
+    ]
+  }
+}
