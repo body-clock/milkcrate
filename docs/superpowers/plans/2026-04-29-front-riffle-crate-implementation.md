@@ -17,6 +17,7 @@
 - Modify `app/frontend/components/record_card.tsx`: add `resetKey`, `className`, and movement guard props so active records reset to the cover side and small drags do not accidentally flip.
 - Modify `app/frontend/components/crate_view.tsx`: replace the single-card display with the front-riffle crate stack, two-axis drag direction handling, boundary resistance, crate-position indicator, and reduced-motion handling.
 - Modify `package.json`: add a lightweight `test:frontend` script using Node's built-in test runner and `tsx` so helper behavior can be verified without introducing a full browser test stack.
+- Modify `app/frontend/entrypoints/application.tsx` and `app/frontend/pages/stores/featured.tsx` if needed to keep the TypeScript check passing after frontend dependency cleanup.
 
 ---
 
@@ -301,8 +302,59 @@ git commit -m "feat: reset record card flip state"
 
 **Files:**
 - Modify: `app/frontend/components/crate_view.tsx`
+- Modify if needed: `package.json`
+- Modify if needed: `package-lock.json`
+- Modify if needed: `app/frontend/entrypoints/application.tsx`
+- Modify if needed: `app/frontend/pages/stores/featured.tsx`
 
-- [ ] **Step 1: Import the helper and motion utilities**
+- [ ] **Step 1: Ensure existing motion dependency is declared**
+
+Run:
+
+```bash
+npm ls framer-motion
+```
+
+Expected in the current prototype: missing dependency, because existing components already import `framer-motion` but `package.json` does not declare it.
+
+If missing, run:
+
+```bash
+npm install framer-motion
+```
+
+Expected: `package.json` and `package-lock.json` update with `framer-motion`.
+
+- [ ] **Step 2: Fix existing TypeScript import/resolver blockers**
+
+If `npm exec tsc -- --noEmit --ignoreDeprecations 6.0` reports `.tsx` extension import errors in `app/frontend/pages/stores/featured.tsx`, change the imports to:
+
+```ts
+import AppLayout from "@/layouts/app_layout"
+import CrateView from "@/components/crate_view"
+import StoreView from "@/components/store_view"
+```
+
+If it reports the Inertia resolver returning `unknown`, update `app/frontend/entrypoints/application.tsx` to:
+
+```tsx
+import { createInertiaApp } from "@inertiajs/react"
+import { createRoot } from "react-dom/client"
+import React from "react"
+
+const pages = import.meta.glob<{ default: React.ComponentType<any> }>("../pages/**/*.tsx", { eager: true })
+
+createInertiaApp({
+  resolve: (name) => {
+    return pages[`../pages/${name}.tsx`]
+  },
+  setup({ el, App, props }) {
+    createRoot(el).render(<App {...props} />)
+  },
+})
+```
+
+- [ ] **Step 3: Import the helper and motion utilities**
 
 Update imports in `crate_view.tsx`:
 
@@ -312,7 +364,7 @@ import { motion, AnimatePresence, useMotionValue, useReducedMotion, useTransform
 import { buildCrateWindow } from "../lib/crate_window"
 ```
 
-- [ ] **Step 2: Add constants for drag feel**
+- [ ] **Step 4: Add constants for drag feel**
 
 Replace `DRAG_THRESHOLD` with:
 
@@ -321,7 +373,7 @@ const DRAG_THRESHOLD = 72
 const WINDOW_RADIUS = 2
 ```
 
-- [ ] **Step 3: Add motion state after the `direction` ref**
+- [ ] **Step 5: Add motion state after the `direction` ref**
 
 Add:
 
@@ -333,7 +385,7 @@ Add:
   const activeLift = useTransform(dragY, [-120, 0, 120], [-10, 0, 12])
 ```
 
-- [ ] **Step 4: Derive the visible crate window**
+- [ ] **Step 6: Derive the visible crate window**
 
 Add after `usePreload(records, index)`:
 
@@ -344,7 +396,7 @@ Add after `usePreload(records, index)`:
   )
 ```
 
-- [ ] **Step 5: Add dominant-axis drag completion**
+- [ ] **Step 7: Add dominant-axis drag completion**
 
 Replace `handleDragEnd` with:
 
@@ -361,7 +413,7 @@ Replace `handleDragEnd` with:
   }, [dragX, dragY, navigate])
 ```
 
-- [ ] **Step 6: Replace the single-card display with the crate stack**
+- [ ] **Step 8: Replace the single-card display with the crate stack**
 
 Replace the whole “Record display” block with:
 
@@ -464,7 +516,7 @@ Replace the whole “Record display” block with:
       </div>
 ```
 
-- [ ] **Step 7: Replace the progress bar copy with crate-position language**
+- [ ] **Step 9: Replace the progress bar copy with crate-position language**
 
 Replace the progress block with:
 
@@ -484,7 +536,7 @@ Replace the progress block with:
       </div>
 ```
 
-- [ ] **Step 8: Update the hint copy**
+- [ ] **Step 10: Update the hint copy**
 
 Replace the existing hint paragraph with:
 
@@ -494,7 +546,7 @@ Replace the existing hint paragraph with:
       </p>
 ```
 
-- [ ] **Step 9: Run checks**
+- [ ] **Step 11: Run checks**
 
 Run:
 
@@ -512,10 +564,10 @@ npm exec tsc -- --noEmit
 
 Expected: PASS.
 
-- [ ] **Step 10: Commit Task 3**
+- [ ] **Step 12: Commit Task 3**
 
 ```bash
-git add app/frontend/components/crate_view.tsx
+git add app/frontend/components/crate_view.tsx package.json package-lock.json app/frontend/entrypoints/application.tsx app/frontend/pages/stores/featured.tsx
 git commit -m "feat: add front riffle crate browsing"
 ```
 
