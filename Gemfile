@@ -46,10 +46,6 @@ gem "image_processing", "~> 1.2"
 gem "faraday"
 gem "faraday-retry"
 
-# HTTP client for Discogs API
-gem "faraday"
-gem "faraday-retry"
-
 # Inertia Rails — server-driven single-page app
 gem "inertia_rails"
 
