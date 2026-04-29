@@ -1,17 +1,39 @@
-import React, { useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { motion } from "framer-motion"
 import { router } from "@inertiajs/react"
 import type { Listing } from "../types/inertia"
 
 interface Props {
   listing: Listing
+  resetKey?: string | number
+  className?: string
 }
 
-export default function RecordCard({ listing }: Props) {
+export default function RecordCard({ listing, resetKey, className = "" }: Props) {
   const [flipped, setFlipped] = useState(false)
+  const pointerDown = useRef<{ x: number; y: number } | null>(null)
+
+  useEffect(() => {
+    setFlipped(false)
+  }, [resetKey])
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    pointerDown.current = { x: e.clientX, y: e.clientY }
+  }
+
+  const movedSincePointerDown = (e: React.MouseEvent) => {
+    if (!pointerDown.current) return false
+
+    const deltaX = Math.abs(e.clientX - pointerDown.current.x)
+    const deltaY = Math.abs(e.clientY - pointerDown.current.y)
+    pointerDown.current = null
+
+    return Math.hypot(deltaX, deltaY) > 8
+  }
 
   const handleFlip = (e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest("a, button, form")) return
+    if (movedSincePointerDown(e)) return
     setFlipped((f) => !f)
   }
 
@@ -29,8 +51,9 @@ export default function RecordCard({ listing }: Props) {
 
   return (
     <div
-      className="w-full h-full flex-shrink-0 cursor-pointer"
+      className={`w-full h-full flex-shrink-0 cursor-pointer ${className}`}
       style={{ perspective: 800, touchAction: "none" }}
+      onPointerDown={handlePointerDown}
       onClick={handleFlip}
     >
       <motion.div

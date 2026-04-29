@@ -2,7 +2,7 @@ class ApplicationController < ActionController::Base
   allow_browser versions: :modern
   stale_when_importmap_changes
 
-  before_action :http_authenticate
+  before_action :http_authenticate, if: :http_basic_auth_enabled?
   before_action :set_current_dig_session
 
   inertia_share do
@@ -20,6 +20,10 @@ class ApplicationController < ActionController::Base
   end
 
   private
+
+  def http_basic_auth_enabled?
+    Rails.env.production?
+  end
 
   def http_authenticate
     authenticate_or_request_with_http_basic("Milkcrate") do |user, password|

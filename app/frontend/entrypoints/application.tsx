@@ -2,7 +2,7 @@ import { createInertiaApp } from "@inertiajs/react"
 import { createRoot } from "react-dom/client"
 import React from "react"
 
-const pages = import.meta.glob("../pages/**/*.tsx", { eager: true })
+const pages = import.meta.glob<{ default: React.ComponentType<any> }>("../pages/**/*.tsx", { eager: true })
 
 createInertiaApp({
   resolve: (name) => {

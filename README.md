@@ -82,11 +82,11 @@ Required variables:
 - `DB_PASSWORD`
   Local Postgres password.
 - `MILKCRATE_USER`
-  HTTP basic auth username for the app.
+  Production HTTP basic auth username for the app.
 - `MILKCRATE_PASSWORD`
-  HTTP basic auth password for the app.
+  Production HTTP basic auth password for the app.
 
-Without `MILKCRATE_PASSWORD`, requests will fail because the app always checks basic auth.
+Development and test do not challenge with HTTP basic auth. Production keeps the temporary basic auth gate until app auth is replaced.
 
 ## Local Setup
 
@@ -144,7 +144,7 @@ That starts:
 
 By default the app runs on [http://localhost:3000](http://localhost:3000).
 
-When you open it, the app will prompt for HTTP basic auth using the credentials from `.env`.
+Development does not prompt for HTTP basic auth.
 
 ## Local Workflow
 

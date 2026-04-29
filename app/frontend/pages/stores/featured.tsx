@@ -1,7 +1,7 @@
 import React, { useState } from "react"
-import AppLayout from "@/layouts/app_layout.tsx"
-import CrateView from "@/components/crate_view.tsx"
-import StoreView from "@/components/store_view.tsx"
+import AppLayout from "@/layouts/app_layout"
+import CrateView from "@/components/crate_view"
+import StoreView from "@/components/store_view"
 import type { FeaturedProps } from "@/types/inertia"
 
 export default function Featured({ store, crates, active_crate_slug }: FeaturedProps) {
