@@ -27,8 +27,6 @@ registry:
 env:
   secret:
     - RAILS_MASTER_KEY
-    - MILKCRATE_PASSWORD
-    - DISCOGS_TOKEN
   clear:
     SOLID_QUEUE_IN_PUMA: true
     DB_HOST: milkcrate-db

@@ -6,7 +6,7 @@ class DiscogsClient
   class ApiError < StandardError; end
 
   def initialize
-    @token = ENV.fetch("DISCOGS_TOKEN")
+    @token = Rails.application.credentials.dig(:discogs, :token)
     @connection = build_connection
   end
 

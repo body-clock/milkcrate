@@ -27,7 +27,7 @@
 
         <span class="mc-pile-price"><%= listing.display_price %></span>
 
-        <%= link_to "↗", listing.discogs_url, target: "_blank", rel: "noopener", class: "mc-btn text-xs" %>
+        <%= link_to "↗", sanitize_url(listing.discogs_url), target: "_blank", rel: "noopener", class: "mc-btn text-xs" %>
 
         <% if @dig_session.active? %>
           <%= button_to "✕", remove_from_session_listing_path(listing),
