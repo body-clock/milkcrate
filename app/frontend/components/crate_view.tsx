@@ -250,7 +250,7 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onT
       </div>
 
       <p className="text-center text-[10px] text-mc-text-dim mt-4 select-none">
-        pull or push the sleeve to riffle &middot; tap cover for details &middot; ↓↑ keys
+        pull forward for next &middot; push back for previous &middot; tap for details
       </p>
     </div>
   )
