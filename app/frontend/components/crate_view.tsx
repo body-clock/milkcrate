@@ -40,7 +40,6 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onT
   const dragX = useMotionValue(0)
   const dragY = useMotionValue(0)
   const activeRotate = useTransform(dragX, [-120, 0, 120], [-8, 0, 8])
-  const activeLift = useTransform(dragY, [-120, 0, 120], [-10, 0, 12])
 
   useEffect(() => { setIndex(0) }, [activeSlug])
 
@@ -179,11 +178,11 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onT
                   animate="animate"
                   exit="exit"
                   transition={prefersReducedMotion ? { duration: 0 } : ease}
-                  className="absolute inset-0 rounded-lg overflow-hidden border border-mc-border shadow-2xl"
+                  className="absolute inset-0"
                   style={{ zIndex: 30 }}
                 >
                   <motion.div
-                    className="w-full h-full"
+                    className="w-full h-full rounded-lg overflow-hidden border border-mc-border shadow-2xl"
                     style={{
                       x: dragX,
                       y: dragY,
@@ -197,13 +196,11 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onT
                     whileDrag={prefersReducedMotion ? undefined : { scale: 0.985 }}
                     onDragEnd={handleDragEnd}
                   >
-                    <motion.div className="w-full h-full" style={{ y: activeLift }}>
-                      <RecordCard
-                        listing={slot.record}
-                        resetKey={`${activeSlug}-${slot.record.id}`}
-                        className="rounded-lg"
-                      />
-                    </motion.div>
+                    <RecordCard
+                      listing={slot.record}
+                      resetKey={`${activeSlug}-${slot.record.id}`}
+                      className="rounded-lg"
+                    />
                   </motion.div>
                 </motion.div>
               )
