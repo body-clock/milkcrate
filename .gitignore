@@ -41,6 +41,9 @@
 # Ignore brainstorming mockup artifacts.
 /.superpowers/
 
+# Ignore Kamal secrets.
+/.kamal/secrets
+
 # Vite Ruby
 /public/vite*
 node_modules
