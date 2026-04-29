@@ -8,11 +8,12 @@ image: ghcr.io/body-clock/milkcrate
 servers:
   web:
     hosts:
-      - 1.2.3.4
+      - milkcrate-hetzner
 
 # Let's Encrypt SSL
 proxy:
-  ssl: true
+  ssl: false
+  forward_headers: true
   host: milkcrate.fm
 
 # Container registry
@@ -26,7 +27,7 @@ registry:
 env:
   secret:
     - RAILS_MASTER_KEY
-    - MILKCRATE_DATABASE_PASSWORD
+    - MILKCRATE_PASSWORD
     - DISCOGS_TOKEN
   clear:
     SOLID_QUEUE_IN_PUMA: true
@@ -39,7 +40,7 @@ env:
 accessories:
   db:
     image: postgres:16
-    host: milkcrate-db
+    host: milkcrate-hetzner
     port: "127.0.0.1:5432:5432"
     env:
       clear:
