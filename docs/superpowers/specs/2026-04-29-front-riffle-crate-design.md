@@ -4,6 +4,8 @@
 
 Milkcrate already has a working crate prototype in the Inertia React frontend. The current crate view presents one active record at a time, supports vertical drag navigation, arrow keys, progress, and tap-to-flip details through `RecordCard`.
 
+The featured page receives its store, session, crate, and listing props from `CratePresenter`. That presenter is the server-side contract boundary for the crate experience.
+
 The next refinement should make browsing feel like looking through a physical crate of records and riffling through sleeves, while preserving the prototype's simple interaction model.
 
 ## Goals
@@ -13,7 +15,7 @@ The next refinement should make browsing feel like looking through a physical cr
 - Show nearby records as visible sleeve depth instead of rendering a lone card.
 - Preserve tap-to-flip behavior for record details and pile actions.
 - Keep keyboard and button navigation available as secondary controls.
-- Avoid backend changes.
+- Preserve the existing `CratePresenter` props contract unless a concrete interaction need requires changing it.
 
 ## Non-Goals
 
@@ -21,6 +23,7 @@ The next refinement should make browsing feel like looking through a physical cr
 - No modal inspection mode in this iteration.
 - No server payload changes.
 - No full 3D scene or canvas rendering.
+- No relocation of crate-building logic from `CratePresenter` into React.
 
 ## User Experience
 
@@ -35,6 +38,16 @@ Tap or click flips the active record in place, matching the current prototype. T
 The progress indicator should feel like crate position rather than a generic progress bar. It can remain compact, but should be labeled or styled as position in the bin.
 
 ## Component Design
+
+`CratePresenter` remains responsible for shaping the Inertia props used by the featured page:
+
+- store metadata
+- current dig session metadata
+- crate list
+- listing records
+- `in_pile` state
+
+The front-riffle system should treat this presenter output as its input contract. If later iterations need extra server-derived browsing metadata, such as crate ordering, featured badges, or precomputed record groupings, those additions should be made in `CratePresenter` and mirrored in `app/frontend/types/inertia.ts`.
 
 `CrateView` remains the owner of browsing state:
 
@@ -64,7 +77,7 @@ If `CrateView` becomes too dense, introduce a presentational component for inact
 
 ## Data Flow
 
-No backend or Inertia prop changes are required. The existing `Crate.records` array has the cover, thumbnail, title, artist, metadata, price, and pile state needed for the visual stack and active details.
+No backend or Inertia prop changes are required for this iteration. `CratePresenter#build_crates` already produces the crate array and each crate's `records`. The existing `Crate.records` array has the cover, thumbnail, title, artist, metadata, price, and pile state needed for the visual stack and active details.
 
 The only data transformation is client-side derivation of visible record positions from the active index.
 
