@@ -144,7 +144,7 @@ That starts:
 
 By default the app runs on [http://localhost:3000](http://localhost:3000).
 
-When you open it, the app will prompt for HTTP basic auth using the credentials from `.env`.
+Development does not prompt for HTTP basic auth.
 
 ## Local Workflow
 
