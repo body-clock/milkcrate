@@ -111,9 +111,10 @@ test:
 production:
   primary: &primary_production
     <<: *default
+    host: <%= ENV.fetch("DB_HOST", "localhost") %>
+    username: <%= ENV.fetch("DB_USER", "milkcrate") %>
+    password: <%= ENV["DB_PASSWORD"] %>
     database: milkcrate_production
-    username: milkcrate
-    password: <%= ENV["MILKCRATE_DATABASE_PASSWORD"] %>
   cache:
     <<: *primary_production
     database: milkcrate_production_cache

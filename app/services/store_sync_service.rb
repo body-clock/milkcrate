@@ -56,7 +56,7 @@ class StoreSyncService
 
   def upsert_listing(raw)
     release = raw["release"] || {}
-    basic_info = release
+    basic_info = release["basic_information"] || release
 
     genres = Array(basic_info["genres"])
     styles = Array(basic_info["styles"])
