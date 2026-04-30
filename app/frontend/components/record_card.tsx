@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react"
 import { motion } from "framer-motion"
+import { useDigSessionContext } from "../contexts/dig_session_context"
 import type { Listing } from "../types/inertia"
 
 interface Props {
@@ -13,6 +14,7 @@ interface Props {
 export default function RecordCard({ listing, resetKey, className = "", imageLoading = "lazy", disableFlip = false }: Props) {
   const [flipped, setFlipped] = useState(false)
   const pointerDown = useRef<{ x: number; y: number } | null>(null)
+  const { inPile, addToPile, removeFromPile } = useDigSessionContext()
 
   useEffect(() => {
     setFlipped(false)
@@ -118,6 +120,15 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
               {listing.price ? `$${parseFloat(listing.price).toFixed(2)}` : "—"}
             </div>
             <div className="flex gap-1 mt-1" onClick={(e) => e.stopPropagation()}>
+              {inPile(listing.id) ? (
+                <button onClick={() => removeFromPile(listing.id)} className="mc-btn text-xs">
+                  ✓ In pile
+                </button>
+              ) : (
+                <button onClick={() => addToPile(listing)} className="mc-btn mc-btn-primary text-xs">
+                  + Pile
+                </button>
+              )}
               <a href={listing.discogs_url} target="_blank" rel="noopener" className="mc-btn text-xs">
                 Discogs ↗
               </a>

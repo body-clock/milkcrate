@@ -4,6 +4,7 @@ import CrateTabs from "./crate_tabs"
 import RecordCard from "./record_card"
 import { buildCrateWindow } from "../lib/crate_window"
 import { useIsDesktop } from "@/hooks/use_is_desktop"
+import { useDigSessionContext } from "@/contexts/dig_session_context"
 import type { Crate, Listing } from "../types/inertia"
 
 interface Props {
@@ -36,6 +37,7 @@ function RecordDetails({ listing, direction }: { listing: Listing; direction: nu
   const meta = [listing.label, listing.year, listing.condition].filter(Boolean).join(" · ")
   const enterY = direction >= 0 ? -16 : 16
   const exitY = direction >= 0 ? 16 : -16
+  const { inPile, addToPile, removeFromPile } = useDigSessionContext()
 
   return (
     <AnimatePresence mode="wait" custom={direction}>
@@ -75,6 +77,11 @@ function RecordDetails({ listing, direction }: { listing: Listing; direction: nu
           {listing.price ? `$${parseFloat(listing.price).toFixed(2)}` : "—"}
         </div>
         <div className="flex gap-2">
+          {inPile(listing.id) ? (
+            <button onClick={() => removeFromPile(listing.id)} className="mc-btn">✓ In pile</button>
+          ) : (
+            <button onClick={() => addToPile(listing)} className="mc-btn mc-btn-primary">+ Pile</button>
+          )}
           <a href={listing.discogs_url} target="_blank" rel="noopener" className="mc-btn">
             Discogs ↗
           </a>

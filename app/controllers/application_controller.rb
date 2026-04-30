@@ -6,7 +6,8 @@ class ApplicationController < ActionController::Base
       flash: {
         notice: flash.notice,
         alert: flash.alert
-      }.compact
+      }.compact,
+      contact_email: Settings.contact_email.presence
     }
   end
 end

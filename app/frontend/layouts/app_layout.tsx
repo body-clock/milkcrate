@@ -1,11 +1,15 @@
-import React from "react"
+import React, { useState } from "react"
 import { Link, usePage } from "@inertiajs/react"
 import { useTheme } from "@/hooks/use_theme"
+import { DigSessionProvider, useDigSessionContext } from "@/contexts/dig_session_context"
+import PileSheet from "@/components/pile_sheet"
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+function AppLayoutInner({ children }: { children: React.ReactNode }) {
   const page = usePage()
   const flash = (page.props as any).flash as { notice?: string; alert?: string } | undefined
   const { theme, toggle } = useTheme()
+  const { pile } = useDigSessionContext()
+  const [pileOpen, setPileOpen] = useState(false)
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -13,13 +17,23 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <Link href="/" className="mc-wordmark text-xl font-bold tracking-widest uppercase">
           🥛 Milkcrate
         </Link>
-        <button
-          onClick={toggle}
-          className="text-xs text-mc-text-dim hover:text-mc-text transition-colors select-none"
-          aria-label="Toggle light/dark mode"
-        >
-          {theme === "dark" ? "☀︎" : "☾"}
-        </button>
+        <div className="flex items-center gap-4">
+          {pile.length > 0 && (
+            <button
+              onClick={() => setPileOpen(true)}
+              className="text-xs text-mc-accent hover:opacity-80 transition-opacity select-none"
+            >
+              {pile.length} in pile
+            </button>
+          )}
+          <button
+            onClick={toggle}
+            className="text-xs text-mc-text-dim hover:text-mc-text transition-colors select-none"
+            aria-label="Toggle light/dark mode"
+          >
+            {theme === "dark" ? "☀︎" : "☾"}
+          </button>
+        </div>
       </header>
 
       {flash?.notice && (
@@ -29,6 +43,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       )}
 
       <main className="flex-1 px-4 py-6">{children}</main>
+
+      <PileSheet open={pileOpen} onClose={() => setPileOpen(false)} />
     </div>
+  )
+}
+
+export default function AppLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <DigSessionProvider>
+      <AppLayoutInner>{children}</AppLayoutInner>
+    </DigSessionProvider>
   )
 }
