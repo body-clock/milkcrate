@@ -1,16 +1,16 @@
 import React, { useState } from "react"
 import AppLayout from "@/layouts/app_layout"
 import CrateView from "@/components/crate_view"
-import StoreView from "@/components/store_view"
+import StoreFloor from "@/components/store_floor"
 import type { FeaturedProps } from "@/types/inertia"
 
-export default function Featured({ store, crates, active_crate_slug }: FeaturedProps) {
-  const [mode, setMode] = useState<"crate" | "store">("crate")
-  const [activeSlug, setActiveSlug] = useState(active_crate_slug)
+export default function Featured({ store, crates }: FeaturedProps) {
+  const [activeSlug, setActiveSlug] = useState<string | null>(null)
+  const [startIndex, setStartIndex] = useState(0)
 
-  const handleOpenCrate = (slug: string) => {
+  const handleSelectCrate = (slug: string, index = 0) => {
+    setStartIndex(index)
     setActiveSlug(slug)
-    setMode("crate")
   }
 
   return (
@@ -34,20 +34,15 @@ export default function Featured({ store, crates, active_crate_slug }: FeaturedP
         <div className="py-16 text-center mc-dim text-sm">
           <p>No vinyl found yet.</p>
         </div>
-      ) : mode === "crate" ? (
+      ) : activeSlug === null ? (
+        <StoreFloor crates={crates} onSelectCrate={handleSelectCrate} />
+      ) : (
         <CrateView
           crates={crates}
           activeSlug={activeSlug}
-          onSelectCrate={setActiveSlug}
-          mode={mode}
-          onToggleMode={() => setMode("store")}
-        />
-      ) : (
-        <StoreView
-          crates={crates}
-          onOpenCrate={handleOpenCrate}
-          mode={mode}
-          onToggleMode={() => setMode("crate")}
+          startIndex={startIndex}
+          onSelectCrate={handleSelectCrate}
+          onBack={() => setActiveSlug(null)}
         />
       )}
     </AppLayout>

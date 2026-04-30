@@ -2,16 +2,17 @@ import React, { useState, useCallback, useEffect, useMemo, useRef } from "react"
 import { motion, AnimatePresence, useMotionValue, useReducedMotion, useTransform } from "framer-motion"
 import CrateTabs from "./crate_tabs"
 import RecordCard from "./record_card"
-import ToggleView from "./toggle_view"
 import { buildCrateWindow } from "../lib/crate_window"
-import type { Crate } from "../types/inertia"
+import { useIsDesktop } from "@/hooks/use_is_desktop"
+import type { Crate, Listing } from "../types/inertia"
 
 interface Props {
   crates: Crate[]
   activeSlug: string
-  onSelectCrate: (slug: string) => void
-  mode: "crate" | "store"
-  onToggleMode: () => void
+  startIndex?: number
+  hideTabs?: boolean
+  onSelectCrate: (slug: string, startIndex?: number) => void
+  onBack?: () => void
 }
 
 const ease = { duration: 0.2, ease: "easeOut" as const }
@@ -31,6 +32,62 @@ const activeLayerStyle: React.CSSProperties = {
   WebkitBackfaceVisibility: "hidden",
 }
 
+function RecordDetails({ listing, direction }: { listing: Listing; direction: number }) {
+  const meta = [listing.label, listing.year, listing.condition].filter(Boolean).join(" · ")
+  const enterY = direction >= 0 ? -16 : 16
+  const exitY = direction >= 0 ? 16 : -16
+
+  return (
+    <AnimatePresence mode="wait" custom={direction}>
+      <motion.div
+        key={listing.id}
+        custom={direction}
+        initial={{ opacity: 0, y: enterY }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: exitY }}
+        transition={{ duration: 0.18, ease: "easeOut" }}
+        className="flex flex-col gap-3"
+      >
+        <div>
+          <div className="text-xl font-semibold leading-tight">{listing.title}</div>
+          <div className="text-sm text-mc-text-dim mt-1">{listing.artist}</div>
+        </div>
+        {meta && <div className="text-xs text-mc-text-dim">{meta}</div>}
+        {listing.genres.length > 0 && (
+          <div className="flex gap-1.5 flex-wrap">
+            {listing.genres.slice(0, 4).map((g) => (
+              <span key={g} className="text-[11px] px-2 py-0.5 rounded bg-mc-bg-raised text-mc-text-dim">
+                {g}
+              </span>
+            ))}
+          </div>
+        )}
+        {listing.styles.length > 0 && (
+          <div className="flex gap-1.5 flex-wrap">
+            {listing.styles.slice(0, 4).map((s) => (
+              <span key={s} className="text-[11px] px-2 py-0.5 rounded bg-mc-bg-raised text-mc-text-dim/70">
+                {s}
+              </span>
+            ))}
+          </div>
+        )}
+        <div className="text-2xl font-medium mt-2">
+          {listing.price ? `$${parseFloat(listing.price).toFixed(2)}` : "—"}
+        </div>
+        <div className="flex gap-2">
+          <a href={listing.discogs_url} target="_blank" rel="noopener" className="mc-btn">
+            Discogs ↗
+          </a>
+        </div>
+        {listing.notes && (
+          <p className="text-xs text-mc-text-dim leading-relaxed line-clamp-4 mt-1">{listing.notes}</p>
+        )}
+      </motion.div>
+    </AnimatePresence>
+  )
+}
+
+
 function usePreload(records: { id: number; cover_image_url?: string | null }[], index: number) {
   useEffect(() => {
     for (let offset = -3; offset <= 3; offset++) {
@@ -46,19 +103,20 @@ function usePreload(records: { id: number; cover_image_url?: string | null }[], 
   }, [records, index])
 }
 
-export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onToggleMode }: Props) {
+export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs = false, onSelectCrate, onBack }: Props) {
+  const isDesktop = useIsDesktop()
   const activeCrate = crates.find((c) => c.slug === activeSlug) ?? crates[0]
   const records = activeCrate?.records ?? []
   const total = records.length
-  const [index, setIndex] = useState(0)
+  const [index, setIndex] = useState(startIndex)
   const direction = useRef(0)
   const prefersReducedMotion = useReducedMotion()
   const dragX = useMotionValue(0)
   const activeRotate = useTransform(dragX, [-120, 0, 120], [-8, 0, 8])
 
   useEffect(() => {
-    setIndex(0)
-  }, [activeSlug])
+    setIndex(startIndex)
+  }, [activeSlug, startIndex])
 
   const navigate = useCallback((delta: number) => {
     const next = index + delta
@@ -78,6 +136,7 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onT
   }, [handleKeyDown])
 
   const progress = total > 0 ? ((index + 1) / total) * 100 : 0
+  const activeRecord = records[index]
 
   usePreload(records, index)
   const visibleRecords = useMemo(
@@ -99,25 +158,24 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onT
   if (!activeCrate || total === 0) {
     return (
       <div>
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="self-start text-xs text-mc-text-dim hover:text-mc-text transition-colors mb-3 flex items-center gap-1 cursor-pointer"
+          >
+            ← Store
+          </button>
+        )}
         <div className="flex items-center justify-between mb-3">
           <CrateTabs crates={crates} activeSlug={activeSlug} onSelect={onSelectCrate} />
-          <ToggleView mode={mode} onToggle={onToggleMode} />
         </div>
         <div className="py-16 text-center mc-dim text-sm">No records in this crate yet.</div>
       </div>
     )
   }
 
-  return (
-    <div className="flex flex-col">
-      {/* Top bar: crate tabs + store toggle */}
-      <div className="flex items-center justify-between mb-4">
-        <CrateTabs crates={crates} activeSlug={activeSlug} onSelect={onSelectCrate} />
-        <div className="ml-2 shrink-0">
-          <ToggleView mode={mode} onToggle={onToggleMode} />
-        </div>
-      </div>
-
+  const cardStack = (
+    <>
       {/* Front-riffle crate stack */}
       <div
         className="relative z-10 flex items-center justify-center min-h-[390px] md:min-h-[470px] py-5 sm:py-7 select-none"
@@ -126,8 +184,8 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onT
         <div
           className="relative"
           style={{
-            width: "min(82vw, 320px)",
-            height: "min(82vw, 320px)",
+            width: "min(82vw, 400px)",
+            height: "min(82vw, 400px)",
           }}
         >
           <AnimatePresence initial={!prefersReducedMotion} custom={direction.current}>
@@ -224,6 +282,7 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onT
                       resetKey={`${activeSlug}-${slot.record.id}`}
                       className="rounded-lg"
                       imageLoading="eager"
+                      disableFlip={isDesktop}
                     />
                   </motion.div>
                 </motion.div>
@@ -273,9 +332,41 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onT
         </motion.button>
       </div>
 
-      <p className="text-center text-[10px] text-mc-text-dim mt-4 select-none">
+      <p className="text-center text-[10px] text-mc-text-dim mt-4 select-none md:hidden">
         pull forward for next &middot; push back for previous &middot; tap for details
       </p>
+    </>
+  )
+
+  return (
+    <div className="flex flex-col">
+      {onBack && (
+        <button
+          onClick={onBack}
+          className="self-start text-xs text-mc-text-dim hover:text-mc-text transition-colors mb-3 flex items-center gap-1 cursor-pointer"
+        >
+          ← Store
+        </button>
+      )}
+      {!hideTabs && (
+        <div className="flex items-center justify-between mb-4">
+          <CrateTabs crates={crates} activeSlug={activeSlug} onSelect={onSelectCrate} />
+        </div>
+      )}
+
+      {/* Mobile: single column. Desktop: centered two-column */}
+      <div className="md:max-w-3xl md:mx-auto md:w-full md:grid md:grid-cols-[420px_1fr] md:gap-12 md:items-start">
+        <div className="flex flex-col">
+          {cardStack}
+        </div>
+
+        {/* Desktop details panel */}
+        {activeRecord && (
+          <div className="hidden md:flex md:flex-col md:pt-20 md:min-h-[420px]">
+            <RecordDetails listing={activeRecord} direction={direction.current} />
+          </div>
+        )}
+      </div>
     </div>
   )
 }
