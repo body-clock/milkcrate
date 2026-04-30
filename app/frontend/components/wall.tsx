@@ -1,42 +1,84 @@
-import React from "react"
+import React, { useState } from "react"
+import { motion } from "framer-motion"
 import type { Listing } from "../types/inertia"
 
 interface Props {
   picks: Listing[]
-  onSelect: (listingId: number, crateSlug: string) => void
 }
 
-export default function Wall({ picks, onSelect }: Props) {
+function WallCard({ record }: { record: Listing }) {
+  const [flipped, setFlipped] = useState(false)
+
+  return (
+    <div
+      className="flex-shrink-0 cursor-pointer"
+      style={{ perspective: 800, width: 160, height: 160 }}
+      onClick={() => setFlipped((f) => !f)}
+    >
+      <motion.div
+        style={{
+          width: "100%",
+          height: "100%",
+          position: "relative",
+          transformStyle: "preserve-3d",
+        }}
+        animate={{ rotateY: flipped ? 180 : 0 }}
+        transition={{ type: "spring", stiffness: 260, damping: 24 }}
+      >
+        {/* Front */}
+        <div
+          className="rounded-lg overflow-hidden"
+          style={{
+            position: "absolute",
+            inset: 0,
+            backfaceVisibility: "hidden",
+            WebkitBackfaceVisibility: "hidden",
+          }}
+        >
+          {record.cover_image_url ? (
+            <img src={record.cover_image_url} alt={record.title ?? ""} className="w-full h-full object-cover" loading="lazy" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-mc-bg-raised text-mc-text-dim text-4xl">♪</div>
+          )}
+        </div>
+
+        {/* Back */}
+        <div
+          className="rounded-lg overflow-hidden bg-mc-bg-card p-3 flex flex-col justify-between"
+          style={{
+            position: "absolute",
+            inset: 0,
+            backfaceVisibility: "hidden",
+            WebkitBackfaceVisibility: "hidden",
+            transform: "rotateY(180deg)",
+          }}
+        >
+          <div>
+            <p className="text-xs font-semibold mc-text line-clamp-2">{record.title}</p>
+            <p className="text-[10px] text-mc-text-dim mt-1">{record.artist}</p>
+          </div>
+          <div>
+            <p className="text-[10px] text-mc-text-dim">{record.label} {record.year ? `· ${record.year}` : ""}</p>
+            <p className="text-xs font-medium mt-1">{record.price ? `$${parseFloat(record.price).toFixed(2)}` : "—"}</p>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  )
+}
+
+export default function Wall({ picks }: Props) {
   if (picks.length === 0) return null
 
   return (
     <section className="mb-8">
-      <h2 className="text-sm font-semibold mb-4 mc-text">Staff Picks</h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+      <div className="flex items-baseline gap-2 mb-3">
+        <span className="text-sm font-semibold mc-text">Staff Picks</span>
+        <span className="text-[10px] text-mc-text-dim">{picks.length} records</span>
+      </div>
+      <div className="flex gap-4 overflow-x-auto pb-2" style={{ scrollbarWidth: "thin" }}>
         {picks.slice(0, 8).map((record) => (
-          <button
-            key={record.id}
-            onClick={() => onSelect(record.id, "picks")}
-            className="group text-left"
-          >
-            <div className="aspect-square rounded-lg overflow-hidden bg-mc-bg-raised border border-mc-border mb-2 group-hover:border-mc-accent transition-colors">
-              {record.cover_image_url ? (
-                <img
-                  src={record.cover_image_url}
-                  alt={record.title ?? ""}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-mc-text-dim text-4xl">♪</div>
-              )}
-            </div>
-            <p className="text-xs truncate font-medium mc-text">{record.title}</p>
-            <p className="text-xs text-mc-text-dim truncate">{record.artist}</p>
-            <p className="text-xs text-mc-text-dim mt-0.5">
-              {record.label} {record.year ? `· ${record.year}` : ""}
-            </p>
-          </button>
+          <WallCard key={record.id} record={record} />
         ))}
       </div>
     </section>

@@ -1,7 +1,6 @@
 import React, { useState } from "react"
 import AppLayout from "@/layouts/app_layout.tsx"
 import Wall from "@/components/wall.tsx"
-import CrateRow from "@/components/crate_row.tsx"
 import CrateView from "@/components/crate_view.tsx"
 import type { FeaturedProps } from "@/types/inertia"
 
@@ -10,10 +9,6 @@ export default function Featured({ store, crates }: FeaturedProps) {
 
   const picksCrate = crates.find((c) => c.slug === "picks")
   const genreCrates = crates.filter((c) => c.slug !== "picks")
-
-  const handleSelect = (_listingId: number, crateSlug: string) => {
-    setDigCrate(crateSlug)
-  }
 
   if (digCrate) {
     const crate = crates.find((c) => c.slug === digCrate)
@@ -58,19 +53,29 @@ export default function Featured({ store, crates }: FeaturedProps) {
         </div>
       ) : (
         <>
-          {picksCrate && (
-            <Wall picks={picksCrate.records} onSelect={handleSelect} />
-          )}
+          {picksCrate && <Wall picks={picksCrate.records} />}
 
-          {genreCrates.map((crate) => (
-            <CrateRow key={crate.slug} crate={crate} onSelect={handleSelect} />
-          ))}
+          <section className="mb-6">
+            <h2 className="text-sm font-semibold mc-text mb-3">Browse by section</h2>
+            <div className="flex flex-wrap gap-2">
+              {genreCrates.map((crate) => (
+                <button
+                  key={crate.slug}
+                  onClick={() => setDigCrate(crate.slug)}
+                  className="text-sm px-3 py-1.5 rounded border border-mc-border text-mc-text-dim hover:border-mc-accent hover:text-mc-text transition-colors"
+                >
+                  {crate.name}
+                  <span className="text-xs ml-1.5 text-mc-text-dim">{crate.count}</span>
+                </button>
+              ))}
+            </div>
+          </section>
 
           <footer className="mt-12 pt-6 border-t border-mc-border text-center">
             <p className="text-xs text-mc-text-dim">
               Powered by{" "}
               <a href="https://milkcrate.fm" className="text-mc-accent hover:underline">
-                Milk crate
+                Milkcrate
               </a>
             </p>
           </footer>
