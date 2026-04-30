@@ -20,13 +20,17 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
         <div className="flex items-center gap-4">
           {pile.length > 0 && (
             <button
+              type="button"
               onClick={() => setPileOpen(true)}
               className="text-xs text-mc-accent hover:opacity-80 transition-opacity select-none"
+              aria-label={`Open pile with ${pile.length} records`}
+              aria-expanded={pileOpen}
             >
               {pile.length} in pile
             </button>
           )}
           <button
+            type="button"
             onClick={toggle}
             className="text-xs text-mc-text-dim hover:text-mc-text transition-colors select-none"
             aria-label="Toggle light/dark mode"

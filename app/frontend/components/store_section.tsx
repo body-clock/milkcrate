@@ -11,8 +11,10 @@ export default function StoreSection({ crate, onSelect }: Props) {
   return (
     <div className="w-full">
       <button
+        type="button"
         onClick={() => onSelect(crate.slug)}
         className="w-full text-left cursor-pointer"
+        aria-label={`Open ${crate.name}`}
       >
         <div className="mc-section-header">
           <span className="mc-section-name">{crate.name}</span>
@@ -23,12 +25,14 @@ export default function StoreSection({ crate, onSelect }: Props) {
         {crate.records.slice(0, 10).map((record, i) => {
           const src = record.cover_image_url ?? record.thumbnail_url
           return (
-            <motion.div
+            <motion.button
               key={record.id}
+              type="button"
               className="flex-shrink-0 w-[38vw] h-[38vw] sm:w-36 sm:h-36 rounded bg-mc-bg-raised overflow-hidden border border-mc-border cursor-pointer"
               whileHover={{ scale: 1.04, zIndex: 10 }}
               transition={{ type: "spring", stiffness: 300, damping: 22 }}
               onClick={() => onSelect(crate.slug, i)}
+              aria-label={`Open ${crate.name} at ${record.title ?? "record"}`}
             >
               {src ? (
                 <img
@@ -41,7 +45,7 @@ export default function StoreSection({ crate, onSelect }: Props) {
               ) : (
                 <div className="w-full h-full flex items-center justify-center mc-dim text-2xl">♪</div>
               )}
-            </motion.div>
+            </motion.button>
           )
         })}
       </div>
