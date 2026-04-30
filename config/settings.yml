@@ -1,0 +1,8 @@
+# Milkcrate settings — override per environment or via env vars.
+# Access in code with: Settings.store_name, Settings.discogs_username, etc.
+
+store_name: Philadelphia Music
+discogs_username: philadelphiamusic
+store_description: >
+  Independent record store in South Philly. Deep soul, jazz, and funk
+  sections built over decades of digging.

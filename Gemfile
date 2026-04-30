@@ -16,6 +16,9 @@ gem "inertia_rails"
 # Vite asset pipeline for Inertia
 gem "vite_rails"
 
+# Settings — per-environment YAML config with env var overrides
+gem "config"
+
 gem "tzinfo-data", platforms: %i[ windows jruby ]
 
 gem "solid_cache"
