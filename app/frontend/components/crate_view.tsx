@@ -39,7 +39,6 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onT
   const direction = useRef(0)
   const prefersReducedMotion = useReducedMotion()
   const dragX = useMotionValue(0)
-  const dragY = useMotionValue(0)
   const activeRotate = useTransform(dragX, [-120, 0, 120], [-8, 0, 8])
 
   useEffect(() => { setIndex(0) }, [activeSlug])
@@ -74,12 +73,11 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onT
       ? info.offset.x
       : info.offset.y
 
-    dragX.set(0)
-    dragY.set(0)
-
     if (dominantOffset > DRAG_THRESHOLD) navigate(1)
     else if (dominantOffset < -DRAG_THRESHOLD) navigate(-1)
-  }, [dragX, dragY, navigate])
+
+    dragX.set(0)
+  }, [dragX, navigate])
 
   if (!activeCrate || total === 0) {
     return (
@@ -185,8 +183,6 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onT
                   <motion.div
                     className="w-full h-full rounded-lg overflow-hidden border border-mc-border shadow-2xl"
                     style={{
-                      x: dragX,
-                      y: dragY,
                       rotate: activeRotate,
                       touchAction: "none",
                     }}
@@ -195,6 +191,7 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onT
                     dragElastic={0.28}
                     dragMomentum={false}
                     whileDrag={prefersReducedMotion ? undefined : { scale: 0.985 }}
+                    onDrag={(_, info) => dragX.set(info.offset.x)}
                     onDragEnd={handleDragEnd}
                   >
                     <RecordCard
