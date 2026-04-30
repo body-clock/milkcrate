@@ -28,6 +28,15 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan 46.225.21.111 >> ~/.ssh/known_hosts
 
+      - name: Debug SSH key file
+        run: |
+          ls -l ~/.ssh/id_rsa
+          head -n 1 ~/.ssh/id_rsa
+          tail -n 1 ~/.ssh/id_rsa
+          wc -l ~/.ssh/id_rsa
+          ssh-keygen -y -f ~/.ssh/id_rsa >/tmp/public_from_private.pub
+          echo "private key parses ok"
+
       - name: Check SSH
         run: ssh -o BatchMode=yes root@46.225.21.111 "echo ssh ok"
 
