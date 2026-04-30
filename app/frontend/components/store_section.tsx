@@ -28,7 +28,7 @@ export default function StoreSection({ crate, onSelect }: Props) {
               {src ? (
                 <img
                   src={src}
-                  alt=""
+                  alt={record.title ?? ""}
                   className="w-full h-full object-cover"
                   draggable={false}
                   loading="lazy"
