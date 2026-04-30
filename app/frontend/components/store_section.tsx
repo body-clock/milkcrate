@@ -9,7 +9,7 @@ interface Props {
 
 export default function StoreSection({ crate, onSelect }: Props) {
   return (
-    <div className="w-full group">
+    <div className="w-full">
       <button
         onClick={() => onSelect(crate.slug)}
         className="w-full text-left cursor-pointer"
@@ -17,10 +17,9 @@ export default function StoreSection({ crate, onSelect }: Props) {
         <div className="mc-section-header">
           <span className="mc-section-name">{crate.name}</span>
           <span className="mc-section-count">{crate.count} records</span>
-          <span className="mc-section-count group-hover:text-mc-accent">See more</span>
         </div>
       </button>
-      <div className="flex gap-2 overflow-x-auto px-2 pt-2 pb-3" style={{ scrollbarWidth: "none" }}>
+      <div className="-mx-4 flex gap-2 overflow-x-auto pl-4 pt-2 pb-3" style={{ scrollbarWidth: "none" }}>
         {crate.records.slice(0, 10).map((record, i) => {
           const src = record.cover_image_url ?? record.thumbnail_url
           return (
