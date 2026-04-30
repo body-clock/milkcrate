@@ -1,8 +1,8 @@
 # Application name
 service: milkcrate
 
-# GitHub Container Registry (free)
-image: ghcr.io/body-clock/milkcrate
+# GitHub Container Registry image path. The registry host comes from registry.server.
+image: body-clock/milkcrate
 
 # Hetzner server — replace with your server IP
 servers:
