@@ -36,7 +36,6 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onT
   const records = activeCrate?.records ?? []
   const total = records.length
   const [index, setIndex] = useState(0)
-  const [releaseDelta, setReleaseDelta] = useState<number | null>(null)
   const direction = useRef(0)
   const prefersReducedMotion = useReducedMotion()
   const dragX = useMotionValue(0)
@@ -44,7 +43,6 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onT
 
   useEffect(() => {
     setIndex(0)
-    setReleaseDelta(null)
   }, [activeSlug])
 
   const navigate = useCallback((delta: number) => {
@@ -77,17 +75,11 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onT
       ? info.offset.x
       : info.offset.y
 
-    const delta = dominantOffset > DRAG_THRESHOLD ? 1 : dominantOffset < -DRAG_THRESHOLD ? -1 : 0
-    const next = index + delta
+    if (dominantOffset > DRAG_THRESHOLD) navigate(1)
+    else if (dominantOffset < -DRAG_THRESHOLD) navigate(-1)
 
-    if (delta === 0 || next < 0 || next >= total) {
-      dragX.set(0)
-      return
-    }
-
-    direction.current = delta
-    setReleaseDelta(delta)
-  }, [dragX, index, total])
+    dragX.set(0)
+  }, [dragX, navigate])
 
   if (!activeCrate || total === 0) {
     return (
@@ -112,7 +104,10 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onT
       </div>
 
       {/* Front-riffle crate stack */}
-      <div className="flex items-center justify-center min-h-[390px] md:min-h-[470px] py-5 sm:py-7 select-none overflow-hidden">
+      <div
+        className="flex items-center justify-center min-h-[390px] md:min-h-[470px] py-5 sm:py-7 select-none overflow-hidden"
+        style={{ touchAction: "none", overscrollBehavior: "contain" }}
+      >
         <div
           className="relative"
           style={{
@@ -128,7 +123,6 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onT
               const baseY = depth * 12
               const baseRotate = slot.offset * -4
               const scale = 1 - depth * 0.045
-              const releaseDistance = releaseDelta === null ? 0 : releaseDelta * 145
 
               if (!slot.isActive) {
                 return (
@@ -201,23 +195,9 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onT
                     dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
                     dragElastic={0.28}
                     dragMomentum={false}
-                    animate={{
-                      x: 0,
-                      y: releaseDistance,
-                      opacity: releaseDelta === null ? 1 : 0,
-                      scale: releaseDelta === null ? 1 : 0.96,
-                    }}
-                    transition={releaseDelta === null ? { type: "spring", stiffness: 320, damping: 26 } : ease}
-                    whileDrag={releaseDelta === null && !prefersReducedMotion ? { scale: 0.985 } : undefined}
+                    whileDrag={prefersReducedMotion ? undefined : { scale: 0.985 }}
                     onDrag={(_, info) => dragX.set(info.offset.x)}
                     onDragEnd={handleDragEnd}
-                    onAnimationComplete={() => {
-                      if (releaseDelta === null) return
-
-                      navigate(releaseDelta)
-                      setReleaseDelta(null)
-                      dragX.set(0)
-                    }}
                   >
                     <RecordCard
                       listing={slot.record}
