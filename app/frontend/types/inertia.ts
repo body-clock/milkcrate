@@ -34,15 +34,8 @@ export interface Crate {
   records: Listing[]
 }
 
-export interface CurrentSession {
-  id: number
-  name: string
-  item_ids: number[]
-}
-
 export interface FeaturedProps {
   store: Store
   crates: Crate[]
   active_crate_slug: string
-  current_session: CurrentSession | null
 }
