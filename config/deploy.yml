@@ -8,7 +8,7 @@ image: ghcr.io/body-clock/milkcrate
 servers:
   web:
     hosts:
-      - milkcrate-hetzner
+      - 46.225.21.111
 
 # Let's Encrypt SSL
 proxy:
