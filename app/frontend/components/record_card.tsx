@@ -71,7 +71,7 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
       >
         {/* Front */}
         <div
-          className="rounded-lg overflow-hidden border border-mc-border shadow-xl"
+          className="rounded-lg overflow-hidden shadow-xl"
           style={{
             position: "absolute",
             inset: 0,
@@ -96,7 +96,7 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
 
         {/* Back */}
         <div
-          className="rounded-lg overflow-hidden border border-mc-border shadow-xl bg-mc-bg-card"
+          className="rounded-lg overflow-hidden shadow-xl bg-mc-bg-card"
           style={{
             position: "absolute",
             inset: 0,
