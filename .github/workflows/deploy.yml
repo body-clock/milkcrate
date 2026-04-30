@@ -24,9 +24,9 @@ jobs:
       - name: Set up SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.KAMAL_SSH_KEY }}" > ~/.ssh/id_rsa
+          printf '%s\n' "${{ secrets.KAMAL_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan $(ruby -e "require 'yaml'; puts YAML.load_file('config/deploy.yml').dig('servers', 'web', 'hosts').first") >> ~/.ssh/known_hosts
+          ssh-keyscan 46.225.21.111 >> ~/.ssh/known_hosts
 
       - name: Check SSH
         run: ssh -o BatchMode=yes root@46.225.21.111 "echo ssh ok"
