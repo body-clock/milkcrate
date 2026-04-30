@@ -130,7 +130,7 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onT
                     key={`hint-${slot.record.id}`}
                     aria-hidden="true"
                     className="absolute inset-0 rounded-lg overflow-hidden border border-mc-border bg-mc-bg-raised shadow-lg pointer-events-none"
-                    initial={prefersReducedMotion ? false : { opacity: 0, y: baseY + 24 }}
+                    initial={prefersReducedMotion ? { opacity: 0, y: baseY + 10 } : { opacity: 0, y: baseY + 24 }}
                     animate={{
                       opacity: 0.38,
                       x: baseX,
@@ -138,8 +138,8 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onT
                       rotate: baseRotate,
                       scale,
                     }}
-                    exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: baseY + 18 }}
-                    transition={prefersReducedMotion ? { duration: 0 } : ease}
+                    exit={prefersReducedMotion ? { opacity: 0, y: baseY + 10 } : { opacity: 0, y: baseY + 18 }}
+                    transition={prefersReducedMotion ? reducedEase : ease}
                     style={{ zIndex: 10 - depth }}
                   >
                     {coverUrl ? (
@@ -223,7 +223,7 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onT
           <motion.div
             className="h-full bg-mc-accent rounded-full"
             animate={{ width: `${progress}%` }}
-            transition={prefersReducedMotion ? { duration: 0 } : ease}
+            transition={prefersReducedMotion ? reducedEase : ease}
           />
         </div>
       </div>
