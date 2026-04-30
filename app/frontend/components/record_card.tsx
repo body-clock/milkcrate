@@ -9,9 +9,10 @@ interface Props {
   className?: string
   imageLoading?: "eager" | "lazy"
   disableFlip?: boolean
+  framed?: boolean
 }
 
-export default function RecordCard({ listing, resetKey, className = "", imageLoading = "lazy", disableFlip = false }: Props) {
+export default function RecordCard({ listing, resetKey, className = "", imageLoading = "lazy", disableFlip = false, framed = false }: Props) {
   const [flipped, setFlipped] = useState(false)
   const pointerDown = useRef<{ x: number; y: number } | null>(null)
   const { inPile, addToPile, removeFromPile } = useDigSessionContext()
@@ -50,12 +51,16 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
       onClick={handleFlip}
     >
       <motion.div
+        className={framed ? "rounded-lg" : undefined}
         style={{
           width: "100%",
           height: "100%",
           position: "relative",
           transformStyle: "preserve-3d",
           willChange: "transform",
+          boxShadow: framed
+            ? "0 0 0 1px var(--mc-border), 0 25px 50px -12px rgb(0 0 0 / 0.35)"
+            : undefined,
         }}
         animate={{ rotateY: flipped ? 180 : 0 }}
         transition={{ type: "spring", stiffness: 260, damping: 24 }}

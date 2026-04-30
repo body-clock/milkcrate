@@ -8,7 +8,7 @@ RSpec.describe CratePresenter do
   FakeListing = Struct.new(
     :id, :discogs_listing_id, :artist, :title, :label, :year, :format,
     :genres, :styles, :condition, :price, :currency, :cover_image_url,
-    :thumbnail_url, :notes, :discogs_url,
+    :thumbnail_url, :notes, :discogs_url, :want_count, :have_count,
     keyword_init: true
   ) do
     def primary_genre = genres.first

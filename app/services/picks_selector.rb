@@ -22,6 +22,10 @@ class PicksSelector
   RARE_STYLE_THRESHOLD = 3
   RARE_STYLE_BOOST = 2
 
+  # Want/have ratio thresholds — community desirability signal
+  WANT_HAVE_RATIO_HIGH = 2.0   # more people want it than have it
+  WANT_HAVE_RATIO_LOW  = 0.5   # widely available, less interesting
+
   # Condition variants that count as "good"
   GOOD_CONDITIONS = %w[Mint NM M VG+].freeze
   CONDITION_ALIASES = {
@@ -92,6 +96,16 @@ class PicksSelector
     # Rare styles are closer to the record-store "wait, what's this?" feeling
     rare_styles = listing.styles.select { |style| style_counts.fetch(style, 0) < RARE_STYLE_THRESHOLD }
     points += rare_styles.size * RARE_STYLE_BOOST
+
+    # Community desirability — want/have ratio as a demand signal
+    if listing.have_count.to_i > 0
+      ratio = listing.want_count.to_f / listing.have_count
+      if ratio >= WANT_HAVE_RATIO_HIGH
+        points += 3
+      elsif ratio <= WANT_HAVE_RATIO_LOW
+        points -= 1
+      end
+    end
 
     # Weak metadata penalty — records with no style, single genre, and no year
     # are low-information and probably not worth digging for

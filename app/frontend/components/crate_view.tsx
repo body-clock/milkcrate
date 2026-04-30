@@ -268,7 +268,7 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
                   style={{ ...activeLayerStyle, zIndex: 30 }}
                 >
                   <motion.div
-                    className="w-full h-full rounded-lg overflow-hidden border border-mc-border shadow-2xl"
+                    className="w-full h-full"
                     style={{
                       rotate: activeRotate,
                       touchAction: "none",
@@ -290,6 +290,7 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
                       className="rounded-lg"
                       imageLoading="eager"
                       disableFlip={isDesktop}
+                      framed
                     />
                   </motion.div>
                 </motion.div>

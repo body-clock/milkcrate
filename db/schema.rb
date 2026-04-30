@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_30_182926) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_30_214404) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -35,6 +35,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_30_182926) do
     t.string "discogs_release_id"
     t.string "format"
     t.string "genres", default: [], array: true
+    t.integer "have_count"
     t.string "label"
     t.datetime "last_seen_at"
     t.datetime "listed_at"
@@ -46,12 +47,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_30_182926) do
     t.string "title"
     t.jsonb "tracklist", default: []
     t.datetime "updated_at", null: false
+    t.integer "want_count"
     t.integer "year"
     t.index ["discogs_listing_id"], name: "index_listings_on_discogs_listing_id", unique: true
     t.index ["genres"], name: "index_listings_on_genres", using: :gin
     t.index ["listed_at"], name: "index_listings_on_listed_at"
     t.index ["store_id"], name: "index_listings_on_store_id"
     t.index ["styles"], name: "index_listings_on_styles", using: :gin
+  end
+
+  create_table "releases", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "discogs_release_id"
+    t.datetime "enriched_at"
+    t.integer "have_count"
+    t.datetime "updated_at", null: false
+    t.integer "want_count"
+    t.index ["discogs_release_id"], name: "index_releases_on_discogs_release_id", unique: true
   end
 
   create_table "solid_cable_messages", force: :cascade do |t|
