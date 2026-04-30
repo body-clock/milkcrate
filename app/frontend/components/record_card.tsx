@@ -54,6 +54,7 @@ export default function RecordCard({ listing, resetKey, className = "" }: Props)
       className={`w-full h-full flex-shrink-0 cursor-pointer ${className}`}
       style={{ perspective: 800, touchAction: "none" }}
       onPointerDown={handlePointerDown}
+      onDragStart={(e) => e.preventDefault()}
       onClick={handleFlip}
     >
       <motion.div
@@ -81,6 +82,7 @@ export default function RecordCard({ listing, resetKey, className = "" }: Props)
               src={listing.cover_image_url}
               alt={listing.title ?? ""}
               className="w-full h-full object-cover"
+              draggable={false}
               loading="lazy"
             />
           ) : (

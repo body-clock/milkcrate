@@ -147,6 +147,7 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onT
                         src={coverUrl}
                         alt=""
                         className="w-full h-full object-cover saturate-75"
+                        draggable={false}
                         loading="lazy"
                       />
                     ) : (
