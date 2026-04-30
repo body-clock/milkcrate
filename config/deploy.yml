@@ -19,7 +19,7 @@ proxy:
 # Container registry
 registry:
   server: ghcr.io
-  username: body-clock
+  username: <%= ENV.fetch("KAMAL_REGISTRY_USERNAME", "body-clock") %>
   password:
     - KAMAL_REGISTRY_PASSWORD
 

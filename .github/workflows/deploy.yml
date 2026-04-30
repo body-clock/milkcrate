@@ -31,5 +31,6 @@ jobs:
       - name: Deploy
         run: kamal deploy
         env:
+          KAMAL_REGISTRY_USERNAME: ${{ github.actor }}
           KAMAL_REGISTRY_PASSWORD: ${{ github.token }}
           RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
