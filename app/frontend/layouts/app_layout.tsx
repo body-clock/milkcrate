@@ -6,7 +6,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const flash = (page.props as any).flash as { notice?: string; alert?: string } | undefined
 
   return (
-    <>
+    <div className="min-h-screen flex flex-col">
       <header className="mc-header flex items-center justify-between px-4 py-3 border-b mc-border">
         <Link href="/" className="mc-wordmark text-xl font-bold tracking-widest uppercase">
           🥛 Milkcrate
@@ -19,7 +19,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
       )}
 
-      <main className="px-4 py-6">{children}</main>
-    </>
+      <main className="flex-1 px-4 py-6">{children}</main>
+    </div>
   )
 }

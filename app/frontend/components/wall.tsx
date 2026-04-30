@@ -12,7 +12,7 @@ function WallCard({ record }: { record: Listing }) {
   return (
     <div
       className="flex-shrink-0 cursor-pointer"
-      style={{ perspective: 800, width: 160, height: 160 }}
+      style={{ perspective: 800, width: "min(44vw, 180px)", height: "min(44vw, 180px)" }}
       onClick={() => setFlipped((f) => !f)}
     >
       <motion.div
@@ -72,11 +72,11 @@ export default function Wall({ picks }: Props) {
 
   return (
     <section className="mb-8">
-      <div className="flex items-baseline gap-2 mb-3">
+      <div className="flex items-baseline gap-2 mb-4">
         <span className="text-sm font-semibold mc-text">Staff Picks</span>
         <span className="text-[10px] text-mc-text-dim">{picks.length} records</span>
       </div>
-      <div className="flex gap-4 overflow-x-auto pb-2" style={{ scrollbarWidth: "thin" }}>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
         {picks.slice(0, 8).map((record) => (
           <WallCard key={record.id} record={record} />
         ))}
