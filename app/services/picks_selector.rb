@@ -59,10 +59,7 @@ class PicksSelector
     scope = scope.where(id: listing_ids) if listing_ids&.any?
     listings = scope.to_a
 
-    genre_counts = @store.listings.pluck(:genres).flatten.tally
-    style_counts = @store.listings.pluck(:styles).flatten.tally
-
-    listings.map { |listing| [ listing, score(listing, genre_counts, style_counts) ] }
+    listings.map { |listing| [ listing, score(listing, store_genre_counts, store_style_counts) ] }
   end
 
   def score(listing, genre_counts, style_counts)
@@ -103,5 +100,13 @@ class PicksSelector
     end
 
     points
+  end
+
+  def store_genre_counts
+    @store_genre_counts ||= @store.listings.pluck(:genres).flatten.tally
+  end
+
+  def store_style_counts
+    @store_style_counts ||= @store.listings.pluck(:styles).flatten.tally
   end
 end
