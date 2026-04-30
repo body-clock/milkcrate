@@ -53,7 +53,7 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
   return (
     <div
       className={`w-full h-full flex-shrink-0 cursor-pointer ${className}`}
-      style={{ perspective: 800, touchAction: "none", contain: "layout paint style" }}
+      style={{ perspective: 800, touchAction: "none" }}
       onPointerDown={handlePointerDown}
       onDragStart={(e) => e.preventDefault()}
       onClick={handleFlip}
@@ -71,7 +71,7 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
       >
         {/* Front */}
         <div
-          className="rounded-lg overflow-hidden shadow-xl"
+          className="rounded-lg overflow-hidden border border-mc-border shadow-xl"
           style={{
             position: "absolute",
             inset: 0,
@@ -96,7 +96,7 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
 
         {/* Back */}
         <div
-          className="rounded-lg overflow-hidden shadow-xl bg-mc-bg-card"
+          className="rounded-lg overflow-hidden border border-mc-border shadow-xl bg-mc-bg-card"
           style={{
             position: "absolute",
             inset: 0,

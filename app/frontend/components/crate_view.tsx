@@ -115,7 +115,7 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onT
 
       {/* Front-riffle crate stack */}
       <div
-        className="flex items-center justify-center min-h-[390px] md:min-h-[470px] py-5 sm:py-7 select-none overflow-hidden"
+        className="relative z-10 flex items-center justify-center min-h-[390px] md:min-h-[470px] py-5 sm:py-7 select-none"
         style={{ touchAction: "none", overscrollBehavior: "contain" }}
       >
         <div
@@ -139,7 +139,7 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onT
                   <motion.div
                     key={`hint-${slot.record.id}`}
                     aria-hidden="true"
-                    className="absolute inset-0 rounded-lg overflow-hidden border border-mc-border bg-mc-bg-raised shadow-lg pointer-events-none"
+                    className="absolute inset-0 rounded-lg overflow-hidden bg-mc-bg-raised shadow-lg pointer-events-none"
                     initial={prefersReducedMotion ? { opacity: 0, y: baseY + 10 } : { opacity: 0, y: baseY + 24 }}
                     animate={{
                       opacity: 0.38,
@@ -198,7 +198,7 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onT
                   style={{ ...compositedLayerStyle, zIndex: 30 }}
                 >
                   <motion.div
-                    className="w-full h-full rounded-lg overflow-hidden border border-mc-border shadow-2xl"
+                    className="w-full h-full"
                     style={{
                       rotate: activeRotate,
                       touchAction: "none",
