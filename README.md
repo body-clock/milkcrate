@@ -4,6 +4,8 @@ Milkcrate is a Rails app for digging through Discogs seller inventory locally. E
 
 This README is only for local development.
 
+This is a test.
+
 ## What The App Does
 
 - Features one store per day from `config/stores.yml`
