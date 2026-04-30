@@ -54,8 +54,8 @@ RSpec.describe CratePresenter do
       label: "Label",
       year: 1975,
       format: "Vinyl",
-      genres: ["Jazz"],
-      styles: ["Bebop"],
+      genres: [ "Jazz" ],
+      styles: [ "Bebop" ],
       condition: "VG+",
       price: "12.50",
       currency: "USD",
@@ -120,9 +120,9 @@ RSpec.describe CratePresenter do
   end
 
   describe "#build_crates" do
-    let(:jazz) { fake_listing(id: 1, genres: ["Jazz"]) }
-    let(:rock) { fake_listing(id: 2, genres: ["Rock"]) }
-    let(:picks) { [jazz] }
+    let(:jazz) { fake_listing(id: 1, genres: [ "Jazz" ]) }
+    let(:rock) { fake_listing(id: 2, genres: [ "Rock" ]) }
+    let(:picks) { [ jazz ] }
 
     before do
       selector = instance_double(PicksSelector)
@@ -131,7 +131,7 @@ RSpec.describe CratePresenter do
     end
 
     it "places picks first with slug 'picks'" do
-      store = fake_store(listings: [jazz])
+      store = fake_store(listings: [ jazz ])
       crates = described_class.new(store).build_crates(picks, [])
 
       expect(crates.first[:slug]).to eq("picks")
@@ -139,7 +139,7 @@ RSpec.describe CratePresenter do
     end
 
     it "includes picks records in the first crate" do
-      store = fake_store(listings: [jazz])
+      store = fake_store(listings: [ jazz ])
       crates = described_class.new(store).build_crates(picks, [])
 
       expect(crates.first[:count]).to eq(1)
@@ -147,15 +147,15 @@ RSpec.describe CratePresenter do
     end
 
     it "parameterizes multi-word genre names as slugs" do
-      hip_hop = fake_listing(id: 3, genres: ["Hip Hop"])
-      store = fake_store(listings: [hip_hop])
+      hip_hop = fake_listing(id: 3, genres: [ "Hip Hop" ])
+      store = fake_store(listings: [ hip_hop ])
       crates = described_class.new(store).build_crates([], [])
 
       expect(crates.map { |c| c[:slug] }).to include("hip-hop")
     end
 
     it "produces one crate per unique primary genre" do
-      store = fake_store(listings: [jazz, rock])
+      store = fake_store(listings: [ jazz, rock ])
       crates = described_class.new(store).build_crates([], [])
 
       genre_slugs = crates.reject { |c| c[:slug] == "picks" }.map { |c| c[:slug] }
