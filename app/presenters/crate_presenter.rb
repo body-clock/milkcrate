@@ -29,13 +29,15 @@ class CratePresenter
 
   def build_crates(picks, daily_ids)
     crates = []
-
     crates << crate_props("picks", "Milkcrate Picks", picks)
 
+    selector = PicksSelector.new(@store)
     genre_counts = @store.listings.pluck(:genres).flatten.tally.sort_by { |_, c| -c }
     scope = daily_ids.any? ? @store.listings.where(id: daily_ids) : @store.listings
+
     genre_counts.each do |genre, _|
-      genre_listings = scope.by_genre(genre).limit(100).to_a
+      genre_listing_ids = scope.by_genre(genre).pluck(:id)
+      genre_listings = selector.rank(listing_ids: genre_listing_ids)
       crates << crate_props(genre.parameterize, genre, genre_listings)
     end
 
