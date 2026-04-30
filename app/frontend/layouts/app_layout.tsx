@@ -1,9 +1,11 @@
 import React from "react"
 import { Link, usePage } from "@inertiajs/react"
+import { useTheme } from "@/hooks/use_theme"
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const page = usePage()
   const flash = (page.props as any).flash as { notice?: string; alert?: string } | undefined
+  const { theme, toggle } = useTheme()
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -11,6 +13,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <Link href="/" className="mc-wordmark text-xl font-bold tracking-widest uppercase">
           🥛 Milkcrate
         </Link>
+        <button
+          onClick={toggle}
+          className="text-xs text-mc-text-dim hover:text-mc-text transition-colors select-none"
+          aria-label="Toggle light/dark mode"
+        >
+          {theme === "dark" ? "☀︎" : "☾"}
+        </button>
       </header>
 
       {flash?.notice && (

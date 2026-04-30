@@ -6,6 +6,12 @@ import type { FeaturedProps } from "@/types/inertia"
 
 export default function Featured({ store, crates }: FeaturedProps) {
   const [activeSlug, setActiveSlug] = useState<string | null>(null)
+  const [startIndex, setStartIndex] = useState(0)
+
+  const handleSelectCrate = (slug: string, index = 0) => {
+    setStartIndex(index)
+    setActiveSlug(slug)
+  }
 
   return (
     <AppLayout>
@@ -29,12 +35,13 @@ export default function Featured({ store, crates }: FeaturedProps) {
           <p>No vinyl found yet.</p>
         </div>
       ) : activeSlug === null ? (
-        <StoreFloor crates={crates} onSelectCrate={setActiveSlug} />
+        <StoreFloor crates={crates} onSelectCrate={handleSelectCrate} />
       ) : (
         <CrateView
           crates={crates}
           activeSlug={activeSlug}
-          onSelectCrate={setActiveSlug}
+          startIndex={startIndex}
+          onSelectCrate={handleSelectCrate}
           onBack={() => setActiveSlug(null)}
         />
       )}

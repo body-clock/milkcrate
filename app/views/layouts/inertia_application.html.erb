@@ -1,6 +1,7 @@
 <!DOCTYPE html>
-<html data-theme="dark">
+<html>
   <head>
+    <script>document.documentElement.setAttribute("data-theme",(localStorage.getItem("mc-theme")||"dark")==="light"?"light":"")</script>
     <title><%= content_for(:title) || "Milkcrate" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="theme-color" content="#15120e" data-theme="dark">

@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from "react"
 import { motion } from "framer-motion"
-import { router } from "@inertiajs/react"
 import type { Listing } from "../types/inertia"
 
 interface Props {
@@ -8,9 +7,10 @@ interface Props {
   resetKey?: string | number
   className?: string
   imageLoading?: "eager" | "lazy"
+  disableFlip?: boolean
 }
 
-export default function RecordCard({ listing, resetKey, className = "", imageLoading = "lazy" }: Props) {
+export default function RecordCard({ listing, resetKey, className = "", imageLoading = "lazy", disableFlip = false }: Props) {
   const [flipped, setFlipped] = useState(false)
   const pointerDown = useRef<{ x: number; y: number } | null>(null)
 
@@ -24,28 +24,17 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
 
   const movedSincePointerDown = (e: React.MouseEvent) => {
     if (!pointerDown.current) return false
-
     const deltaX = Math.abs(e.clientX - pointerDown.current.x)
     const deltaY = Math.abs(e.clientY - pointerDown.current.y)
     pointerDown.current = null
-
     return Math.hypot(deltaX, deltaY) > 8
   }
 
   const handleFlip = (e: React.MouseEvent) => {
+    if (disableFlip) return
     if ((e.target as HTMLElement).closest("a, button, form")) return
     if (movedSincePointerDown(e)) return
     setFlipped((f) => !f)
-  }
-
-  const handleAdd = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    router.post(`/listings/${listing.id}/add_to_session`)
-  }
-
-  const handleRemove = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    router.delete(`/listings/${listing.id}/remove_from_session`)
   }
 
   const meta = [listing.label, listing.year, listing.condition].filter(Boolean).join(" · ")
@@ -129,15 +118,6 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
               {listing.price ? `$${parseFloat(listing.price).toFixed(2)}` : "—"}
             </div>
             <div className="flex gap-1 mt-1" onClick={(e) => e.stopPropagation()}>
-              {listing.in_pile ? (
-                <button onClick={handleRemove} className="mc-btn text-xs">
-                  ✓ In pile
-                </button>
-              ) : (
-                <button onClick={handleAdd} className="mc-btn mc-btn-primary text-xs">
-                  + Pile
-                </button>
-              )}
               <a href={listing.discogs_url} target="_blank" rel="noopener" className="mc-btn text-xs">
                 Discogs ↗
               </a>

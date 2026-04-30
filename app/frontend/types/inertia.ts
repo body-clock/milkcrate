@@ -24,7 +24,6 @@ export interface Listing {
   thumbnail_url: string | null
   notes: string | null
   discogs_url: string
-  in_pile: boolean
 }
 
 export interface Crate {

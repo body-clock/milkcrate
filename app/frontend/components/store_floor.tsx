@@ -1,10 +1,12 @@
 import React from "react"
+import { motion } from "framer-motion"
 import StoreSection from "./store_section"
+import RecordCard from "./record_card"
 import type { Crate } from "../types/inertia"
 
 interface Props {
   crates: Crate[]
-  onSelectCrate: (slug: string) => void
+  onSelectCrate: (slug: string, startIndex?: number) => void
 }
 
 export default function StoreFloor({ crates, onSelectCrate }: Props) {
@@ -16,44 +18,39 @@ export default function StoreFloor({ crates, onSelectCrate }: Props) {
   return (
     <div className="flex flex-col">
       {picks && picks.records.length > 0 && (
-        <button
-          onClick={() => onSelectCrate("picks")}
-          className="w-full text-left cursor-pointer group mb-6"
-        >
-          <div className="mc-section-header">
-            <span className="mc-section-name">Milkcrate Picks</span>
-            <span className="mc-section-count">{today}</span>
-            <span className="mc-section-browse group-hover:text-mc-accent">Dig in →</span>
-          </div>
-          <div className="mc-crate-row pb-3">
-            {picks.records.slice(0, 10).map((record) => {
-              const src = record.cover_image_url ?? record.thumbnail_url
+        <div className="mb-6">
+          <button
+            onClick={() => onSelectCrate("picks")}
+            className="w-full text-left cursor-pointer group"
+          >
+            <div className="mc-section-header">
+              <span className="mc-section-name">Milkcrate Picks</span>
+              <span className="mc-section-count">{today}</span>
+              <span className="mc-section-count group-hover:text-mc-accent">See more</span>
+            </div>
+          </button>
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mt-1 px-2 pt-2">
+            {picks.records.slice(0, 12).map((record, i) => {
+              const tilt = i % 2 === 0 ? 1.5 : -1.5
               return (
-                <div
+                <motion.div
                   key={record.id}
-                  className="flex-shrink-0 w-[4.5rem] h-[4.5rem] rounded bg-mc-bg-raised overflow-hidden border border-mc-border"
+                  className="aspect-square"
+                  style={{ zIndex: 1 }}
+                  whileHover={{ rotate: tilt, y: -2, scale: 1.03, zIndex: 10 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 22 }}
                 >
-                  {src ? (
-                    <img
-                      src={src}
-                      alt={record.title ?? ""}
-                      className="w-full h-full object-cover"
-                      draggable={false}
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center mc-dim text-lg">♪</div>
-                  )}
-                </div>
+                  <RecordCard listing={record} imageLoading="lazy" />
+                </motion.div>
               )
             })}
           </div>
-        </button>
+        </div>
       )}
 
       <div className="flex flex-col">
         {genreCrates.map((crate) => (
-          <StoreSection key={crate.slug} crate={crate} onSelect={onSelectCrate} />
+          <StoreSection key={crate.slug} crate={crate} onSelect={(slug, i) => onSelectCrate(slug, i)} />
         ))}
       </div>
     </div>

@@ -25,7 +25,7 @@ class CratePresenter
     scope = daily_ids.any? ? @store.listings.where(id: daily_ids) : @store.listings
 
     genre_counts.each do |genre, _|
-      genre_listing_ids = scope.by_genre(genre).pluck(:id)
+      genre_listing_ids = scope.where("genres[1] = ?", genre).pluck(:id)
       genre_listings = selector.rank(listing_ids: genre_listing_ids)
       crates << crate_props(genre.parameterize, genre, genre_listings)
     end
