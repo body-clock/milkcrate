@@ -2,7 +2,6 @@ import React, { useState, useCallback, useEffect, useMemo, useRef } from "react"
 import { motion, AnimatePresence, useMotionValue, useReducedMotion, useTransform } from "framer-motion"
 import CrateTabs from "./crate_tabs"
 import RecordCard from "./record_card"
-import ToggleView from "./toggle_view"
 import { buildCrateWindow } from "../lib/crate_window"
 import type { Crate } from "../types/inertia"
 
@@ -10,8 +9,7 @@ interface Props {
   crates: Crate[]
   activeSlug: string
   onSelectCrate: (slug: string) => void
-  mode: "crate" | "store"
-  onToggleMode: () => void
+  onBack?: () => void
 }
 
 const ease = { duration: 0.2, ease: "easeOut" as const }
@@ -46,7 +44,7 @@ function usePreload(records: { id: number; cover_image_url?: string | null }[], 
   }, [records, index])
 }
 
-export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onToggleMode }: Props) {
+export default function CrateView({ crates, activeSlug, onSelectCrate, onBack }: Props) {
   const activeCrate = crates.find((c) => c.slug === activeSlug) ?? crates[0]
   const records = activeCrate?.records ?? []
   const total = records.length
@@ -99,9 +97,16 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onT
   if (!activeCrate || total === 0) {
     return (
       <div>
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="self-start text-xs text-mc-text-dim hover:text-mc-text transition-colors mb-3 flex items-center gap-1 cursor-pointer"
+          >
+            ← Store
+          </button>
+        )}
         <div className="flex items-center justify-between mb-3">
           <CrateTabs crates={crates} activeSlug={activeSlug} onSelect={onSelectCrate} />
-          <ToggleView mode={mode} onToggle={onToggleMode} />
         </div>
         <div className="py-16 text-center mc-dim text-sm">No records in this crate yet.</div>
       </div>
@@ -110,12 +115,17 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onT
 
   return (
     <div className="flex flex-col">
-      {/* Top bar: crate tabs + store toggle */}
+      {onBack && (
+        <button
+          onClick={onBack}
+          className="self-start text-xs text-mc-text-dim hover:text-mc-text transition-colors mb-3 flex items-center gap-1 cursor-pointer"
+        >
+          ← Store
+        </button>
+      )}
+      {/* Top bar: crate tabs */}
       <div className="flex items-center justify-between mb-4">
         <CrateTabs crates={crates} activeSlug={activeSlug} onSelect={onSelectCrate} />
-        <div className="ml-2 shrink-0">
-          <ToggleView mode={mode} onToggle={onToggleMode} />
-        </div>
       </div>
 
       {/* Front-riffle crate stack */}

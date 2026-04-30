@@ -46,6 +46,12 @@ class PicksSelector
     pool.sort_by { |listing| Digest::MD5.hexdigest("#{listing.id}#{shuffle_seed}") }.first(count)
   end
 
+  def rank(listing_ids: nil)
+    score_all(listing_ids: listing_ids)
+      .sort_by { |_, s| -s }
+      .map(&:first)
+  end
+
   private
 
   def score_all(listing_ids: nil)

@@ -88,6 +88,55 @@ RSpec.describe PicksSelector do
     end
   end
 
+  describe "#rank" do
+    it "returns listings sorted by score descending" do
+      high_score = FakeListing.new(
+        id: 1,
+        genres: [ "Jazz" ],
+        styles: [ "Afro-Jazz" ],
+        year: 1972,
+        condition: "NM"
+      )
+      low_score = FakeListing.new(
+        id: 2,
+        genres: [ "Rock" ],
+        styles: [],
+        year: nil,
+        condition: "Generic"
+      )
+      store = double("Store", listings: FakeListingsScope.new([ high_score, low_score ]))
+      selector = described_class.new(store)
+
+      result = selector.rank
+
+      expect(result.first).to eq(high_score)
+      expect(result.last).to eq(low_score)
+    end
+
+    it "filters to provided listing_ids" do
+      included = FakeListing.new(
+        id: 1,
+        genres: [ "Jazz" ],
+        styles: [ "Afro-Jazz" ],
+        year: 1972,
+        condition: "NM"
+      )
+      excluded = FakeListing.new(
+        id: 2,
+        genres: [ "Rock" ],
+        styles: [ "Classic Rock" ],
+        year: 1975,
+        condition: "VG+"
+      )
+      store = double("Store", listings: FakeListingsScope.new([ included, excluded ]))
+      selector = described_class.new(store)
+
+      result = selector.rank(listing_ids: [ 1 ])
+
+      expect(result.map(&:id)).to eq([ 1 ])
+    end
+  end
+
   describe "#score" do
     it "boosts records with styles that are rare within the store catalog" do
       selector = described_class.new(double("store"))
