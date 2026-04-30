@@ -167,8 +167,10 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
       <div>
         {onBack && (
           <button
+            type="button"
             onClick={onBack}
             className="self-start text-xs text-mc-text-dim hover:text-mc-text transition-colors mb-3 flex items-center gap-1 cursor-pointer"
+            aria-label="Back to store"
           >
             ← Store
           </button>
@@ -318,23 +320,27 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
       {/* Paginator */}
       <div className="flex items-center justify-center gap-4 sm:gap-6">
         <motion.button
+          type="button"
           onClick={() => navigate(-1)}
           disabled={index <= 0}
           whileTap={{ scale: 0.92 }}
           className="flex items-center justify-center w-14 h-14 rounded-full bg-mc-bg-raised text-mc-text text-xl disabled:opacity-20 disabled:cursor-not-allowed hover:bg-mc-bg-card transition-colors select-none"
+          aria-label="Previous record"
         >
           ↑
         </motion.button>
 
-        <span className="text-sm text-mc-text-dim tabular-nums w-20 text-center select-none">
+        <span className="text-sm text-mc-text-dim tabular-nums w-20 text-center select-none" aria-live="polite">
           {index + 1} of {total}
         </span>
 
         <motion.button
+          type="button"
           onClick={() => navigate(1)}
           disabled={index >= total - 1}
           whileTap={{ scale: 0.92 }}
           className="flex items-center justify-center w-14 h-14 rounded-full bg-mc-bg-raised text-mc-text text-xl disabled:opacity-20 disabled:cursor-not-allowed hover:bg-mc-bg-card transition-colors select-none"
+          aria-label="Next record"
         >
           ↓
         </motion.button>
@@ -350,8 +356,10 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
     <div className="flex flex-col">
       {onBack && (
         <button
+          type="button"
           onClick={onBack}
           className="self-start text-xs text-mc-text-dim hover:text-mc-text transition-colors mb-3 flex items-center gap-1 cursor-pointer"
+          aria-label="Back to store"
         >
           ← Store
         </button>

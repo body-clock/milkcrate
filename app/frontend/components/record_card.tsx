@@ -16,6 +16,7 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
   const [flipped, setFlipped] = useState(false)
   const pointerDown = useRef<{ x: number; y: number } | null>(null)
   const { inPile, addToPile, removeFromPile } = useDigSessionContext()
+  const canFlip = !disableFlip
 
   useEffect(() => {
     setFlipped(false)
@@ -34,10 +35,20 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
   }
 
   const handleFlip = (e: React.MouseEvent) => {
-    if (disableFlip) return
+    if (!canFlip) return
     if ((e.target as HTMLElement).closest("a, button, form")) return
     if (movedSincePointerDown(e)) return
     setFlipped((f) => !f)
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!canFlip) return
+    if ((e.target as HTMLElement).closest("a, button, form")) return
+
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault()
+      setFlipped((f) => !f)
+    }
   }
 
   const meta = [listing.label, listing.year, listing.condition].filter(Boolean).join(" · ")
@@ -46,9 +57,14 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
     <div
       className={`w-full h-full flex-shrink-0 cursor-pointer ${className}`}
       style={{ perspective: 800, touchAction: "none" }}
+      role={canFlip ? "button" : undefined}
+      tabIndex={canFlip ? 0 : undefined}
+      aria-label={canFlip ? `${flipped ? "Show cover for" : "Show details for"} ${listing.title ?? "record"}` : undefined}
+      aria-pressed={canFlip ? flipped : undefined}
       onPointerDown={handlePointerDown}
       onDragStart={(e) => e.preventDefault()}
       onClick={handleFlip}
+      onKeyDown={handleKeyDown}
     >
       <motion.div
         className={framed ? "rounded-lg" : undefined}

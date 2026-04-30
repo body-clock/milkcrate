@@ -12,8 +12,31 @@ export default function PileSheet({ open, onClose }: Props) {
   const { pile, removeFromPile, clearPile } = useDigSessionContext()
   const isDesktop = useIsDesktop()
   const [confirmClear, setConfirmClear] = React.useState(false)
+  const dialogRef = React.useRef<HTMLDivElement>(null)
+  const previousFocusRef = React.useRef<HTMLElement | null>(null)
 
   const total = pile.reduce((sum, l) => sum + (parseFloat(l.price) || 0), 0)
+
+  React.useEffect(() => {
+    if (!open) return
+
+    previousFocusRef.current = document.activeElement as HTMLElement | null
+    dialogRef.current?.focus()
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setConfirmClear(false)
+        onClose()
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown)
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown)
+      previousFocusRef.current?.focus?.()
+    }
+  }, [open, onClose])
 
   return (
     <AnimatePresence>
@@ -26,10 +49,16 @@ export default function PileSheet({ open, onClose }: Props) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
+            aria-hidden="true"
           />
 
           {/* Sheet */}
           <motion.div
+            ref={dialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="pile-sheet-title"
+            tabIndex={-1}
             className={
               isDesktop
                 ? "fixed top-0 right-0 bottom-0 z-50 bg-mc-bg border-l border-mc-border w-96 flex flex-col"
@@ -43,7 +72,7 @@ export default function PileSheet({ open, onClose }: Props) {
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-mc-border flex-shrink-0">
               <div className="flex items-center gap-3">
-                <span className="text-sm font-semibold">
+                <span id="pile-sheet-title" className="text-sm font-semibold">
                   Your pile {pile.length > 0 && <span className="text-mc-text-dim font-normal">· {pile.length} records</span>}
                 </span>
                 {pile.length > 0 && (
@@ -64,13 +93,21 @@ export default function PileSheet({ open, onClose }: Props) {
                       </button>
                     </div>
                   ) : (
-                    <button onClick={() => setConfirmClear(true)} className="text-xs text-mc-text-dim hover:text-mc-text transition-colors">
+                    <button
+                      onClick={() => setConfirmClear(true)}
+                      className="text-xs text-mc-text-dim hover:text-mc-text transition-colors"
+                      aria-label={`Clear ${pile.length} records from pile`}
+                    >
                       Clear
                     </button>
                   )
                 )}
               </div>
-              <button onClick={() => { setConfirmClear(false); onClose() }} className="text-mc-text-dim hover:text-mc-text transition-colors text-lg leading-none">
+              <button
+                onClick={() => { setConfirmClear(false); onClose() }}
+                className="text-mc-text-dim hover:text-mc-text transition-colors text-lg leading-none"
+                aria-label="Close pile"
+              >
                 ×
               </button>
             </div>
@@ -111,6 +148,7 @@ export default function PileSheet({ open, onClose }: Props) {
                         <button
                           onClick={() => removeFromPile(listing.id)}
                           className="text-mc-text-dim hover:text-mc-text transition-colors text-sm leading-none flex-shrink-0 ml-2"
+                          aria-label={`Remove ${listing.title ?? "record"} from pile`}
                         >
                           ×
                         </button>
