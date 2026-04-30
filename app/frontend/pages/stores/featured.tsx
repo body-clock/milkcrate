@@ -41,7 +41,6 @@ export default function Featured({ store, crates }: FeaturedProps) {
           crates={crates}
           activeSlug={activeSlug}
           startIndex={startIndex}
-          storeId={store.id}
           onSelectCrate={handleSelectCrate}
           onBack={() => setActiveSlug(null)}
         />

@@ -5,7 +5,6 @@ import RecordCard from "./record_card"
 import { buildCrateWindow } from "../lib/crate_window"
 import { useIsDesktop } from "@/hooks/use_is_desktop"
 import { useDigSessionContext } from "@/contexts/dig_session_context"
-import { useTrackEvent } from "@/hooks/use_track_event"
 import type { Crate, Listing } from "../types/inertia"
 
 interface Props {
@@ -13,7 +12,6 @@ interface Props {
   activeSlug: string
   startIndex?: number
   hideTabs?: boolean
-  storeId?: number
   onSelectCrate: (slug: string, startIndex?: number) => void
   onBack?: () => void
 }
@@ -35,12 +33,11 @@ const activeLayerStyle: React.CSSProperties = {
   WebkitBackfaceVisibility: "hidden",
 }
 
-function RecordDetails({ listing, direction, storeId }: { listing: Listing; direction: number; storeId?: number }) {
+function RecordDetails({ listing, direction }: { listing: Listing; direction: number }) {
   const meta = [listing.label, listing.year, listing.condition].filter(Boolean).join(" · ")
   const enterY = direction >= 0 ? -16 : 16
   const exitY = direction >= 0 ? 16 : -16
   const { inPile, addToPile, removeFromPile } = useDigSessionContext()
-  const track = useTrackEvent(storeId ?? 0)
 
   return (
     <AnimatePresence mode="wait" custom={direction}>
@@ -83,15 +80,9 @@ function RecordDetails({ listing, direction, storeId }: { listing: Listing; dire
           {inPile(listing.id) ? (
             <button onClick={() => removeFromPile(listing.id)} className="mc-btn">✓ In pile</button>
           ) : (
-            <button onClick={() => { addToPile(listing); if (storeId) track("pile_add", listing.id) }} className="mc-btn mc-btn-primary">+ Pile</button>
+            <button onClick={() => addToPile(listing)} className="mc-btn mc-btn-primary">+ Pile</button>
           )}
-          <a
-            href={listing.discogs_url}
-            target="_blank"
-            rel="noopener"
-            className="mc-btn"
-            onClick={() => { if (storeId) track("discogs_click", listing.id) }}
-          >
+          <a href={listing.discogs_url} target="_blank" rel="noopener" className="mc-btn">
             Discogs ↗
           </a>
         </div>
@@ -119,7 +110,7 @@ function usePreload(records: { id: number; cover_image_url?: string | null }[], 
   }, [records, index])
 }
 
-export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs = false, storeId, onSelectCrate, onBack }: Props) {
+export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs = false, onSelectCrate, onBack }: Props) {
   const isDesktop = useIsDesktop()
   const activeCrate = crates.find((c) => c.slug === activeSlug) ?? crates[0]
   const records = activeCrate?.records ?? []
@@ -129,15 +120,10 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
   const prefersReducedMotion = useReducedMotion()
   const dragX = useMotionValue(0)
   const activeRotate = useTransform(dragX, [-120, 0, 120], [-8, 0, 8])
-  const track = useTrackEvent(storeId ?? 0)
 
   useEffect(() => {
     setIndex(startIndex)
   }, [activeSlug, startIndex])
-
-  useEffect(() => {
-    if (storeId && records[index]) track("record_view", records[index].id)
-  }, [index, activeSlug])
 
   const navigate = useCallback((delta: number) => {
     const next = index + delta
@@ -304,7 +290,6 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
                       className="rounded-lg"
                       imageLoading="eager"
                       disableFlip={isDesktop}
-                      storeId={storeId}
                       framed
                     />
                   </motion.div>
@@ -386,7 +371,7 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
         {/* Desktop details panel */}
         {activeRecord && (
           <div className="hidden md:flex md:flex-col md:pt-20 md:min-h-[420px]">
-            <RecordDetails listing={activeRecord} direction={direction.current} storeId={storeId} />
+            <RecordDetails listing={activeRecord} direction={direction.current} />
           </div>
         )}
       </div>

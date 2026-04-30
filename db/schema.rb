@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_30_214950) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_30_214404) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -23,15 +23,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_30_214950) do
     t.index ["listing_ids"], name: "index_daily_selections_on_listing_ids", using: :gin
     t.index ["store_id", "selected_on"], name: "index_daily_selections_on_store_id_and_selected_on", unique: true
     t.index ["store_id"], name: "index_daily_selections_on_store_id"
-  end
-
-  create_table "listing_events", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.string "event_type"
-    t.bigint "listing_id"
-    t.bigint "store_id"
-    t.index ["listing_id"], name: "index_listing_events_on_listing_id"
-    t.index ["store_id"], name: "index_listing_events_on_store_id"
   end
 
   create_table "listings", force: :cascade do |t|

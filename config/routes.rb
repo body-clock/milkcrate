@@ -3,7 +3,5 @@ Rails.application.routes.draw do
 
   mount MissionControl::Jobs::Engine, at: "/jobs" if Rails.env.development?
 
-  post "/events", to: "events#create"
-
   root "stores#featured"
 end
