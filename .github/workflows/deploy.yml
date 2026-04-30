@@ -23,18 +23,8 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan $(ruby -e "require 'yaml'; puts YAML.load_file('config/deploy.yml').dig('servers', 'web', 'hosts').first") >> ~/.ssh/known_hosts
 
-      - name: Check deploy secrets
-        run: |
-          test -n "$KAMAL_REGISTRY_PASSWORD" || (echo "KAMAL_REGISTRY_PASSWORD is empty" && exit 1)
-          test -n "$RAILS_MASTER_KEY" || (echo "RAILS_MASTER_KEY is empty" && exit 1)
-          echo "KAMAL_REGISTRY_PASSWORD length: ${#KAMAL_REGISTRY_PASSWORD}"
-        env:
-          KAMAL_REGISTRY_PASSWORD: ${{ secrets.KAMAL_REGISTRY_PASSWORD }}
-          RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
-
       - name: Deploy
         run: kamal deploy
         env:
-          KAMAL_REGISTRY_PASSWORD: ${{ secrets.KAMAL_REGISTRY_PASSWORD }}
+          KAMAL_REGISTRY_PASSWORD: ${{ github.token }}
           RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
