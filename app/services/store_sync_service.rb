@@ -37,6 +37,9 @@ class StoreSyncService
       last_synced_at: Time.current,
       total_listings: @store.listings.count
     )
+
+    EnrichReleasesJob.perform_later(@store.id)
+
     total_imported
   rescue StandardError => e
     @store.update!(sync_status: "failed")

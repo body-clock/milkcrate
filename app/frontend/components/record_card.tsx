@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react"
 import { motion } from "framer-motion"
 import { useDigSessionContext } from "../contexts/dig_session_context"
+import { useTrackEvent } from "@/hooks/use_track_event"
 import type { Listing } from "../types/inertia"
 
 interface Props {
@@ -9,12 +10,15 @@ interface Props {
   className?: string
   imageLoading?: "eager" | "lazy"
   disableFlip?: boolean
+  storeId?: number
+  framed?: boolean
 }
 
-export default function RecordCard({ listing, resetKey, className = "", imageLoading = "lazy", disableFlip = false }: Props) {
+export default function RecordCard({ listing, resetKey, className = "", imageLoading = "lazy", disableFlip = false, storeId, framed = false }: Props) {
   const [flipped, setFlipped] = useState(false)
   const pointerDown = useRef<{ x: number; y: number } | null>(null)
   const { inPile, addToPile, removeFromPile } = useDigSessionContext()
+  const track = useTrackEvent(storeId ?? 0)
 
   useEffect(() => {
     setFlipped(false)
@@ -50,12 +54,16 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
       onClick={handleFlip}
     >
       <motion.div
+        className={framed ? "rounded-lg" : undefined}
         style={{
           width: "100%",
           height: "100%",
           position: "relative",
           transformStyle: "preserve-3d",
           willChange: "transform",
+          boxShadow: framed
+            ? "0 0 0 1px var(--mc-border), 0 25px 50px -12px rgb(0 0 0 / 0.35)"
+            : undefined,
         }}
         animate={{ rotateY: flipped ? 180 : 0 }}
         transition={{ type: "spring", stiffness: 260, damping: 24 }}
@@ -125,11 +133,17 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
                   ✓ In pile
                 </button>
               ) : (
-                <button onClick={() => addToPile(listing)} className="mc-btn mc-btn-primary text-xs">
+                <button onClick={() => { addToPile(listing); if (storeId) track("pile_add", listing.id) }} className="mc-btn mc-btn-primary text-xs">
                   + Pile
                 </button>
               )}
-              <a href={listing.discogs_url} target="_blank" rel="noopener" className="mc-btn text-xs">
+              <a
+                href={listing.discogs_url}
+                target="_blank"
+                rel="noopener"
+                className="mc-btn text-xs"
+                onClick={() => { if (storeId) track("discogs_click", listing.id) }}
+              >
                 Discogs ↗
               </a>
             </div>
