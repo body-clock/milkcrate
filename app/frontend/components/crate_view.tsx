@@ -3,12 +3,14 @@ import { motion, AnimatePresence, useMotionValue, useReducedMotion, useTransform
 import CrateTabs from "./crate_tabs"
 import RecordCard from "./record_card"
 import { buildCrateWindow } from "../lib/crate_window"
+import { useIsDesktop } from "@/hooks/use_is_desktop"
 import type { Crate, Listing } from "../types/inertia"
 
 interface Props {
   crates: Crate[]
   activeSlug: string
   startIndex?: number
+  hideTabs?: boolean
   onSelectCrate: (slug: string, startIndex?: number) => void
   onBack?: () => void
 }
@@ -85,18 +87,6 @@ function RecordDetails({ listing, direction }: { listing: Listing; direction: nu
   )
 }
 
-function useIsDesktop() {
-  const [isDesktop, setIsDesktop] = useState(() =>
-    typeof window !== "undefined" && window.matchMedia("(min-width: 768px)").matches
-  )
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 768px)")
-    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches)
-    mq.addEventListener("change", handler)
-    return () => mq.removeEventListener("change", handler)
-  }, [])
-  return isDesktop
-}
 
 function usePreload(records: { id: number; cover_image_url?: string | null }[], index: number) {
   useEffect(() => {
@@ -113,7 +103,7 @@ function usePreload(records: { id: number; cover_image_url?: string | null }[], 
   }, [records, index])
 }
 
-export default function CrateView({ crates, activeSlug, startIndex = 0, onSelectCrate, onBack }: Props) {
+export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs = false, onSelectCrate, onBack }: Props) {
   const isDesktop = useIsDesktop()
   const activeCrate = crates.find((c) => c.slug === activeSlug) ?? crates[0]
   const records = activeCrate?.records ?? []
@@ -358,10 +348,11 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, onSelect
           ← Store
         </button>
       )}
-      {/* Top bar: crate tabs */}
-      <div className="flex items-center justify-between mb-4">
-        <CrateTabs crates={crates} activeSlug={activeSlug} onSelect={onSelectCrate} />
-      </div>
+      {!hideTabs && (
+        <div className="flex items-center justify-between mb-4">
+          <CrateTabs crates={crates} activeSlug={activeSlug} onSelect={onSelectCrate} />
+        </div>
+      )}
 
       {/* Mobile: single column. Desktop: centered two-column */}
       <div className="md:max-w-3xl md:mx-auto md:w-full md:grid md:grid-cols-[420px_1fr] md:gap-12 md:items-start">
