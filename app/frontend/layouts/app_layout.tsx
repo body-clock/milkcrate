@@ -11,10 +11,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <Link href="/" className="mc-wordmark text-xl font-bold tracking-widest uppercase">
           🥛 Milkcrate
         </Link>
-        <nav className="flex items-center gap-4 text-sm">
-          <a href="/dig_sessions" className="mc-nav-link">Sessions</a>
-          <a href="/stores/new" className="mc-nav-link">+ Store</a>
-        </nav>
       </header>
 
       {flash?.notice && (

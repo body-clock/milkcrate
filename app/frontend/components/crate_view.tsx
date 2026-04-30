@@ -16,15 +16,30 @@ interface Props {
 
 const ease = { duration: 0.2, ease: "easeOut" as const }
 const reducedEase = { duration: 0.16, ease: "easeOut" as const }
+const reducedCardEase = { duration: 0.24, ease: "easeOut" as const }
 const DRAG_THRESHOLD = 72
 const WINDOW_RADIUS = 2
+const compositedLayerStyle: React.CSSProperties = {
+  willChange: "transform, opacity",
+  backfaceVisibility: "hidden",
+  WebkitBackfaceVisibility: "hidden",
+  contain: "layout paint style",
+}
+const activeLayerStyle: React.CSSProperties = {
+  willChange: "transform, opacity",
+  backfaceVisibility: "hidden",
+  WebkitBackfaceVisibility: "hidden",
+}
 
 function usePreload(records: { id: number; cover_image_url?: string | null }[], index: number) {
   useEffect(() => {
-    for (let offset = 1; offset <= 3; offset++) {
+    for (let offset = -3; offset <= 3; offset++) {
+      if (offset === 0) continue
+
       const r = records[index + offset]
       if (r?.cover_image_url) {
         const img = new Image()
+        img.decoding = "async"
         img.src = r.cover_image_url
       }
     }
@@ -39,10 +54,11 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onT
   const direction = useRef(0)
   const prefersReducedMotion = useReducedMotion()
   const dragX = useMotionValue(0)
-  const dragY = useMotionValue(0)
   const activeRotate = useTransform(dragX, [-120, 0, 120], [-8, 0, 8])
 
-  useEffect(() => { setIndex(0) }, [activeSlug])
+  useEffect(() => {
+    setIndex(0)
+  }, [activeSlug])
 
   const navigate = useCallback((delta: number) => {
     const next = index + delta
@@ -74,12 +90,11 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onT
       ? info.offset.x
       : info.offset.y
 
-    dragX.set(0)
-    dragY.set(0)
-
     if (dominantOffset > DRAG_THRESHOLD) navigate(1)
     else if (dominantOffset < -DRAG_THRESHOLD) navigate(-1)
-  }, [dragX, dragY, navigate])
+
+    dragX.set(0)
+  }, [dragX, navigate])
 
   if (!activeCrate || total === 0) {
     return (
@@ -104,7 +119,10 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onT
       </div>
 
       {/* Front-riffle crate stack */}
-      <div className="flex items-center justify-center min-h-[390px] md:min-h-[470px] py-5 sm:py-7 select-none overflow-hidden">
+      <div
+        className="relative z-10 flex items-center justify-center min-h-[390px] md:min-h-[470px] py-5 sm:py-7 select-none"
+        style={{ touchAction: "none", overscrollBehavior: "contain" }}
+      >
         <div
           className="relative"
           style={{
@@ -127,7 +145,7 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onT
                     key={`hint-${slot.record.id}`}
                     aria-hidden="true"
                     className="absolute inset-0 rounded-lg overflow-hidden border border-mc-border bg-mc-bg-raised shadow-lg pointer-events-none"
-                    initial={prefersReducedMotion ? false : { opacity: 0, y: baseY + 24 }}
+                    initial={prefersReducedMotion ? { opacity: 0, y: baseY + 10 } : { opacity: 0, y: baseY + 24 }}
                     animate={{
                       opacity: 0.38,
                       x: baseX,
@@ -135,16 +153,18 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onT
                       rotate: baseRotate,
                       scale,
                     }}
-                    exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: baseY + 18 }}
-                    transition={prefersReducedMotion ? { duration: 0 } : ease}
-                    style={{ zIndex: 10 - depth }}
+                    exit={prefersReducedMotion ? { opacity: 0, y: baseY + 10 } : { opacity: 0, y: baseY + 18 }}
+                    transition={prefersReducedMotion ? reducedEase : ease}
+                    style={{ ...compositedLayerStyle, zIndex: 10 - depth }}
                   >
                     {coverUrl ? (
                       <img
                         src={coverUrl}
                         alt=""
                         className="w-full h-full object-cover saturate-75"
-                        loading="lazy"
+                        draggable={false}
+                        loading="eager"
+                        decoding="async"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-mc-text-dim text-5xl">♪</div>
@@ -161,15 +181,15 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onT
                   variants={{
                     initial: (d: number) => (
                       prefersReducedMotion
-                        ? { opacity: 0, y: d >= 0 ? -20 : 20 }
+                        ? { opacity: 0, y: d >= 0 ? -42 : 42, scale: 0.98 }
                         : d >= 0
                           ? { opacity: 0, y: -78, rotate: -3 }
                           : { opacity: 0, y: 78, rotate: 3 }
                     ),
-                    animate: { opacity: 1, y: 0, rotate: 0 },
+                    animate: { opacity: 1, y: 0, rotate: 0, scale: 1 },
                     exit: (d: number) => (
                       prefersReducedMotion
-                        ? { opacity: 0, y: d >= 0 ? 20 : -20 }
+                        ? { opacity: 0, y: d >= 0 ? 54 : -54, scale: 0.96 }
                         : d >= 0
                           ? { opacity: 0, y: 66, rotate: 4 }
                           : { opacity: 0, y: -66, rotate: -4 }
@@ -178,29 +198,32 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onT
                   initial="initial"
                   animate="animate"
                   exit="exit"
-                  transition={prefersReducedMotion ? reducedEase : ease}
+                  transition={prefersReducedMotion ? reducedCardEase : ease}
                   className="absolute inset-0"
-                  style={{ zIndex: 30 }}
+                  style={{ ...activeLayerStyle, zIndex: 30 }}
                 >
                   <motion.div
                     className="w-full h-full rounded-lg overflow-hidden border border-mc-border shadow-2xl"
                     style={{
-                      x: dragX,
-                      y: dragY,
                       rotate: activeRotate,
                       touchAction: "none",
+                      willChange: "transform",
+                      backfaceVisibility: "hidden",
+                      WebkitBackfaceVisibility: "hidden",
                     }}
                     drag
                     dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
                     dragElastic={0.28}
                     dragMomentum={false}
                     whileDrag={prefersReducedMotion ? undefined : { scale: 0.985 }}
+                    onDrag={(_, info) => dragX.set(info.offset.x)}
                     onDragEnd={handleDragEnd}
                   >
                     <RecordCard
                       listing={slot.record}
                       resetKey={`${activeSlug}-${slot.record.id}`}
                       className="rounded-lg"
+                      imageLoading="eager"
                     />
                   </motion.div>
                 </motion.div>
@@ -220,7 +243,7 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onT
           <motion.div
             className="h-full bg-mc-accent rounded-full"
             animate={{ width: `${progress}%` }}
-            transition={prefersReducedMotion ? { duration: 0 } : ease}
+            transition={prefersReducedMotion ? reducedEase : ease}
           />
         </div>
       </div>

@@ -7,9 +7,10 @@ interface Props {
   listing: Listing
   resetKey?: string | number
   className?: string
+  imageLoading?: "eager" | "lazy"
 }
 
-export default function RecordCard({ listing, resetKey, className = "" }: Props) {
+export default function RecordCard({ listing, resetKey, className = "", imageLoading = "lazy" }: Props) {
   const [flipped, setFlipped] = useState(false)
   const pointerDown = useRef<{ x: number; y: number } | null>(null)
 
@@ -54,6 +55,7 @@ export default function RecordCard({ listing, resetKey, className = "" }: Props)
       className={`w-full h-full flex-shrink-0 cursor-pointer ${className}`}
       style={{ perspective: 800, touchAction: "none" }}
       onPointerDown={handlePointerDown}
+      onDragStart={(e) => e.preventDefault()}
       onClick={handleFlip}
     >
       <motion.div
@@ -62,6 +64,7 @@ export default function RecordCard({ listing, resetKey, className = "" }: Props)
           height: "100%",
           position: "relative",
           transformStyle: "preserve-3d",
+          willChange: "transform",
         }}
         animate={{ rotateY: flipped ? 180 : 0 }}
         transition={{ type: "spring", stiffness: 260, damping: 24 }}
@@ -74,6 +77,7 @@ export default function RecordCard({ listing, resetKey, className = "" }: Props)
             inset: 0,
             backfaceVisibility: "hidden",
             WebkitBackfaceVisibility: "hidden",
+            contain: "paint",
           }}
         >
           {listing.cover_image_url ? (
@@ -81,7 +85,9 @@ export default function RecordCard({ listing, resetKey, className = "" }: Props)
               src={listing.cover_image_url}
               alt={listing.title ?? ""}
               className="w-full h-full object-cover"
-              loading="lazy"
+              draggable={false}
+              loading={imageLoading}
+              decoding="async"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-mc-bg-raised text-mc-text-dim text-5xl">♪</div>
@@ -97,6 +103,7 @@ export default function RecordCard({ listing, resetKey, className = "" }: Props)
             backfaceVisibility: "hidden",
             WebkitBackfaceVisibility: "hidden",
             transform: "rotateY(180deg)",
+            contain: "paint",
           }}
         >
           <div className="flex flex-col h-full p-4 gap-2">
