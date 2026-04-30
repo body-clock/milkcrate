@@ -25,6 +25,11 @@ const compositedLayerStyle: React.CSSProperties = {
   WebkitBackfaceVisibility: "hidden",
   contain: "layout paint style",
 }
+const activeLayerStyle: React.CSSProperties = {
+  willChange: "transform, opacity",
+  backfaceVisibility: "hidden",
+  WebkitBackfaceVisibility: "hidden",
+}
 
 function usePreload(records: { id: number; cover_image_url?: string | null }[], index: number) {
   useEffect(() => {
@@ -195,7 +200,7 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onT
                   exit="exit"
                   transition={prefersReducedMotion ? reducedCardEase : ease}
                   className="absolute inset-0"
-                  style={{ ...compositedLayerStyle, zIndex: 30 }}
+                  style={{ ...activeLayerStyle, zIndex: 30 }}
                 >
                   <motion.div
                     className="w-full h-full rounded-lg overflow-hidden border border-mc-border shadow-2xl"
@@ -205,7 +210,6 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onT
                       willChange: "transform",
                       backfaceVisibility: "hidden",
                       WebkitBackfaceVisibility: "hidden",
-                      contain: "paint",
                     }}
                     drag
                     dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
