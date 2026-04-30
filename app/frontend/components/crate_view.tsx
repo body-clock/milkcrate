@@ -16,6 +16,7 @@ interface Props {
 
 const ease = { duration: 0.2, ease: "easeOut" as const }
 const reducedEase = { duration: 0.16, ease: "easeOut" as const }
+const reducedCardEase = { duration: 0.24, ease: "easeOut" as const }
 const DRAG_THRESHOLD = 72
 const WINDOW_RADIUS = 2
 
@@ -165,15 +166,15 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onT
                   variants={{
                     initial: (d: number) => (
                       prefersReducedMotion
-                        ? { opacity: 0, y: d >= 0 ? -20 : 20 }
+                        ? { opacity: 0, y: d >= 0 ? -42 : 42, scale: 0.98 }
                         : d >= 0
                           ? { opacity: 0, y: -78, rotate: -3 }
                           : { opacity: 0, y: 78, rotate: 3 }
                     ),
-                    animate: { opacity: 1, y: 0, rotate: 0 },
+                    animate: { opacity: 1, y: 0, rotate: 0, scale: 1 },
                     exit: (d: number) => (
                       prefersReducedMotion
-                        ? { opacity: 0, y: d >= 0 ? 20 : -20 }
+                        ? { opacity: 0, y: d >= 0 ? 54 : -54, scale: 0.96 }
                         : d >= 0
                           ? { opacity: 0, y: 66, rotate: 4 }
                           : { opacity: 0, y: -66, rotate: -4 }
@@ -182,7 +183,7 @@ export default function CrateView({ crates, activeSlug, onSelectCrate, mode, onT
                   initial="initial"
                   animate="animate"
                   exit="exit"
-                  transition={prefersReducedMotion ? reducedEase : ease}
+                  transition={prefersReducedMotion ? reducedCardEase : ease}
                   className="absolute inset-0"
                   style={{ zIndex: 30 }}
                 >
