@@ -184,9 +184,8 @@ RSpec.describe PicksSelector do
       selector    = described_class.new(fake_store(listings: []))
       long_unseen = fake_listing(genres: [ "Jazz" ], styles: [], last_surfaced_at: Date.today - 20)
       recently    = fake_listing(genres: [ "Jazz" ], styles: [], last_surfaced_at: Date.today - 8)
-      gc          = { "Jazz" => 5 }
 
-      expect(selector.send(:score, long_unseen, gc, {})).to be > selector.send(:score, recently, gc, {})
+      expect(selector.send(:freshness_score, long_unseen)).to be > selector.send(:freshness_score, recently)
     end
 
     it "gives the highest freshness bonus to never-surfaced records" do

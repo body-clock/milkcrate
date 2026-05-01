@@ -8,6 +8,8 @@ interface Props {
 }
 
 export default function StoreSection({ crate, onSelect }: Props) {
+  const cardSize = "w-[30vw] h-[30vw] sm:w-36 sm:h-36"
+
   return (
     <div className="w-full">
       <button
@@ -28,23 +30,25 @@ export default function StoreSection({ crate, onSelect }: Props) {
             <motion.button
               key={record.id}
               type="button"
-              className="flex-shrink-0 w-[38vw] h-[38vw] sm:w-36 sm:h-36 rounded bg-mc-bg-raised overflow-hidden border border-mc-border cursor-pointer"
+              className={`flex-shrink-0 ${cardSize} cursor-pointer`}
               whileHover={{ scale: 1.04, zIndex: 10 }}
               transition={{ type: "spring", stiffness: 300, damping: 22 }}
               onClick={() => onSelect(crate.slug, i)}
               aria-label={`Open ${crate.name} at ${record.title ?? "record"}`}
             >
-              {src ? (
-                <img
-                  src={src}
-                  alt={record.title ?? ""}
-                  className="w-full h-full object-cover"
-                  draggable={false}
-                  loading="lazy"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center mc-dim text-2xl">♪</div>
-              )}
+              <div className="w-full h-full rounded bg-mc-bg-raised overflow-hidden border border-mc-border">
+                {src ? (
+                  <img
+                    src={src}
+                    alt={record.title ?? ""}
+                    className="w-full h-full object-cover"
+                    draggable={false}
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center mc-dim text-2xl">♪</div>
+                )}
+              </div>
             </motion.button>
           )
         })}

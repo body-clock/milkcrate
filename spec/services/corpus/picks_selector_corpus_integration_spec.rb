@@ -11,7 +11,7 @@ RSpec.describe "PicksSelector corpus integration" do
     Corpus::DiscogsSnapshotImporter.new(snapshot_path: snapshot_path).import
     store = Store.find_by!(discogs_username: payload.dig("store", "discogs_username"))
 
-    picks = PicksSelector.new(store).select(count: 10, seed: 123)
+    picks = PicksSelector.new(store).select_picks(count: 10, seed: 123)
 
     expect(picks).not_to be_empty
     expect(picks.size).to be <= 10
