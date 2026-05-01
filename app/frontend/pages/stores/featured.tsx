@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import AppLayout from "@/layouts/app_layout"
 import CrateView from "@/components/crate_view"
 import StoreFloor from "@/components/store_floor"
@@ -11,7 +11,18 @@ export default function Featured({ store, crates }: FeaturedProps) {
   const handleSelectCrate = (slug: string, index = 0) => {
     setStartIndex(index)
     setActiveSlug(slug)
+    history.pushState({ crateSlug: slug, startIndex: index }, "")
   }
+
+  useEffect(() => {
+    const handlePop = (e: PopStateEvent) => {
+      const slug = e.state?.crateSlug ?? null
+      setActiveSlug(slug)
+      setStartIndex(e.state?.startIndex ?? 0)
+    }
+    window.addEventListener("popstate", handlePop)
+    return () => window.removeEventListener("popstate", handlePop)
+  }, [])
 
   return (
     <AppLayout>
@@ -43,7 +54,7 @@ export default function Featured({ store, crates }: FeaturedProps) {
           activeSlug={activeSlug}
           startIndex={startIndex}
           onSelectCrate={handleSelectCrate}
-          onBack={() => setActiveSlug(null)}
+          onBack={() => history.back()}
         />
       )}
     </AppLayout>
