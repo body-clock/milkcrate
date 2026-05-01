@@ -24,7 +24,6 @@ export interface Listing {
   thumbnail_url: string | null
   notes: string | null
   discogs_url: string
-  in_pile: boolean
 }
 
 export interface Crate {
@@ -34,15 +33,8 @@ export interface Crate {
   records: Listing[]
 }
 
-export interface CurrentSession {
-  id: number
-  name: string
-  item_ids: number[]
-}
-
 export interface FeaturedProps {
   store: Store
   crates: Crate[]
   active_crate_slug: string
-  current_session: CurrentSession | null
 }

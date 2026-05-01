@@ -1,0 +1,6 @@
+# Milkcrate settings — override per environment or via env vars.
+# Access in code with: Settings.store_name, Settings.discogs_username, etc.
+
+store_name: Philadelphia Music
+discogs_username: philadelphiamusic
+store_description:

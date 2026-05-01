@@ -1,0 +1,4 @@
+# Local overrides — rename to settings.local.yml and fill in.
+# These are gitignored so they won't be committed.
+store_name: Philadelphia Music
+discogs_username: philadelphiamusic

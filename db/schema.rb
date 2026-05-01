@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_19_195632) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_01_154537) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -25,24 +25,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_19_195632) do
     t.index ["store_id"], name: "index_daily_selections_on_store_id"
   end
 
-  create_table "dig_session_items", force: :cascade do |t|
+  create_table "listing_events", force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.bigint "dig_session_id", null: false
-    t.bigint "listing_id", null: false
-    t.datetime "updated_at", null: false
-    t.index ["dig_session_id"], name: "index_dig_session_items_on_dig_session_id"
-    t.index ["listing_id"], name: "index_dig_session_items_on_listing_id"
-  end
-
-  create_table "dig_sessions", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.string "name"
-    t.text "notes"
-    t.string "status", default: "active", null: false
-    t.bigint "store_id", null: false
-    t.datetime "updated_at", null: false
-    t.index ["status"], name: "index_dig_sessions_on_status"
-    t.index ["store_id"], name: "index_dig_sessions_on_store_id"
+    t.string "event_type"
+    t.bigint "listing_id"
+    t.bigint "store_id"
+    t.index ["listing_id"], name: "index_listing_events_on_listing_id"
+    t.index ["store_id"], name: "index_listing_events_on_store_id"
   end
 
   create_table "listings", force: :cascade do |t|
@@ -55,23 +44,38 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_19_195632) do
     t.string "discogs_release_id"
     t.string "format"
     t.string "genres", default: [], array: true
+    t.integer "have_count"
     t.string "label"
     t.datetime "last_seen_at"
+    t.datetime "last_surfaced_at"
     t.datetime "listed_at"
     t.text "notes"
     t.decimal "price", precision: 8, scale: 2
     t.bigint "store_id", null: false
     t.string "styles", default: [], array: true
+    t.integer "surface_count", default: 0, null: false
     t.string "thumbnail_url"
     t.string "title"
     t.jsonb "tracklist", default: []
     t.datetime "updated_at", null: false
+    t.integer "want_count"
     t.integer "year"
     t.index ["discogs_listing_id"], name: "index_listings_on_discogs_listing_id", unique: true
     t.index ["genres"], name: "index_listings_on_genres", using: :gin
+    t.index ["last_surfaced_at"], name: "index_listings_on_last_surfaced_at"
     t.index ["listed_at"], name: "index_listings_on_listed_at"
     t.index ["store_id"], name: "index_listings_on_store_id"
     t.index ["styles"], name: "index_listings_on_styles", using: :gin
+  end
+
+  create_table "releases", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "discogs_release_id"
+    t.datetime "enriched_at"
+    t.integer "have_count"
+    t.datetime "updated_at", null: false
+    t.integer "want_count"
+    t.index ["discogs_release_id"], name: "index_releases_on_discogs_release_id", unique: true
   end
 
   create_table "solid_cable_messages", force: :cascade do |t|
@@ -228,9 +232,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_19_195632) do
   end
 
   add_foreign_key "daily_selections", "stores"
-  add_foreign_key "dig_session_items", "dig_sessions"
-  add_foreign_key "dig_session_items", "listings"
-  add_foreign_key "dig_sessions", "stores"
   add_foreign_key "listings", "stores"
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_claimed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade

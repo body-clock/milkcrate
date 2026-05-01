@@ -1,29 +1,41 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import AppLayout from "@/layouts/app_layout"
 import CrateView from "@/components/crate_view"
-import StoreView from "@/components/store_view"
+import StoreFloor from "@/components/store_floor"
 import type { FeaturedProps } from "@/types/inertia"
 
-export default function Featured({ store, crates, active_crate_slug }: FeaturedProps) {
-  const [mode, setMode] = useState<"crate" | "store">("crate")
-  const [activeSlug, setActiveSlug] = useState(active_crate_slug)
+export default function Featured({ store, crates }: FeaturedProps) {
+  const [activeSlug, setActiveSlug] = useState<string | null>(null)
+  const [startIndex, setStartIndex] = useState(0)
 
-  const handleOpenCrate = (slug: string) => {
+  const handleSelectCrate = (slug: string, index = 0) => {
+    setStartIndex(index)
     setActiveSlug(slug)
-    setMode("crate")
+    history.pushState({ crateSlug: slug, startIndex: index }, "")
   }
+
+  useEffect(() => {
+    const handlePop = (e: PopStateEvent) => {
+      const slug = e.state?.crateSlug ?? null
+      setActiveSlug(slug)
+      setStartIndex(e.state?.startIndex ?? 0)
+    }
+    window.addEventListener("popstate", handlePop)
+    return () => window.removeEventListener("popstate", handlePop)
+  }, [])
 
   return (
     <AppLayout>
-      <div className="mb-4">
-        <h1 className="text-xl font-bold mc-text">{store.name}</h1>
-        <p className="text-xs mc-dim mt-0.5">
-          @{store.discogs_username} &middot; {store.total_listings ?? "?"} vinyl listings
-        </p>
-        {store.description && (
-          <p className="text-sm mc-dim mt-2 max-w-prose">{store.description}</p>
-        )}
-      </div>
+      {(store.description || store.total_listings) && (
+        <div className="mb-4">
+          {store.description && (
+            <p className="text-sm mc-dim max-w-prose">{store.description}</p>
+          )}
+          {store.total_listings && (
+            <p className="text-xs mc-dim mt-1">{store.total_listings} vinyl listings</p>
+          )}
+        </div>
+      )}
 
       {store.sync_status === "syncing" ? (
         <div className="py-16 text-center mc-dim text-sm">
@@ -34,20 +46,15 @@ export default function Featured({ store, crates, active_crate_slug }: FeaturedP
         <div className="py-16 text-center mc-dim text-sm">
           <p>No vinyl found yet.</p>
         </div>
-      ) : mode === "crate" ? (
+      ) : activeSlug === null ? (
+        <StoreFloor crates={crates} onSelectCrate={handleSelectCrate} />
+      ) : (
         <CrateView
           crates={crates}
           activeSlug={activeSlug}
-          onSelectCrate={setActiveSlug}
-          mode={mode}
-          onToggleMode={() => setMode("store")}
-        />
-      ) : (
-        <StoreView
-          crates={crates}
-          onOpenCrate={handleOpenCrate}
-          mode={mode}
-          onToggleMode={() => setMode("crate")}
+          startIndex={startIndex}
+          onSelectCrate={handleSelectCrate}
+          onBack={() => history.back()}
         />
       )}
     </AppLayout>

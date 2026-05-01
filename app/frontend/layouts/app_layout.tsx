@@ -1,20 +1,64 @@
-import React from "react"
+import React, { useState } from "react"
 import { Link, usePage } from "@inertiajs/react"
+import { useTheme } from "@/hooks/use_theme"
+import { DigSessionProvider, useDigSessionContext } from "@/contexts/dig_session_context"
+import PileSheet from "@/components/pile_sheet"
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+function AppLayoutInner({ children }: { children: React.ReactNode }) {
   const page = usePage()
-  const flash = (page.props as any).flash as { notice?: string; alert?: string } | undefined
+  const props = page.props as any
+  const flash = props.flash as { notice?: string; alert?: string } | undefined
+  const storeName = props.store?.name as string | undefined
+  const discogsUsername = props.store?.discogs_username as string | undefined
+  const { theme, toggle } = useTheme()
+  const { pile } = useDigSessionContext()
+  const [pileOpen, setPileOpen] = useState(false)
 
   return (
-    <>
+    <div className="min-h-screen flex flex-col">
       <header className="mc-header flex items-center justify-between px-4 py-3 border-b mc-border">
-        <Link href="/" className="mc-wordmark text-xl font-bold tracking-widest uppercase">
-          🥛 Milkcrate
+        <Link href="/" className="flex flex-col leading-none">
+          {storeName ? (
+            <>
+              <span className="text-base font-bold tracking-wide mc-text">{storeName}</span>
+              <span className="text-[10px] tracking-widest uppercase text-mc-text-dim">on Milkcrate</span>
+            </>
+          ) : (
+            <span className="mc-wordmark text-xl font-bold tracking-widest uppercase">🥛 Milkcrate</span>
+          )}
         </Link>
-        <nav className="flex items-center gap-4 text-sm">
-          <a href="/dig_sessions" className="mc-nav-link">Sessions</a>
-          <a href="/stores/new" className="mc-nav-link">+ Store</a>
-        </nav>
+        <div className="flex items-center gap-3">
+          {discogsUsername && (
+            <a
+              href={`https://www.discogs.com/seller/${discogsUsername}/profile`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-mc-text-dim hover:text-mc-text transition-colors select-none"
+              aria-label="View store on Discogs"
+            >
+              Discogs ↗
+            </a>
+          )}
+          {pile.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setPileOpen(true)}
+              className="text-xs text-mc-accent hover:opacity-80 transition-opacity select-none"
+              aria-label={`Open pile with ${pile.length} records`}
+              aria-expanded={pileOpen}
+            >
+              {pile.length} in pile
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={toggle}
+            className="w-8 h-8 flex items-center justify-center rounded-full text-sm text-mc-text-dim hover:text-mc-text hover:bg-mc-bg-raised transition-colors select-none"
+            aria-label="Toggle light/dark mode"
+          >
+            {theme === "dark" ? "☀︎" : "☾"}
+          </button>
+        </div>
       </header>
 
       {flash?.notice && (
@@ -23,7 +67,23 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
       )}
 
-      <main className="px-4 py-6">{children}</main>
-    </>
+      <main className="flex-1 px-4 py-6">{children}</main>
+
+      <footer className="px-4 py-4 border-t mc-border text-center">
+        <span className="text-[11px] text-mc-text-dim tracking-wide">
+          Powered by <span className="font-semibold tracking-widest uppercase">🥛 Milkcrate</span>
+        </span>
+      </footer>
+
+      <PileSheet open={pileOpen} onClose={() => setPileOpen(false)} />
+    </div>
+  )
+}
+
+export default function AppLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <DigSessionProvider>
+      <AppLayoutInner>{children}</AppLayoutInner>
+    </DigSessionProvider>
   )
 }

@@ -1,9 +1,6 @@
-# Transforms store + listing data into the props contract expected
-# by the Inertia featured page React component.
 class CratePresenter
-  def initialize(store, current_session: nil)
+  def initialize(store)
     @store = store
-    @current_session = current_session
   end
 
   def store_props(description)
@@ -17,25 +14,19 @@ class CratePresenter
     }
   end
 
-  def session_props
-    return nil unless @current_session
+  def build_crates(selector)
+    picks = selector.select_picks(count: 12)
+    crates = [ crate_props("picks", "Milkcrate Picks", picks) ]
 
-    {
-      id: @current_session.id,
-      name: @current_session.name,
-      item_ids: @current_session.dig_session_items.pluck(:listing_id)
-    }
-  end
+    genre_counts = @store.listings.available.lp_only
+      .pluck(:genres)
+      .flatten
+      .tally
+      .sort_by { |_, c| -c }
 
-  def build_crates(picks, daily_ids)
-    crates = []
-
-    crates << crate_props("picks", "Milkcrate Picks", picks)
-
-    genre_counts = @store.listings.pluck(:genres).flatten.tally.sort_by { |_, c| -c }
-    scope = daily_ids.any? ? @store.listings.where(id: daily_ids) : @store.listings
     genre_counts.each do |genre, _|
-      genre_listings = scope.by_genre(genre).limit(100).to_a
+      genre_listings = selector.rank_genre(genre)
+      next if genre_listings.empty?
       crates << crate_props(genre.parameterize, genre, genre_listings)
     end
 
@@ -45,16 +36,15 @@ class CratePresenter
   private
 
   def crate_props(slug, name, listings)
-    pile_ids = @current_session&.dig_session_items&.pluck(:listing_id)&.to_set
     {
       slug:,
       name:,
       count: listings.size,
-      records: listings.map { |l| listing_props(l, pile_ids) }
+      records: listings.map { |l| listing_props(l) }
     }
   end
 
-  def listing_props(listing, pile_ids)
+  def listing_props(listing)
     {
       id: listing.id,
       discogs_listing_id: listing.discogs_listing_id,
@@ -71,8 +61,7 @@ class CratePresenter
       cover_image_url: listing.cover_image_url,
       thumbnail_url: listing.thumbnail_url,
       notes: listing.notes,
-      discogs_url: listing.discogs_url,
-      in_pile: pile_ids&.include?(listing.id) || false
+      discogs_url: listing.discogs_url
     }
   end
 end
