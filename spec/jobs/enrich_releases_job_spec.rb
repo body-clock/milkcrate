@@ -18,10 +18,10 @@ RSpec.describe EnrichReleasesJob do
   before do
     allow(DiscogsClient).to receive(:new).and_return(client)
     allow(client).to receive(:release).with("111").and_return(
-      { "community" => { "want" => 500, "have" => 200 } }
+      [ { "community" => { "want" => 500, "have" => 200 }, "genres" => [], "styles" => [], "formats" => [], "images" => [], "tracklist" => [] }, 50 ]
     )
     allow(client).to receive(:release).with("222").and_return(
-      { "community" => { "want" => 100, "have" => 300 } }
+      [ { "community" => { "want" => 100, "have" => 300 }, "genres" => [], "styles" => [], "formats" => [], "images" => [], "tracklist" => [] }, 49 ]
     )
     allow_any_instance_of(described_class).to receive(:sleep)
   end

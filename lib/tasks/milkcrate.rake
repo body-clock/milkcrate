@@ -39,8 +39,25 @@ namespace :milkcrate do
     puts "Done."
   end
 
-  desc "Sync + curate in one shot — use this to bootstrap a fresh install"
-  task setup: %w[milkcrate:sync milkcrate:curate]
+  desc "Bootstrap a fresh install — full sync, then enrich + curate synchronously"
+  task setup: :environment do
+    store = default_store
+    puts "Syncing #{store.name} (@#{store.discogs_username})..."
+    count = StoreSyncService.new(store).full_sync
+    puts "Synced #{count} listings."
+    puts "Enriching all releases (synchronous — this will take a while)..."
+    EnrichReleasesJob.perform_now(store.id)
+    puts "Enrichment complete."
+    DailyCurationJob.perform_now(store.id)
+    puts "Setup complete."
+  end
+
+  desc "Reset surfacing data (last_surfaced_at, surface_count) — dev/testing only"
+  task reset_surfacing: :environment do
+    store = default_store
+    count = store.listings.update_all(last_surfaced_at: nil, surface_count: 0)
+    puts "Reset surfacing data for #{count} listings in #{store.name}."
+  end
 
   desc "Print curation stats for the current store"
   task stats: :environment do
