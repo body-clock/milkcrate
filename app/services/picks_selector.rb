@@ -84,16 +84,17 @@ class PicksSelector
   private
 
   def score_all(listing_ids: nil)
-    scope = @store.listings
-      .available
-      .lp_only
-    scope = scope.where(id: listing_ids) if listing_ids&.any?
-    listings = scope.to_a
+    return scored_inventory.select { |l, _| listing_ids.include?(l.id) } if listing_ids&.any?
+    scored_inventory
+  end
 
-    gc = store_genre_counts
-    sc = store_style_counts
-
-    listings.map { |l| [ l, score(l, gc, sc) ] }
+  def scored_inventory
+    @scored_inventory ||= begin
+      listings = @store.listings.available.lp_only.to_a
+      gc = store_genre_counts
+      sc = store_style_counts
+      listings.map { |l| [ l, score(l, gc, sc) ] }
+    end
   end
 
   def score(listing, genre_counts, style_counts)
