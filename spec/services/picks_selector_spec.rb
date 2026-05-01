@@ -68,7 +68,7 @@ RSpec.describe PicksSelector do
       high = fake_listing(id: 1, genres: [ "Jazz" ], styles: [ "Afro-Jazz" ], year: 1972, condition: "NM")
       low  = fake_listing(id: 2, genres: [ "Rock" ], styles: [], year: nil, condition: "Generic")
 
-      result = described_class.new(fake_store(listings: [high, low])).select_picks(count: 12)
+      result = described_class.new(fake_store(listings: [ high, low ])).select_picks(count: 12)
 
       expect(result).to include(high)
     end
@@ -77,7 +77,7 @@ RSpec.describe PicksSelector do
       jazz_listings = Array.new(10) { |i| fake_listing(id: i, genres: [ "Jazz" ], styles: [ "Afro-Jazz" ], year: 1970, condition: "NM") }
       rock_listing  = fake_listing(id: 99, genres: [ "Rock" ], styles: [ "Psych" ], year: 1968, condition: "NM")
 
-      result = described_class.new(fake_store(listings: jazz_listings + [rock_listing])).select_picks(count: 6)
+      result = described_class.new(fake_store(listings: jazz_listings + [ rock_listing ])).select_picks(count: 6)
 
       jazz_count = result.count { |l| l.primary_genre == "Jazz" }
       expect(jazz_count).to be <= 4
@@ -89,7 +89,7 @@ RSpec.describe PicksSelector do
       high = fake_listing(id: 1, genres: [ "Jazz" ], styles: [ "Afro-Jazz" ], year: 1972, condition: "NM")
       low  = fake_listing(id: 2, genres: [ "Rock" ], styles: [], year: nil, condition: "Generic")
 
-      result = described_class.new(fake_store(listings: [high, low])).rank
+      result = described_class.new(fake_store(listings: [ high, low ])).rank
 
       expect(result.first).to eq(high)
       expect(result.last).to eq(low)
@@ -99,7 +99,7 @@ RSpec.describe PicksSelector do
       included = fake_listing(id: 1, genres: [ "Jazz" ], styles: [ "Afro-Jazz" ], year: 1972, condition: "NM")
       excluded = fake_listing(id: 2, genres: [ "Rock" ], styles: [ "Classic Rock" ], year: 1975, condition: "VG+")
 
-      result = described_class.new(fake_store(listings: [included, excluded])).rank(listing_ids: [ 1 ])
+      result = described_class.new(fake_store(listings: [ included, excluded ])).rank(listing_ids: [ 1 ])
 
       expect(result.map(&:id)).to eq([ 1 ])
     end
@@ -107,7 +107,7 @@ RSpec.describe PicksSelector do
 
   describe "#score (via rank)" do
     def score_listing(listing, others: [])
-      store    = fake_store(listings: [listing] + others)
+      store    = fake_store(listings: [ listing ] + others)
       selector = described_class.new(store)
       selector.send(:score_all).find { |l, _| l == listing }&.last
     end
@@ -116,7 +116,7 @@ RSpec.describe PicksSelector do
       common_style = fake_listing(id: 1, genres: [ "Electronic" ], styles: [ "House" ])
       rare_style   = fake_listing(id: 2, genres: [ "Electronic" ], styles: [ "Broken Beat" ])
 
-      store    = fake_store(listings: [common_style, rare_style])
+      store    = fake_store(listings: [ common_style, rare_style ])
       selector = described_class.new(store)
       gc       = { "Electronic" => 6 }
       sc       = { "House" => 6, "Broken Beat" => 1 }

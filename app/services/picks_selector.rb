@@ -31,9 +31,9 @@ class PicksSelector
 
   # Freshness: days since last surfaced → penalty points
   STALENESS_CURVE = [
-    [3,  -5],
-    [7,  -3],
-    [14, -1],
+    [ 3,  -5 ],
+    [ 7,  -3 ],
+    [ 14, -1 ]
   ].freeze
 
   # Daily noise magnitude (±). Seeded so it's stable within a day.
@@ -51,11 +51,11 @@ class PicksSelector
     shuffle_seed = seed || @today.to_s.sum
 
     # Genre-diverse: cap per-genre representation
-    genre_cap = [count / 3, 2].max
+    genre_cap = [ count / 3, 2 ].max
     genre_seen = Hash.new(0)
 
     scored
-      .sort_by { |listing, s| [-s, Digest::MD5.hexdigest("#{listing.id}#{shuffle_seed}")] }
+      .sort_by { |listing, s| [ -s, Digest::MD5.hexdigest("#{listing.id}#{shuffle_seed}") ] }
       .filter_map { |listing, _|
         g = listing.primary_genre
         next if genre_seen[g] >= genre_cap
@@ -93,7 +93,7 @@ class PicksSelector
     gc = store_genre_counts
     sc = store_style_counts
 
-    listings.map { |l| [l, score(l, gc, sc)] }
+    listings.map { |l| [ l, score(l, gc, sc) ] }
   end
 
   def score(listing, genre_counts, style_counts)

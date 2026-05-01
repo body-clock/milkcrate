@@ -16,7 +16,7 @@ class CratePresenter
 
   def build_crates(selector)
     picks = selector.select_picks(count: 12)
-    crates = [crate_props("picks", "Milkcrate Picks", picks)]
+    crates = [ crate_props("picks", "Milkcrate Picks", picks) ]
 
     genre_counts = @store.listings.available.lp_only
       .pluck(:genres)
