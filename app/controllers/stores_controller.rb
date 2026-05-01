@@ -5,13 +5,12 @@ class StoresController < ApplicationController
     store = Store.find_by(discogs_username: Settings.discogs_username)
     return render :no_stores unless store
 
-    daily_ids = DailySelection.fetch_or_generate(store).listing_ids
-    picks = PicksSelector.new(store).select(listing_ids: daily_ids)
+    selector = PicksSelector.new(store)
     presenter = CratePresenter.new(store)
 
     render inertia: "stores/featured", props: {
       store: presenter.store_props(Settings.store_description),
-      crates: presenter.build_crates(picks, daily_ids),
+      crates: presenter.build_crates(selector),
       active_crate_slug: "picks"
     }
   end

@@ -6,7 +6,9 @@ import PileSheet from "@/components/pile_sheet"
 
 function AppLayoutInner({ children }: { children: React.ReactNode }) {
   const page = usePage()
-  const flash = (page.props as any).flash as { notice?: string; alert?: string } | undefined
+  const props = page.props as any
+  const flash = props.flash as { notice?: string; alert?: string } | undefined
+  const storeName = props.store?.name as string | undefined
   const { theme, toggle } = useTheme()
   const { pile } = useDigSessionContext()
   const [pileOpen, setPileOpen] = useState(false)
@@ -14,8 +16,15 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col">
       <header className="mc-header flex items-center justify-between px-4 py-3 border-b mc-border">
-        <Link href="/" className="mc-wordmark text-xl font-bold tracking-widest uppercase">
-          🥛 Milkcrate
+        <Link href="/" className="flex flex-col leading-none">
+          {storeName ? (
+            <>
+              <span className="text-base font-bold tracking-wide mc-text">{storeName}</span>
+              <span className="text-[10px] tracking-widest uppercase text-mc-text-dim">on Milkcrate</span>
+            </>
+          ) : (
+            <span className="mc-wordmark text-xl font-bold tracking-widest uppercase">🥛 Milkcrate</span>
+          )}
         </Link>
         <div className="flex items-center gap-4">
           {pile.length > 0 && (
@@ -47,6 +56,12 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
       )}
 
       <main className="flex-1 px-4 py-6">{children}</main>
+
+      <footer className="px-4 py-4 border-t mc-border text-center">
+        <span className="text-[11px] text-mc-text-dim tracking-wide">
+          Powered by <span className="font-semibold tracking-widest uppercase">🥛 Milkcrate</span>
+        </span>
+      </footer>
 
       <PileSheet open={pileOpen} onClose={() => setPileOpen(false)} />
     </div>

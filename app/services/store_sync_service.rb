@@ -38,8 +38,6 @@ class StoreSyncService
       total_listings: @store.listings.count
     )
 
-    EnrichReleasesJob.perform_later(@store.id)
-
     total_imported
   rescue StandardError => e
     @store.update!(sync_status: "failed")
@@ -63,8 +61,6 @@ class StoreSyncService
 
     genres = Array(basic_info["genres"])
     styles = Array(basic_info["styles"])
-    format_descriptions = Array(raw.dig("release", "formats")&.flat_map { |f| [ f["name"], *Array(f["descriptions"]) ] })
-
     @store.listings.upsert(
       {
         discogs_listing_id: raw["id"].to_s,
@@ -73,7 +69,7 @@ class StoreSyncService
         title: basic_info["title"],
         label: extract_label(basic_info),
         year: release["year"],
-        format: format_descriptions.join(", ").presence || "Vinyl",
+        format: release["format"].presence || "Vinyl",
         genres: genres,
         styles: styles,
         condition: raw["condition"],
@@ -87,15 +83,20 @@ class StoreSyncService
         store_id: @store.id
       },
       unique_by: :discogs_listing_id,
-      update_only: %i[condition price currency thumbnail_url cover_image_url last_seen_at notes]
+      update_only: %i[condition price currency format thumbnail_url cover_image_url last_seen_at notes]
     )
   rescue StandardError => e
     Rails.logger.warn("Failed to upsert listing #{raw['id']}: #{e.message}")
   end
 
+  NON_VINYL = %w[CD Cassette DVD VHS].freeze
+
   def vinyl?(raw)
+    format_str = raw.dig("release", "format").to_s
+    return false if NON_VINYL.any? { |f| format_str.include?(f) }
+
     formats = raw.dig("release", "formats") || []
-    return true if formats.empty? # assume vinyl if unknown
+    return true if formats.empty? # assume vinyl if format string also unknown
 
     formats.any? do |f|
       VINYL_FORMATS.any? { |vf| f["name"].to_s.include?(vf) }
