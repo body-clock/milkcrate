@@ -15,15 +15,16 @@ export default function Featured({ store, crates }: FeaturedProps) {
 
   return (
     <AppLayout>
-      <div className="mb-4">
-        <h1 className="text-xl font-bold mc-text">{store.name}</h1>
-        <p className="text-xs mc-dim mt-0.5">
-          @{store.discogs_username} &middot; {store.total_listings ?? "?"} vinyl listings
-        </p>
-        {store.description && (
-          <p className="text-sm mc-dim mt-2 max-w-prose">{store.description}</p>
-        )}
-      </div>
+      {(store.description || store.total_listings) && (
+        <div className="mb-4">
+          {store.description && (
+            <p className="text-sm mc-dim max-w-prose">{store.description}</p>
+          )}
+          {store.total_listings && (
+            <p className="text-xs mc-dim mt-1">{store.total_listings} vinyl listings</p>
+          )}
+        </div>
+      )}
 
       {store.sync_status === "syncing" ? (
         <div className="py-16 text-center mc-dim text-sm">

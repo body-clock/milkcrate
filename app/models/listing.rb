@@ -1,16 +1,25 @@
 class Listing < ApplicationRecord
   belongs_to :store
-  has_many :dig_session_items, dependent: :destroy
-  has_many :dig_sessions, through: :dig_session_items
 
   VINYL_FORMATS = %w[Vinyl LP EP Single].freeze
 
-  scope :vinyl, -> { where("format ILIKE ANY (ARRAY[?])", VINYL_FORMATS.map { |f| "%#{f}%" }) }
+  # 12" albums only — excludes singles, EPs, CDs, cassettes.
+  # "Vinyl" included for unenriched records (inventory API omits descriptions);
+  # after EnrichReleasesJob runs, format becomes e.g. "Vinyl, LP, Album".
+  LP_FORMAT_TERMS = %w[LP Album Vinyl].freeze
+
+  VINYL_FORMAT_SQL  = VINYL_FORMATS.map  { |f| "format ILIKE '%#{f}%'" }.join(" OR ").freeze
+  LP_ONLY_FORMAT_SQL = LP_FORMAT_TERMS.map { |f| "format ILIKE '%#{f}%'" }.join(" OR ").freeze
+
+  scope :vinyl,   -> { where(Arel.sql(VINYL_FORMAT_SQL)) }
+  scope :lp_only, -> { where(Arel.sql(LP_ONLY_FORMAT_SQL)) }
   scope :by_genre, ->(genre) { where("? = ANY(genres)", genre) }
   scope :recent, -> { order(listed_at: :desc) }
   scope :new_arrivals, -> { recent.limit(50) }
-  # Deterministic daily shuffle — same order within a day, different each day
   scope :daily_shuffle, -> { order(Arel.sql("MD5(discogs_listing_id || '#{Date.current}'::text)")) }
+
+  # Listings absent from the last sync are assumed sold
+  scope :available, -> { where("last_seen_at > ?", 3.days.ago) }
 
   def primary_genre
     genres.first

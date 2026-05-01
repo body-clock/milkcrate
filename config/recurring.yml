@@ -14,12 +14,12 @@ production:
     command: "SolidQueue::Job.clear_finished_in_batches(sleep_between_batches: 0.3)"
     schedule: every hour at minute 12
 
-  prep_next_featured_store:
-    class: PrepNextFeaturedStoreJob
+  full_store_sync:
+    command: "store = Store.find_by(discogs_username: Settings.discogs_username); FullStoreSyncJob.perform_later(store.id) if store"
     queue: default
-    schedule: every day at 10pm
+    schedule: every day at 11pm
 
-  generate_daily_selections:
-    class: GenerateDailySelectionsJob
+  daily_curation:
+    class: DailyCurationJob
     queue: default
     schedule: every day at 1am

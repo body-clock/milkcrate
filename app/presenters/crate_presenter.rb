@@ -1,5 +1,3 @@
-# Transforms store + listing data into the props contract expected
-# by the Inertia featured page React component.
 class CratePresenter
   def initialize(store)
     @store = store
@@ -16,17 +14,19 @@ class CratePresenter
     }
   end
 
-  def build_crates(picks, daily_ids)
-    crates = []
-    crates << crate_props("picks", "Milkcrate Picks", picks)
+  def build_crates(selector)
+    picks = selector.select_picks(count: 12)
+    crates = [crate_props("picks", "Milkcrate Picks", picks)]
 
-    selector = PicksSelector.new(@store)
-    genre_counts = @store.listings.pluck(:genres).flatten.tally.sort_by { |_, c| -c }
-    scope = daily_ids.any? ? @store.listings.where(id: daily_ids) : @store.listings
+    genre_counts = @store.listings.available.lp_only
+      .pluck(:genres)
+      .flatten
+      .tally
+      .sort_by { |_, c| -c }
 
     genre_counts.each do |genre, _|
-      genre_listing_ids = scope.where("genres[1] = ?", genre).pluck(:id)
-      genre_listings = selector.rank(listing_ids: genre_listing_ids)
+      genre_listings = selector.rank_genre(genre)
+      next if genre_listings.empty?
       crates << crate_props(genre.parameterize, genre, genre_listings)
     end
 

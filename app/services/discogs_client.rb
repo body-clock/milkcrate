@@ -23,7 +23,9 @@ class DiscogsClient
 
   def release(release_id)
     response = @connection.get("/releases/#{release_id}")
-    handle_response(response)
+    body = handle_response(response)
+    remaining = response.headers["x-discogs-ratelimit-remaining"].to_i
+    [body, remaining]
   end
 
   def seller_inventory_pages(username)
