@@ -98,8 +98,8 @@ export default function StoreFloor({ crates, onSelectCrate }: Props) {
       )}
 
       <div className="flex flex-col">
-        {genreCrates.map((crate) => (
-          <StoreSection key={crate.slug} crate={crate} onSelect={(slug, i) => onSelectCrate(slug, i)} />
+        {genreCrates.map((crate, i) => (
+          <StoreSection key={crate.slug} crate={crate} featured={i === 0} onSelect={(slug, i) => onSelectCrate(slug, i)} />
         ))}
       </div>
     </div>

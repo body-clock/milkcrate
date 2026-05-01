@@ -9,6 +9,7 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
   const props = page.props as any
   const flash = props.flash as { notice?: string; alert?: string } | undefined
   const storeName = props.store?.name as string | undefined
+  const discogsUsername = props.store?.discogs_username as string | undefined
   const { theme, toggle } = useTheme()
   const { pile } = useDigSessionContext()
   const [pileOpen, setPileOpen] = useState(false)
@@ -26,7 +27,18 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
             <span className="mc-wordmark text-xl font-bold tracking-widest uppercase">🥛 Milkcrate</span>
           )}
         </Link>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
+          {discogsUsername && (
+            <a
+              href={`https://www.discogs.com/seller/${discogsUsername}/profile`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-mc-text-dim hover:text-mc-text transition-colors select-none"
+              aria-label="View store on Discogs"
+            >
+              Discogs ↗
+            </a>
+          )}
           {pile.length > 0 && (
             <button
               type="button"
@@ -41,7 +53,7 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
           <button
             type="button"
             onClick={toggle}
-            className="text-xs text-mc-text-dim hover:text-mc-text transition-colors select-none"
+            className="w-8 h-8 flex items-center justify-center rounded-full text-sm text-mc-text-dim hover:text-mc-text hover:bg-mc-bg-raised transition-colors select-none"
             aria-label="Toggle light/dark mode"
           >
             {theme === "dark" ? "☀︎" : "☾"}
