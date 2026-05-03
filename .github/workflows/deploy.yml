@@ -29,9 +29,21 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan 46.225.21.111 >> ~/.ssh/known_hosts
 
+      - name: Write Kamal secrets file
+        run: |
+          mkdir -p .kamal
+          cat > .kamal/secrets <<'EOF'
+          KAMAL_REGISTRY_PASSWORD=$KAMAL_REGISTRY_PASSWORD
+          RAILS_MASTER_KEY=$RAILS_MASTER_KEY
+          TURNSTILE_SITE_KEY=$TURNSTILE_SITE_KEY
+          TURNSTILE_SECRET_KEY=$TURNSTILE_SECRET_KEY
+          EOF
+
       - name: Deploy
         run: kamal deploy
         env:
           KAMAL_REGISTRY_USERNAME: ${{ github.actor }}
           KAMAL_REGISTRY_PASSWORD: ${{ github.token }}
           RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
+          TURNSTILE_SITE_KEY: ${{ secrets.TURNSTILE_SITE_KEY }}
+          TURNSTILE_SECRET_KEY: ${{ secrets.TURNSTILE_SECRET_KEY }}
