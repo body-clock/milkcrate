@@ -35,7 +35,7 @@ RSpec.describe CratePresenter do
     end
   end
 
-  FakeStore = Struct.new(:id, :name, :discogs_username, :total_listings, :sync_status, :listings, keyword_init: true)
+  FakeStore = Struct.new(:id, :name, :discogs_username, :description, :total_listings, :sync_status, :listings, keyword_init: true)
 
   def fake_listing(overrides = {})
     FakeListing.new(
@@ -64,6 +64,7 @@ RSpec.describe CratePresenter do
       id: 1,
       name: "Test Store",
       discogs_username: "teststore",
+      description: "A great store",
       total_listings: listings.size,
       sync_status: "synced",
       listings: FakeListingsScope.new(listings)
@@ -79,13 +80,13 @@ RSpec.describe CratePresenter do
 
   describe "#store_props" do
     it "returns expected store fields" do
-      props = described_class.new(fake_store).store_props("A great store")
+      props = described_class.new(fake_store).store_props
 
       expect(props).to include(
         id: 1,
         name: "Test Store",
         discogs_username: "teststore",
-        description: "A great store",
+        description: fake_store.description,
         total_listings: 0,
         sync_status: "synced"
       )

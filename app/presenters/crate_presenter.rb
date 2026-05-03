@@ -3,12 +3,12 @@ class CratePresenter
     @store = store
   end
 
-  def store_props(description)
+  def store_props
     {
       id: @store.id,
       name: @store.name,
       discogs_username: @store.discogs_username,
-      description:,
+      description: @store.description,
       total_listings: @store.total_listings,
       sync_status: @store.sync_status
     }

@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc *)",
+      "Bash(gh repo *)",
+      "Bash(bin/rails milkcrate:sync:quick)",
+      "Bash(bin/rails milkcrate:stats)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(bundle exec *)"
+    ]
+  }
+}
