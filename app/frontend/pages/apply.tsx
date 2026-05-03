@@ -5,9 +5,24 @@ import MarketingLayout from "@/layouts/marketing_layout"
 interface Props {
   submitted?: boolean
   errors?: Record<string, { error: string; value: string }[]>
+  copy: {
+    headline: string
+    subhead: string
+    submit: string
+    submitting: string
+    confirmation_headline: string
+    confirmation_body: string
+    fields: {
+      name: string
+      discogs_username: string
+      email: string
+      inventory_size: string
+      notes: string
+    }
+  }
 }
 
-export default function Apply({ submitted = false, errors = {} }: Props) {
+export default function Apply({ submitted = false, errors = {}, copy }: Props) {
   const { data, setData, post, processing } = useForm({
     name: "",
     discogs_username: "",
@@ -20,9 +35,9 @@ export default function Apply({ submitted = false, errors = {} }: Props) {
     return (
       <MarketingLayout>
         <div className="flex flex-col items-center text-center px-4 py-16 max-w-lg mx-auto">
-          <h1 className="text-2xl font-bold mc-text mb-3">You're on the list.</h1>
+          <h1 className="text-2xl font-bold mc-text mb-3">{copy.confirmation_headline}</h1>
           <p className="text-sm text-mc-text-dim leading-relaxed max-w-sm">
-            We'll review your store and reach out to you directly.
+            {copy.confirmation_body}
           </p>
         </div>
       </MarketingLayout>
@@ -32,10 +47,9 @@ export default function Apply({ submitted = false, errors = {} }: Props) {
   return (
     <MarketingLayout>
       <div className="max-w-md mx-auto px-4 py-12">
-        <h1 className="text-2xl font-bold mc-text mb-1">Get your store on Milkcrate</h1>
+        <h1 className="text-2xl font-bold mc-text mb-1">{copy.headline}</h1>
         <p className="text-sm text-mc-text-dim mb-8 leading-relaxed">
-          We're onboarding stores one at a time. Fill this out and we'll be in touch —
-          this isn't automatic, we review every store personally.
+          {copy.subhead}
         </p>
 
         <form
@@ -45,7 +59,7 @@ export default function Apply({ submitted = false, errors = {} }: Props) {
           }}
           className="flex flex-col gap-5"
         >
-          <Field label="Store name" error={errors.name?.[0]?.error}>
+          <Field label={copy.fields.name} error={errors.name?.[0]?.error}>
             <input
               type="text"
               value={data.name}
@@ -56,7 +70,7 @@ export default function Apply({ submitted = false, errors = {} }: Props) {
             />
           </Field>
 
-          <Field label="Discogs username" error={errors.discogs_username?.[0]?.error}>
+          <Field label={copy.fields.discogs_username} error={errors.discogs_username?.[0]?.error}>
             <input
               type="text"
               value={data.discogs_username}
@@ -67,7 +81,7 @@ export default function Apply({ submitted = false, errors = {} }: Props) {
             />
           </Field>
 
-          <Field label="Email" error={errors.email?.[0]?.error}>
+          <Field label={copy.fields.email} error={errors.email?.[0]?.error}>
             <input
               type="email"
               value={data.email}
@@ -78,7 +92,7 @@ export default function Apply({ submitted = false, errors = {} }: Props) {
             />
           </Field>
 
-          <Field label="Approximate inventory size" hint="Optional">
+          <Field label={copy.fields.inventory_size} hint="Optional">
             <select
               value={data.inventory_size}
               onChange={(e) => setData("inventory_size", e.target.value)}
@@ -92,7 +106,7 @@ export default function Apply({ submitted = false, errors = {} }: Props) {
             </select>
           </Field>
 
-          <Field label="Anything else?" hint="Optional">
+          <Field label={copy.fields.notes} hint="Optional">
             <textarea
               value={data.notes}
               onChange={(e) => setData("notes", e.target.value)}
@@ -107,7 +121,7 @@ export default function Apply({ submitted = false, errors = {} }: Props) {
             disabled={processing}
             className="px-6 py-3 rounded-lg bg-mc-accent text-white font-semibold text-sm tracking-wide hover:opacity-90 transition-opacity disabled:opacity-50"
           >
-            {processing ? "Submitting…" : "Submit"}
+            {processing ? copy.submitting : copy.submit}
           </button>
         </form>
       </div>
