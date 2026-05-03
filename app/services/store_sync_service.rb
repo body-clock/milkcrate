@@ -83,7 +83,7 @@ class StoreSyncService
         store_id: @store.id
       },
       unique_by: :discogs_listing_id,
-      update_only: %i[condition price currency format thumbnail_url cover_image_url last_seen_at notes]
+      update_only: %i[condition price currency format thumbnail_url last_seen_at notes]
     )
   rescue ActiveRecord::RecordNotUnique, ActiveRecord::StatementInvalid => e
     Rails.logger.warn("Skipping listing #{raw['id']}: #{e.message}")
