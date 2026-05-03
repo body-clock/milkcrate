@@ -113,9 +113,12 @@ export default function StoreFloor({ crates, onSelectCrate }: Props) {
               key={dedupedCrate.slug}
               crate={dedupedCrate}
               onSelect={(slug, i) => {
-                const record = dedupedCrate.records[i]
+                const startIndex = i ?? 0
+                const record = dedupedCrate.records[startIndex]
+                if (!record) return
+
                 const fullIndex = fullCrate.records.findIndex((r) => r.id === record.id)
-                onSelectCrate(slug, fullIndex >= 0 ? fullIndex : i)
+                onSelectCrate(slug, fullIndex >= 0 ? fullIndex : startIndex)
               }}
             />
           )

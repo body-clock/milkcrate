@@ -73,8 +73,13 @@ Required variables:
 - `DB_PASSWORD` - local Postgres password.
 - `MILKCRATE_USER` - production HTTP basic auth username.
 - `MILKCRATE_PASSWORD` - production HTTP basic auth password.
+- `TURNSTILE_ENABLED` - set to `true` to require Cloudflare Turnstile on waitlist submissions.
+- `TURNSTILE_SITE_KEY` - Cloudflare Turnstile public site key used by the `/apply` page.
+- `TURNSTILE_SECRET_KEY` - Cloudflare Turnstile secret key used to verify waitlist submissions.
 
 Development and test do not prompt for HTTP basic auth. Production keeps the temporary basic auth gate until real app auth replaces it.
+
+Turnstile is disabled unless `TURNSTILE_ENABLED=true`. When enabled, only `POST /waitlist` is protected; public SEO pages remain crawlable and should be protected at the Cloudflare edge with bot rules instead of an app-level challenge.
 
 ## Local Setup
 

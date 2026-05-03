@@ -1,7 +1,6 @@
 import React from "react"
 import { Link } from "@inertiajs/react"
 import { useTheme } from "@/hooks/use_theme"
-import { LogoCrate } from "@/components/logo"
 
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {
   const { theme, toggle } = useTheme()
