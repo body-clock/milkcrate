@@ -53,7 +53,7 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
           <button
             type="button"
             onClick={toggle}
-            className="w-8 h-8 flex items-center justify-center rounded-full text-sm text-mc-text-dim hover:text-mc-text hover:bg-mc-bg-raised transition-colors select-none"
+            className="w-10 h-10 flex items-center justify-center rounded-full text-xl text-mc-text-dim hover:text-mc-text hover:bg-mc-bg-raised transition-colors select-none"
             aria-label="Toggle light/dark mode"
           >
             {theme === "dark" ? "☀︎" : "☾"}
