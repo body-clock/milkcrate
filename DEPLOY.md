@@ -47,9 +47,13 @@ Edit `.kamal/secrets`:
 KAMAL_REGISTRY_PASSWORD=ghp_...  # GitHub token with write:packages scope
 RAILS_MASTER_KEY=...             # From config/master.key
 DISCOGS_TOKEN=...                # From discogs.com/settings/developers
+TURNSTILE_SITE_KEY=...           # Cloudflare Turnstile site key
+TURNSTILE_SECRET_KEY=...         # Cloudflare Turnstile secret key
 ```
 
 Create the GitHub token at `github.com/settings/tokens` with `write:packages` scope.
+
+Production enables Turnstile in `config/deploy.yml` with `TURNSTILE_ENABLED=true`. The app only verifies Turnstile on waitlist submissions, so Cloudflare WAF rules should still handle broader bot filtering for public pages.
 
 ## 4. Update Server IP
 

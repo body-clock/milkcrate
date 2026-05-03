@@ -23,5 +23,15 @@ RSpec.describe "Pages", type: :request do
       get "/apply"
       expect(response.body).to include("apply")
     end
+
+    it "includes Turnstile configuration for the apply form" do
+      allow(TurnstileVerifier).to receive(:enabled?).and_return(true)
+      allow(TurnstileVerifier).to receive(:site_key).and_return("site-key")
+
+      get "/apply"
+
+      expect(response.body).to include("turnstile")
+      expect(response.body).to include("site-key")
+    end
   end
 end

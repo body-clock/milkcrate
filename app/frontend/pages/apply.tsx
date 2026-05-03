@@ -1,10 +1,33 @@
-import React, { useState } from "react"
+import React, { useEffect, useRef } from "react"
 import { useForm } from "@inertiajs/react"
 import MarketingLayout from "@/layouts/marketing_layout"
 
-interface Props {
+type TurnstileWidgetId = string | number
+
+declare global {
+  interface Window {
+    turnstile?: {
+      render: (
+        element: HTMLElement,
+        options: {
+          sitekey: string
+          callback: (token: string) => void
+          "expired-callback": () => void
+          "error-callback": () => void
+        }
+      ) => TurnstileWidgetId
+      remove?: (widgetId: TurnstileWidgetId) => void
+    }
+  }
+}
+
+type Props = {
   submitted?: boolean
   errors?: Record<string, { error: string; value: string }[]>
+  turnstile?: {
+    enabled: boolean
+    site_key: string | null
+  }
   copy: {
     headline: string
     subhead: string
@@ -22,14 +45,59 @@ interface Props {
   }
 }
 
-export default function Apply({ submitted = false, errors = {}, copy }: Props) {
+export default function Apply({ submitted = false, errors = {}, turnstile, copy }: Props) {
   const { data, setData, post, processing } = useForm({
     name: "",
     discogs_username: "",
     email: "",
     inventory_size: "",
     notes: "",
+    turnstile_token: "",
   })
+  const widgetRef = useRef<HTMLDivElement>(null)
+  const widgetIdRef = useRef<TurnstileWidgetId | null>(null)
+  const turnstileEnabled = turnstile?.enabled === true
+  const turnstileSiteKey = turnstile?.site_key
+
+  useEffect(() => {
+    if (!turnstileEnabled || !turnstileSiteKey || !widgetRef.current) return
+
+    const renderWidget = () => {
+      if (!window.turnstile || !widgetRef.current || widgetIdRef.current !== null) return
+
+      widgetIdRef.current = window.turnstile.render(widgetRef.current, {
+        sitekey: turnstileSiteKey,
+        callback: (token: string) => setData("turnstile_token", token),
+        "expired-callback": () => setData("turnstile_token", ""),
+        "error-callback": () => setData("turnstile_token", ""),
+      })
+    }
+
+    const existingScript = document.querySelector<HTMLScriptElement>("script[data-turnstile-script]")
+    if (existingScript) {
+      if (window.turnstile) {
+        renderWidget()
+      } else {
+        existingScript.addEventListener("load", renderWidget, { once: true })
+      }
+    } else {
+      const script = document.createElement("script")
+      script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
+      script.async = true
+      script.defer = true
+      script.dataset.turnstileScript = "true"
+      script.onload = renderWidget
+      document.head.appendChild(script)
+    }
+
+    return () => {
+      existingScript?.removeEventListener("load", renderWidget)
+      if (widgetIdRef.current !== null) {
+        window.turnstile?.remove?.(widgetIdRef.current)
+        widgetIdRef.current = null
+      }
+    }
+  }, [setData, turnstileEnabled, turnstileSiteKey])
 
   if (submitted) {
     return (
@@ -115,6 +183,20 @@ export default function Apply({ submitted = false, errors = {}, copy }: Props) {
               className="mc-input resize-none"
             />
           </Field>
+
+          {turnstileEnabled && turnstileSiteKey && (
+            <div className="flex flex-col gap-1">
+              <div
+                ref={widgetRef}
+                data-testid="turnstile-widget"
+                data-sitekey={turnstileSiteKey}
+                className="min-h-[65px]"
+              />
+              {errors.turnstile?.[0]?.error && (
+                <p className="text-xs text-red-500">{errors.turnstile[0].error}</p>
+              )}
+            </div>
+          )}
 
           <button
             type="submit"
