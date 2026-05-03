@@ -9,7 +9,11 @@ class PagesController < ApplicationController
 
   def apply
     render inertia: "apply", props: {
-      copy: t("pages.apply").to_h
+      copy: t("pages.apply").to_h,
+      turnstile: {
+        enabled: TurnstileVerifier.enabled?,
+        site_key: TurnstileVerifier.site_key
+      }
     }
   end
 end
