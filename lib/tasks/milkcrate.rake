@@ -59,6 +59,74 @@ namespace :milkcrate do
     puts "Reset surfacing data for #{count} listings in #{store.name}."
   end
 
+  desc "Score breakdown for a listing — rake milkcrate:score[LISTING_ID]"
+  task :score, [:id] => :environment do |_, args|
+    raise "Usage: rake milkcrate:score[LISTING_ID]" unless args[:id]
+
+    store    = default_store
+    listing  = store.listings.find(args[:id])
+    selector = PicksSelector.new(store)
+
+    gc = store.listings.available.lp_only.pluck(:genres).map(&:first).compact.tally
+
+    today    = Date.today
+    have     = listing.have_count.to_i
+    want     = listing.want_count.to_i
+    total    = want + have
+
+    vintage     = listing.year && listing.year < PicksSelector::VINTAGE_BEFORE ? 2.0 : 0.0
+    condition   = (PicksSelector::GOOD_CONDITIONS.include?(listing.condition&.strip) ||
+                   PicksSelector::CONDITION_ALIASES.include?(listing.condition&.strip&.downcase)) ? 1.0 : 0.0
+
+    genre_count = gc.fetch(listing.primary_genre.to_s, 0)
+    section     = genre_count < PicksSelector::SMALL_GENRE_THRESHOLD ? PicksSelector::SMALL_GENRE_BOOST.to_f : 0.0
+
+    desirability  = 0.0
+    desirability += Math.log10(total).clamp(0, PicksSelector::DESIRABILITY_LOG_CAP) if total > 0
+    if have >= PicksSelector::WANT_HAVE_MIN_HAVE
+      ratio = want.to_f / have
+      desirability += PicksSelector::WANT_HAVE_HIGH_BONUS  if ratio >= PicksSelector::WANT_HAVE_RATIO_HIGH
+      desirability += PicksSelector::WANT_HAVE_LOW_PENALTY if ratio <= PicksSelector::WANT_HAVE_RATIO_LOW
+    end
+
+    meta      = listing.styles.empty? && listing.genres.size <= 1 && listing.year.nil? ? -1.0 : 0.0
+    freshness = if listing.last_surfaced_at.nil?
+      3.0
+    else
+      days_ago = (today - listing.last_surfaced_at.to_date).to_i
+      if    days_ago <= 3  then -5.0
+      elsif days_ago <= 7  then -3.0
+      elsif days_ago <= 14 then -1.0
+      else 1.0
+      end
+    end
+    noise_unit = Digest::MD5.hexdigest("#{listing.id}-#{today}").to_i(16).to_f / (2**128)
+    noise      = (noise_unit * 2 - 1) * PicksSelector::NOISE_MAGNITUDE
+    score      = vintage + condition + section + desirability + meta + freshness + noise
+
+    puts "#{listing.artist} – #{listing.title} (#{listing.year})"
+    puts "  ID:        #{listing.id}"
+    puts "  Primary:   #{listing.primary_genre}"
+    puts "  Genres:    #{listing.genres.join(", ")}"
+    puts "  Styles:    #{listing.styles.join(", ")}"
+    puts "  Condition: #{listing.condition}"
+    puts "  Format:    #{listing.format}"
+    puts "  want=#{want}  have=#{have}  ratio=#{have > 0 ? (want.to_f / have).round(2) : "n/a"}"
+    puts "  last_surfaced: #{listing.last_surfaced_at&.to_date || "never"}"
+    puts
+    puts "  TOTAL SCORE: #{score.round(3)}"
+    puts "  ─────────────────────────────"
+    puts "  vintage:     #{vintage}"
+    puts "  condition:   #{condition}#{condition == 0 ? " (condition=#{listing.condition.inspect} not matched)" : ""}"
+    puts "  section:     #{section}  (genre_count=#{genre_count}, threshold=#{PicksSelector::SMALL_GENRE_THRESHOLD})"
+    puts "  desirability: #{desirability.round(3)}"
+    puts "    log10(#{total}).clamp(0,#{PicksSelector::DESIRABILITY_LOG_CAP}): #{total > 0 ? Math.log10(total).clamp(0, PicksSelector::DESIRABILITY_LOG_CAP).round(3) : 0}"
+    puts "    ratio bonus/penalty: #{have >= PicksSelector::WANT_HAVE_MIN_HAVE ? (want.to_f / have >= PicksSelector::WANT_HAVE_RATIO_HIGH ? "+#{PicksSelector::WANT_HAVE_HIGH_BONUS}" : (want.to_f / have <= PicksSelector::WANT_HAVE_RATIO_LOW ? "#{PicksSelector::WANT_HAVE_LOW_PENALTY}" : "none")) : "n/a (have < #{PicksSelector::WANT_HAVE_MIN_HAVE})"}"
+    puts "  metadata:    #{meta}"
+    puts "  freshness:   #{freshness}"
+    puts "  noise:       #{noise.round(3)}"
+  end
+
   desc "Print curation stats for the current store"
   task stats: :environment do
     store = default_store

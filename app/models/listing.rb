@@ -7,9 +7,13 @@ class Listing < ApplicationRecord
   # Excludes unenriched records (format="Vinyl" only) intentionally — they
   # lack genre/style data and shouldn't surface in picks or genre bins.
   LP_FORMAT_TERMS = %w[LP Album].freeze
+  NON_VINYL_FORMAT_TERMS = ["8-Track", "Cassette", "CD", "DVD", "VHS", "Blu-ray", "SACD", "Reel"].freeze
 
   VINYL_FORMAT_SQL   = VINYL_FORMATS.map { |f| "format ILIKE '%#{f}%'" }.join(" OR ").freeze
-  LP_ONLY_FORMAT_SQL = LP_FORMAT_TERMS.map { |f| "format ILIKE '%#{f}%'" }.join(" OR ").freeze
+  LP_ONLY_FORMAT_SQL = (
+    "(#{LP_FORMAT_TERMS.map { |f| "format ILIKE '%#{f}%'" }.join(" OR ")})" \
+    " AND NOT (#{NON_VINYL_FORMAT_TERMS.map { |f| "format ILIKE '%#{f}%'" }.join(" OR ")})"
+  ).freeze
 
   scope :vinyl,   -> { where(Arel.sql(VINYL_FORMAT_SQL)) }
   scope :lp_only, -> { where(Arel.sql(LP_ONLY_FORMAT_SQL)) }

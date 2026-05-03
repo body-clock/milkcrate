@@ -27,11 +27,7 @@ RSpec.describe PicksSelector do
     end
 
     def pluck(attr)
-      if attr.is_a?(String) && attr.include?("[")
-        records.map { |r| r.genres.first }
-      else
-        records.map { |r| r.public_send(attr) }
-      end
+      records.map { |r| r.public_send(attr) }
     end
 
     def to_a = records
@@ -112,38 +108,22 @@ RSpec.describe PicksSelector do
       selector.send(:score_all).find { |l, _| l == listing }&.last
     end
 
-    it "boosts records with rare discovery styles" do
-      common_style = fake_listing(id: 1, genres: [ "Electronic" ], styles: [ "House" ])
-      rare_style   = fake_listing(id: 2, genres: [ "Electronic" ], styles: [ "Broken Beat" ])
-
-      store    = fake_store(listings: [ common_style, rare_style ])
-      selector = described_class.new(store)
-      gc       = { "Electronic" => 6 }
-      sc       = { "House" => 6, "Broken Beat" => 1 }
-
-      common_score = selector.send(:score, common_style, gc, sc)
-      rare_score   = selector.send(:score, rare_style, gc, sc)
-
-      expect(rare_score).to be > common_score
-    end
-
     it "normalizes condition variants (NM, Near Mint, M-) as good condition" do
       selector = described_class.new(fake_store(listings: []))
       %w[NM VG+ Near\ Mint M-].each do |cond|
         listing = fake_listing(genres: [ "Rock" ], styles: [ "Classic Rock" ], condition: cond)
-        score   = selector.send(:score, listing, { "Rock" => 10 }, { "Classic Rock" => 10 })
+        score   = selector.send(:score, listing, { "Rock" => 10 })
         expect(score).to be > 0, "expected #{cond.inspect} to count as good condition"
       end
     end
 
-    it "penalizes records with no style, no genre diversity, and no year" do
+    it "penalizes records with no styles and no year" do
       selector = described_class.new(fake_store(listings: []))
       weak   = fake_listing(genres: [ "Rock" ], styles: [], year: nil, condition: "Generic")
       strong = fake_listing(genres: [ "Rock" ], styles: [ "Classic Rock" ], year: 1975, condition: "VG+")
       gc     = { "Rock" => 10 }
-      sc     = { "Classic Rock" => 10 }
 
-      expect(selector.send(:score, strong, gc, sc)).to be > selector.send(:score, weak, gc, sc)
+      expect(selector.send(:score, strong, gc)).to be > selector.send(:score, weak, gc)
     end
 
     it "boosts records with high want/have ratio above minimum have threshold" do
@@ -152,7 +132,7 @@ RSpec.describe PicksSelector do
       common  = fake_listing(want_count: 100, have_count: 500, genres: [ "Jazz" ], styles: [])
       gc      = { "Jazz" => 5 }
 
-      expect(selector.send(:score, coveted, gc, {})).to be > selector.send(:score, common, gc, {})
+      expect(selector.send(:score, coveted, gc)).to be > selector.send(:score, common, gc)
     end
 
     it "boosts records with higher market depth at the same ratio" do
@@ -161,14 +141,14 @@ RSpec.describe PicksSelector do
       thin     = fake_listing(want_count: 1,   have_count: 1,   genres: [ "Jazz" ], styles: [])
       gc       = { "Jazz" => 5 }
 
-      expect(selector.send(:score, deep, gc, {})).to be > selector.send(:score, thin, gc, {})
+      expect(selector.send(:score, deep, gc)).to be > selector.send(:score, thin, gc)
     end
 
     it "ignores want/have ratio when have_count is below minimum threshold" do
       selector = described_class.new(fake_store(listings: []))
       thin_market = fake_listing(want_count: 8, have_count: 3, genres: [ "Jazz" ], styles: [])
 
-      expect { selector.send(:score, thin_market, {}, {}) }.not_to raise_error
+      expect { selector.send(:score, thin_market, {}) }.not_to raise_error
     end
 
     it "penalizes records surfaced in the last 3 days" do
@@ -177,7 +157,7 @@ RSpec.describe PicksSelector do
       stale   = fake_listing(genres: [ "Jazz" ], styles: [], last_surfaced_at: Date.today - 1)
       gc      = { "Jazz" => 5 }
 
-      expect(selector.send(:score, fresh, gc, {})).to be > selector.send(:score, stale, gc, {})
+      expect(selector.send(:score, fresh, gc)).to be > selector.send(:score, stale, gc)
     end
 
     it "gives a mild bonus to records not surfaced in 14+ days" do
