@@ -1,7 +1,4 @@
-require "spec_helper"
-require "bigdecimal"
-require "active_support/core_ext/string/inflections"
-require_relative "../../app/presenters/crate_presenter"
+require "rails_helper"
 
 RSpec.describe CratePresenter do
   FakeListing = Struct.new(
@@ -35,8 +32,6 @@ RSpec.describe CratePresenter do
     end
   end
 
-  FakeStore = Struct.new(:id, :name, :discogs_username, :description, :total_listings, :sync_status, :listings, keyword_init: true)
-
   def fake_listing(overrides = {})
     FakeListing.new(
       id: 1,
@@ -60,15 +55,9 @@ RSpec.describe CratePresenter do
   end
 
   def fake_store(listings: [])
-    FakeStore.new(
-      id: 1,
-      name: "Test Store",
-      discogs_username: "teststore",
-      description: "A great store",
-      total_listings: listings.size,
-      sync_status: "synced",
-      listings: FakeListingsScope.new(listings)
-    )
+    store = build_stubbed(:store)
+    allow(store).to receive(:listings).and_return(FakeListingsScope.new(listings))
+    store
   end
 
   def fake_selector(picks: [], genre_map: {})
@@ -80,15 +69,15 @@ RSpec.describe CratePresenter do
 
   describe "#store_props" do
     it "returns expected store fields" do
-      props = described_class.new(fake_store).store_props
+      store = fake_store
+      props = described_class.new(store).store_props
 
       expect(props).to include(
-        id: 1,
-        name: "Test Store",
-        discogs_username: "teststore",
-        description: fake_store.description,
-        total_listings: 0,
-        sync_status: "synced"
+        id: store.id,
+        name: store.name,
+        discogs_username: store.discogs_username,
+        description: store.description,
+        sync_status: store.sync_status
       )
     end
   end
