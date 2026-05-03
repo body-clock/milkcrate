@@ -4,4 +4,6 @@ Rails.application.routes.draw do
   mount MissionControl::Jobs::Engine, at: "/jobs" if Rails.env.development?
 
   root "stores#featured"
+
+  get "/:slug", to: "stores#show", as: :store
 end

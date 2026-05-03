@@ -1,9 +1,10 @@
 FactoryBot.define do
   factory :store do
-    name { "MyString" }
-    discogs_username { "MyString" }
-    last_synced_at { "2026-03-19 13:08:35" }
-    sync_status { "MyString" }
-    total_listings { 1 }
+    sequence(:name) { |n| "Record Store #{n}" }
+    sequence(:discogs_username) { |n| "recordstore#{n}" }
+    description { "A great record store." }
+    sync_status { "idle" }
+    total_listings { 0 }
+    last_synced_at { 1.hour.ago }
   end
 end
