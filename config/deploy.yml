@@ -27,12 +27,15 @@ registry:
 env:
   secret:
     - RAILS_MASTER_KEY
+    - TURNSTILE_SITE_KEY
+    - TURNSTILE_SECRET_KEY
   clear:
     SOLID_QUEUE_IN_PUMA: true
     DB_HOST: milkcrate-db
     DB_USER: milkcrate
     DB_PASSWORD: milkcrate
     RAILS_SERVE_STATIC_FILES: true
+    TURNSTILE_ENABLED: true
 
 # Postgres accessory
 accessories:

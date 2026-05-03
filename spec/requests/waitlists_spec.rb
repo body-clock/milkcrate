@@ -28,6 +28,48 @@ RSpec.describe "Waitlists", type: :request do
       end
     end
 
+    context "when Turnstile is enabled" do
+      before do
+        allow(TurnstileVerifier).to receive(:enabled?).and_return(true)
+      end
+
+      it "does not create an entry without a Turnstile token" do
+        expect {
+          post "/waitlist", params: valid_params
+        }.not_to change(Waitlist, :count)
+      end
+
+      it "renders the apply page with submitted: false without a Turnstile token" do
+        post "/waitlist", params: valid_params
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("submitted")
+        expect(response.body).to include("turnstile")
+      end
+
+      it "does not create an entry when Turnstile verification fails" do
+        allow(TurnstileVerifier).to receive(:verify).with(
+          token: "bad-token",
+          remote_ip: "127.0.0.1"
+        ).and_return(false)
+
+        expect {
+          post "/waitlist", params: valid_params.merge(turnstile_token: "bad-token")
+        }.not_to change(Waitlist, :count)
+      end
+
+      it "creates an entry when Turnstile verification succeeds" do
+        allow(TurnstileVerifier).to receive(:verify).with(
+          token: "good-token",
+          remote_ip: "127.0.0.1"
+        ).and_return(true)
+
+        expect {
+          post "/waitlist", params: valid_params.merge(turnstile_token: "good-token")
+        }.to change(Waitlist, :count).by(1)
+      end
+    end
+
     context "with missing name" do
       it "does not create an entry" do
         params = valid_params.deep_merge(waitlist: { name: "" })
