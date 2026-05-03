@@ -85,8 +85,11 @@ class StoreSyncService
       unique_by: :discogs_listing_id,
       update_only: %i[condition price currency format thumbnail_url cover_image_url last_seen_at notes]
     )
+  rescue ActiveRecord::RecordNotUnique, ActiveRecord::StatementInvalid => e
+    Rails.logger.warn("Skipping listing #{raw['id']}: #{e.message}")
   rescue StandardError => e
-    Rails.logger.warn("Failed to upsert listing #{raw['id']}: #{e.message}")
+    Rails.logger.error("Unexpected error upserting listing #{raw['id']}: #{e.message}")
+    raise
   end
 
   NON_VINYL = %w[CD Cassette DVD VHS].freeze

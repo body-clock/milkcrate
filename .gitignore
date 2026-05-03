@@ -50,3 +50,4 @@ node_modules
 
 docs
 .claude
+RAILS_AUDIT_REPORT.md
