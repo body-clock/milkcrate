@@ -3,12 +3,12 @@ class Listing < ApplicationRecord
 
   VINYL_FORMATS = %w[Vinyl LP EP Single].freeze
 
-  # 12" albums only — excludes singles, EPs, CDs, cassettes.
-  # "Vinyl" included for unenriched records (inventory API omits descriptions);
-  # after EnrichReleasesJob runs, format becomes e.g. "Vinyl, LP, Album".
-  LP_FORMAT_TERMS = %w[LP Album Vinyl].freeze
+  # 12" albums only — requires explicit LP or Album in format string.
+  # Excludes unenriched records (format="Vinyl" only) intentionally — they
+  # lack genre/style data and shouldn't surface in picks or genre bins.
+  LP_FORMAT_TERMS = %w[LP Album].freeze
 
-  VINYL_FORMAT_SQL  = VINYL_FORMATS.map  { |f| "format ILIKE '%#{f}%'" }.join(" OR ").freeze
+  VINYL_FORMAT_SQL   = VINYL_FORMATS.map { |f| "format ILIKE '%#{f}%'" }.join(" OR ").freeze
   LP_ONLY_FORMAT_SQL = LP_FORMAT_TERMS.map { |f| "format ILIKE '%#{f}%'" }.join(" OR ").freeze
 
   scope :vinyl,   -> { where(Arel.sql(VINYL_FORMAT_SQL)) }

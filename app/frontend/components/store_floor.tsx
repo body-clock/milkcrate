@@ -17,6 +17,14 @@ export default function StoreFloor({ crates, onSelectCrate }: Props) {
 
   const today = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" })
 
+  // Deduplicate: seed seen set with picks, then walk genre bins in order
+  const seenIds = new Set<number>(picks?.records.map((r) => r.id) ?? [])
+  const dedupedGenreCrates = genreCrates.map((crate) => {
+    const unique = crate.records.filter((r) => !seenIds.has(r.id))
+    unique.forEach((r) => seenIds.add(r.id))
+    return { ...crate, records: unique }
+  })
+
   return (
     <div className="flex flex-col">
       {picks && picks.records.length > 0 && (
@@ -98,7 +106,7 @@ export default function StoreFloor({ crates, onSelectCrate }: Props) {
       )}
 
       <div className="flex flex-col">
-        {genreCrates.map((crate) => (
+        {dedupedGenreCrates.map((crate) => (
           <StoreSection key={crate.slug} crate={crate} onSelect={(slug, i) => onSelectCrate(slug, i)} />
         ))}
       </div>

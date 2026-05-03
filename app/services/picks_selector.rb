@@ -62,6 +62,7 @@ class PicksSelector
         genre_seen[g] += 1
         listing
       }
+      .uniq(&:id)
       .first(count)
   end
 
