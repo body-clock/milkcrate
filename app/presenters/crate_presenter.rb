@@ -3,12 +3,12 @@ class CratePresenter
     @store = store
   end
 
-  def store_props(description)
+  def store_props
     {
       id: @store.id,
       name: @store.name,
       discogs_username: @store.discogs_username,
-      description:,
+      description: @store.description,
       total_listings: @store.total_listings,
       sync_status: @store.sync_status
     }
@@ -18,14 +18,19 @@ class CratePresenter
     picks = selector.select_picks(count: 12)
     crates = [ crate_props("picks", "Milkcrate Picks", picks) ]
 
+    picks_ids = picks.map(&:id).to_set
+
     genre_counts = @store.listings.available.lp_only
       .pluck(:genres)
-      .flatten
+      .map(&:first)
+      .compact
       .tally
       .sort_by { |_, c| -c }
 
     genre_counts.each do |genre, _|
       genre_listings = selector.rank_genre(genre)
+        .reject { |l| picks_ids.include?(l.id) }
+        .first(50)
       next if genre_listings.empty?
       crates << crate_props(genre.parameterize, genre, genre_listings)
     end

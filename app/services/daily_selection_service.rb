@@ -16,17 +16,15 @@ class DailySelectionService
   # How much to favor records in good condition (NM, VG+).
   QUALITY_WEIGHT = 2
 
-  # How much to favor records with discovery styles (world, experimental, etc.)
-  # This stacks with the PicksSelector — interesting records appear in both
-  # the daily rotation AND rise to the top of Milkcrate Picks.
-  DISCOVERY_WEIGHT = 3
+  # How much to boost records with high want/have ratio (Discogs market demand).
+  DESIRABILITY_WEIGHT = 3
 
   # How much to boost records that haven't appeared in a recent selection.
   # Ensures long-tail catalog gets surfaced over time.
   UNSEEN_BOOST = 4
 
-  # ── Discovery styles (shared with PicksSelector) ──────────────────────────
-  DISCOVERY_STYLES = PicksSelector::DISCOVERY_STYLES
+  GOOD_CONDITIONS   = PicksSelector::GOOD_CONDITIONS
+  CONDITION_ALIASES = PicksSelector::CONDITION_ALIASES
 
   # ─────────────────────────────────────────────────────────────────────────
 
@@ -81,11 +79,17 @@ class DailySelectionService
       end
 
       # Condition quality
-      weight += QUALITY_WEIGHT if %w[Mint NM M VG+].include?(listing.condition&.strip)
+      good_condition = GOOD_CONDITIONS.include?(listing.condition&.strip) ||
+                       CONDITION_ALIASES.include?(listing.condition&.strip&.downcase)
+      weight += QUALITY_WEIGHT if good_condition
 
-      # Discovery styles
-      matching = listing.styles & DISCOVERY_STYLES
-      weight += matching.size * DISCOVERY_WEIGHT
+      # Desirability: want/have ratio signals market demand
+      have = listing.have_count.to_i
+      want = listing.want_count.to_i
+      if have >= PicksSelector::WANT_HAVE_MIN_HAVE
+        ratio = want.to_f / have
+        weight += DESIRABILITY_WEIGHT if ratio >= PicksSelector::WANT_HAVE_RATIO_HIGH
+      end
 
       # Unseen boost — hasn't appeared in recent selections
       weight += UNSEEN_BOOST unless recent_ids.include?(listing.id)

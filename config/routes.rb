@@ -3,5 +3,10 @@ Rails.application.routes.draw do
 
   mount MissionControl::Jobs::Engine, at: "/jobs" if Rails.env.development?
 
-  root "stores#featured"
+  root "pages#home"
+
+  get  "/apply",   to: "pages#apply"
+  post "/waitlist", to: "waitlists#create"
+
+  get "/:slug", to: "stores#show", as: :store
 end

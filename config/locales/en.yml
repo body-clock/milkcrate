@@ -28,4 +28,23 @@
 #       enabled: "ON"
 
 en:
-  hello: "Hello world"
+  pages:
+    home:
+      headline: "Your Discogs inventory, but discoverable."
+      subhead: "Milkcrate turns your Discogs inventory into a digital storefront worth sharing."
+      cta_demo: "See the demo →"
+      cta_apply: "Get your store on Milkcrate"
+      footnote: "Free to start. We handle the setup."
+    apply:
+      headline: "Get your store on Milkcrate"
+      subhead: "We're onboarding stores one at a time. Fill this out and we'll be in touch — this isn't automatic, we review every store personally."
+      submit: "Submit"
+      submitting: "Submitting…"
+      confirmation_headline: "You're on the list."
+      confirmation_body: "We'll review your store and reach out to you directly."
+      fields:
+        name: "Store name"
+        discogs_username: "Discogs username"
+        email: "Email"
+        inventory_size: "Approximate inventory size"
+        notes: "Anything else?"

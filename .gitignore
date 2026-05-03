@@ -49,3 +49,5 @@ node_modules
 *.local
 
 docs
+.claude
+RAILS_AUDIT_REPORT.md

@@ -63,6 +63,18 @@
 .mc-nav-link:hover { color: var(--mc-text); }
 .mc-accent-link { color: var(--mc-accent); text-decoration: none; }
 .mc-accent-link:hover { text-decoration: underline; }
+.mc-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--mc-border);
+  background: var(--mc-bg-raised);
+  color: var(--mc-text);
+  font-size: 0.875rem;
+  outline: none;
+}
+.mc-input:focus { border-color: var(--mc-accent); }
+.mc-input::placeholder { color: var(--mc-text-dim); }
 .mc-text        { color: var(--mc-text); }
 .mc-dim         { color: var(--mc-text-dim); }
 .mc-notice      { background: var(--mc-notice); color: var(--mc-text); }
