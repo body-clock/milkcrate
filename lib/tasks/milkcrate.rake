@@ -60,7 +60,7 @@ namespace :milkcrate do
   end
 
   desc "Score breakdown for a listing — rake milkcrate:score[LISTING_ID]"
-  task :score, [:id] => :environment do |_, args|
+  task :score, [ :id ] => :environment do |_, args|
     raise "Usage: rake milkcrate:score[LISTING_ID]" unless args[:id]
 
     store    = default_store
