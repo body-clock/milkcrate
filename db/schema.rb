@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_03_182524) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_03_200001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -23,15 +23,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_03_182524) do
     t.index ["listing_ids"], name: "index_daily_selections_on_listing_ids", using: :gin
     t.index ["store_id", "selected_on"], name: "index_daily_selections_on_store_id_and_selected_on", unique: true
     t.index ["store_id"], name: "index_daily_selections_on_store_id"
-  end
-
-  create_table "listing_events", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.string "event_type"
-    t.bigint "listing_id"
-    t.bigint "store_id"
-    t.index ["listing_id"], name: "index_listing_events_on_listing_id"
-    t.index ["store_id"], name: "index_listing_events_on_store_id"
   end
 
   create_table "listings", force: :cascade do |t|
@@ -61,7 +52,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_03_182524) do
     t.integer "want_count"
     t.integer "year"
     t.index ["discogs_listing_id"], name: "index_listings_on_discogs_listing_id", unique: true
+    t.index ["discogs_release_id"], name: "index_listings_on_discogs_release_id"
     t.index ["genres"], name: "index_listings_on_genres", using: :gin
+    t.index ["last_seen_at"], name: "index_listings_on_last_seen_at"
     t.index ["last_surfaced_at"], name: "index_listings_on_last_surfaced_at"
     t.index ["listed_at"], name: "index_listings_on_listed_at"
     t.index ["store_id"], name: "index_listings_on_store_id"
@@ -229,6 +222,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_03_182524) do
     t.string "sync_status"
     t.integer "total_listings"
     t.datetime "updated_at", null: false
+    t.index ["discogs_username"], name: "index_stores_on_discogs_username", unique: true
   end
 
   create_table "waitlists", force: :cascade do |t|
