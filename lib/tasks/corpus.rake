@@ -7,9 +7,7 @@ namespace :corpus do
     raise ArgumentError, "username is required (arg or DISCOGS_USERNAME)" if username.blank?
 
     max_pages = (args[:max_pages] || 5).to_i
-    payload = Corpus::DiscogsSnapshotExporter.new(username:, max_pages:).call
-
-    puts "snapshot_path=#{Rails.root.join('db/corpus/discogs_store_snapshot.json')} listings=#{payload.fetch('listings').size}"
+    Corpus::DiscogsSnapshotExporter.new(username:, max_pages:).call
   end
 
   desc "Seed database from committed Discogs snapshot"
