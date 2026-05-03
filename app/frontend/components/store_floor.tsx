@@ -106,9 +106,20 @@ export default function StoreFloor({ crates, onSelectCrate }: Props) {
       )}
 
       <div className="flex flex-col">
-        {dedupedGenreCrates.map((crate) => (
-          <StoreSection key={crate.slug} crate={crate} onSelect={(slug, i) => onSelectCrate(slug, i)} />
-        ))}
+        {dedupedGenreCrates.map((dedupedCrate) => {
+          const fullCrate = genreCrates.find((c) => c.slug === dedupedCrate.slug)!
+          return (
+            <StoreSection
+              key={dedupedCrate.slug}
+              crate={dedupedCrate}
+              onSelect={(slug, i) => {
+                const record = dedupedCrate.records[i]
+                const fullIndex = fullCrate.records.findIndex((r) => r.id === record.id)
+                onSelectCrate(slug, fullIndex >= 0 ? fullIndex : i)
+              }}
+            />
+          )
+        })}
       </div>
     </div>
   )
