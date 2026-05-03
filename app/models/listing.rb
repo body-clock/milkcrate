@@ -9,14 +9,6 @@ class Listing < ApplicationRecord
   LP_FORMAT_TERMS = %w[LP Album].freeze
   NON_VINYL_FORMAT_TERMS = [ "8-Track", "Cassette", "CD", "DVD", "VHS", "Blu-ray", "SACD", "Reel" ].freeze
 
-  VINYL_FORMAT_SQL   = VINYL_FORMATS.map { |f| "format ILIKE '%#{f}%'" }.join(" OR ").freeze
-  LP_ONLY_FORMAT_SQL = (
-    "(#{LP_FORMAT_TERMS.map { |f| "format ILIKE '%#{f}%'" }.join(" OR ")})" \
-    " AND NOT (#{NON_VINYL_FORMAT_TERMS.map { |f| "format ILIKE '%#{f}%'" }.join(" OR ")})"
-  ).freeze
-
-  scope :vinyl,   -> { where(Arel.sql(VINYL_FORMAT_SQL)) }
-  scope :lp_only, -> { where(Arel.sql(LP_ONLY_FORMAT_SQL)) }
   scope :by_genre, ->(genre) { where("? = ANY(genres)", genre) }
   scope :recent, -> { order(listed_at: :desc) }
   scope :new_arrivals, -> { recent.limit(50) }
@@ -37,4 +29,19 @@ class Listing < ApplicationRecord
   def discogs_url
     "https://www.discogs.com/sell/item/#{discogs_listing_id}"
   end
+
+  def self.vinyl
+    where(format_matches_any(VINYL_FORMATS))
+  end
+
+  def self.lp_only
+    where(format_matches_any(LP_FORMAT_TERMS).and(format_matches_any(NON_VINYL_FORMAT_TERMS).not))
+  end
+
+  def self.format_matches_any(terms)
+    terms
+      .map { |term| arel_table[:format].matches("%#{sanitize_sql_like(term)}%", nil, false) }
+      .reduce { |predicate, term_match| predicate.or(term_match) }
+  end
+  private_class_method :format_matches_any
 end
