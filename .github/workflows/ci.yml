@@ -98,6 +98,18 @@ jobs:
         with:
           bundler-cache: true
 
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install JS dependencies
+        run: npm ci
+
+      - name: Build Vite assets
+        run: bin/vite build --mode=test
+
       - name: Set up database
         run: bin/rails db:create db:schema:load
 
