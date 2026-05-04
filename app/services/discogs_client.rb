@@ -34,6 +34,11 @@ class DiscogsClient
     total_pages
   end
 
+  def seller_profile(username)
+    response = @connection.get("/users/#{username}")
+    handle_response(response)
+  end
+
   private
 
   def build_connection
