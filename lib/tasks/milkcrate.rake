@@ -127,6 +127,21 @@ namespace :milkcrate do
     puts "  noise:       #{noise.round(3)}"
   end
 
+  desc "Onboard a new store: create Store, kick off full sync — rake milkcrate:add_store[discogs_username]"
+  task :add_store, [ :discogs_username ] => :environment do |_, args|
+    username = args[:discogs_username]
+    raise "Usage: rake milkcrate:add_store[discogs_username]" if username.blank?
+
+    profile = DiscogsClient.new.seller_profile(username)
+    name    = profile["name"].presence || username
+
+    store = Store.create!(discogs_username: username, name:)
+    FullStoreSyncJob.perform_later(store.id)
+
+    puts "Store created: #{store.name} (@#{store.discogs_username})"
+    puts "Sync queued. Store will be live at: /#{store.discogs_username}"
+  end
+
   desc "Print curation stats for the current store"
   task stats: :environment do
     store = default_store
