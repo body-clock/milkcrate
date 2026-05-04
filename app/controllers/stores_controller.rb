@@ -18,12 +18,12 @@ class StoresController < ApplicationController
   private
 
   def render_store(store)
-    selector = PicksSelector.new(store)
+    curation  = StorefrontCuration.new(store)
     presenter = CratePresenter.new(store)
 
     render inertia: "stores/featured", props: {
       store: presenter.store_props,
-      crates: presenter.build_crates(selector),
+      crates: presenter.build_crates(curation),
       active_crate_slug: "picks"
     }
   end

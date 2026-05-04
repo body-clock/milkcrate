@@ -60,11 +60,11 @@ RSpec.describe CratePresenter do
     store
   end
 
-  def fake_selector(picks: [], genre_map: {})
-    selector = double("PicksSelector")
-    allow(selector).to receive(:select_picks).and_return(picks)
-    allow(selector).to receive(:rank_genre) { |genre| genre_map.fetch(genre, []) }
-    selector
+  def fake_curation(picks: [], genre_crates: {})
+    curation = double("StorefrontCuration")
+    allow(curation).to receive(:picks).and_return(picks)
+    allow(curation).to receive(:genre_crates).and_return(genre_crates)
+    curation
   end
 
   describe "#store_props" do
@@ -113,18 +113,18 @@ RSpec.describe CratePresenter do
     let(:rock) { fake_listing(id: 2, genres: [ "Rock" ]) }
 
     it "places picks first with slug 'picks'" do
-      store    = fake_store(listings: [ jazz ])
-      selector = fake_selector(picks: [ jazz ])
-      crates   = described_class.new(store).build_crates(selector)
+      store    = fake_store
+      curation = fake_curation(picks: [ jazz ])
+      crates   = described_class.new(store).build_crates(curation)
 
       expect(crates.first[:slug]).to eq("picks")
       expect(crates.first[:name]).to eq("Milkcrate Picks")
     end
 
     it "includes picks records in the first crate" do
-      store    = fake_store(listings: [ jazz ])
-      selector = fake_selector(picks: [ jazz ])
-      crates   = described_class.new(store).build_crates(selector)
+      store    = fake_store
+      curation = fake_curation(picks: [ jazz ])
+      crates   = described_class.new(store).build_crates(curation)
 
       expect(crates.first[:count]).to eq(1)
       expect(crates.first[:records].first[:id]).to eq(1)
@@ -132,26 +132,26 @@ RSpec.describe CratePresenter do
 
     it "parameterizes multi-word genre names as slugs" do
       hip_hop  = fake_listing(id: 3, genres: [ "Hip Hop" ])
-      store    = fake_store(listings: [ hip_hop ])
-      selector = fake_selector(genre_map: { "Hip Hop" => [ hip_hop ] })
-      crates   = described_class.new(store).build_crates(selector)
+      store    = fake_store
+      curation = fake_curation(genre_crates: { "Hip Hop" => [ hip_hop ] })
+      crates   = described_class.new(store).build_crates(curation)
 
       expect(crates.map { |c| c[:slug] }).to include("hip-hop")
     end
 
     it "produces one crate per unique primary genre" do
-      store    = fake_store(listings: [ jazz, rock ])
-      selector = fake_selector(genre_map: { "Jazz" => [ jazz ], "Rock" => [ rock ] })
-      crates   = described_class.new(store).build_crates(selector)
+      store    = fake_store
+      curation = fake_curation(genre_crates: { "Jazz" => [ jazz ], "Rock" => [ rock ] })
+      crates   = described_class.new(store).build_crates(curation)
 
       genre_slugs = crates.reject { |c| c[:slug] == "picks" }.map { |c| c[:slug] }
       expect(genre_slugs).to match_array(%w[jazz rock])
     end
 
     it "skips genre crates with no records" do
-      store    = fake_store(listings: [ jazz ])
-      selector = fake_selector(genre_map: { "Jazz" => [] })
-      crates   = described_class.new(store).build_crates(selector)
+      store    = fake_store
+      curation = fake_curation(genre_crates: {})
+      crates   = described_class.new(store).build_crates(curation)
 
       genre_slugs = crates.reject { |c| c[:slug] == "picks" }.map { |c| c[:slug] }
       expect(genre_slugs).to be_empty

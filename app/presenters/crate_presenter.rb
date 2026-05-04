@@ -14,25 +14,11 @@ class CratePresenter
     }
   end
 
-  def build_crates(selector)
-    picks = selector.select_picks(count: 12)
-    crates = [ crate_props("picks", "Milkcrate Picks", picks) ]
+  def build_crates(curation)
+    crates = [ crate_props("picks", "Milkcrate Picks", curation.picks) ]
 
-    picks_ids = picks.map(&:id).to_set
-
-    genre_counts = @store.listings.available.lp_only
-      .pluck(:genres)
-      .map(&:first)
-      .compact
-      .tally
-      .sort_by { |_, c| -c }
-
-    genre_counts.each do |genre, _|
-      genre_listings = selector.rank_genre(genre)
-        .reject { |l| picks_ids.include?(l.id) }
-        .first(50)
-      next if genre_listings.empty?
-      crates << crate_props(genre.parameterize, genre, genre_listings)
+    curation.genre_crates.each do |genre, listings|
+      crates << crate_props(genre.parameterize, genre, listings)
     end
 
     crates
