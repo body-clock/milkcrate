@@ -8,7 +8,7 @@ class Listing < ApplicationRecord
   # lack genre/style data and shouldn't surface in picks or genre bins.
   LP_FORMAT_TERMS = %w[LP Album].freeze
   NON_VINYL_FORMAT_TERMS = [ "8-Track", "Cassette", "CD", "DVD", "VHS", "Blu-ray", "SACD", "Reel" ].freeze
-  AVAILABILITY_BUFFER = 15.minutes
+  AVAILABILITY_BUFFER = 36.hours
 
   scope :by_genre, ->(genre) { where("? = ANY(genres)", genre) }
   scope :recent, -> { order(listed_at: :desc) }

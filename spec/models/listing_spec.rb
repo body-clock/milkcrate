@@ -13,16 +13,16 @@ RSpec.describe Listing, type: :model do
     it "keeps listings seen during latest store sync window" do
       synced_store = create(:store, last_synced_at: 2.hours.ago)
       fresh = create(:listing, store: synced_store, last_seen_at: 30.minutes.ago)
-      stale = create(:listing, store: synced_store, last_seen_at: 3.hours.ago)
+      stale = create(:listing, store: synced_store, last_seen_at: 40.hours.ago)
 
       expect(described_class.available).to include(fresh)
       expect(described_class.available).not_to include(stale)
     end
 
-    it "keeps listings seen shortly before sync cutoff to allow sync buffer" do
+    it "keeps listings seen within the 36-hour buffer before last sync" do
       synced_store = create(:store, last_synced_at: 2.hours.ago)
-      buffered = create(:listing, store: synced_store, last_seen_at: 2.hours.ago - 10.minutes)
-      stale = create(:listing, store: synced_store, last_seen_at: 2.hours.ago - 40.minutes)
+      buffered = create(:listing, store: synced_store, last_seen_at: 37.hours.ago)
+      stale    = create(:listing, store: synced_store, last_seen_at: 39.hours.ago)
 
       expect(described_class.available).to include(buffered)
       expect(described_class.available).not_to include(stale)
