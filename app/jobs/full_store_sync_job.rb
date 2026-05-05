@@ -7,15 +7,20 @@ class FullStoreSyncJob < ApplicationJob
 
     store.update!(sync_status: "syncing")
 
-    count_desc = service.full_sync(max_pages: max_pages, sort_order: "desc", manage_status: false)
-    count_asc  = service.full_sync(max_pages: max_pages, sort_order: "asc", manage_status: false)
+    result = service.sync(max_pages: max_pages, manage_status: false)
 
-    store.update!(sync_status: "idle", last_synced_at: Time.current, total_listings: store.listings.count)
-    Rails.logger.info("FullStoreSync: imported #{count_desc + count_asc} listings for #{store.discogs_username}")
+    store.update!(
+      sync_status: "idle",
+      last_synced_at: Time.current,
+      total_listings: store.listings.count,
+      catalog_coverage: result.catalog_coverage,
+      inventory_page_count: result.inventory_page_count
+    )
+    Rails.logger.info("FullStoreSync: synced #{store.listings.count} listings for #{store.discogs_username}")
 
-    EnrichReleasesJob.perform_later(store_id)
+    EnrichReleasesJob.perform_later(store_id, listing_ids: result.listing_ids_for_enrichment) if result.listing_ids_for_enrichment.any?
     DailyCurationJob.perform_later(store_id)
-  rescue StandardError => e
+  rescue StandardError
     store.update!(sync_status: "failed")
     raise
   end

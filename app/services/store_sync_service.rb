@@ -1,9 +1,10 @@
 class StoreSyncService
-  VINYL_FORMATS = Listing::VINYL_FORMATS
+  Result = Data.define(:listing_ids_for_enrichment, :catalog_coverage, :inventory_page_count)
 
   def initialize(store)
     @store = store
     @client = DiscogsClient.new
+    @normalizer = StoreSync::ListingNormalizer.new
   end
 
   # Full sync: crawls all pages. Pass max_pages: 1 for a quick 100-record dev sync.
@@ -48,11 +49,48 @@ class StoreSyncService
     raise
   end
 
+  def sync(max_pages: nil, manage_status: true)
+    @store.update!(sync_status: "syncing") if manage_status
+
+    desc_result = fetch_public_listings(sort_order: "desc", max_pages:)
+    asc_result = fetch_public_listings(sort_order: "asc", max_pages:)
+    observed_page_count = [ desc_result[:page_count], asc_result[:page_count] ].max
+    catalog_coverage = StoreSync::CoverageClassifier.new(
+      observed_page_count:,
+      max_pages:
+    ).call
+
+    reconciliation = StoreSync::ListingReconciler.new(
+      store: @store,
+      fetched_listings: desc_result[:listings] + asc_result[:listings],
+      normalizer: @normalizer
+    ).call
+
+    if manage_status
+      @store.update!(
+        sync_status: "idle",
+        last_synced_at: Time.current,
+        total_listings: @store.listings.count,
+        catalog_coverage:,
+        inventory_page_count: observed_page_count
+      )
+    end
+
+    Result.new(
+      listing_ids_for_enrichment: reconciliation.listing_ids_for_enrichment,
+      catalog_coverage:,
+      inventory_page_count: observed_page_count
+    )
+  rescue StandardError
+    @store.update!(sync_status: "failed") if manage_status
+    raise
+  end
+
 
   private
 
   def import_listings(raw_listings)
-    records = raw_listings.select { |l| vinyl?(l) }.filter_map { |raw| build_listing_record(raw) }
+    records = raw_listings.filter_map { |raw| @normalizer.call(raw, store_id: @store.id) }
     return if records.empty?
 
     @store.listings.upsert_all(
@@ -65,57 +103,30 @@ class StoreSyncService
     raise
   end
 
-  def build_listing_record(raw)
-    release    = raw["release"] || {}
-    basic_info = release["basic_information"] || release
+  def fetch_public_listings(sort_order:, max_pages:)
+    page = 1
+    page_count = 0
+    fetched_listings = []
 
-    {
-      discogs_listing_id: raw["id"].to_s,
-      discogs_release_id: release["id"].to_s,
-      artist:             basic_info["artist"],
-      title:              basic_info["title"],
-      label:              extract_label(basic_info),
-      year:               release["year"],
-      format:             release["format"].presence || "Vinyl",
-      genres:             Array(basic_info["genres"]),
-      styles:             Array(basic_info["styles"]),
-      condition:          raw["condition"],
-      price:              raw.dig("price", "value"),
-      currency:           raw.dig("price", "currency") || "USD",
-      thumbnail_url:      release["thumbnail"],
-      cover_image_url:    release["cover_image"] || release["thumbnail"],
-      notes:              raw["comments"],
-      listed_at:          parse_time(raw["posted"]),
-      last_seen_at:       Time.current,
-      store_id:           @store.id
-    }
-  rescue StandardError => e
-    Rails.logger.error("[StoreSyncService] Error building record for listing #{raw['id']}: #{e.message}")
-    nil
-  end
+    loop do
+      data = @client.seller_inventory(@store.discogs_username, page:, sort_order:)
+      listings = data["listings"] || []
+      pagination = data["pagination"] || {}
+      page_count = [ page_count, pagination.fetch("pages", page).to_i, page ].max
 
-  NON_VINYL = %w[CD Cassette DVD VHS].freeze
+      fetched_listings.concat(listings)
+      break if listings.empty?
+      break if page >= page_count
+      break if max_pages && page >= max_pages
 
-  def vinyl?(raw)
-    format_str = raw.dig("release", "format").to_s
-    return false if NON_VINYL.any? { |f| format_str.include?(f) }
-
-    formats = raw.dig("release", "formats") || []
-    return true if formats.empty? # assume vinyl if format string also unknown
-
-    formats.any? do |f|
-      VINYL_FORMATS.any? { |vf| f["name"].to_s.include?(vf) }
+      page += 1
+      sleep(0.5)
+    rescue DiscogsClient::ApiError => e
+      raise unless e.message.include?("Pagination above 100")
+      Rails.logger.info "[StoreSyncService] Hit Discogs 100-page limit for #{@store.discogs_username}, stopping at page #{page}"
+      break
     end
-  end
 
-  def extract_label(release_info)
-    labels = release_info["labels"] || []
-    labels.first&.dig("name")
-  end
-
-  def parse_time(str)
-    Time.parse(str) if str
-  rescue ArgumentError
-    nil
+    { listings: fetched_listings, page_count: page_count }
   end
 end

@@ -36,6 +36,15 @@ RSpec.describe Listing, type: :model do
       expect(described_class.available).to include(recent)
       expect(described_class.available).not_to include(old)
     end
+
+    it "uses the rolling mirror window for partial stores" do
+      partial_store = create(:store, catalog_coverage: "partial", last_synced_at: 2.hours.ago)
+      recent = create(:listing, store: partial_store, last_seen_at: 2.days.ago)
+      old = create(:listing, store: partial_store, last_seen_at: 5.days.ago)
+
+      expect(described_class.available).to include(recent)
+      expect(described_class.available).not_to include(old)
+    end
   end
 
   describe ".lp_only" do

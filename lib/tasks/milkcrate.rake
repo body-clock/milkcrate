@@ -10,11 +10,9 @@ namespace :milkcrate do
     store = default_store
     service = StoreSyncService.new(store)
     puts "Syncing #{store.name} (@#{store.discogs_username}) — two passes..."
-    count_desc = service.full_sync(sort_order: "desc", manage_status: false)
-    count_asc  = service.full_sync(sort_order: "asc",  manage_status: false)
-    store.update!(sync_status: "idle", last_synced_at: Time.current, total_listings: store.listings.count)
-    puts "Synced #{count_desc + count_asc} listings."
-    EnrichReleasesJob.perform_later(store.id)
+    result = service.sync
+    puts "Synced #{store.listings.count} listings (coverage: #{result.catalog_coverage})."
+    EnrichReleasesJob.perform_later(store.id, listing_ids: result.listing_ids_for_enrichment) if result.listing_ids_for_enrichment.any?
     DailyCurationJob.perform_later(store.id)
     puts "Enrichment and curation queued (background)."
   end
@@ -24,15 +22,15 @@ namespace :milkcrate do
     store = default_store
     service = StoreSyncService.new(store)
     puts "Quick-syncing #{store.name} (1 page per pass)..."
-    synced_before = Time.current
-    service.full_sync(max_pages: 1, sort_order: "desc", manage_status: false)
-    service.full_sync(max_pages: 1, sort_order: "asc",  manage_status: false)
-    store.update!(sync_status: "idle", last_synced_at: Time.current, total_listings: store.listings.count)
-    synced_ids = store.listings.where("last_seen_at >= ?", synced_before).pluck(:id)
-    puts "Synced #{synced_ids.size} listings."
-    puts "Enriching #{synced_ids.size} releases (synchronous)..."
-    EnrichReleasesJob.perform_now(store.id, listing_ids: synced_ids)
-    puts "Enrichment complete."
+    result = service.sync(max_pages: 1)
+    puts "Synced #{store.listings.count} listings (coverage: #{result.catalog_coverage})."
+    if result.listing_ids_for_enrichment.any?
+      puts "Enriching #{result.listing_ids_for_enrichment.size} releases (synchronous)..."
+      EnrichReleasesJob.perform_now(store.id, listing_ids: result.listing_ids_for_enrichment)
+      puts "Enrichment complete."
+    else
+      puts "No releases required enrichment."
+    end
     DailyCurationJob.perform_now(store.id)
     puts "Curation complete."
   end
@@ -61,13 +59,15 @@ namespace :milkcrate do
     store = default_store
     service = StoreSyncService.new(store)
     puts "Syncing #{store.name} (@#{store.discogs_username}) — two passes..."
-    count_desc = service.full_sync(sort_order: "desc", manage_status: false)
-    count_asc  = service.full_sync(sort_order: "asc",  manage_status: false)
-    store.update!(sync_status: "idle", last_synced_at: Time.current, total_listings: store.listings.count)
-    puts "Synced #{count_desc + count_asc} listings."
-    puts "Enriching all releases (synchronous — this will take a while)..."
-    EnrichReleasesJob.perform_now(store.id)
-    puts "Discogs enrichment complete."
+    result = service.sync
+    puts "Synced #{store.listings.count} listings (coverage: #{result.catalog_coverage})."
+    if result.listing_ids_for_enrichment.any?
+      puts "Enriching #{result.listing_ids_for_enrichment.size} releases (synchronous)..."
+      EnrichReleasesJob.perform_now(store.id, listing_ids: result.listing_ids_for_enrichment)
+      puts "Discogs enrichment complete."
+    else
+      puts "No releases required Discogs enrichment."
+    end
     EnrichMusicBrainzImagesJob.perform_now(store.id)
     puts "MusicBrainz enrichment complete."
     DailyCurationJob.perform_now(store.id)
