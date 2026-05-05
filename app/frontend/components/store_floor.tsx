@@ -172,14 +172,12 @@ export default function StoreFloor({ crates, onSelectCrate }: Props) {
               <div className="col-span-2">
                 {renderDesktopBentoCard(sortedDesktopGenreCrates[0])}
               </div>
-              <div className="flex flex-col gap-4">
-                {sortedDesktopGenreCrates.slice(1, 3).map(renderDesktopBentoCard)}
-              </div>
+              {sortedDesktopGenreCrates[1] && renderDesktopBentoCard(sortedDesktopGenreCrates[1])}
             </div>
           )}
-          {sortedDesktopGenreCrates.slice(3).length > 0 && (
+          {sortedDesktopGenreCrates.slice(2).length > 0 && (
             <div className="grid grid-cols-3 gap-4">
-              {sortedDesktopGenreCrates.slice(3).map(renderDesktopBentoCard)}
+              {sortedDesktopGenreCrates.slice(2).map(renderDesktopBentoCard)}
             </div>
           )}
         </div>
