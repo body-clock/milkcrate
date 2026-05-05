@@ -60,6 +60,21 @@ RSpec.describe EnrichMusicBrainzImagesJob do
     expect(mb_client).not_to have_received(:search_release)
   end
 
+  it "logs a warning and continues when MusicBrainzClient raises ApiError" do
+    listing1 = create_imageless_listing(release_id: "111")
+    listing2 = create_imageless_listing(release_id: "222")
+
+    allow(mb_client).to receive(:search_release).with(artist: listing1.artist, title: listing1.title)
+                                                .and_raise(MusicBrainzClient::ApiError, "timeout")
+    allow(mb_client).to receive(:search_release).with(artist: listing2.artist, title: listing2.title)
+                                                .and_return("mbid-222")
+    allow(mb_client).to receive(:front_cover_url).with("mbid-222").and_return("https://archive.org/222.jpg")
+
+    described_class.new.perform(store.id)
+
+    expect(listing2.reload.cover_image_url).to eq("https://archive.org/222.jpg")
+  end
+
   it "skips releases where discogs_image_missing is false" do
     listing = create(:listing, store:, discogs_release_id: "222",
                      cover_image_url: "https://full.jpg", thumbnail_url: "https://thumb.jpg")
