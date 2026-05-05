@@ -9,7 +9,6 @@ interface Props {
 
 export default function CrateCard({ crate, variant, onSelectCrate }: Props) {
   const isFeatured = variant === "featured"
-  const thumbCount = 4
   const nameClass = isFeatured ? "text-base font-semibold" : "text-sm font-semibold"
 
   const cardClasses = `group flex flex-col w-full rounded-lg bg-mc-bg-card border border-mc-border overflow-hidden hover:border-mc-accent transition-colors cursor-pointer text-left`
@@ -49,7 +48,7 @@ export default function CrateCard({ crate, variant, onSelectCrate }: Props) {
       </div>
 
       <div className="grid grid-cols-2 gap-1.5 px-3 pb-3 pt-1.5">
-        {crate.records.slice(0, thumbCount).map((record, i) => {
+        {crate.records.slice(0, 4).map((record, i) => {
           const src = record.cover_image_url ?? record.thumbnail_url
           return (
             <motion.button

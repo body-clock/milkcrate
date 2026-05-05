@@ -93,6 +93,8 @@ export default function StoreFloor({ sections, onSelectCrate }: Props) {
         if (section.key === "genre_grid") {
           return <GenreGrid key="genres" crates={section.crates} onSelectCrate={onSelectCrate} />
         }
+
+        return null
       })}
     </div>
   )
