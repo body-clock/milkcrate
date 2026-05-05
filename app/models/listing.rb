@@ -14,8 +14,13 @@ class Listing < ApplicationRecord
   scope :new_arrivals, -> { recent.limit(50) }
   scope :daily_shuffle, -> { order(Arel.sql("MD5(discogs_listing_id || '#{Date.current}'::text)")) }
 
-  # Listings absent from the last sync are assumed sold
-  scope :available, -> { where("last_seen_at > ?", 3.days.ago) }
+  # Listings seen in the latest sync snapshot are considered available.
+  # We allow a small buffer to avoid false negatives from long-running sync jobs.
+  scope :available, -> {
+    joins(:store)
+      .where.not(last_seen_at: nil)
+      .where("stores.last_synced_at IS NULL OR listings.last_seen_at >= stores.last_synced_at - interval '6 hours'")
+  }
 
   def primary_genre
     genres.first

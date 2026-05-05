@@ -20,6 +20,34 @@ RSpec.describe Listing, type: :model do
     end
   end
 
+  describe ".available" do
+    it "includes listings seen in the latest store sync snapshot" do
+      store.update!(last_synced_at: Time.current)
+      fresh = create(:listing, store:, last_seen_at: 1.hour.ago)
+      stale = create(:listing, store:, last_seen_at: 2.days.ago)
+
+      expect(described_class.available).to include(fresh)
+      expect(described_class.available).not_to include(stale)
+    end
+
+    it "keeps listings from long sync runs via a small last_seen_at buffer" do
+      synced_at = Time.current
+      store.update!(last_synced_at: synced_at)
+      buffered = create(:listing, store:, last_seen_at: synced_at - 4.hours)
+
+      expect(described_class.available).to include(buffered)
+    end
+
+    it "falls back to any seen listing when store has never synced" do
+      store.update!(last_synced_at: nil)
+      seen = create(:listing, store:, last_seen_at: 10.days.ago)
+      unseen = create(:listing, store:, last_seen_at: nil)
+
+      expect(described_class.available).to include(seen)
+      expect(described_class.available).not_to include(unseen)
+    end
+  end
+
   def arel_nodes(node)
     children = node
       .instance_variables
