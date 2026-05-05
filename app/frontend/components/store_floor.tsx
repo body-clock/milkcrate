@@ -35,8 +35,8 @@ export default function StoreFloor({ sections, onSelectCrate }: Props) {
                 </button>
 
                 {isDesktop ? (
-                  <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-1 px-3 pt-3 pb-4">
-                    {picks.records.slice(0, 16).map((record, i) => {
+                  <div className="grid grid-cols-6 gap-1 px-3 pt-3 pb-4">
+                    {picks.records.slice(0, 12).map((record, i) => {
                       const tilt = i % 2 === 0 ? 1.5 : -1.5
                       return (
                         <motion.div

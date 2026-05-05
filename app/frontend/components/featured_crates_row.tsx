@@ -14,11 +14,10 @@ export default function FeaturedCratesRow({ crates, onSelectCrate }: Props) {
 
   return (
     <div
-      className={isDesktop ? "mb-6 grid grid-cols-2 gap-4" : "mb-4 -mx-4 px-4 flex gap-3 overflow-x-auto"}
-      style={!isDesktop ? { scrollbarWidth: "none" } : undefined}
+      className={isDesktop ? "mb-6 grid grid-cols-2 gap-4" : "mb-6 flex flex-col gap-4"}
     >
       {crates.map((crate) => (
-        <div key={crate.slug} className={!isDesktop ? "flex-shrink-0 w-[70vw] sm:w-64" : ""}>
+        <div key={crate.slug} className="w-full">
           <CrateCard crate={crate} variant="featured" onSelectCrate={onSelectCrate} />
         </div>
       ))}
