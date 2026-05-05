@@ -21,43 +21,29 @@ export default function StoreFloor({ sections, onSelectCrate }: Props) {
           const picks = section.crate
           return (
             picks.records.length > 0 && (
-              <div key="picks" className={isDesktop ? "mb-6" : "-mx-4 mb-4 bg-mc-bg-raised border-y border-mc-border"}>
-                {isDesktop ? (
-                  <button
-                    type="button"
-                    onClick={() => onSelectCrate("picks")}
-                    className="w-full text-left cursor-pointer group"
-                    aria-label="Open Milkcrate Picks"
-                  >
-                    <div className="mc-section-header">
-                      <span className="mc-section-name text-base font-semibold">Milkcrate Picks</span>
-                      <span className="mc-section-count">{today}</span>
-                    </div>
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => onSelectCrate("picks")}
-                    className="w-full text-left cursor-pointer group px-4 pt-3 pb-2"
-                    aria-label="Open Milkcrate Picks"
-                  >
-                    <div className="flex items-baseline gap-3 pb-2 border-b border-mc-border">
-                      <span className="mc-section-name text-base font-semibold">Milkcrate Picks</span>
-                      <span className="mc-section-count">{today}</span>
-                    </div>
-                  </button>
-                )}
+              <div key="picks" className="-mx-4 mb-6 bg-mc-bg-raised border-y border-mc-border">
+                <button
+                  type="button"
+                  onClick={() => onSelectCrate("picks")}
+                  className="w-full text-left cursor-pointer group px-4 pt-3 pb-2"
+                  aria-label="Open Milkcrate Picks"
+                >
+                  <div className="flex items-baseline gap-3 pb-2 border-b border-mc-border">
+                    <span className="mc-section-name text-base font-semibold">Milkcrate Picks</span>
+                    <span className="mc-section-count">{today}</span>
+                  </div>
+                </button>
 
                 {isDesktop ? (
-                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mt-1 px-2 pt-2">
-                    {picks.records.slice(0, 12).map((record, i) => {
+                  <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-1 px-3 pt-3 pb-4">
+                    {picks.records.slice(0, 16).map((record, i) => {
                       const tilt = i % 2 === 0 ? 1.5 : -1.5
                       return (
                         <motion.div
                           key={record.id}
                           className="aspect-square"
                           style={{ zIndex: 1 }}
-                          whileHover={{ rotate: tilt, y: -2, scale: 1.03, zIndex: 10 }}
+                          whileHover={{ rotate: tilt, y: -3, scale: 1.05, zIndex: 10 }}
                           transition={{ type: "spring", stiffness: 300, damping: 22 }}
                         >
                           <RecordCard listing={record} imageLoading="lazy" />
