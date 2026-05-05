@@ -9,18 +9,9 @@ class DailyCurationJob < ApplicationJob
   private
 
   def curate(store)
-    selector = PicksSelector.new(store)
-    picks = selector.select_picks(count: 12)
-
-    # Genre bins: top 50 per genre, matching what CratePresenter displays
-    genres = store.listings.available.lp_only
-      .pluck(:genres)
-      .map(&:first)
-      .compact
-      .uniq
-
-    genre_listings = genres.flat_map { |genre| selector.rank_genre(genre).first(50) }
-
+    curation = StorefrontCuration.new(store)
+    picks = curation.picks
+    genre_listings = curation.genre_crates.values.flatten
     surfaced = (picks + genre_listings).map(&:id).uniq
 
     Listing.where(id: surfaced).update_all(

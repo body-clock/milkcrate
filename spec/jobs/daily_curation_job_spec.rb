@@ -14,27 +14,39 @@ RSpec.describe DailyCurationJob do
 
   describe "#perform" do
     context "with a specific store_id" do
-      it "updates last_surfaced_at for surfaced listings" do
-        listing = make_lp_listing
+      it "updates surfaced bookkeeping for listings from storefront curation" do
+        pick = make_lp_listing(genres: [ "Jazz" ])
+        genre_listing = make_lp_listing(genres: [ "Rock" ])
+        uncurated = make_lp_listing(genres: [ "Soul" ])
 
-        # Stub PicksSelector so we don't need scoring machinery
-        selector = instance_double(PicksSelector)
-        allow(PicksSelector).to receive(:new).with(store).and_return(selector)
-        allow(selector).to receive(:select_picks).and_return([ listing ])
-        allow(selector).to receive(:rank_genre).and_return([])
+        curation = instance_double(
+          StorefrontCuration,
+          picks: [ pick ],
+          genre_crates: { "Rock" => [ genre_listing ] }
+        )
+        allow(StorefrontCuration).to receive(:new).with(store).and_return(curation)
 
-        expect {
-          described_class.new.perform(store.id)
-        }.to change { listing.reload.last_surfaced_at }.from(nil)
+        described_class.new.perform(store.id)
+
+        aggregate_failures do
+          expect(pick.reload.last_surfaced_at).to be_present
+          expect(pick.surface_count).to eq(1)
+          expect(genre_listing.reload.last_surfaced_at).to be_present
+          expect(genre_listing.surface_count).to eq(1)
+          expect(uncurated.reload.last_surfaced_at).to be_nil
+          expect(uncurated.surface_count).to eq(0)
+        end
       end
 
-      it "increments surface_count for surfaced listings" do
-        listing = make_lp_listing
+      it "increments a duplicated curated listing once per run" do
+        listing = make_lp_listing(genres: [ "Jazz" ])
 
-        selector = instance_double(PicksSelector)
-        allow(PicksSelector).to receive(:new).with(store).and_return(selector)
-        allow(selector).to receive(:select_picks).and_return([ listing ])
-        allow(selector).to receive(:rank_genre).and_return([])
+        curation = instance_double(
+          StorefrontCuration,
+          picks: [ listing ],
+          genre_crates: { "Jazz" => [ listing ] }
+        )
+        allow(StorefrontCuration).to receive(:new).with(store).and_return(curation)
 
         expect {
           described_class.new.perform(store.id)
@@ -43,17 +55,24 @@ RSpec.describe DailyCurationJob do
     end
 
     context "without a store_id" do
-      it "processes all stores" do
-        # Force store to exist before store2 so Store.all order is deterministic
-        store
+      it "updates surfaced bookkeeping for curated listings across all stores" do
+        store1_listing = make_lp_listing
         store2 = create(:store)
-        selector = instance_double(PicksSelector, select_picks: [], rank_genre: [])
-        allow(PicksSelector).to receive(:new).and_return(selector)
+        store2_listing = create(:listing, store: store2, format: "LP", genres: [ "Soul" ], last_seen_at: Time.current)
+
+        store1_curation = instance_double(StorefrontCuration, picks: [ store1_listing ], genre_crates: {})
+        store2_curation = instance_double(StorefrontCuration, picks: [], genre_crates: { "Soul" => [ store2_listing ] })
+        allow(StorefrontCuration).to receive(:new).with(store).and_return(store1_curation)
+        allow(StorefrontCuration).to receive(:new).with(store2).and_return(store2_curation)
 
         described_class.new.perform
 
-        expect(PicksSelector).to have_received(:new).with(store)
-        expect(PicksSelector).to have_received(:new).with(store2)
+        aggregate_failures do
+          expect(store1_listing.reload.surface_count).to eq(1)
+          expect(store1_listing.last_surfaced_at).to be_present
+          expect(store2_listing.reload.surface_count).to eq(1)
+          expect(store2_listing.last_surfaced_at).to be_present
+        end
       end
     end
   end
