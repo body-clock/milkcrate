@@ -4,13 +4,14 @@ class FullStoreSyncJob < ApplicationJob
   def perform(store_id, max_pages: nil)
     store = Store.find(store_id)
     service = StoreSyncService.new(store)
+    sync_started_at = Time.current
 
     store.update!(sync_status: "syncing")
 
     result = service.sync(max_pages: max_pages, manage_status: false)
 
     store.mark_sync_succeeded!(
-      last_synced_at: Time.current,
+      last_synced_at: sync_started_at,
       total_listings: store.listings.count,
       catalog_coverage: result.catalog_coverage,
       inventory_page_count: result.inventory_page_count

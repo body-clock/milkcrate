@@ -11,6 +11,7 @@ class StoreSyncService
   # Pass manage_status: false to skip all sync_status/last_synced_at/total_listings updates
   # (useful when the caller manages status externally, e.g. FullStoreSyncJob).
   def full_sync(max_pages: nil, sort_order: "desc", manage_status: true)
+    sync_started_at = Time.current
     @store.update!(sync_status: "syncing") if manage_status
     page = 1
     total_imported = 0
@@ -38,7 +39,7 @@ class StoreSyncService
     if manage_status
       @store.update!(
         sync_status: "idle",
-        last_synced_at: Time.current,
+        last_synced_at: sync_started_at,
         total_listings: @store.listings.count
       )
     end
@@ -50,6 +51,7 @@ class StoreSyncService
   end
 
   def sync(max_pages: nil, manage_status: true)
+    sync_started_at = Time.current
     @store.update!(sync_status: "syncing") if manage_status
 
     desc_result = fetch_public_listings(sort_order: "desc", max_pages:)
@@ -69,7 +71,7 @@ class StoreSyncService
     if manage_status
       @store.update!(
         sync_status: "idle",
-        last_synced_at: Time.current,
+        last_synced_at: sync_started_at,
         total_listings: @store.listings.count,
         catalog_coverage:,
         inventory_page_count: observed_page_count
