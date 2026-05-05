@@ -25,6 +25,7 @@ class StoresController < ApplicationController
     render inertia: "stores/featured", props: {
       store: presenter.store_props,
       crates: presenter.build_crates(curated_crates),
+      storefront_sections: presenter.build_storefront_sections(curation.storefront_sections),
       active_crate_slug: "picks"
     }
   end

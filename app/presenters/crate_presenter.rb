@@ -20,6 +20,22 @@ class CratePresenter
     end
   end
 
+  def build_storefront_sections(sections)
+    sections.map do |section|
+      if section[:crate]
+        {
+          key: section[:key],
+          crate: crate_props(section[:crate].slug, section[:crate].name, section[:crate].listings)
+        }
+      else
+        {
+          key: section[:key],
+          crates: build_crates(section[:crates])
+        }
+      end
+    end
+  end
+
   private
 
   def crate_props(slug, name, listings)

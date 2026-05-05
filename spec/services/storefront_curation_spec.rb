@@ -1,21 +1,9 @@
 require "rails_helper"
+require_relative "../support/storefront_curation_helpers"
 
 RSpec.describe StorefrontCuration do
+  include StorefrontCurationHelpers
   include ActiveSupport::Testing::TimeHelpers
-
-  def lp_listing(store, overrides = {})
-    create(:listing, store:, format: "LP", last_seen_at: Time.current, **overrides)
-  end
-
-  def curation_with_selector(store, picks:, rank_genre_map:)
-    selector = instance_double(PicksSelector)
-    allow(selector).to receive(:select_picks).with(count: 12).and_return(picks)
-    allow(selector).to receive(:rank_genre) do |genre|
-      rank_genre_map.fetch(genre, [])
-    end
-    allow(PicksSelector).to receive(:new).with(store).and_return(selector)
-    described_class.new(store)
-  end
 
   describe "#crates" do
     it "returns an array of curated crates" do
@@ -94,6 +82,112 @@ RSpec.describe StorefrontCuration do
       jazz_crate = curation.crates.find { |crate| crate.name == "Jazz" }
       expect(jazz_crate).to be_present
       expect(jazz_crate.listings).to eq([ jazz2 ])
+    end
+  end
+
+  describe "#storefront_sections" do
+    it "returns explicit sections in storefront order" do
+      travel_to(Time.zone.parse("2026-05-05 12:00:00")) do
+        store = create(:store)
+        picks = lp_listings(store, count: 1, genres: [ "Jazz" ], styles: [ "Bop" ], listed_at: 10.days.ago)
+        fresh = lp_listings(store, count: 4, genres: [ "Soul" ], styles: [ "Deep Funk" ], listed_at: 1.day.ago)
+        themed = lp_listings(store, count: 4, genres: [ "Funk / Soul" ], styles: [ "Boogie" ], listed_at: 5.days.ago)
+        genre_only = lp_listings(store, count: 1, genres: [ "Rock" ], styles: [ "Indie Rock" ], listed_at: 9.days.ago)
+
+        curation = curation_with_selector(
+          store,
+          picks: picks,
+          rank_genre_map: {
+            "Jazz" => picks,
+            "Soul" => fresh,
+            "Funk / Soul" => themed,
+            "Rock" => genre_only
+          }
+        )
+
+        sections = curation.storefront_sections
+
+        expect(sections.map { |section| section[:key] }).to eq(%w[picks_wall featured_crates genre_grid])
+        expect(section_crate(sections[0]).slug).to eq("picks")
+        expect(section_crates(sections[1]).map(&:slug)).to eq(%w[new-arrivals thematic])
+        expect(section_crates(sections[1]).first.listings).to eq(fresh)
+        expect(section_crates(sections[2]).map(&:slug)).to eq([ "rock" ])
+        expect(section_crates(sections[2]).first.listings).to eq(genre_only)
+      end
+    end
+
+    it "dedupes top down across picks featured and genre sections" do
+      travel_to(Time.zone.parse("2026-05-05 12:00:00")) do
+        store = create(:store)
+        pick = lp_listings(store, count: 1, genres: [ "Jazz" ], styles: [ "Bop" ], listed_at: 10.days.ago)
+        fresh = lp_listings(store, count: 4, genres: [ "Soul" ], styles: [ "Deep Funk" ], listed_at: 1.day.ago)
+        themed = lp_listings(store, count: 4, genres: [ "Funk / Soul" ], styles: [ "Boogie" ], listed_at: 5.days.ago)
+        genre = lp_listings(store, count: 1, genres: [ "Rock" ], styles: [ "Indie Rock" ], listed_at: 9.days.ago)
+
+        curation = curation_with_selector(
+          store,
+          picks: pick,
+          rank_genre_map: {
+            "Jazz" => pick,
+            "Soul" => fresh + pick,
+            "Funk / Soul" => themed + fresh,
+            "Rock" => genre + themed
+          }
+        )
+
+        sections = curation.storefront_sections
+        featured_records = section_crates(sections[1]).flat_map(&:listings)
+        genre_records = section_crates(sections[2]).flat_map(&:listings)
+
+        expect(featured_records).not_to include(pick)
+        expect(genre_records).not_to include(pick, fresh, themed)
+        expect(genre_records).to eq(genre)
+      end
+    end
+
+    it "omits featured row when a featured crate underfills" do
+      travel_to(Time.zone.parse("2026-05-05 12:00:00")) do
+        store = create(:store)
+        pick = lp_listings(store, count: 1, genres: [ "Jazz" ], styles: [ "Bop" ])
+        fresh = lp_listings(store, count: 1, genres: [ "Soul" ], styles: [ "Deep Funk" ], listed_at: 1.day.ago)
+        themed = lp_listings(store, count: 1, genres: [ "Funk / Soul" ], styles: [ "Boogie" ], listed_at: 2.days.ago)
+        genre = lp_listings(store, count: 1, genres: [ "Rock" ], styles: [ "Indie Rock" ])
+
+        curation = curation_with_selector(
+          store,
+          picks: pick,
+          rank_genre_map: {
+            "Jazz" => pick,
+            "Soul" => fresh,
+            "Funk / Soul" => themed,
+            "Rock" => genre
+          }
+        )
+
+        sections = curation.storefront_sections
+
+        expect(sections.map { |section| section[:key] }).to eq(%w[picks_wall genre_grid])
+        expect(section_crates(sections.last).flat_map(&:listings)).to include(fresh.first, themed.first, genre.first)
+      end
+    end
+
+    it "picks same thematic crate for same store and day" do
+      travel_to(Time.zone.parse("2026-05-05 12:00:00")) do
+        store = create(:store)
+        pick = lp_listings(store, count: 1, genres: [ "Jazz" ], styles: [ "Bop" ], listed_at: 10.days.ago)
+        lp_listings(store, count: 4, genres: [ "Soul" ], styles: [ "Deep Funk" ], listed_at: 1.day.ago)
+        lp_listings(store, count: 4, genres: [ "Funk / Soul" ], styles: [ "Boogie" ], listed_at: 5.days.ago)
+        lp_listings(store, count: 4, genres: [ "Electronic" ], styles: [ "House" ], listed_at: 6.days.ago)
+
+        curation_a = curation_with_selector(store, picks: pick, rank_genre_map: {})
+        curation_b = curation_with_selector(store, picks: pick, rank_genre_map: {})
+
+        thematic_a = section_crates(curation_a.storefront_sections.find { |section| section[:key] == "featured_crates" }).last
+        thematic_b = section_crates(curation_b.storefront_sections.find { |section| section[:key] == "featured_crates" }).last
+
+        expect(thematic_a.name).to eq(thematic_b.name)
+        expect(thematic_a.listings.map(&:id)).to eq(thematic_b.listings.map(&:id))
+      end
     end
   end
 
