@@ -168,7 +168,7 @@ export default function StoreFloor({ crates, onSelectCrate }: Props) {
       {isDesktop ? (
         <div className="flex flex-col gap-4" data-testid="genre-bento">
           {sortedDesktopGenreCrates.length > 0 && (
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-4 items-start">
               <div className="col-span-2">
                 {renderDesktopBentoCard(sortedDesktopGenreCrates[0])}
               </div>
@@ -176,7 +176,7 @@ export default function StoreFloor({ crates, onSelectCrate }: Props) {
             </div>
           )}
           {sortedDesktopGenreCrates.slice(2).length > 0 && (
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-4 items-start">
               {sortedDesktopGenreCrates.slice(2).map(renderDesktopBentoCard)}
             </div>
           )}
