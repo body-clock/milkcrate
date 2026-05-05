@@ -76,4 +76,20 @@ describe("StoreFloor desktop bento", () => {
 
     expect(onSelectCrate).toHaveBeenCalledWith("rock", 1)
   })
+
+  it("shows an empty state when crates exist but have no visible records", () => {
+    const onSelectCrate = vi.fn()
+    const crates: Crate[] = [
+      { slug: "picks", name: "Milkcrate Picks", count: 0, records: [] },
+      { slug: "jazz", name: "Jazz", count: 0, records: [] },
+    ]
+
+    render(
+      <DigSessionProvider>
+        <StoreFloor crates={crates} onSelectCrate={onSelectCrate} />
+      </DigSessionProvider>
+    )
+
+    expect(screen.getByText("No records in crates yet.")).toBeInTheDocument()
+  })
 })

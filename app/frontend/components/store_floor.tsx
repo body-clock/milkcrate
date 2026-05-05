@@ -24,9 +24,12 @@ export default function StoreFloor({ crates, onSelectCrate }: Props) {
     unique.forEach((r) => seenIds.add(r.id))
     return { ...crate, records: unique }
   })
+  const visibleGenreCrates = dedupedGenreCrates.filter((crate) => crate.records.length > 0)
   const sortedDesktopGenreCrates = dedupedGenreCrates
     .slice()
     .sort((a, b) => b.count - a.count)
+    .filter((crate) => crate.records.length > 0)
+  const hasVisibleCrates = Boolean(picks && picks.records.length > 0) || visibleGenreCrates.length > 0
 
   const renderDesktopBentoCard = (dedupedCrate: Crate) => {
     const fullCrate = genreCrates.find((c) => c.slug === dedupedCrate.slug)!
@@ -79,6 +82,11 @@ export default function StoreFloor({ crates, onSelectCrate }: Props) {
 
   return (
     <div className="flex flex-col">
+      {!hasVisibleCrates && (
+        <div className="py-16 text-center mc-dim text-sm">
+          <p>No records in crates yet.</p>
+        </div>
+      )}
       {picks && picks.records.length > 0 && (
         <div className={isDesktop ? "mb-6" : "-mx-4 mb-4 bg-mc-bg-raised border-y border-mc-border"}>
           {isDesktop ? (
@@ -177,7 +185,7 @@ export default function StoreFloor({ crates, onSelectCrate }: Props) {
         </div>
       ) : (
         <div className="flex flex-col">
-          {dedupedGenreCrates.map((dedupedCrate) => {
+          {visibleGenreCrates.map((dedupedCrate) => {
             const fullCrate = genreCrates.find((c) => c.slug === dedupedCrate.slug)!
             return (
               <StoreSection
