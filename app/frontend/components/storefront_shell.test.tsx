@@ -273,7 +273,7 @@ describe("storefront shell (StoreFloor with sections)", () => {
     expect(onSelectCrate).toHaveBeenCalledWith("jazz")
   })
 
-  it("renders empty-state for genre grid when no crates", async () => {
+  it("does not render the genre grid when no crates exist", async () => {
     const onSelectCrate = vi.fn()
     const sections: StorefrontSection[] = [
       {
@@ -293,7 +293,7 @@ describe("storefront shell (StoreFloor with sections)", () => {
 
     render(<StoreFloor sections={sections} onSelectCrate={onSelectCrate} />)
 
-    expect(screen.getByText("No genre crates available yet.")).toBeInTheDocument()
+    expect(screen.queryByText("No genre crates available yet.")).not.toBeInTheDocument()
   })
 
   it("does not render featured row when featured_crates section absent", async () => {

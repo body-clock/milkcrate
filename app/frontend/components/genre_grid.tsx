@@ -8,11 +8,7 @@ interface Props {
 
 export default function GenreGrid({ crates, onSelectCrate }: Props) {
   if (crates.length === 0) {
-    return (
-      <div className="py-8 text-center mc-dim text-sm">
-        No genre crates available yet.
-      </div>
-    )
+    return null
   }
 
   return (

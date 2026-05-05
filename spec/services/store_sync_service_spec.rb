@@ -121,4 +121,36 @@ RSpec.describe StoreSyncService do
       expect(store.reload.sync_status).to eq("failed")
     end
   end
+
+  describe "#sync" do
+    it "classifies a store over the public page window as partial" do
+      allow(client).to receive(:seller_inventory).with("teststore", page: 1, sort_order: "desc").and_return(
+        api_page(listings: [ vinyl_listing(id: "1") ], pages: 101)
+      )
+      allow(client).to receive(:seller_inventory).with("teststore", page: 1, sort_order: "asc").and_return(
+        api_page(listings: [ vinyl_listing(id: "2") ], pages: 101)
+      )
+
+      described_class.new(store).sync(max_pages: 1)
+
+      expect(store.reload.catalog_coverage).to eq("partial")
+      expect(store.inventory_page_count).to eq(101)
+    end
+
+    it "returns only changed or new listing ids for enrichment" do
+      existing = create(:listing, store:, discogs_listing_id: "1", discogs_release_id: "r1", price: "12.50")
+
+      allow(client).to receive(:seller_inventory).with("teststore", page: 1, sort_order: "desc").and_return(
+        api_page(listings: [ vinyl_listing(id: "1"), vinyl_listing(id: "2") ], pages: 1)
+      )
+      allow(client).to receive(:seller_inventory).with("teststore", page: 1, sort_order: "asc").and_return(
+        api_page(listings: [ vinyl_listing(id: "2") ], pages: 1)
+      )
+
+      result = described_class.new(store).sync
+
+      expect(result.listing_ids_for_enrichment).to contain_exactly(store.listings.find_by!(discogs_listing_id: "2").id)
+      expect(result.listing_ids_for_enrichment).not_to include(existing.id)
+    end
+  end
 end

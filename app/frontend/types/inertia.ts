@@ -5,6 +5,7 @@ export interface Store {
   description: string | null
   total_listings: number | null
   sync_status: string
+  last_sync_error_at: string | null
 }
 
 export interface Listing {
