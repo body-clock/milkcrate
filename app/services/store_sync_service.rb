@@ -7,13 +7,13 @@ class StoreSyncService
   end
 
   # Full sync: crawls all pages. Pass max_pages: 1 for a quick 100-record dev sync.
-  def full_sync(max_pages: nil)
+  def full_sync(max_pages: nil, sort_order: "desc")
     @store.update!(sync_status: "syncing")
     page = 1
     total_imported = 0
 
     loop do
-      data = @client.seller_inventory(@store.discogs_username, page: page)
+      data = @client.seller_inventory(@store.discogs_username, page: page, sort_order: sort_order)
       listings = data["listings"] || []
       break if listings.empty?
 
