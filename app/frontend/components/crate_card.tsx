@@ -52,15 +52,17 @@ export default function CrateCard({ crate, variant, onSelectCrate }: Props) {
         {crate.records.slice(0, thumbCount).map((record, i) => {
           const src = record.cover_image_url ?? record.thumbnail_url
           return (
-            <motion.div
+            <motion.button
               key={record.id}
-              className="aspect-square rounded-sm bg-mc-bg-raised overflow-hidden border border-mc-border/50"
+              type="button"
+              className="aspect-square rounded-sm bg-mc-bg-raised overflow-hidden border border-mc-border/50 cursor-pointer"
               whileHover={{ scale: 1.05, zIndex: 10 }}
               transition={{ type: "spring", stiffness: 300, damping: 22 }}
               onClick={(e) => {
                 e.stopPropagation()
                 onSelectCrate(crate.slug, i)
               }}
+              aria-label={`Open ${crate.name} at ${record.title ?? "record"}`}
             >
               {src ? (
                 <img
@@ -73,7 +75,7 @@ export default function CrateCard({ crate, variant, onSelectCrate }: Props) {
               ) : (
                 <div className="w-full h-full flex items-center justify-center mc-dim text-lg">♪</div>
               )}
-            </motion.div>
+            </motion.button>
           )
         })}
       </div>
