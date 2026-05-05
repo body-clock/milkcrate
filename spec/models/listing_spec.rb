@@ -1,7 +1,42 @@
 require "rails_helper"
 
 RSpec.describe Listing, type: :model do
+  include ActiveSupport::Testing::TimeHelpers
+
   let(:store) { create(:store) }
+
+  describe ".available" do
+    around do |example|
+      travel_to(Time.zone.parse("2026-05-05 12:00:00")) { example.run }
+    end
+
+    it "keeps listings seen during latest store sync window" do
+      synced_store = create(:store, last_synced_at: 2.hours.ago)
+      fresh = create(:listing, store: synced_store, last_seen_at: 30.minutes.ago)
+      stale = create(:listing, store: synced_store, last_seen_at: 3.hours.ago)
+
+      expect(described_class.available).to include(fresh)
+      expect(described_class.available).not_to include(stale)
+    end
+
+    it "keeps listings seen shortly before sync cutoff to allow sync buffer" do
+      synced_store = create(:store, last_synced_at: 2.hours.ago)
+      buffered = create(:listing, store: synced_store, last_seen_at: 2.hours.ago - 10.minutes)
+      stale = create(:listing, store: synced_store, last_seen_at: 2.hours.ago - 40.minutes)
+
+      expect(described_class.available).to include(buffered)
+      expect(described_class.available).not_to include(stale)
+    end
+
+    it "falls back to recent-seen window for never-synced stores" do
+      never_synced_store = create(:store, last_synced_at: nil)
+      recent = create(:listing, store: never_synced_store, last_seen_at: 2.days.ago)
+      old = create(:listing, store: never_synced_store, last_seen_at: 5.days.ago)
+
+      expect(described_class.available).to include(recent)
+      expect(described_class.available).not_to include(old)
+    end
+  end
 
   describe ".lp_only" do
     it "includes LP and album formats while excluding non-vinyl media" do
