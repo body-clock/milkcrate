@@ -23,8 +23,8 @@ class DailySelectionService
   # Ensures long-tail catalog gets surfaced over time.
   UNSEEN_BOOST = 4
 
-  GOOD_CONDITIONS   = PicksSelector::GOOD_CONDITIONS
-  CONDITION_ALIASES = PicksSelector::CONDITION_ALIASES
+  GOOD_CONDITIONS   = RecordScorer::GOOD_CONDITIONS
+  CONDITION_ALIASES = RecordScorer::CONDITION_ALIASES
 
   # ─────────────────────────────────────────────────────────────────────────
 
@@ -86,9 +86,9 @@ class DailySelectionService
       # Desirability: want/have ratio signals market demand
       have = listing.have_count.to_i
       want = listing.want_count.to_i
-      if have >= PicksSelector::WANT_HAVE_MIN_HAVE
+      if have >= RecordScorer::WANT_HAVE_MIN_HAVE
         ratio = want.to_f / have
-        weight += DESIRABILITY_WEIGHT if ratio >= PicksSelector::WANT_HAVE_RATIO_HIGH
+        weight += DESIRABILITY_WEIGHT if ratio >= RecordScorer::WANT_HAVE_RATIO_HIGH
       end
 
       # Unseen boost — hasn't appeared in recent selections
