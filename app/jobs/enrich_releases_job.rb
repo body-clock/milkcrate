@@ -57,9 +57,9 @@ class EnrichReleasesJob < ApplicationJob
     now = Time.current
     Release.upsert(
       { discogs_release_id: discogs_release_id, want_count: want, have_count: have,
-        enriched_at: now, created_at: now, updated_at: now },
+        enriched_at: now, discogs_image_missing: cover_url.nil?, created_at: now, updated_at: now },
       unique_by: :discogs_release_id,
-      update_only: %i[want_count have_count enriched_at]
+      update_only: %i[want_count have_count enriched_at discogs_image_missing]
     )
 
     listing_updates = { want_count: want, have_count: have }

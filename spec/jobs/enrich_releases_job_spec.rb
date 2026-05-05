@@ -77,4 +77,23 @@ RSpec.describe EnrichReleasesJob do
     expect { described_class.new.perform(store.id) }.not_to raise_error
     expect(client).to have_received(:release).with("222")
   end
+
+  it "sets discogs_image_missing true when Discogs returns no images" do
+    create_listing(store:, release_id: "111")
+    described_class.new.perform(store.id)
+    expect(Release.find_by(discogs_release_id: "111").discogs_image_missing).to be true
+  end
+
+  it "sets discogs_image_missing false when Discogs returns an image" do
+    allow(client).to receive(:release).with("111").and_return(
+      [ {
+        "community" => { "want" => 1, "have" => 1 },
+        "genres" => [], "styles" => [], "formats" => [], "tracklist" => [],
+        "images" => [ { "type" => "primary", "uri" => "https://img.discogs.com/cover.jpg" } ]
+      }, 50 ]
+    )
+    create_listing(store:, release_id: "111")
+    described_class.new.perform(store.id)
+    expect(Release.find_by(discogs_release_id: "111").discogs_image_missing).to be false
+  end
 end
