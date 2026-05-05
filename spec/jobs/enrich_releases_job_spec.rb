@@ -96,4 +96,11 @@ RSpec.describe EnrichReleasesJob do
     described_class.new.perform(store.id)
     expect(Release.find_by(discogs_release_id: "111").discogs_image_missing).to be false
   end
+
+  it "enqueues EnrichMusicBrainzImagesJob after enrichment" do
+    create_listing(store:, release_id: "111")
+    expect {
+      described_class.new.perform(store.id)
+    }.to have_enqueued_job(EnrichMusicBrainzImagesJob).with(store.id)
+  end
 end

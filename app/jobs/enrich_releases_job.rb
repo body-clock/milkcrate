@@ -38,6 +38,8 @@ class EnrichReleasesJob < ApplicationJob
         Rails.logger.warn "[EnrichReleasesJob] API error for release #{release_id}: #{e.message}"
       end
     end
+
+    EnrichMusicBrainzImagesJob.perform_later(store_id)
   end
 
   private
