@@ -24,6 +24,58 @@ export default function StoreFloor({ crates, onSelectCrate }: Props) {
     unique.forEach((r) => seenIds.add(r.id))
     return { ...crate, records: unique }
   })
+  const sortedDesktopGenreCrates = dedupedGenreCrates
+    .slice()
+    .sort((a, b) => b.count - a.count)
+
+  const renderDesktopBentoCard = (dedupedCrate: Crate) => {
+    const fullCrate = genreCrates.find((c) => c.slug === dedupedCrate.slug)!
+    const records = dedupedCrate.records.slice(0, 4)
+    return (
+      <section key={dedupedCrate.slug} className="bg-mc-bg-raised border border-mc-border rounded-lg overflow-hidden">
+        <button
+          type="button"
+          onClick={() => onSelectCrate(dedupedCrate.slug)}
+          className="w-full text-left px-4 py-3 border-b border-mc-border hover:bg-mc-bg-card transition-colors"
+          aria-label={`Open ${dedupedCrate.name}`}
+        >
+          <div className="text-sm font-bold tracking-wide">{dedupedCrate.name}</div>
+          <div className="text-xs mc-dim mt-1">{dedupedCrate.count} records</div>
+        </button>
+        <div className="grid grid-cols-2 gap-2 p-4">
+          {records.map((record, i) => {
+            const src = record.cover_image_url ?? record.thumbnail_url
+            return (
+              <motion.button
+                key={record.id}
+                type="button"
+                className="aspect-square rounded bg-mc-bg-card overflow-hidden border border-mc-border cursor-pointer"
+                whileHover={{ scale: 1.03, zIndex: 10 }}
+                transition={{ type: "spring", stiffness: 300, damping: 22 }}
+                onClick={() => {
+                  const fullIndex = fullCrate.records.findIndex((r) => r.id === record.id)
+                  onSelectCrate(dedupedCrate.slug, fullIndex >= 0 ? fullIndex : i)
+                }}
+                aria-label={`Open ${dedupedCrate.name} at ${record.title ?? "record"}`}
+              >
+                {src ? (
+                  <img
+                    src={src}
+                    alt={record.title ?? ""}
+                    className="w-full h-full object-cover"
+                    draggable={false}
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center mc-dim text-2xl">♪</div>
+                )}
+              </motion.button>
+            )
+          })}
+        </div>
+      </section>
+    )
+  }
 
   return (
     <div className="flex flex-col">
@@ -105,25 +157,45 @@ export default function StoreFloor({ crates, onSelectCrate }: Props) {
         </div>
       )}
 
-      <div className="flex flex-col">
-        {dedupedGenreCrates.map((dedupedCrate) => {
-          const fullCrate = genreCrates.find((c) => c.slug === dedupedCrate.slug)!
-          return (
-            <StoreSection
-              key={dedupedCrate.slug}
-              crate={dedupedCrate}
-              onSelect={(slug, i) => {
-                const startIndex = i ?? 0
-                const record = dedupedCrate.records[startIndex]
-                if (!record) return
+      {isDesktop ? (
+        <div className="flex flex-col gap-4" data-testid="genre-bento">
+          {sortedDesktopGenreCrates.length > 0 && (
+            <div className="grid grid-cols-3 gap-4">
+              <div className="col-span-2">
+                {renderDesktopBentoCard(sortedDesktopGenreCrates[0])}
+              </div>
+              <div className="flex flex-col gap-4">
+                {sortedDesktopGenreCrates.slice(1, 3).map(renderDesktopBentoCard)}
+              </div>
+            </div>
+          )}
+          {sortedDesktopGenreCrates.slice(3).length > 0 && (
+            <div className="grid grid-cols-3 gap-4">
+              {sortedDesktopGenreCrates.slice(3).map(renderDesktopBentoCard)}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="flex flex-col">
+          {dedupedGenreCrates.map((dedupedCrate) => {
+            const fullCrate = genreCrates.find((c) => c.slug === dedupedCrate.slug)!
+            return (
+              <StoreSection
+                key={dedupedCrate.slug}
+                crate={dedupedCrate}
+                onSelect={(slug, i) => {
+                  const startIndex = i ?? 0
+                  const record = dedupedCrate.records[startIndex]
+                  if (!record) return
 
-                const fullIndex = fullCrate.records.findIndex((r) => r.id === record.id)
-                onSelectCrate(slug, fullIndex >= 0 ? fullIndex : startIndex)
-              }}
-            />
-          )
-        })}
-      </div>
+                  const fullIndex = fullCrate.records.findIndex((r) => r.id === record.id)
+                  onSelectCrate(slug, fullIndex >= 0 ? fullIndex : startIndex)
+                }}
+              />
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }
