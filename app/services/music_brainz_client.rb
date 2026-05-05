@@ -1,5 +1,5 @@
 class MusicBrainzClient
-  SEARCH_URL      = "https://musicbrainz.org/ws/2"
+  SEARCH_URL      = "https://musicbrainz.org/ws/2/"
   CAA_URL         = "https://coverartarchive.org"
   SCORE_THRESHOLD = 90
 
@@ -11,7 +11,7 @@ class MusicBrainzClient
   end
 
   def search_release(artist:, title:)
-    response = @search_conn.get("/release/") do |req|
+    response = @search_conn.get("release/") do |req|
       req.params["query"] = "artist:\"#{artist}\" AND release:\"#{title}\""
       req.params["fmt"]   = "json"
       req.params["limit"] = 5
