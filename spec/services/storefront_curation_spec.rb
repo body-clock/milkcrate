@@ -5,6 +5,16 @@ RSpec.describe StorefrontCuration do
     create(:listing, store:, format: "LP", last_seen_at: Time.current, **overrides)
   end
 
+  def curation_with_selector(store, picks:, rank_genre_map:)
+    selector = instance_double(PicksSelector)
+    allow(selector).to receive(:select_picks).with(count: 12).and_return(picks)
+    allow(selector).to receive(:rank_genre) do |genre|
+      rank_genre_map.fetch(genre, [])
+    end
+    allow(PicksSelector).to receive(:new).with(store).and_return(selector)
+    described_class.new(store)
+  end
+
   describe "#crates" do
     it "returns an array of curated crates" do
       store = create(:store)
@@ -36,10 +46,8 @@ RSpec.describe StorefrontCuration do
     it "adds genre crates after picks" do
       store = create(:store)
       listing = lp_listing(store, genres: [ "Jazz" ])
-      allow_any_instance_of(PicksSelector).to receive(:select_picks).and_return([])
-      allow_any_instance_of(PicksSelector).to receive(:rank_genre).and_return([ listing ])
 
-      curation = described_class.new(store)
+      curation = curation_with_selector(store, picks: [], rank_genre_map: { "Jazz" => [ listing ] })
       crates = curation.crates
       expect(crates.first.slug).to eq("picks")
       expect(crates.map(&:name)).to include("Jazz")
@@ -48,9 +56,8 @@ RSpec.describe StorefrontCuration do
     it "excludes records that appear in picks" do
       store = create(:store)
       listing = lp_listing(store, genres: [ "Jazz" ])
-      allow_any_instance_of(PicksSelector).to receive(:select_picks).and_return([ listing ])
 
-      curation = described_class.new(store)
+      curation = curation_with_selector(store, picks: [ listing ], rank_genre_map: { "Jazz" => [ listing ] })
       jazz_crate = curation.crates.find { |crate| crate.name == "Jazz" }
       expect(jazz_crate&.listings || []).not_to include(listing)
     end
@@ -58,10 +65,8 @@ RSpec.describe StorefrontCuration do
     it "skips genres with no records remaining after picks exclusion" do
       store = create(:store)
       listing = lp_listing(store, genres: [ "Jazz" ])
-      allow_any_instance_of(PicksSelector).to receive(:select_picks).and_return([ listing ])
-      allow_any_instance_of(PicksSelector).to receive(:rank_genre).and_return([ listing ])
 
-      curation = described_class.new(store)
+      curation = curation_with_selector(store, picks: [ listing ], rank_genre_map: { "Jazz" => [ listing ] })
       expect(curation.crates.map(&:name)).not_to include("Jazz")
     end
 
@@ -69,10 +74,8 @@ RSpec.describe StorefrontCuration do
       store = create(:store)
       jazz1 = lp_listing(store, genres: [ "Jazz" ])
       jazz2 = lp_listing(store, genres: [ "Jazz" ])
-      allow_any_instance_of(PicksSelector).to receive(:select_picks).and_return([ jazz1 ])
-      allow_any_instance_of(PicksSelector).to receive(:rank_genre).and_return([ jazz1, jazz2 ])
 
-      curation = described_class.new(store)
+      curation = curation_with_selector(store, picks: [ jazz1 ], rank_genre_map: { "Jazz" => [ jazz1, jazz2 ] })
       jazz_crate = curation.crates.find { |crate| crate.name == "Jazz" }
       expect(jazz_crate).to be_present
       expect(jazz_crate.listings).to eq([ jazz2 ])
@@ -84,10 +87,7 @@ RSpec.describe StorefrontCuration do
       store = create(:store)
       listing = lp_listing(store, genres: [ "Jazz" ])
 
-      allow_any_instance_of(PicksSelector).to receive(:select_picks).and_return([ listing ])
-      allow_any_instance_of(PicksSelector).to receive(:rank_genre).and_return([ listing ])
-
-      curation = described_class.new(store)
+      curation = curation_with_selector(store, picks: [ listing ], rank_genre_map: { "Jazz" => [ listing ] })
       expect(curation.surfaced_listings).to eq([ listing ])
     end
   end

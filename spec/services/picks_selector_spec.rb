@@ -3,7 +3,6 @@ require "digest"
 require "active_support/core_ext/date/calculations"
 require "active_support/core_ext/numeric/time"
 
-
 require_relative "../../app/services/picks_selector"
 
 RSpec.describe PicksSelector do
@@ -79,5 +78,4 @@ RSpec.describe PicksSelector do
       expect(jazz_count).to be <= 4
     end
   end
-
 end
