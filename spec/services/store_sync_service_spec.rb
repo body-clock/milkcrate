@@ -72,7 +72,7 @@ RSpec.describe StoreSyncService do
     end
 
     it "stops at max_pages" do
-      allow(client).to receive(:seller_inventory).with("teststore", page: 1).and_return(
+      allow(client).to receive(:seller_inventory).with("teststore", page: 1, sort_order: "desc").and_return(
         api_page(listings: [ vinyl_listing(id: "1") ], pages: 5)
       )
 
@@ -100,6 +100,25 @@ RSpec.describe StoreSyncService do
       }.not_to raise_error
 
       expect(store.reload.sync_status).to eq("idle")
+    end
+
+    it "passes sort_order to the inventory client" do
+      allow(client).to receive(:seller_inventory).and_return(api_page(listings: []))
+      StoreSyncService.new(store).full_sync(sort_order: "asc")
+      expect(client).to have_received(:seller_inventory).with("teststore", page: 1, sort_order: "asc")
+    end
+
+    it "defaults sort_order to desc" do
+      allow(client).to receive(:seller_inventory).and_return(api_page(listings: []))
+      StoreSyncService.new(store).full_sync
+      expect(client).to have_received(:seller_inventory).with("teststore", page: 1, sort_order: "desc")
+    end
+
+    it "does not update sync_status when manage_status: false" do
+      store.update!(sync_status: "failed")
+      allow(client).to receive(:seller_inventory).and_return(api_page(listings: []))
+      StoreSyncService.new(store).full_sync(manage_status: false)
+      expect(store.reload.sync_status).to eq("failed")
     end
   end
 end

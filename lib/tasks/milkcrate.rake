@@ -5,30 +5,47 @@ namespace :milkcrate do
     store
   end
 
-  desc "Full inventory sync from Discogs, then enrich and curate"
+  desc "Full inventory sync from Discogs (two passes), then enrich and curate"
   task sync: :environment do
     store = default_store
-    puts "Syncing #{store.name} (@#{store.discogs_username})..."
-    count = StoreSyncService.new(store).full_sync
-    puts "Synced #{count} listings."
+    service = StoreSyncService.new(store)
+    puts "Syncing #{store.name} (@#{store.discogs_username}) — two passes..."
+    count_desc = service.full_sync(sort_order: "desc", manage_status: false)
+    count_asc  = service.full_sync(sort_order: "asc",  manage_status: false)
+    store.update!(sync_status: "idle", last_synced_at: Time.current, total_listings: store.listings.count)
+    puts "Synced #{count_desc + count_asc} listings."
     EnrichReleasesJob.perform_later(store.id)
     DailyCurationJob.perform_later(store.id)
     puts "Enrichment and curation queued (background)."
   end
 
-  desc "Quick sync (1 page / ~100 records) — useful for dev"
+  desc "Quick sync (1 page each pass / ~200 records) — useful for dev"
   task "sync:quick": :environment do
     store = default_store
-    puts "Quick-syncing #{store.name} (1 page)..."
+    service = StoreSyncService.new(store)
+    puts "Quick-syncing #{store.name} (1 page per pass)..."
     synced_before = Time.current
-    count = StoreSyncService.new(store).full_sync(max_pages: 1)
-    puts "Synced #{count} listings."
+    service.full_sync(max_pages: 1, sort_order: "desc", manage_status: false)
+    service.full_sync(max_pages: 1, sort_order: "asc",  manage_status: false)
+    store.update!(sync_status: "idle", last_synced_at: Time.current, total_listings: store.listings.count)
     synced_ids = store.listings.where("last_seen_at >= ?", synced_before).pluck(:id)
+    puts "Synced #{synced_ids.size} listings."
     puts "Enriching #{synced_ids.size} releases (synchronous)..."
     EnrichReleasesJob.perform_now(store.id, listing_ids: synced_ids)
     puts "Enrichment complete."
     DailyCurationJob.perform_now(store.id)
     puts "Curation complete."
+  end
+
+  desc "Enrich releases: Discogs metadata + MusicBrainz images for imageless releases"
+  task enrich: :environment do
+    store = default_store
+    puts "Enriching Discogs metadata for #{store.name}..."
+    EnrichReleasesJob.perform_now(store.id)
+    puts "Discogs enrichment complete."
+    puts "Enriching images via MusicBrainz..."
+    EnrichMusicBrainzImagesJob.perform_now(store.id)
+    puts "MusicBrainz enrichment complete."
   end
 
   desc "Run daily curation (stamp last_surfaced_at, compute picks rotation)"
@@ -39,15 +56,20 @@ namespace :milkcrate do
     puts "Done."
   end
 
-  desc "Bootstrap a fresh install — full sync, then enrich + curate synchronously"
+  desc "Bootstrap a fresh install — two-pass sync, enrich, curate (all synchronous)"
   task setup: :environment do
     store = default_store
-    puts "Syncing #{store.name} (@#{store.discogs_username})..."
-    count = StoreSyncService.new(store).full_sync
-    puts "Synced #{count} listings."
+    service = StoreSyncService.new(store)
+    puts "Syncing #{store.name} (@#{store.discogs_username}) — two passes..."
+    count_desc = service.full_sync(sort_order: "desc", manage_status: false)
+    count_asc  = service.full_sync(sort_order: "asc",  manage_status: false)
+    store.update!(sync_status: "idle", last_synced_at: Time.current, total_listings: store.listings.count)
+    puts "Synced #{count_desc + count_asc} listings."
     puts "Enriching all releases (synchronous — this will take a while)..."
     EnrichReleasesJob.perform_now(store.id)
-    puts "Enrichment complete."
+    puts "Discogs enrichment complete."
+    EnrichMusicBrainzImagesJob.perform_now(store.id)
+    puts "MusicBrainz enrichment complete."
     DailyCurationJob.perform_now(store.id)
     puts "Setup complete."
   end
@@ -142,7 +164,7 @@ namespace :milkcrate do
     puts "Sync queued. Store will be live at: /#{store.discogs_username}"
   end
 
-  desc "Print curation stats for the current store"
+  desc "Print curation and enrichment stats for the current store"
   task stats: :environment do
     store = default_store
     total      = store.listings.count
@@ -153,9 +175,17 @@ namespace :milkcrate do
     fresh      = store.listings.where("last_surfaced_at > ?", 3.days.ago).count
     genres     = store.listings.available.lp_only.pluck(:genres).flatten.tally.sort_by { |_, c| -c }
 
+    enriched        = Release.where.not(enriched_at: nil).count
+    discogs_missing = Release.where(discogs_image_missing: true).count
+    mb_searched     = Release.where.not(musicbrainz_id: nil).count
+    mb_found        = Release.where("musicbrainz_id != ''").count
+    full_images     = store.listings.where("cover_image_url != thumbnail_url AND cover_image_url IS NOT NULL").count
+
     puts "Store:     #{store.name} (@#{store.discogs_username})"
     puts "Listings:  #{total} total · #{available} available · #{lp} LP/album"
     puts "Surfacing: #{surfaced} surfaced · #{never} never surfaced · #{fresh} surfaced in last 3 days"
+    puts "Images:    #{full_images}/#{total} full-res · #{discogs_missing} no Discogs image · #{mb_searched} MB searched · #{mb_found} MB matched"
+    puts "Enriched:  #{enriched}/#{Release.count} releases enriched"
     puts "Genres (LP, available):"
     genres.first(15).each { |g, c| puts "  #{g.ljust(20)} #{c}" }
     puts "  … (#{genres.size} genres total)" if genres.size > 15

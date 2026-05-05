@@ -9,14 +9,21 @@ RSpec.describe FullStoreSyncJob do
   end
 
   describe "#perform" do
-    it "calls StoreSyncService#full_sync" do
+    it "calls full_sync twice — desc then asc" do
       described_class.new.perform(store.id)
-      expect(sync_service).to have_received(:full_sync).with(max_pages: nil)
+      expect(sync_service).to have_received(:full_sync).with(hash_including(sort_order: "desc", manage_status: false)).ordered
+      expect(sync_service).to have_received(:full_sync).with(hash_including(sort_order: "asc", manage_status: false)).ordered
     end
 
-    it "passes max_pages when provided" do
-      described_class.new.perform(store.id, max_pages: 2)
-      expect(sync_service).to have_received(:full_sync).with(max_pages: 2)
+    it "passes max_pages to both passes when provided" do
+      described_class.new.perform(store.id, max_pages: 1)
+      expect(sync_service).to have_received(:full_sync).with(hash_including(max_pages: 1, sort_order: "desc", manage_status: false))
+      expect(sync_service).to have_received(:full_sync).with(hash_including(max_pages: 1, sort_order: "asc", manage_status: false))
+    end
+
+    it "sets sync_status to syncing then idle" do
+      described_class.new.perform(store.id)
+      expect(store.reload.sync_status).to eq("idle")
     end
 
     it "enqueues EnrichReleasesJob after sync" do

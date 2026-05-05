@@ -8,8 +8,6 @@ class Listing < ApplicationRecord
   # lack genre/style data and shouldn't surface in picks or genre bins.
   LP_FORMAT_TERMS = %w[LP Album].freeze
   NON_VINYL_FORMAT_TERMS = [ "8-Track", "Cassette", "CD", "DVD", "VHS", "Blu-ray", "SACD", "Reel" ].freeze
-  AVAILABILITY_BUFFER = 15.minutes
-
   scope :by_genre, ->(genre) { where("? = ANY(genres)", genre) }
   scope :recent, -> { order(listed_at: :desc) }
   scope :new_arrivals, -> { recent.limit(50) }
@@ -22,7 +20,7 @@ class Listing < ApplicationRecord
       <<~SQL.squish,
         (
           stores.last_synced_at IS NOT NULL
-          AND listings.last_seen_at >= stores.last_synced_at - INTERVAL '#{AVAILABILITY_BUFFER.to_i} seconds'
+          AND listings.last_seen_at >= stores.last_synced_at
         )
         OR (
           stores.last_synced_at IS NULL
