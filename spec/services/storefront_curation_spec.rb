@@ -1,6 +1,8 @@
 require "rails_helper"
 
 RSpec.describe StorefrontCuration do
+  include ActiveSupport::Testing::TimeHelpers
+
   def lp_listing(store, overrides = {})
     create(:listing, store:, format: "LP", last_seen_at: Time.current, **overrides)
   end
@@ -41,6 +43,19 @@ RSpec.describe StorefrontCuration do
       curation = described_class.new(store)
       picks_crate = curation.crates.find { |crate| crate.slug == "picks" }
       expect(picks_crate.listings.size).to eq(1)
+    end
+
+    it "does not surface listings missing from latest synced inventory" do
+      travel_to(Time.zone.parse("2026-05-05 12:00:00")) do
+        store = create(:store, last_synced_at: 2.hours.ago)
+        fresh = lp_listing(store, genres: [ "Jazz" ], last_seen_at: 30.minutes.ago)
+        create(:listing, store:, format: "LP", last_seen_at: 3.hours.ago, genres: [ "Rock" ])
+
+        curation = described_class.new(store)
+        picks_crate = curation.crates.find { |crate| crate.slug == "picks" }
+        expect(picks_crate.listings).to include(fresh)
+        expect(picks_crate.listings.size).to eq(1)
+      end
     end
 
     it "adds genre crates after picks" do
