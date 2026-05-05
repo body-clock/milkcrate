@@ -31,9 +31,9 @@ export default function StoreFloor({ crates, onSelectCrate }: Props) {
     .filter((crate) => crate.records.length > 0)
   const hasVisibleCrates = Boolean(picks && picks.records.length > 0) || visibleGenreCrates.length > 0
 
-  const renderDesktopBentoCard = (dedupedCrate: Crate) => {
+  const renderDesktopBentoCard = (dedupedCrate: Crate, maxRecords = 4) => {
     const fullCrate = genreCrates.find((c) => c.slug === dedupedCrate.slug)!
-    const records = dedupedCrate.records.slice(0, 4)
+    const records = dedupedCrate.records.slice(0, maxRecords)
     return (
       <section key={dedupedCrate.slug} className="bg-mc-bg-raised border border-mc-border rounded-lg overflow-hidden">
         <button
@@ -172,7 +172,7 @@ export default function StoreFloor({ crates, onSelectCrate }: Props) {
               <div className="col-span-2">
                 {renderDesktopBentoCard(sortedDesktopGenreCrates[0])}
               </div>
-              {sortedDesktopGenreCrates[1] && renderDesktopBentoCard(sortedDesktopGenreCrates[1])}
+              {sortedDesktopGenreCrates[1] && renderDesktopBentoCard(sortedDesktopGenreCrates[1], 8)}
             </div>
           )}
           {sortedDesktopGenreCrates.slice(2).length > 0 && (
