@@ -239,6 +239,63 @@ describe("storefront shell (StoreFloor with sections)", () => {
     expect(onSelectCrate).toHaveBeenCalledWith("jazz", 1)
   })
 
+  it("opens genre crate when card body clicked", async () => {
+    const onSelectCrate = vi.fn()
+    const user = userEvent.setup()
+    const sections: StorefrontSection[] = [
+      {
+        key: "picks_wall",
+        crate: {
+          slug: "picks",
+          name: "Milkcrate Picks",
+          count: 0,
+          records: [],
+        },
+      },
+      {
+        key: "genre_grid",
+        crates: [
+          {
+            slug: "jazz",
+            name: "Jazz",
+            count: 1,
+            records: [makeListing({ id: 1, title: "Jazz 1" })],
+          },
+        ],
+      },
+    ]
+
+    render(<StoreFloor sections={sections} onSelectCrate={onSelectCrate} />)
+
+    const button = screen.getByRole("button", { name: "Open Jazz" })
+    await user.click(button)
+
+    expect(onSelectCrate).toHaveBeenCalledWith("jazz")
+  })
+
+  it("renders empty-state for genre grid when no crates", async () => {
+    const onSelectCrate = vi.fn()
+    const sections: StorefrontSection[] = [
+      {
+        key: "picks_wall",
+        crate: {
+          slug: "picks",
+          name: "Milkcrate Picks",
+          count: 0,
+          records: [],
+        },
+      },
+      {
+        key: "genre_grid",
+        crates: [],
+      },
+    ]
+
+    render(<StoreFloor sections={sections} onSelectCrate={onSelectCrate} />)
+
+    expect(screen.getByText("No genre crates available yet.")).toBeInTheDocument()
+  })
+
   it("does not render featured row when featured_crates section absent", async () => {
     const onSelectCrate = vi.fn()
     const sections: StorefrontSection[] = [

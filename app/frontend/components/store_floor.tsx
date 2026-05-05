@@ -1,7 +1,7 @@
 import { motion } from "framer-motion"
-import StoreSection from "./store_section"
 import RecordCard from "./record_card"
 import FeaturedCratesRow from "./featured_crates_row"
+import GenreGrid from "./genre_grid"
 import { useIsDesktop } from "@/hooks/use_is_desktop"
 import type { StorefrontSection } from "../types/inertia"
 
@@ -105,13 +105,7 @@ export default function StoreFloor({ sections, onSelectCrate }: Props) {
         }
 
         if (section.key === "genre_grid") {
-          return (
-            <div key="genres" className="flex flex-col">
-              {section.crates.map((crate) => (
-                <StoreSection key={crate.slug} crate={crate} onSelect={onSelectCrate} />
-              ))}
-            </div>
-          )
+          return <GenreGrid key="genres" crates={section.crates} onSelectCrate={onSelectCrate} />
         }
       })}
     </div>
