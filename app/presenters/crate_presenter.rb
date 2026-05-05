@@ -14,14 +14,10 @@ class CratePresenter
     }
   end
 
-  def build_crates(curation)
-    crates = [ crate_props("picks", "Milkcrate Picks", curation.picks) ]
-
-    curation.genre_crates.each do |genre, listings|
-      crates << crate_props(genre.parameterize, genre, listings)
+  def build_crates(curated_crates)
+    curated_crates.map do |crate|
+      crate_props(crate.slug, crate.name, crate.listings)
     end
-
-    crates
   end
 
   private

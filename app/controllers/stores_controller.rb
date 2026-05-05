@@ -20,10 +20,11 @@ class StoresController < ApplicationController
   def render_store(store)
     curation  = StorefrontCuration.new(store)
     presenter = CratePresenter.new(store)
+    curated_crates = curation.crates
 
     render inertia: "stores/featured", props: {
       store: presenter.store_props,
-      crates: presenter.build_crates(curation),
+      crates: presenter.build_crates(curated_crates),
       active_crate_slug: "picks"
     }
   end

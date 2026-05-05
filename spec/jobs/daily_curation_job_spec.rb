@@ -21,8 +21,8 @@ RSpec.describe DailyCurationJob do
 
         curation = instance_double(
           StorefrontCuration,
-          picks: [ pick ],
-          genre_crates: { "Rock" => [ genre_listing ] }
+          crates: [ StorefrontCuration::CuratedCrate.new(slug: "picks", name: "Milkcrate Picks", listings: [ pick ]) ],
+          surfaced_listings: [ pick, genre_listing ]
         )
         allow(StorefrontCuration).to receive(:new).with(store).and_return(curation)
 
@@ -43,8 +43,8 @@ RSpec.describe DailyCurationJob do
 
         curation = instance_double(
           StorefrontCuration,
-          picks: [ listing ],
-          genre_crates: { "Jazz" => [ listing ] }
+          crates: [ StorefrontCuration::CuratedCrate.new(slug: "picks", name: "Milkcrate Picks", listings: [ listing ]) ],
+          surfaced_listings: [ listing ]
         )
         allow(StorefrontCuration).to receive(:new).with(store).and_return(curation)
 
@@ -60,8 +60,16 @@ RSpec.describe DailyCurationJob do
         store2 = create(:store)
         store2_listing = create(:listing, store: store2, format: "LP", genres: [ "Soul" ], last_seen_at: Time.current)
 
-        store1_curation = instance_double(StorefrontCuration, picks: [ store1_listing ], genre_crates: {})
-        store2_curation = instance_double(StorefrontCuration, picks: [], genre_crates: { "Soul" => [ store2_listing ] })
+        store1_curation = instance_double(
+          StorefrontCuration,
+          crates: [ StorefrontCuration::CuratedCrate.new(slug: "picks", name: "Milkcrate Picks", listings: [ store1_listing ]) ],
+          surfaced_listings: [ store1_listing ]
+        )
+        store2_curation = instance_double(
+          StorefrontCuration,
+          crates: [ StorefrontCuration::CuratedCrate.new(slug: "picks", name: "Milkcrate Picks", listings: []) ],
+          surfaced_listings: [ store2_listing ]
+        )
         allow(StorefrontCuration).to receive(:new).with(store).and_return(store1_curation)
         allow(StorefrontCuration).to receive(:new).with(store2).and_return(store2_curation)
 

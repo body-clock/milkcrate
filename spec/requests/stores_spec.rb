@@ -6,12 +6,12 @@ RSpec.describe "Stores", type: :request do
       let!(:store) { create(:store, discogs_username: "teststore") }
 
       before do
-        selector = instance_double(PicksSelector, select_picks: [], rank_genre: [])
+        curation = instance_double(StorefrontCuration, crates: [])
         presenter_double = instance_double(CratePresenter,
           store_props: { id: store.id, name: store.name },
           build_crates: []
         )
-        allow(PicksSelector).to receive(:new).and_return(selector)
+        allow(StorefrontCuration).to receive(:new).and_return(curation)
         allow(CratePresenter).to receive(:new).and_return(presenter_double)
       end
 
