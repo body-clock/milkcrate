@@ -10,15 +10,14 @@ class DailyCurationJob < ApplicationJob
 
   def curate(store)
     curation = StorefrontCuration.new(store)
-    picks = curation.picks
-    genre_listings = curation.genre_crates.values.flatten
-    surfaced = (picks + genre_listings).map(&:id).uniq
+    surfaced = curation.surfaced_listings
+    picks_count = curation.crates.find { |crate| crate.slug == "picks" }&.listings&.size || 0
 
     Listing.where(id: surfaced).update_all(
       last_surfaced_at: Time.current,
       surface_count: Arel.sql("surface_count + 1")
     )
 
-    Rails.logger.info "[DailyCurationJob] store=#{store.name} surfaced=#{surfaced.size} picks=#{picks.size}"
+    Rails.logger.info "[DailyCurationJob] store=#{store.name} surfaced=#{surfaced.size} picks=#{picks_count}"
   end
 end

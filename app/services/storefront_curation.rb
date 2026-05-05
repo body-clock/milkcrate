@@ -1,22 +1,28 @@
 class StorefrontCuration
+  CuratedCrate = Struct.new(:slug, :name, :listings, keyword_init: true)
+
   def initialize(store)
     @store = store
   end
 
-  def picks
-    selector.select_picks(count: 12)
-  end
-
-  def genre_crates
-    picks_ids = picks.map(&:id).to_set
+  def crates
+    picks_list = selector.select_picks(count: 12)
+    crates = [ CuratedCrate.new(slug: "picks", name: "Milkcrate Picks", listings: picks_list) ]
+    picks_ids = picks_list.map(&:id).to_set
 
     genre_counts.filter_map do |genre, _|
       listings = selector.rank_genre(genre)
-        .reject { |l| picks_ids.include?(l.id) }
+        .reject { |listing| picks_ids.include?(listing.id) }
         .first(50)
       next if listings.empty?
-      [ genre, listings ]
-    end.to_h
+      crates << CuratedCrate.new(slug: genre.parameterize, name: genre, listings: listings)
+    end
+
+    crates
+  end
+
+  def surfaced_listings
+    crates.flat_map(&:listings).uniq(&:id)
   end
 
   private

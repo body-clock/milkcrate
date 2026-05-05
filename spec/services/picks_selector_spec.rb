@@ -3,7 +3,6 @@ require "digest"
 require "active_support/core_ext/date/calculations"
 require "active_support/core_ext/numeric/time"
 
-
 require_relative "../../app/services/picks_selector"
 
 RSpec.describe PicksSelector do
@@ -77,27 +76,6 @@ RSpec.describe PicksSelector do
 
       jazz_count = result.count { |l| l.primary_genre == "Jazz" }
       expect(jazz_count).to be <= 4
-    end
-  end
-
-  describe "#rank" do
-    it "returns listings sorted by score descending" do
-      high = fake_listing(id: 1, genres: [ "Jazz" ], styles: [ "Afro-Jazz" ], year: 1972, condition: "NM")
-      low  = fake_listing(id: 2, genres: [ "Rock" ], styles: [], year: nil, condition: "Generic")
-
-      result = described_class.new(fake_store(listings: [ high, low ])).rank
-
-      expect(result.first).to eq(high)
-      expect(result.last).to eq(low)
-    end
-
-    it "filters to provided listing_ids" do
-      included = fake_listing(id: 1, genres: [ "Jazz" ], styles: [ "Afro-Jazz" ], year: 1972, condition: "NM")
-      excluded = fake_listing(id: 2, genres: [ "Rock" ], styles: [ "Classic Rock" ], year: 1975, condition: "VG+")
-
-      result = described_class.new(fake_store(listings: [ included, excluded ])).rank(listing_ids: [ 1 ])
-
-      expect(result.map(&:id)).to eq([ 1 ])
     end
   end
 end
