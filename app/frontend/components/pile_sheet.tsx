@@ -69,8 +69,12 @@ export default function PileSheet({ open, onClose }: Props) {
             exit={isDesktop ? { x: "100%" } : { y: "100%" }}
             transition={{ type: "spring", stiffness: 300, damping: 32 }}
           >
+            {!isDesktop && (
+              <div className="w-12 h-1.5 bg-mc-border rounded-full mx-auto my-3 flex-shrink-0" />
+            )}
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-mc-border flex-shrink-0">
+
               <div className="flex items-center gap-3">
                 <span id="pile-sheet-title" className="text-sm font-semibold">
                   Your pile {pile.length > 0 && <span className="text-mc-text-dim font-normal">· {pile.length} records</span>}
