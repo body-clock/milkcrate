@@ -19,13 +19,13 @@ RSpec.describe Listing, type: :model do
       expect(described_class.available).not_to include(stale)
     end
 
-    it "keeps listings seen within the 36-hour buffer before last sync" do
+    it "treats listings missing from the latest synced inventory as unavailable" do
       synced_store = create(:store, last_synced_at: 2.hours.ago)
-      buffered = create(:listing, store: synced_store, last_seen_at: 37.hours.ago)
-      stale    = create(:listing, store: synced_store, last_seen_at: 39.hours.ago)
+      before_sync = create(:listing, store: synced_store, last_seen_at: 3.hours.ago)
+      after_sync  = create(:listing, store: synced_store, last_seen_at: 30.minutes.ago)
 
-      expect(described_class.available).to include(buffered)
-      expect(described_class.available).not_to include(stale)
+      expect(described_class.available).to include(after_sync)
+      expect(described_class.available).not_to include(before_sync)
     end
 
     it "falls back to recent-seen window for never-synced stores" do
