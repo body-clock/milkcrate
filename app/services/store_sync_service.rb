@@ -7,8 +7,10 @@ class StoreSyncService
   end
 
   # Full sync: crawls all pages. Pass max_pages: 1 for a quick 100-record dev sync.
-  def full_sync(max_pages: nil, sort_order: "desc")
-    @store.update!(sync_status: "syncing")
+  # Pass manage_status: false to skip all sync_status/last_synced_at/total_listings updates
+  # (useful when the caller manages status externally, e.g. FullStoreSyncJob).
+  def full_sync(max_pages: nil, sort_order: "desc", manage_status: true)
+    @store.update!(sync_status: "syncing") if manage_status
     page = 1
     total_imported = 0
 
@@ -32,16 +34,18 @@ class StoreSyncService
       break
     end
 
-    @store.update!(
-      sync_status: "idle",
-      last_synced_at: Time.current,
-      total_listings: @store.listings.count
-    )
+    if manage_status
+      @store.update!(
+        sync_status: "idle",
+        last_synced_at: Time.current,
+        total_listings: @store.listings.count
+      )
+    end
 
     total_imported
   rescue StandardError => e
-    @store.update!(sync_status: "failed")
-    raise e
+    @store.update!(sync_status: "failed") if manage_status
+    raise
   end
 
 
