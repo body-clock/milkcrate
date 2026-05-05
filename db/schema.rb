@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_05_214600) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_05_221500) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -221,6 +221,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_05_214600) do
     t.text "description"
     t.string "discogs_username"
     t.integer "inventory_page_count", default: 0, null: false
+    t.text "last_sync_error"
+    t.datetime "last_sync_error_at"
     t.datetime "last_synced_at"
     t.string "name"
     t.string "sync_status"

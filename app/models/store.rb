@@ -19,4 +19,31 @@ class Store < ApplicationRecord
   def stale?
     last_synced_at.nil? || last_synced_at < 23.hours.ago
   end
+
+  def mark_sync_succeeded!(attributes = {})
+    update!(
+      {
+        sync_status: "idle",
+        last_sync_error: nil,
+        last_sync_error_at: nil
+      }.merge(attributes)
+    )
+  end
+
+  def mark_sync_failed!(error)
+    update!(
+      sync_status: "failed",
+      last_sync_error: summarized_sync_error(error),
+      last_sync_error_at: Time.current
+    )
+  end
+
+  private
+
+  def summarized_sync_error(error)
+    summary = "#{error.class}: #{error.message}"
+    backtrace = Array(error.backtrace).first(8)
+
+    ([ summary ] + backtrace).join("\n")
+  end
 end

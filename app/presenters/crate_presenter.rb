@@ -10,7 +10,8 @@ class CratePresenter
       discogs_username: @store.discogs_username,
       description: @store.description,
       total_listings: @store.total_listings,
-      sync_status: @store.sync_status
+      sync_status: @store.sync_status,
+      last_sync_error_at: @store.last_sync_error_at
     }
   end
 

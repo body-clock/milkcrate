@@ -29,7 +29,9 @@ RSpec.describe FullStoreSyncJob do
 
     it "sets sync_status to syncing then idle" do
       described_class.new.perform(store.id)
-      expect(store.reload.sync_status).to eq("idle")
+      store.reload
+      expect(store.sync_status).to eq("idle")
+      expect(store.last_sync_error).to be_nil
     end
 
     it "enqueues EnrichReleasesJob after sync" do
@@ -42,6 +44,19 @@ RSpec.describe FullStoreSyncJob do
       expect {
         described_class.new.perform(store.id)
       }.to have_enqueued_job(DailyCurationJob).with(store.id)
+    end
+
+    it "persists failure details when sync crashes" do
+      allow(sync_service).to receive(:sync).and_raise(RuntimeError, "discogs timeout")
+
+      expect {
+        described_class.new.perform(store.id)
+      }.to raise_error(RuntimeError, "discogs timeout")
+
+      store.reload
+      expect(store.sync_status).to eq("failed")
+      expect(store.last_sync_error).to include("RuntimeError: discogs timeout")
+      expect(store.last_sync_error_at).to be_present
     end
   end
 end
