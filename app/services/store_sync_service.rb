@@ -52,48 +52,46 @@ class StoreSyncService
   private
 
   def import_listings(raw_listings)
-    vinyl_listings = raw_listings.select { |l| vinyl?(l) }
+    records = raw_listings.select { |l| vinyl?(l) }.filter_map { |raw| build_listing_record(raw) }
+    return if records.empty?
 
-    vinyl_listings.each do |raw|
-      upsert_listing(raw)
-    end
-  end
-
-  def upsert_listing(raw)
-    release = raw["release"] || {}
-    basic_info = release["basic_information"] || release
-
-    genres = Array(basic_info["genres"])
-    styles = Array(basic_info["styles"])
-    @store.listings.upsert(
-      {
-        discogs_listing_id: raw["id"].to_s,
-        discogs_release_id: release["id"].to_s,
-        artist: basic_info["artist"],
-        title: basic_info["title"],
-        label: extract_label(basic_info),
-        year: release["year"],
-        format: release["format"].presence || "Vinyl",
-        genres: genres,
-        styles: styles,
-        condition: raw["condition"],
-        price: raw.dig("price", "value"),
-        currency: raw.dig("price", "currency") || "USD",
-        thumbnail_url: release["thumbnail"],
-        cover_image_url: release["cover_image"] || release["thumbnail"],
-        notes: raw["comments"],
-        listed_at: parse_time(raw["posted"]),
-        last_seen_at: Time.current,
-        store_id: @store.id
-      },
+    @store.listings.upsert_all(
+      records,
       unique_by: :discogs_listing_id,
       update_only: %i[condition price currency format thumbnail_url last_seen_at notes]
     )
-  rescue ActiveRecord::RecordNotUnique, ActiveRecord::StatementInvalid => e
-    Rails.logger.warn("Skipping listing #{raw['id']}: #{e.message}")
   rescue StandardError => e
-    Rails.logger.error("Unexpected error upserting listing #{raw['id']}: #{e.message}")
+    Rails.logger.error("[StoreSyncService] upsert_all failed: #{e.message}")
     raise
+  end
+
+  def build_listing_record(raw)
+    release    = raw["release"] || {}
+    basic_info = release["basic_information"] || release
+
+    {
+      discogs_listing_id: raw["id"].to_s,
+      discogs_release_id: release["id"].to_s,
+      artist:             basic_info["artist"],
+      title:              basic_info["title"],
+      label:              extract_label(basic_info),
+      year:               release["year"],
+      format:             release["format"].presence || "Vinyl",
+      genres:             Array(basic_info["genres"]),
+      styles:             Array(basic_info["styles"]),
+      condition:          raw["condition"],
+      price:              raw.dig("price", "value"),
+      currency:           raw.dig("price", "currency") || "USD",
+      thumbnail_url:      release["thumbnail"],
+      cover_image_url:    release["cover_image"] || release["thumbnail"],
+      notes:              raw["comments"],
+      listed_at:          parse_time(raw["posted"]),
+      last_seen_at:       Time.current,
+      store_id:           @store.id
+    }
+  rescue StandardError => e
+    Rails.logger.error("[StoreSyncService] Error building record for listing #{raw['id']}: #{e.message}")
+    nil
   end
 
   NON_VINYL = %w[CD Cassette DVD VHS].freeze
