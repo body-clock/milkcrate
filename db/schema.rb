@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_05_190644) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_05_190911) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -67,6 +67,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_05_190644) do
     t.string "discogs_release_id"
     t.datetime "enriched_at"
     t.integer "have_count"
+    t.string "musicbrainz_id"
     t.datetime "updated_at", null: false
     t.integer "want_count"
     t.index ["discogs_release_id"], name: "index_releases_on_discogs_release_id", unique: true
