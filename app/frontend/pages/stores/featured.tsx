@@ -1,12 +1,17 @@
-import React, { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import AppLayout from "@/layouts/app_layout"
 import CrateView from "@/components/crate_view"
 import StoreFloor from "@/components/store_floor"
 import type { FeaturedProps } from "@/types/inertia"
 
-export default function Featured({ store, crates }: FeaturedProps) {
+export default function Featured({ store, crates, storefront_sections }: FeaturedProps) {
   const [activeSlug, setActiveSlug] = useState<string | null>(null)
   const [startIndex, setStartIndex] = useState(0)
+
+  const allCrates = useMemo(() => {
+    if (!storefront_sections?.length) return crates
+    return storefront_sections.flatMap((s) => ("crate" in s ? [s.crate] : s.crates))
+  }, [storefront_sections, crates])
 
   const handleSelectCrate = (slug: string, index = 0) => {
     setStartIndex(index)
@@ -47,10 +52,10 @@ export default function Featured({ store, crates }: FeaturedProps) {
           <p>No vinyl found yet.</p>
         </div>
       ) : activeSlug === null ? (
-        <StoreFloor crates={crates} onSelectCrate={handleSelectCrate} />
+        <StoreFloor sections={storefront_sections ?? []} onSelectCrate={handleSelectCrate} />
       ) : (
         <CrateView
-          crates={crates}
+          crates={allCrates}
           activeSlug={activeSlug}
           startIndex={startIndex}
           onSelectCrate={handleSelectCrate}
