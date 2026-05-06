@@ -1,4 +1,3 @@
-require_relative "record_scorer"
 
 class PicksSelector
   POOL_SIZE = 100
