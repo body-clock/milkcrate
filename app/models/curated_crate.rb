@@ -8,16 +8,4 @@ class CuratedCrate
     @name = name
     @listings = listings
   end
-
-  def ==(other)
-    other.is_a?(CuratedCrate) &&
-      slug == other.slug &&
-      name == other.name &&
-      listings == other.listings
-  end
-  alias eql? ==
-
-  def hash
-    [ self.class, slug, name, listings ].hash
-  end
 end
