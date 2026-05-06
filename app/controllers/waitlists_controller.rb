@@ -12,7 +12,7 @@ class WaitlistsController < ApplicationController
     entry = Waitlist.new(waitlist_params)
 
     if entry.save
-      render inertia: "apply", props: apply_props.merge(submitted: true)
+      redirect_to apply_path, flash: { notice: "You're on the list! We'll be in touch.", submitted: true }
     else
       render inertia: "apply", props: apply_props.merge(
         submitted: false,

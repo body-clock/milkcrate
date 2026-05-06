@@ -9,6 +9,7 @@ class PagesController < ApplicationController
 
   def apply
     render inertia: "apply", props: {
+      submitted: flash[:submitted] || false,
       copy: t("pages.apply").to_h,
       turnstile: {
         enabled: TurnstileVerifier.enabled?,
