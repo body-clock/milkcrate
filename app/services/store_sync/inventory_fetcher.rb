@@ -1,6 +1,9 @@
 class StoreSync::InventoryFetcher
   Result = Data.define(:listings, :pages_fetched, :total_pages)
 
+  RATE_LIMIT_DELAY = 0.5
+  DISCOGS_PAGE_LIMIT_ERROR = "Pagination above 100"
+
   def initialize(store, client: nil)
     @store = store
     @client = client || DiscogsClient.new
@@ -8,29 +11,63 @@ class StoreSync::InventoryFetcher
 
   def fetch(sort_order: "desc", max_pages: nil)
     all_listings = []
-    page = 1
     total_pages = nil
 
-    loop do
-      data = @client.seller_inventory(@store.discogs_username, page: page, sort_order: sort_order)
-      page_listings = data["listings"] || []
-      break if page_listings.empty?
-
-      all_listings.concat(page_listings)
-
-      pagination = data["pagination"] || {}
-      total_pages = pagination["pages"] || 1
-      break if page >= total_pages
-      break if max_pages && page >= max_pages
-
-      page += 1
-      sleep(0.5)
-    rescue DiscogsClient::ApiError => e
-      raise unless e.message.include?("Pagination above 100")
-      Rails.logger.info "[StoreSync::InventoryFetcher] Hit Discogs 100-page limit for #{@store.discogs_username}, stopping at page #{page}"
-      break
+    each_page(sort_order:, max_pages:) do |data, page|
+      total_pages = extract_total_pages(data)
+      all_listings.concat(data["listings"] || [])
     end
 
-    Result.new(listings: all_listings, pages_fetched: page, total_pages: total_pages)
+    Result.new(listings: all_listings, pages_fetched: pages_fetched, total_pages: total_pages)
+  end
+
+  private
+
+  def each_page(sort_order:, max_pages:)
+    @pages_fetched = 0
+
+    loop do
+      @pages_fetched += 1
+      data = fetch_page(@pages_fetched, sort_order)
+
+      break if empty_page?(data)
+
+      yield data, @pages_fetched
+
+      break if last_page?(data, max_pages)
+
+      sleep(RATE_LIMIT_DELAY)
+    end
+  end
+
+  def fetch_page(page, sort_order)
+    @client.seller_inventory(@store.discogs_username, page:, sort_order:)
+  rescue DiscogsClient::ApiError => e
+    raise unless e.message.include?(DISCOGS_PAGE_LIMIT_ERROR)
+    log_page_limit_hit(page)
+    nil
+  end
+
+  def empty_page?(data)
+    data.nil? || (data["listings"] || []).empty?
+  end
+
+  def last_page?(data, max_pages)
+    current = @pages_fetched
+    total = extract_total_pages(data)
+    current >= total || (max_pages && current >= max_pages)
+  end
+
+  def extract_total_pages(data)
+    data&.dig("pagination", "pages") || 1
+  end
+
+  def log_page_limit_hit(page)
+    Rails.logger.info "[StoreSync::InventoryFetcher] Hit Discogs 100-page limit " \
+                      "for #{@store.discogs_username}, stopping at page #{page}"
+  end
+
+  def pages_fetched
+    @pages_fetched || 0
   end
 end
