@@ -29,10 +29,22 @@ RSpec.describe "Waitlists", type: :request do
         )
       end
 
-      it "renders the apply page with submitted: true" do
+      it "redirects to the apply page" do
         post "/waitlist", params: valid_params
+        expect(response).to have_http_status(:found)
+        expect(response).to redirect_to(apply_path)
+      end
+
+      it "renders the apply page with submitted: true after redirect" do
+        post "/waitlist", params: valid_params
+        follow_redirect!
         expect(response).to have_http_status(:ok)
         expect(response.body).to include("submitted")
+      end
+
+      it "is refresh-safe: redirect prevents form resubmission on refresh" do
+        post "/waitlist", params: valid_params
+        expect(response).to have_http_status(:found)
       end
     end
 
