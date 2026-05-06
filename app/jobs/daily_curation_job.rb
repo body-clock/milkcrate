@@ -9,25 +9,15 @@ class DailyCurationJob < ApplicationJob
   private
 
   def curate(store)
-    selector = PicksSelector.new(store)
-    picks = selector.select_picks(count: 12)
-
-    # Genre bins: top 50 per genre, matching what CratePresenter displays
-    genres = store.listings.available.lp_only
-      .pluck(:genres)
-      .map(&:first)
-      .compact
-      .uniq
-
-    genre_listings = genres.flat_map { |genre| selector.rank_genre(genre).first(50) }
-
-    surfaced = (picks + genre_listings).map(&:id).uniq
+    curation = StorefrontCuration.new(store)
+    surfaced = curation.surfaced_listings
+    picks_count = curation.crates.find { |crate| crate.slug == "picks" }&.listings&.size || 0
 
     Listing.where(id: surfaced).update_all(
       last_surfaced_at: Time.current,
       surface_count: Arel.sql("surface_count + 1")
     )
 
-    Rails.logger.info "[DailyCurationJob] store=#{store.name} surfaced=#{surfaced.size} picks=#{picks.size}"
+    Rails.logger.info "[DailyCurationJob] store=#{store.name} surfaced=#{surfaced.size} picks=#{picks_count}"
   end
 end

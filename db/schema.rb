@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_03_200001) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_05_221500) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -63,9 +63,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_03_200001) do
 
   create_table "releases", force: :cascade do |t|
     t.datetime "created_at", null: false
+    t.boolean "discogs_image_missing", default: false, null: false
     t.string "discogs_release_id"
     t.datetime "enriched_at"
     t.integer "have_count"
+    t.string "musicbrainz_id"
     t.datetime "updated_at", null: false
     t.integer "want_count"
     t.index ["discogs_release_id"], name: "index_releases_on_discogs_release_id", unique: true
@@ -214,9 +216,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_03_200001) do
   end
 
   create_table "stores", force: :cascade do |t|
+    t.string "catalog_coverage", default: "unknown", null: false
     t.datetime "created_at", null: false
     t.text "description"
     t.string "discogs_username"
+    t.integer "inventory_page_count", default: 0, null: false
+    t.text "last_sync_error"
+    t.datetime "last_sync_error_at"
     t.datetime "last_synced_at"
     t.string "name"
     t.string "sync_status"

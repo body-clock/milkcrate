@@ -1,17 +1,20 @@
 require "rails_helper"
 
 RSpec.describe "Stores", type: :request do
+  include ActiveSupport::Testing::TimeHelpers
+
   describe "GET /:slug" do
     context "with existing store" do
       let!(:store) { create(:store, discogs_username: "teststore") }
 
       before do
-        selector = instance_double(PicksSelector, select_picks: [], rank_genre: [])
+        curation = instance_double(StorefrontCuration, crates: [], storefront_sections: [])
         presenter_double = instance_double(CratePresenter,
           store_props: { id: store.id, name: store.name },
-          build_crates: []
+          build_crates: [],
+          build_storefront_sections: []
         )
-        allow(PicksSelector).to receive(:new).and_return(selector)
+        allow(StorefrontCuration).to receive(:new).and_return(curation)
         allow(CratePresenter).to receive(:new).and_return(presenter_double)
       end
 
@@ -73,6 +76,20 @@ RSpec.describe "Stores", type: :request do
       crates = inertia_get("/teststore").dig("props", "crates")
       jazz_crate = crates.find { |c| c["slug"] == "jazz" }
       expect(jazz_crate["records"].size).to eq(50)
+    end
+
+    it "returns explicit storefront section semantics in payload order" do
+      travel_to(Time.zone.parse("2026-05-05 12:00:00")) do
+        create_list(:listing, 5, store: store, genres: [ "Funk / Soul" ], styles: [ "Boogie" ], format: "LP", listed_at: 2.days.ago)
+        create_list(:listing, 5, store: store, genres: [ "Rock" ], styles: [ "Indie Rock" ], format: "LP", listed_at: 3.days.ago)
+        create_list(:listing, 5, store: store, genres: [ "Jazz" ], styles: [ "Bop" ], format: "LP", listed_at: 4.days.ago)
+
+        payload = inertia_get("/teststore").dig("props", "storefront_sections")
+
+        expect(payload.map { |section| section["key"] }).to include("picks_wall", "genre_grid")
+        expect(payload.first["key"]).to eq("picks_wall")
+        expect(payload.first.dig("crate", "slug")).to eq("picks")
+      end
     end
   end
 end

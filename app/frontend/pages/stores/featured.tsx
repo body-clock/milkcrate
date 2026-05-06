@@ -1,12 +1,17 @@
-import React, { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import AppLayout from "@/layouts/app_layout"
 import CrateView from "@/components/crate_view"
 import StoreFloor from "@/components/store_floor"
 import type { FeaturedProps } from "@/types/inertia"
 
-export default function Featured({ store, crates }: FeaturedProps) {
+export default function Featured({ store, crates, storefront_sections }: FeaturedProps) {
   const [activeSlug, setActiveSlug] = useState<string | null>(null)
   const [startIndex, setStartIndex] = useState(0)
+
+  const allCrates = useMemo(() => {
+    if (!storefront_sections?.length) return crates
+    return storefront_sections.flatMap((s) => ("crate" in s ? [s.crate] : s.crates))
+  }, [storefront_sections, crates])
 
   const handleSelectCrate = (slug: string, index = 0) => {
     setStartIndex(index)
@@ -37,6 +42,12 @@ export default function Featured({ store, crates }: FeaturedProps) {
         </div>
       )}
 
+      {store.sync_status === "failed" && (
+        <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/8 px-4 py-3 text-sm text-red-100">
+          Sync failed{store.last_sync_error_at ? ` on ${new Date(store.last_sync_error_at).toLocaleString()}` : ""}. Inventory may be stale.
+        </div>
+      )}
+
       {store.sync_status === "syncing" ? (
         <div className="py-16 text-center mc-dim text-sm">
           <p className="text-4xl mb-4">⏳</p>
@@ -47,10 +58,10 @@ export default function Featured({ store, crates }: FeaturedProps) {
           <p>No vinyl found yet.</p>
         </div>
       ) : activeSlug === null ? (
-        <StoreFloor crates={crates} onSelectCrate={handleSelectCrate} />
+        <StoreFloor sections={storefront_sections ?? []} onSelectCrate={handleSelectCrate} />
       ) : (
         <CrateView
-          crates={crates}
+          crates={allCrates}
           activeSlug={activeSlug}
           startIndex={startIndex}
           onSelectCrate={handleSelectCrate}

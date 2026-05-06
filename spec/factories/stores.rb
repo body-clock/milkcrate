@@ -4,6 +4,8 @@ FactoryBot.define do
     sequence(:discogs_username) { |n| "recordstore#{n}" }
     description { "A great record store." }
     sync_status { "idle" }
+    catalog_coverage { "near_complete" }
+    inventory_page_count { 1 }
     total_listings { 0 }
     last_synced_at { 1.hour.ago }
   end

@@ -1,19 +1,23 @@
 class StoreSyncService
-  VINYL_FORMATS = Listing::VINYL_FORMATS
+  Result = Data.define(:listing_ids_for_enrichment, :catalog_coverage, :inventory_page_count)
 
   def initialize(store)
     @store = store
     @client = DiscogsClient.new
+    @normalizer = StoreSync::ListingNormalizer.new
   end
 
   # Full sync: crawls all pages. Pass max_pages: 1 for a quick 100-record dev sync.
-  def full_sync(max_pages: nil)
-    @store.update!(sync_status: "syncing")
+  # Pass manage_status: false to skip all sync_status/last_synced_at/total_listings updates
+  # (useful when the caller manages status externally, e.g. FullStoreSyncJob).
+  def full_sync(max_pages: nil, sort_order: "desc", manage_status: true)
+    sync_started_at = Time.current
+    @store.update!(sync_status: "syncing") if manage_status
     page = 1
     total_imported = 0
 
     loop do
-      data = @client.seller_inventory(@store.discogs_username, page: page)
+      data = @client.seller_inventory(@store.discogs_username, page: page, sort_order: sort_order)
       listings = data["listings"] || []
       break if listings.empty?
 
@@ -32,88 +36,99 @@ class StoreSyncService
       break
     end
 
-    @store.update!(
-      sync_status: "idle",
-      last_synced_at: Time.current,
-      total_listings: @store.listings.count
-    )
+    if manage_status
+      @store.update!(
+        sync_status: "idle",
+        last_synced_at: sync_started_at,
+        total_listings: @store.listings.count
+      )
+    end
 
     total_imported
   rescue StandardError => e
-    @store.update!(sync_status: "failed")
-    raise e
+    @store.update!(sync_status: "failed") if manage_status
+    raise
+  end
+
+  def sync(max_pages: nil, manage_status: true)
+    sync_started_at = Time.current
+    @store.update!(sync_status: "syncing") if manage_status
+
+    desc_result = fetch_public_listings(sort_order: "desc", max_pages:)
+    asc_result = fetch_public_listings(sort_order: "asc", max_pages:)
+    observed_page_count = [ desc_result[:page_count], asc_result[:page_count] ].max
+    catalog_coverage = StoreSync::CoverageClassifier.new(
+      observed_page_count:,
+      max_pages:
+    ).call
+
+    reconciliation = StoreSync::ListingReconciler.new(
+      store: @store,
+      fetched_listings: desc_result[:listings] + asc_result[:listings],
+      normalizer: @normalizer
+    ).call
+
+    if manage_status
+      @store.update!(
+        sync_status: "idle",
+        last_synced_at: sync_started_at,
+        total_listings: @store.listings.count,
+        catalog_coverage:,
+        inventory_page_count: observed_page_count
+      )
+    end
+
+    Result.new(
+      listing_ids_for_enrichment: reconciliation.listing_ids_for_enrichment,
+      catalog_coverage:,
+      inventory_page_count: observed_page_count
+    )
+  rescue StandardError
+    @store.update!(sync_status: "failed") if manage_status
+    raise
   end
 
 
   private
 
   def import_listings(raw_listings)
-    vinyl_listings = raw_listings.select { |l| vinyl?(l) }
+    records = raw_listings.filter_map { |raw| @normalizer.call(raw, store_id: @store.id) }
+    return if records.empty?
 
-    vinyl_listings.each do |raw|
-      upsert_listing(raw)
-    end
-  end
-
-  def upsert_listing(raw)
-    release = raw["release"] || {}
-    basic_info = release["basic_information"] || release
-
-    genres = Array(basic_info["genres"])
-    styles = Array(basic_info["styles"])
-    @store.listings.upsert(
-      {
-        discogs_listing_id: raw["id"].to_s,
-        discogs_release_id: release["id"].to_s,
-        artist: basic_info["artist"],
-        title: basic_info["title"],
-        label: extract_label(basic_info),
-        year: release["year"],
-        format: release["format"].presence || "Vinyl",
-        genres: genres,
-        styles: styles,
-        condition: raw["condition"],
-        price: raw.dig("price", "value"),
-        currency: raw.dig("price", "currency") || "USD",
-        thumbnail_url: release["thumbnail"],
-        cover_image_url: release["cover_image"] || release["thumbnail"],
-        notes: raw["comments"],
-        listed_at: parse_time(raw["posted"]),
-        last_seen_at: Time.current,
-        store_id: @store.id
-      },
+    @store.listings.upsert_all(
+      records,
       unique_by: :discogs_listing_id,
       update_only: %i[condition price currency format thumbnail_url last_seen_at notes]
     )
-  rescue ActiveRecord::RecordNotUnique, ActiveRecord::StatementInvalid => e
-    Rails.logger.warn("Skipping listing #{raw['id']}: #{e.message}")
   rescue StandardError => e
-    Rails.logger.error("Unexpected error upserting listing #{raw['id']}: #{e.message}")
+    Rails.logger.error("[StoreSyncService] upsert_all failed: #{e.message}")
     raise
   end
 
-  NON_VINYL = %w[CD Cassette DVD VHS].freeze
+  def fetch_public_listings(sort_order:, max_pages:)
+    page = 1
+    page_count = 0
+    fetched_listings = []
 
-  def vinyl?(raw)
-    format_str = raw.dig("release", "format").to_s
-    return false if NON_VINYL.any? { |f| format_str.include?(f) }
+    loop do
+      data = @client.seller_inventory(@store.discogs_username, page:, sort_order:)
+      listings = data["listings"] || []
+      pagination = data["pagination"] || {}
+      page_count = [ page_count, pagination.fetch("pages", page).to_i, page ].max
 
-    formats = raw.dig("release", "formats") || []
-    return true if formats.empty? # assume vinyl if format string also unknown
+      fetched_listings.concat(listings)
+      break if listings.empty?
+      break if page >= page_count
+      break if max_pages && page >= max_pages
 
-    formats.any? do |f|
-      VINYL_FORMATS.any? { |vf| f["name"].to_s.include?(vf) }
+      page += 1
+      sleep(0.5)
+    rescue DiscogsClient::ApiError => e
+      raise unless e.message.include?("Pagination above 100")
+      Rails.logger.info "[StoreSyncService] Hit Discogs 100-page limit for #{@store.discogs_username}, stopping at page #{page}"
+      break
     end
-  end
 
-  def extract_label(release_info)
-    labels = release_info["labels"] || []
-    labels.first&.dig("name")
-  end
-
-  def parse_time(str)
-    Time.parse(str) if str
-  rescue ArgumentError
-    nil
+    { listings: fetched_listings, page_count: page_count }
   end
 end

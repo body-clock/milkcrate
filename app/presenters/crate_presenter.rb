@@ -10,32 +10,31 @@ class CratePresenter
       discogs_username: @store.discogs_username,
       description: @store.description,
       total_listings: @store.total_listings,
-      sync_status: @store.sync_status
+      sync_status: @store.sync_status,
+      last_sync_error_at: @store.last_sync_error_at
     }
   end
 
-  def build_crates(selector)
-    picks = selector.select_picks(count: 12)
-    crates = [ crate_props("picks", "Milkcrate Picks", picks) ]
-
-    picks_ids = picks.map(&:id).to_set
-
-    genre_counts = @store.listings.available.lp_only
-      .pluck(:genres)
-      .map(&:first)
-      .compact
-      .tally
-      .sort_by { |_, c| -c }
-
-    genre_counts.each do |genre, _|
-      genre_listings = selector.rank_genre(genre)
-        .reject { |l| picks_ids.include?(l.id) }
-        .first(50)
-      next if genre_listings.empty?
-      crates << crate_props(genre.parameterize, genre, genre_listings)
+  def build_crates(curated_crates)
+    curated_crates.map do |crate|
+      crate_props(crate.slug, crate.name, crate.listings)
     end
+  end
 
-    crates
+  def build_storefront_sections(sections)
+    sections.map do |section|
+      if section[:crate]
+        {
+          key: section[:key],
+          crate: crate_props(section[:crate].slug, section[:crate].name, section[:crate].listings)
+        }
+      else
+        {
+          key: section[:key],
+          crates: build_crates(section[:crates])
+        }
+      end
+    end
   end
 
   private

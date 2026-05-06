@@ -8,14 +8,39 @@ class Listing < ApplicationRecord
   # lack genre/style data and shouldn't surface in picks or genre bins.
   LP_FORMAT_TERMS = %w[LP Album].freeze
   NON_VINYL_FORMAT_TERMS = [ "8-Track", "Cassette", "CD", "DVD", "VHS", "Blu-ray", "SACD", "Reel" ].freeze
-
   scope :by_genre, ->(genre) { where("? = ANY(genres)", genre) }
   scope :recent, -> { order(listed_at: :desc) }
   scope :new_arrivals, -> { recent.limit(50) }
   scope :daily_shuffle, -> { order(Arel.sql("MD5(discogs_listing_id || '#{Date.current}'::text)")) }
 
-  # Listings absent from the last sync are assumed sold
-  scope :available, -> { where("last_seen_at > ?", 3.days.ago) }
+  # Listings absent from latest sync are assumed sold. Never-synced stores fall
+  # back to recent activity until first successful inventory snapshot lands.
+  scope :available, lambda {
+    joins(:store).where(
+      <<~SQL.squish,
+        (
+          COALESCE(stores.catalog_coverage, 'unknown') = 'partial'
+          AND listings.last_seen_at > ?
+        )
+        OR
+        (
+          COALESCE(stores.catalog_coverage, 'unknown') != 'partial'
+          AND (
+            (
+              stores.last_synced_at IS NOT NULL
+              AND listings.last_seen_at >= stores.last_synced_at
+            )
+            OR (
+              stores.last_synced_at IS NULL
+              AND listings.last_seen_at > ?
+            )
+          )
+        )
+      SQL
+      3.days.ago,
+      3.days.ago
+    )
+  }
 
   def primary_genre
     genres.first

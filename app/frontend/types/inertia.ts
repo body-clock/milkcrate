@@ -5,6 +5,7 @@ export interface Store {
   description: string | null
   total_listings: number | null
   sync_status: string
+  last_sync_error_at: string | null
 }
 
 export interface Listing {
@@ -33,8 +34,21 @@ export interface Crate {
   records: Listing[]
 }
 
+export interface StorefrontSectionWithCrate {
+  key: "picks_wall"
+  crate: Crate
+}
+
+export interface StorefrontSectionWithCrates {
+  key: "featured_crates" | "genre_grid"
+  crates: Crate[]
+}
+
+export type StorefrontSection = StorefrontSectionWithCrate | StorefrontSectionWithCrates
+
 export interface FeaturedProps {
   store: Store
   crates: Crate[]
+  storefront_sections?: StorefrontSection[]
   active_crate_slug: string
 }
