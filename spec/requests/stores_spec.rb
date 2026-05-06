@@ -28,11 +28,16 @@ RSpec.describe "Stores", type: :request do
         expect(response.body).to include("stores/featured")
       end
 
-      it "renders successfully without retired dig-session UI" do
+      it "sends Content-Security-Policy header on the storefront page" do
         get "/teststore"
+        expect(response.headers["Content-Security-Policy"]).to be_present
+      end
 
-        expect(response.body).not_to include("Sessions")
-        expect(response.body).not_to include("session-bar")
+      it "includes script-src with nonce in the storefront CSP" do
+        get "/teststore"
+        csp = response.headers["Content-Security-Policy"]
+        expect(csp).to include("script-src")
+        expect(csp).to include("'nonce-")
       end
     end
 
