@@ -21,10 +21,30 @@ RSpec.describe "Waitlists", type: :request do
         }.to change(Waitlist, :count).by(1)
       end
 
-      it "renders the apply page with submitted: true" do
+      it "sends a confirmation email" do
+        expect {
+          post "/waitlist", params: valid_params
+        }.to have_enqueued_job(ActionMailer::MailDeliveryJob).with(
+          "SellerMailer", "confirmation", "deliver_now", any_args
+        )
+      end
+
+      it "redirects to the apply page" do
         post "/waitlist", params: valid_params
+        expect(response).to have_http_status(:found)
+        expect(response).to redirect_to(apply_path)
+      end
+
+      it "renders the apply page with submitted: true after redirect" do
+        post "/waitlist", params: valid_params
+        follow_redirect!
         expect(response).to have_http_status(:ok)
         expect(response.body).to include("submitted")
+      end
+
+      it "is refresh-safe: redirect prevents form resubmission on refresh" do
+        post "/waitlist", params: valid_params
+        expect(response).to have_http_status(:found)
       end
     end
 
@@ -56,6 +76,33 @@ RSpec.describe "Waitlists", type: :request do
         expect {
           post "/waitlist", params: valid_params.merge(turnstile_token: "bad-token")
         }.not_to change(Waitlist, :count)
+      end
+
+      it "re-renders the apply page with a Turnstile error when verification fails" do
+        allow(TurnstileVerifier).to receive(:verify).with(
+          token: "bad-token",
+          remote_ip: "127.0.0.1"
+        ).and_return(false)
+
+        post "/waitlist", params: valid_params.merge(turnstile_token: "bad-token")
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("Please confirm you are human.")
+      end
+
+      it "re-renders the apply page when upstream verification fails closed" do
+        allow(TurnstileVerifier).to receive(:verify).with(
+          token: "timeout-token",
+          remote_ip: "127.0.0.1"
+        ).and_return(false)
+
+        expect {
+          post "/waitlist", params: valid_params.merge(turnstile_token: "timeout-token")
+        }.not_to change(Waitlist, :count)
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("turnstile")
+        expect(response.body).to include("submitted")
       end
 
       it "creates an entry when Turnstile verification succeeds" do
@@ -101,6 +148,29 @@ RSpec.describe "Waitlists", type: :request do
         expect {
           post "/waitlist", params: params
         }.not_to change(Waitlist, :count)
+      end
+    end
+
+    context "DB-backed constraints" do
+      it "raises on duplicate discogs_username" do
+        Waitlist.create!(name: "First", email: "a@b.com", discogs_username: "dup")
+        second = Waitlist.new(name: "Second", email: "c@d.com", discogs_username: "dup")
+        expect { second.save(validate: false) }.to raise_error(ActiveRecord::RecordNotUnique)
+      end
+
+      it "rejects null name at database level" do
+        entry = Waitlist.new(name: nil, email: "a@b.com", discogs_username: "user")
+        expect { entry.save(validate: false) }.to raise_error(ActiveRecord::NotNullViolation)
+      end
+
+      it "rejects null email at database level" do
+        entry = Waitlist.new(name: "Store", email: nil, discogs_username: "user")
+        expect { entry.save(validate: false) }.to raise_error(ActiveRecord::NotNullViolation)
+      end
+
+      it "rejects null discogs_username at database level" do
+        entry = Waitlist.new(name: "Store", email: "a@b.com", discogs_username: nil)
+        expect { entry.save(validate: false) }.to raise_error(ActiveRecord::NotNullViolation)
       end
     end
   end

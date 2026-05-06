@@ -12,10 +12,15 @@ RSpec.describe FullStoreSyncJob do
       inventory_page_count: 101
     )
   end
-  let(:sync_service) { instance_double(StoreSyncService, sync: sync_result) }
+  let(:sync_service) { instance_double(StoreSyncService) }
 
   before do
     allow(StoreSyncService).to receive(:new).with(store).and_return(sync_service)
+    # Simulate service managing sync status internally via StateManager.
+    allow(sync_service).to receive(:sync) do |**|
+      store.update!(sync_status: "idle", last_synced_at: Time.current)
+      sync_result
+    end
   end
 
   describe "#perform" do
@@ -26,7 +31,7 @@ RSpec.describe FullStoreSyncJob do
 
     it "passes max_pages when provided" do
       described_class.new.perform(store.id, max_pages: 1)
-      expect(sync_service).to have_received(:sync).with(max_pages: 1, manage_status: false)
+      expect(sync_service).to have_received(:sync).with(max_pages: 1)
     end
 
     it "sets sync_status to syncing then idle" do

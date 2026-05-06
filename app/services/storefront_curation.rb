@@ -1,15 +1,13 @@
 require "set"
 
 class StorefrontCuration
-  CuratedCrate = Struct.new(:slug, :name, :listings, keyword_init: true)
-
   FEATURED_CRATE_SIZE = 4
   FEATURED_MIN_RECORDS = 4
   GENRE_CRATE_SIZE = 50
-  NEW_ARRIVALS_WINDOWS = [ 7, 14, 30, 90, 365 ].freeze
 
   def initialize(store)
     @store = store
+    @arrivals_policy = NewArrivalsPolicy.new
   end
 
   # Compatibility surface for current UI.
@@ -82,15 +80,7 @@ class StorefrontCuration
 
   def new_arrivals_listings(excluded_ids:)
     pool = eligible_listings.reject { |listing| excluded_ids.include?(listing.id) }
-    return [] if pool.empty?
-
-    NEW_ARRIVALS_WINDOWS.each do |days|
-      cutoff = days.days.ago
-      recent = pool.select { |listing| listing.listed_at.present? && listing.listed_at >= cutoff }
-      return recent.sort_by { |listing| -sort_timestamp_for(listing) }.first(FEATURED_CRATE_SIZE) if recent.size >= FEATURED_MIN_RECORDS
-    end
-
-    pool.sort_by { |listing| -sort_timestamp_for(listing) }.first(FEATURED_CRATE_SIZE)
+    @arrivals_policy.select(pool, sort_key: ->(listing) { sort_timestamp_for(listing) })
   end
 
   def thematic_crate(excluded_ids:)

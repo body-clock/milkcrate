@@ -11,7 +11,7 @@ RSpec.describe StorefrontCuration do
       lp_listing(store, genres: [ "Jazz" ])
 
       curation = described_class.new(store)
-      expect(curation.crates).to all(be_a(StorefrontCuration::CuratedCrate))
+      expect(curation.crates).to all(be_a(CuratedCrate))
     end
 
     it "returns picks crate with at most 12 records" do

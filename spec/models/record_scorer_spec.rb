@@ -2,7 +2,7 @@ require "spec_helper"
 require "active_support/core_ext/date/calculations"
 require "active_support/core_ext/numeric/time"
 
-require_relative "../../app/services/record_scorer"
+require_relative "../../app/models/record_scorer"
 
 RSpec.describe RecordScorer do
   ScorerFakeListing = Struct.new(

@@ -4,7 +4,7 @@ import CrateTabs from "./crate_tabs"
 import RecordCard from "./record_card"
 import { buildCrateWindow } from "../lib/crate_window"
 import { useIsDesktop } from "@/hooks/use_is_desktop"
-import { useDigSessionContext } from "@/contexts/dig_session_context"
+import { usePileContext } from "@/contexts/pile_context"
 import type { Crate, Listing } from "../types/inertia"
 
 interface Props {
@@ -37,7 +37,7 @@ function RecordDetails({ listing, direction }: { listing: Listing; direction: nu
   const meta = [listing.label, listing.year, listing.condition].filter(Boolean).join(" · ")
   const enterY = direction >= 0 ? -16 : 16
   const exitY = direction >= 0 ? 16 : -16
-  const { inPile, addToPile, removeFromPile } = useDigSessionContext()
+  const { inPile, addToPile, removeFromPile } = usePileContext()
 
   return (
     <AnimatePresence mode="wait" custom={direction}>

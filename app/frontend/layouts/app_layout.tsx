@@ -1,7 +1,7 @@
 import React, { useState } from "react"
 import { Link, usePage } from "@inertiajs/react"
 import { useTheme } from "@/hooks/use_theme"
-import { DigSessionProvider, useDigSessionContext } from "@/contexts/dig_session_context"
+import { PileProvider, usePileContext } from "@/contexts/pile_context"
 import PileSheet from "@/components/pile_sheet"
 import { useIsDesktop } from "@/hooks/use_is_desktop"
 
@@ -13,7 +13,7 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
   const discogsUsername = props.store?.discogs_username as string | undefined
   const { theme, toggle } = useTheme()
   const isDesktop = useIsDesktop()
-  const { pile } = useDigSessionContext()
+  const { pile } = usePileContext()
   const [pileOpen, setPileOpen] = useState(false)
 
   return (
@@ -87,8 +87,8 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <DigSessionProvider>
+    <PileProvider>
       <AppLayoutInner>{children}</AppLayoutInner>
-    </DigSessionProvider>
+    </PileProvider>
   )
 }
