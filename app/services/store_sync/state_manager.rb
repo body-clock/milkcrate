@@ -25,7 +25,7 @@ module StoreSync
     def self.summarized_error(error)
       summary = "#{error.class}: #{error.message}"
       backtrace = Array(error.backtrace).first(8)
-      ([summary] + backtrace).join("\n")
+      ([ summary ] + backtrace).join("\n")
     end
     private_class_method :summarized_error
   end

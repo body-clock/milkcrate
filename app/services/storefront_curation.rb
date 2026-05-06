@@ -25,15 +25,15 @@ class StorefrontCuration
     picks_crate = CuratedCrate.new(slug: "picks", name: "Milkcrate Picks", listings: selector.select_picks(count: 12))
     seen_ids = picks_crate.listings.map(&:id).to_set
 
-    sections = [{key: "picks_wall", crate: picks_crate}]
+    sections = [ { key: "picks_wall", crate: picks_crate } ]
 
     featured_crates = build_featured_crates(excluded_ids: seen_ids)
     if featured_crates.present?
       featured_crates.each { |crate| crate.listings.each { |listing| seen_ids.add(listing.id) } }
-      sections << {key: "featured_crates", crates: featured_crates}
+      sections << { key: "featured_crates", crates: featured_crates }
     end
 
-    sections << {key: "genre_grid", crates: build_genre_crates(excluded_ids: seen_ids)}
+    sections << { key: "genre_grid", crates: build_genre_crates(excluded_ids: seen_ids) }
     sections
   end
 
@@ -59,9 +59,9 @@ class StorefrontCuration
     )
     thematic = thematic_crate(excluded_ids: featured_seen_ids)
 
-    return [] if [new_arrivals, thematic].any? { |crate| crate.listings.size < FEATURED_MIN_RECORDS }
+    return [] if [ new_arrivals, thematic ].any? { |crate| crate.listings.size < FEATURED_MIN_RECORDS }
 
-    [new_arrivals, thematic]
+    [ new_arrivals, thematic ]
   end
 
   def build_genre_crates(excluded_ids:)

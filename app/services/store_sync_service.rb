@@ -34,7 +34,7 @@ class StoreSyncService
 
     desc_result = fetch_public_listings(sort_order: "desc", max_pages:)
     asc_result = fetch_public_listings(sort_order: "asc", max_pages:)
-    observed_page_count = [desc_result[:page_count], asc_result[:page_count]].max
+    observed_page_count = [ desc_result[:page_count], asc_result[:page_count] ].max
     catalog_coverage = StoreSync::CoverageClassifier.new(
       observed_page_count:,
       max_pages:
@@ -85,7 +85,7 @@ class StoreSyncService
 
     {
       listings: result.listings,
-      page_count: [result.pages_fetched, result.total_pages.to_i].max
+      page_count: [ result.pages_fetched, result.total_pages.to_i ].max
     }
   end
 end

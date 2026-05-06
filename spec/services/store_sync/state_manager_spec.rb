@@ -30,7 +30,7 @@ RSpec.describe StoreSync::StateManager do
   end
 
   describe ".fail!" do
-    let(:error) { StandardError.new("something broke").tap { |e| e.set_backtrace(["line 1", "line 2"]) } }
+    let(:error) { StandardError.new("something broke").tap { |e| e.set_backtrace([ "line 1", "line 2" ]) } }
 
     it "sets sync_status to failed with error details" do
       described_class.fail!(store, error)

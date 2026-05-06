@@ -56,7 +56,7 @@ class PicksSelector
     @scored_inventory ||= begin
       listings = @store.listings.available.lp_only.to_a
       scorer = scorer_for(store_genre_counts)
-      listings.map { |l| [l, scorer.score(l)] }
+      listings.map { |l| [ l, scorer.score(l) ] }
     end
   end
 

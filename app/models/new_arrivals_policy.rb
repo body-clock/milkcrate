@@ -1,7 +1,7 @@
 class NewArrivalsPolicy
   # Windows to try when selecting new arrivals, from newest to oldest.
   # The first window with MIN_RECORDS or more eligible records wins.
-  WINDOWS = [7, 14, 30, 90, 365].freeze
+  WINDOWS = [ 7, 14, 30, 90, 365 ].freeze
 
   # Minimum records required in a window to create a new-arrivals crate.
   MIN_RECORDS = 4
