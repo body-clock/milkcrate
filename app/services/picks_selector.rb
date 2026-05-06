@@ -1,3 +1,4 @@
+require "digest"
 
 class PicksSelector
   POOL_SIZE = 100
@@ -5,6 +6,7 @@ class PicksSelector
   def initialize(store, today: Date.today)
     @store = store
     @today = today
+    @policy = PickPolicy.new
   end
 
   # Returns listings for picks crate: top records across the full inventory,
@@ -13,12 +15,11 @@ class PicksSelector
     scored = score_all
     shuffle_seed = seed || @today.to_s.sum
 
-    # Genre-diverse: cap per-genre representation
-    genre_cap = [ count / 3, 2 ].max
+    genre_cap = @policy.genre_cap(count)
     genre_seen = Hash.new(0)
 
     scored
-      .sort_by { |listing, s| [ -s, Digest::MD5.hexdigest("#{listing.id}#{shuffle_seed}") ] }
+      .sort_by { |listing, s| @policy.sort_key(listing, s, shuffle_seed) }
       .filter_map { |listing, _|
         genre = listing.primary_genre
         next if genre_seen[genre] >= genre_cap
@@ -43,6 +44,7 @@ class PicksSelector
   def score_breakdown_for(listing)
     scorer_for(store_genre_counts).score_breakdown(listing)
   end
+
   private
 
   def score_all(listing_ids: nil)
@@ -54,7 +56,7 @@ class PicksSelector
     @scored_inventory ||= begin
       listings = @store.listings.available.lp_only.to_a
       scorer = scorer_for(store_genre_counts)
-      listings.map { |l| [ l, scorer.score(l) ] }
+      listings.map { |l| [l, scorer.score(l)] }
     end
   end
 

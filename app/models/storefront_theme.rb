@@ -31,7 +31,7 @@ class StorefrontTheme
   end
 
   def crate_for(pool, slug: self.slug)
-    StorefrontCuration::CuratedCrate.new(
+    CuratedCrate.new(
       slug:,
       name:,
       listings: listings_for(pool).first(FEATURED_CRATE_SIZE)

@@ -1,15 +1,13 @@
 require "set"
 
 class StorefrontCuration
-  CuratedCrate = Struct.new(:slug, :name, :listings, keyword_init: true)
-
   FEATURED_CRATE_SIZE = 4
   FEATURED_MIN_RECORDS = 4
   GENRE_CRATE_SIZE = 50
-  NEW_ARRIVALS_WINDOWS = [ 7, 14, 30, 90, 365 ].freeze
 
   def initialize(store)
     @store = store
+    @arrivals_policy = NewArrivalsPolicy.new
   end
 
   # Compatibility surface for current UI.
@@ -27,15 +25,15 @@ class StorefrontCuration
     picks_crate = CuratedCrate.new(slug: "picks", name: "Milkcrate Picks", listings: selector.select_picks(count: 12))
     seen_ids = picks_crate.listings.map(&:id).to_set
 
-    sections = [ { key: "picks_wall", crate: picks_crate } ]
+    sections = [{key: "picks_wall", crate: picks_crate}]
 
     featured_crates = build_featured_crates(excluded_ids: seen_ids)
     if featured_crates.present?
       featured_crates.each { |crate| crate.listings.each { |listing| seen_ids.add(listing.id) } }
-      sections << { key: "featured_crates", crates: featured_crates }
+      sections << {key: "featured_crates", crates: featured_crates}
     end
 
-    sections << { key: "genre_grid", crates: build_genre_crates(excluded_ids: seen_ids) }
+    sections << {key: "genre_grid", crates: build_genre_crates(excluded_ids: seen_ids)}
     sections
   end
 
@@ -61,9 +59,9 @@ class StorefrontCuration
     )
     thematic = thematic_crate(excluded_ids: featured_seen_ids)
 
-    return [] if [ new_arrivals, thematic ].any? { |crate| crate.listings.size < FEATURED_MIN_RECORDS }
+    return [] if [new_arrivals, thematic].any? { |crate| crate.listings.size < FEATURED_MIN_RECORDS }
 
-    [ new_arrivals, thematic ]
+    [new_arrivals, thematic]
   end
 
   def build_genre_crates(excluded_ids:)
@@ -82,15 +80,7 @@ class StorefrontCuration
 
   def new_arrivals_listings(excluded_ids:)
     pool = eligible_listings.reject { |listing| excluded_ids.include?(listing.id) }
-    return [] if pool.empty?
-
-    NEW_ARRIVALS_WINDOWS.each do |days|
-      cutoff = days.days.ago
-      recent = pool.select { |listing| listing.listed_at.present? && listing.listed_at >= cutoff }
-      return recent.sort_by { |listing| -sort_timestamp_for(listing) }.first(FEATURED_CRATE_SIZE) if recent.size >= FEATURED_MIN_RECORDS
-    end
-
-    pool.sort_by { |listing| -sort_timestamp_for(listing) }.first(FEATURED_CRATE_SIZE)
+    @arrivals_policy.select(pool, sort_key: ->(listing) { sort_timestamp_for(listing) })
   end
 
   def thematic_crate(excluded_ids:)
