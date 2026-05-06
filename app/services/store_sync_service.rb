@@ -8,37 +8,33 @@ class StoreSyncService
   end
 
   # Full sync: crawls all pages. Pass max_pages: 1 for a quick 100-record dev sync.
-  # Pass manage_status: false to skip all sync_status/last_synced_at/total_listings updates
-  # (useful when the caller manages status externally, e.g. FullStoreSyncJob).
-  def full_sync(max_pages: nil, sort_order: "desc", manage_status: true)
+  def full_sync(max_pages: nil, sort_order: "desc")
     sync_started_at = Time.current
-    @store.update!(sync_status: "syncing") if manage_status
+    StoreSync::StateManager.start!(@store)
+
     fetcher = StoreSync::InventoryFetcher.new(@store, client: @client)
     result = fetcher.fetch(sort_order: sort_order, max_pages: max_pages)
 
     import_listings(result.listings)
 
-    if manage_status
-      @store.update!(
-        sync_status: "idle",
-        last_synced_at: sync_started_at,
-        total_listings: @store.listings.count
-      )
-    end
+    StoreSync::StateManager.succeed!(@store,
+      last_synced_at: sync_started_at,
+      total_listings: @store.listings.count
+    )
 
     result.listings.size
-  rescue StandardError
-    @store.update!(sync_status: "failed") if manage_status
+  rescue StandardError => e
+    StoreSync::StateManager.fail!(@store, e)
     raise
   end
 
-  def sync(max_pages: nil, manage_status: true)
+  def sync(max_pages: nil)
     sync_started_at = Time.current
-    @store.update!(sync_status: "syncing") if manage_status
+    StoreSync::StateManager.start!(@store)
 
     desc_result = fetch_public_listings(sort_order: "desc", max_pages:)
     asc_result = fetch_public_listings(sort_order: "asc", max_pages:)
-    observed_page_count = [ desc_result[:page_count], asc_result[:page_count] ].max
+    observed_page_count = [desc_result[:page_count], asc_result[:page_count]].max
     catalog_coverage = StoreSync::CoverageClassifier.new(
       observed_page_count:,
       max_pages:
@@ -50,26 +46,22 @@ class StoreSyncService
       normalizer: @normalizer
     ).call
 
-    if manage_status
-      @store.update!(
-        sync_status: "idle",
-        last_synced_at: sync_started_at,
-        total_listings: @store.listings.count,
-        catalog_coverage:,
-        inventory_page_count: observed_page_count
-      )
-    end
+    StoreSync::StateManager.succeed!(@store,
+      last_synced_at: sync_started_at,
+      total_listings: @store.listings.count,
+      catalog_coverage:,
+      inventory_page_count: observed_page_count
+    )
 
     Result.new(
       listing_ids_for_enrichment: reconciliation.listing_ids_for_enrichment,
       catalog_coverage:,
       inventory_page_count: observed_page_count
     )
-  rescue StandardError
-    @store.update!(sync_status: "failed") if manage_status
+  rescue StandardError => e
+    StoreSync::StateManager.fail!(@store, e)
     raise
   end
-
 
   private
 
@@ -93,7 +85,7 @@ class StoreSyncService
 
     {
       listings: result.listings,
-      page_count: [ result.pages_fetched, result.total_pages.to_i ].max
+      page_count: [result.pages_fetched, result.total_pages.to_i].max
     }
   end
 end

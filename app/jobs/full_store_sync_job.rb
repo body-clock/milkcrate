@@ -6,16 +6,17 @@ class FullStoreSyncJob < ApplicationJob
     service = StoreSyncService.new(store)
     sync_started_at = Time.current
 
-    store.update!(sync_status: "syncing")
+    result = service.sync(max_pages: max_pages)
 
-    result = service.sync(max_pages: max_pages, manage_status: false)
-
-    store.mark_sync_succeeded!(
+    # Service already set sync_status to idle and recorded last_synced_at.
+    # Add the job-specific extras that the service doesn't own.
+    store.update!(
       last_synced_at: sync_started_at,
       total_listings: store.listings.count,
       catalog_coverage: result.catalog_coverage,
       inventory_page_count: result.inventory_page_count
     )
+
     Rails.logger.info("FullStoreSync: synced #{store.listings.count} listings for #{store.discogs_username}")
 
     EnrichReleasesJob.perform_later(store_id, listing_ids: result.listing_ids_for_enrichment) if result.listing_ids_for_enrichment.any?
