@@ -36,15 +36,39 @@ RSpec.describe EnrichReleasesJob do
     expect(client).to have_received(:release).with("222").once
   end
 
-  it "skips already-fresh releases" do
+  it "skips already-fresh releases unless their listings were downgraded" do
     create_listing(store:, release_id: "111")
     create_listing(store:, release_id: "222")
     Release.create!(discogs_release_id: "111", enriched_at: Time.current)
+    Release.create!(discogs_release_id: "222", enriched_at: Time.current)
 
     described_class.new.perform(store.id)
 
+    # Both are fresh: neither enriched (no downgrade, no stale)
     expect(client).not_to have_received(:release).with("111")
-    expect(client).to have_received(:release).with("222").once
+    expect(client).not_to have_received(:release).with("222")
+  end
+
+  it "re-enriches fresh releases whose listings have cover_url == thumbnail_url (downgrade repair)" do
+    listing = create_listing(store:, release_id: "111")
+    listing.update_columns(
+      thumbnail_url: "https://i.discogs.com/thumb.jpg",
+      cover_image_url: "https://i.discogs.com/thumb.jpg"
+    )
+    Release.create!(discogs_release_id: "111", enriched_at: Time.current)
+
+    allow(client).to receive(:release).with("111").and_return(
+      [ {
+        "community" => { "want" => 1, "have" => 1 },
+        "genres" => [], "styles" => [], "formats" => [], "tracklist" => [],
+        "images" => [ { "type" => "primary", "uri" => "https://i.discogs.com/fullres.jpg" } ]
+      }, 50 ]
+    )
+
+    described_class.new.perform(store.id)
+
+    expect(client).to have_received(:release).with("111").once
+    expect(listing.reload.cover_image_url).to eq("https://i.discogs.com/fullres.jpg")
   end
 
   it "deduplicates listings with the same release_id" do

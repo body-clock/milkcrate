@@ -43,7 +43,6 @@ module StoreSync
           price
           currency
           thumbnail_url
-          cover_image_url
           notes
           listed_at
           last_seen_at

@@ -21,7 +21,7 @@ RSpec.describe DailyCurationJob do
 
         curation = instance_double(
           StorefrontCuration,
-          crates: [ StorefrontCuration::CuratedCrate.new(slug: "picks", name: "Milkcrate Picks", listings: [ pick ]) ],
+          crates: [ CuratedCrate.new(slug: "picks", name: "Milkcrate Picks", listings: [ pick ]) ],
           surfaced_listings: [ pick, genre_listing ]
         )
         allow(StorefrontCuration).to receive(:new).with(store).and_return(curation)
@@ -43,7 +43,7 @@ RSpec.describe DailyCurationJob do
 
         curation = instance_double(
           StorefrontCuration,
-          crates: [ StorefrontCuration::CuratedCrate.new(slug: "picks", name: "Milkcrate Picks", listings: [ listing ]) ],
+          crates: [ CuratedCrate.new(slug: "picks", name: "Milkcrate Picks", listings: [ listing ]) ],
           surfaced_listings: [ listing ]
         )
         allow(StorefrontCuration).to receive(:new).with(store).and_return(curation)
@@ -62,12 +62,12 @@ RSpec.describe DailyCurationJob do
 
         store1_curation = instance_double(
           StorefrontCuration,
-          crates: [ StorefrontCuration::CuratedCrate.new(slug: "picks", name: "Milkcrate Picks", listings: [ store1_listing ]) ],
+          crates: [ CuratedCrate.new(slug: "picks", name: "Milkcrate Picks", listings: [ store1_listing ]) ],
           surfaced_listings: [ store1_listing ]
         )
         store2_curation = instance_double(
           StorefrontCuration,
-          crates: [ StorefrontCuration::CuratedCrate.new(slug: "picks", name: "Milkcrate Picks", listings: []) ],
+          crates: [ CuratedCrate.new(slug: "picks", name: "Milkcrate Picks", listings: []) ],
           surfaced_listings: [ store2_listing ]
         )
         allow(StorefrontCuration).to receive(:new).with(store).and_return(store1_curation)

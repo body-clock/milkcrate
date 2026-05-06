@@ -41,6 +41,9 @@
 # Ignore brainstorming mockup artifacts.
 /.superpowers/
 
+# Ignore git worktree directories.
+/.worktrees/
+
 # Vite Ruby
 /public/vite*
 node_modules

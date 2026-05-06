@@ -114,11 +114,11 @@ RSpec.describe StoreSyncService do
       expect(client).to have_received(:seller_inventory).with("teststore", page: 1, sort_order: "desc")
     end
 
-    it "does not update sync_status when manage_status: false" do
-      store.update!(sync_status: "failed")
+    it "always manages sync status (sets idle on success)" do
+      store.update!(sync_status: "syncing")
       allow(client).to receive(:seller_inventory).and_return(api_page(listings: []))
-      StoreSyncService.new(store).full_sync(manage_status: false)
-      expect(store.reload.sync_status).to eq("failed")
+      StoreSyncService.new(store).full_sync
+      expect(store.reload.sync_status).to eq("idle")
     end
   end
 

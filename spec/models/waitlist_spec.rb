@@ -33,5 +33,12 @@ RSpec.describe Waitlist, type: :model do
     it "allows blank notes" do
       expect(build(:waitlist, notes: nil)).to be_valid
     end
+
+    it "enforces unique discogs_username" do
+      create(:waitlist, discogs_username: "unique_store")
+      dup = build(:waitlist, discogs_username: "unique_store")
+      expect(dup).not_to be_valid
+      expect(dup.errors[:discogs_username]).to include("has already been taken")
+    end
   end
 end

@@ -31,7 +31,7 @@ The main browsing experience is the store page. It shows:
 - genre crates built from available LP / album listings
 - a local browser pile powered by `localStorage`
 
-The older server-backed dig-session UI and rotation-oriented store flow are not part of the active route surface right now, though some legacy models and views still exist in the codebase.
+The older server-backed dig-session UI and rotation-oriented store flow are not part of the active route surface right now, though some legacy migrations still exist in the codebase.
 
 ## Stack
 
@@ -255,9 +255,9 @@ Key files:
 - `app/frontend/pages/apply.tsx`
 - `app/frontend/pages/stores/featured.tsx`
 - `app/frontend/components/*`
-- `app/frontend/contexts/dig_session_context.tsx`
+- `app/frontend/contexts/pile_context.tsx`
 
-The current pile/dig-session behavior is client-side and stored in `localStorage` under `mc-dig-session`.
+The current pile behavior is client-side and stored in `localStorage` under `mc-pile`. The frontend migrates the legacy `mc-dig-session` key automatically.
 
 Run frontend tests with:
 
