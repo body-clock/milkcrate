@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest"
 import { render, screen, fireEvent } from "@testing-library/react"
 import React from "react"
-import { DigSessionProvider, useDigSessionContext } from "./dig_session_context"
+import { PileProvider, usePileContext } from "./pile_context"
 import type { Listing } from "../types/inertia"
 
 const makeListing = (overrides: Partial<Listing> = {}): Listing => ({
@@ -25,7 +25,7 @@ const makeListing = (overrides: Partial<Listing> = {}): Listing => ({
 })
 
 function PileConsumer() {
-  const { pile, addToPile, removeFromPile, inPile, clearPile } = useDigSessionContext()
+  const { pile, addToPile, removeFromPile, inPile, clearPile } = usePileContext()
   const listing = makeListing({ id: 99 })
 
   return (
@@ -43,34 +43,34 @@ beforeEach(() => {
   localStorage.clear()
 })
 
-describe("DigSessionContext", () => {
+describe("PileContext", () => {
   it("provides an empty pile by default", () => {
-    render(<DigSessionProvider><PileConsumer /></DigSessionProvider>)
+    render(<PileProvider><PileConsumer /></PileProvider>)
     expect(screen.getByTestId("count").textContent).toBe("0")
   })
 
   it("addToPile updates the pile count", () => {
-    render(<DigSessionProvider><PileConsumer /></DigSessionProvider>)
+    render(<PileProvider><PileConsumer /></PileProvider>)
     fireEvent.click(screen.getByText("add"))
     expect(screen.getByTestId("count").textContent).toBe("1")
   })
 
   it("inPile reflects current pile state", () => {
-    render(<DigSessionProvider><PileConsumer /></DigSessionProvider>)
+    render(<PileProvider><PileConsumer /></PileProvider>)
     expect(screen.getByTestId("in-pile").textContent).toBe("no")
     fireEvent.click(screen.getByText("add"))
     expect(screen.getByTestId("in-pile").textContent).toBe("yes")
   })
 
   it("removeFromPile removes the correct listing", () => {
-    render(<DigSessionProvider><PileConsumer /></DigSessionProvider>)
+    render(<PileProvider><PileConsumer /></PileProvider>)
     fireEvent.click(screen.getByText("add"))
     fireEvent.click(screen.getByText("remove"))
     expect(screen.getByTestId("count").textContent).toBe("0")
   })
 
   it("clearPile empties the pile", () => {
-    render(<DigSessionProvider><PileConsumer /></DigSessionProvider>)
+    render(<PileProvider><PileConsumer /></PileProvider>)
     fireEvent.click(screen.getByText("add"))
     fireEvent.click(screen.getByText("clear"))
     expect(screen.getByTestId("count").textContent).toBe("0")
