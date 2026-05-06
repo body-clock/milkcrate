@@ -61,7 +61,7 @@ RSpec.describe CratePresenter do
   end
 
   def fake_curated_crate(slug:, name:, listings:)
-    StorefrontCuration::CuratedCrate.new(slug:, name:, listings:)
+    CuratedCrate.new(slug:, name:, listings:)
   end
 
   describe "#store_props" do
