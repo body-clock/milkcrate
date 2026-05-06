@@ -33,13 +33,19 @@ class RecordScorer
   end
 
   def score(listing)
-    vintage_points(listing) +
-      condition_points(listing) +
-      section_points(listing) +
-      desirability_points(listing) +
-      metadata_penalty(listing) +
-      freshness_score(listing) +
-      daily_noise(listing)
+    score_breakdown(listing).values.sum
+  end
+
+  def score_breakdown(listing)
+    {
+      vintage: vintage_points(listing),
+      condition: condition_points(listing),
+      section: section_points(listing),
+      desirability: desirability_points(listing),
+      metadata: metadata_penalty(listing),
+      freshness: freshness_score(listing),
+      noise: daily_noise(listing)
+    }
   end
 
   private
