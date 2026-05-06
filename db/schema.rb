@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_05_221500) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_06_025358) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -233,12 +233,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_05_221500) do
 
   create_table "waitlists", force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.string "discogs_username"
-    t.string "email"
+    t.string "discogs_username", null: false
+    t.string "email", null: false
     t.string "inventory_size"
-    t.string "name"
+    t.string "name", null: false
     t.text "notes"
     t.datetime "updated_at", null: false
+    t.index ["discogs_username"], name: "index_waitlists_on_discogs_username", unique: true
   end
 
   add_foreign_key "daily_selections", "stores"

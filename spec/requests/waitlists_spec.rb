@@ -150,5 +150,28 @@ RSpec.describe "Waitlists", type: :request do
         }.not_to change(Waitlist, :count)
       end
     end
+
+    context "DB-backed constraints" do
+      it "raises on duplicate discogs_username" do
+        Waitlist.create!(name: "First", email: "a@b.com", discogs_username: "dup")
+        second = Waitlist.new(name: "Second", email: "c@d.com", discogs_username: "dup")
+        expect { second.save(validate: false) }.to raise_error(ActiveRecord::RecordNotUnique)
+      end
+
+      it "rejects null name at database level" do
+        entry = Waitlist.new(name: nil, email: "a@b.com", discogs_username: "user")
+        expect { entry.save(validate: false) }.to raise_error(ActiveRecord::NotNullViolation)
+      end
+
+      it "rejects null email at database level" do
+        entry = Waitlist.new(name: "Store", email: nil, discogs_username: "user")
+        expect { entry.save(validate: false) }.to raise_error(ActiveRecord::NotNullViolation)
+      end
+
+      it "rejects null discogs_username at database level" do
+        entry = Waitlist.new(name: "Store", email: "a@b.com", discogs_username: nil)
+        expect { entry.save(validate: false) }.to raise_error(ActiveRecord::NotNullViolation)
+      end
+    end
   end
 end
