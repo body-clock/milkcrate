@@ -28,17 +28,12 @@
       <% end %>
 
       <nav class="flex items-center gap-4 text-sm">
-        <%= link_to "Sessions", dig_sessions_path, class: "mc-nav-link" %>
         <%= link_to "+ Store", new_store_path, class: "mc-nav-link" %>
         <button data-action="click->theme#toggle" class="mc-nav-link" title="Toggle light/dark">
           ◑
         </button>
       </nav>
     </header>
-
-    <div id="session-bar">
-      <%= render "shared/session_bar", dig_session: @current_dig_session %>
-    </div>
 
     <% if notice %>
       <div class="px-4 py-2 text-sm mc-notice" role="alert">
