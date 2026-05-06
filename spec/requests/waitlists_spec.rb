@@ -78,6 +78,33 @@ RSpec.describe "Waitlists", type: :request do
         }.not_to change(Waitlist, :count)
       end
 
+      it "re-renders the apply page with a Turnstile error when verification fails" do
+        allow(TurnstileVerifier).to receive(:verify).with(
+          token: "bad-token",
+          remote_ip: "127.0.0.1"
+        ).and_return(false)
+
+        post "/waitlist", params: valid_params.merge(turnstile_token: "bad-token")
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("Please confirm you are human.")
+      end
+
+      it "re-renders the apply page when upstream verification fails closed" do
+        allow(TurnstileVerifier).to receive(:verify).with(
+          token: "timeout-token",
+          remote_ip: "127.0.0.1"
+        ).and_return(false)
+
+        expect {
+          post "/waitlist", params: valid_params.merge(turnstile_token: "timeout-token")
+        }.not_to change(Waitlist, :count)
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("turnstile")
+        expect(response.body).to include("submitted")
+      end
+
       it "creates an entry when Turnstile verification succeeds" do
         allow(TurnstileVerifier).to receive(:verify).with(
           token: "good-token",
