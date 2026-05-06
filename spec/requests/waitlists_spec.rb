@@ -21,6 +21,14 @@ RSpec.describe "Waitlists", type: :request do
         }.to change(Waitlist, :count).by(1)
       end
 
+      it "sends a confirmation email" do
+        expect {
+          post "/waitlist", params: valid_params
+        }.to have_enqueued_job(ActionMailer::MailDeliveryJob).with(
+          "SellerMailer", "confirmation", "deliver_now", any_args
+        )
+      end
+
       it "renders the apply page with submitted: true" do
         post "/waitlist", params: valid_params
         expect(response).to have_http_status(:ok)

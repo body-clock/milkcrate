@@ -12,6 +12,7 @@ class WaitlistsController < ApplicationController
     entry = Waitlist.new(waitlist_params)
 
     if entry.save
+      SellerMailer.confirmation(entry).deliver_later
       render inertia: "apply", props: apply_props.merge(submitted: true)
     else
       render inertia: "apply", props: apply_props.merge(
