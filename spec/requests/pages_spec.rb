@@ -24,6 +24,18 @@ RSpec.describe "Pages", type: :request do
       expect(response.body).to include("apply")
     end
 
+    it "sends Content-Security-Policy header" do
+      get "/apply"
+      expect(response.headers["Content-Security-Policy"]).to be_present
+    end
+
+    it "includes script-src with nonce in the CSP" do
+      get "/apply"
+      csp = response.headers["Content-Security-Policy"]
+      expect(csp).to include("script-src")
+      expect(csp).to include("'nonce-")
+    end
+
     it "includes Turnstile configuration for the apply form" do
       allow(TurnstileVerifier).to receive(:enabled?).and_return(true)
       allow(TurnstileVerifier).to receive(:site_key).and_return("site-key")

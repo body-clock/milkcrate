@@ -39,6 +39,11 @@ class PicksSelector
       .map(&:first)
   end
 
+  # Returns a breakdown hash of scoring components for a single listing.
+  # Used by the score debug rake task to produce detailed output.
+  def score_breakdown_for(listing)
+    scorer_for(store_genre_counts).score_breakdown(listing)
+  end
   private
 
   def score_all(listing_ids: nil)
@@ -49,13 +54,16 @@ class PicksSelector
   def scored_inventory
     @scored_inventory ||= begin
       listings = @store.listings.available.lp_only.to_a
-      gc = store_genre_counts
-      scorer = RecordScorer.new(genre_counts: gc, today: @today)
+      scorer = scorer_for(store_genre_counts)
       listings.map { |l| [ l, scorer.score(l) ] }
     end
   end
 
   def store_genre_counts
     @store_genre_counts ||= @store.listings.available.lp_only.pluck(:genres).map(&:first).compact.tally
+  end
+
+  def scorer_for(genre_counts)
+    RecordScorer.new(genre_counts:, today: @today)
   end
 end
