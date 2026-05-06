@@ -35,6 +35,18 @@ RSpec.describe TurnstileVerifier do
     end
   end
 
+  describe "timeout configuration" do
+    it "uses explicit open/read/write timeouts" do
+      faraday = Faraday.new do |f|
+        f.request :url_encoded
+      end
+
+      expect(described_class::OPEN_TIMEOUT).to eq(2)
+      expect(described_class::READ_TIMEOUT).to eq(5)
+      expect(described_class::WRITE_TIMEOUT).to eq(5)
+    end
+  end
+
   describe ".verify" do
     it "returns false without a token" do
       ENV["TURNSTILE_SECRET_KEY"] = "secret"
@@ -60,6 +72,32 @@ RSpec.describe TurnstileVerifier do
       stub_turnstile_response("success" => false)
 
       expect(described_class.verify(token: "token", remote_ip: "127.0.0.1")).to eq(false)
+    end
+
+    it "returns false and logs on connection failure" do
+      ENV["TURNSTILE_SECRET_KEY"] = "secret"
+      connection = instance_double(Faraday::Connection)
+      allow(connection).to receive(:post).and_raise(Faraday::ConnectionFailed, "connection refused")
+      allow(described_class).to receive(:connection).and_return(connection)
+      allow(Rails.logger).to receive(:warn)
+
+      result = described_class.verify(token: "token", remote_ip: "127.0.0.1")
+
+      expect(result).to eq(false)
+      expect(Rails.logger).to have_received(:warn).with(/Upstream connection failed/)
+    end
+
+    it "returns false and logs on timeout" do
+      ENV["TURNSTILE_SECRET_KEY"] = "secret"
+      connection = instance_double(Faraday::Connection)
+      allow(connection).to receive(:post).and_raise(Faraday::TimeoutError, "timeout")
+      allow(described_class).to receive(:connection).and_return(connection)
+      allow(Rails.logger).to receive(:warn)
+
+      result = described_class.verify(token: "token", remote_ip: "127.0.0.1")
+
+      expect(result).to eq(false)
+      expect(Rails.logger).to have_received(:warn).with(/Upstream timeout/)
     end
   end
 
