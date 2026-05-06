@@ -4,7 +4,7 @@ import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import RecordCard from "./record_card"
 import PileSheet from "./pile_sheet"
-import { DigSessionProvider } from "../contexts/dig_session_context"
+import { PileProvider } from "../contexts/pile_context"
 import type { Listing } from "../types/inertia"
 
 const makeListing = (overrides: Partial<Listing> = {}): Listing => ({
@@ -27,8 +27,8 @@ const makeListing = (overrides: Partial<Listing> = {}): Listing => ({
   ...overrides,
 })
 
-const renderWithSession = (ui: React.ReactElement) => (
-  render(<DigSessionProvider>{ui}</DigSessionProvider>)
+const renderWithPile = (ui: React.ReactElement) => (
+  render(<PileProvider>{ui}</PileProvider>)
 )
 
 beforeEach(() => {
@@ -37,7 +37,7 @@ beforeEach(() => {
 
 describe("interactive accessibility", () => {
   it("flips a record card with the keyboard", async () => {
-    renderWithSession(<RecordCard listing={makeListing({ title: "Keyboard Record" })} />)
+    renderWithPile(<RecordCard listing={makeListing({ title: "Keyboard Record" })} />)
 
     const card = screen.getByRole("button", { name: "Show details for Keyboard Record" })
     card.focus()
@@ -49,7 +49,7 @@ describe("interactive accessibility", () => {
   it("closes the pile sheet with Escape", async () => {
     const onClose = vi.fn()
 
-    renderWithSession(<PileSheet open onClose={onClose} />)
+    renderWithPile(<PileSheet open onClose={onClose} />)
 
     expect(screen.getByRole("dialog", { name: "Your pile" })).toBeInTheDocument()
 

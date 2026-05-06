@@ -1,6 +1,6 @@
 import React from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { useDigSessionContext } from "../contexts/dig_session_context"
+import { usePileContext } from "../contexts/pile_context"
 import { useIsDesktop } from "../hooks/use_is_desktop"
 
 interface Props {
@@ -9,7 +9,7 @@ interface Props {
 }
 
 export default function PileSheet({ open, onClose }: Props) {
-  const { pile, removeFromPile, clearPile } = useDigSessionContext()
+  const { pile, removeFromPile, clearPile } = usePileContext()
   const isDesktop = useIsDesktop()
   const [confirmClear, setConfirmClear] = React.useState(false)
   const dialogRef = React.useRef<HTMLDivElement>(null)

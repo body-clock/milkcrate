@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react"
 import { motion } from "framer-motion"
-import { useDigSessionContext } from "../contexts/dig_session_context"
+import { usePileContext } from "../contexts/pile_context"
 import type { Listing } from "../types/inertia"
 
 interface Props {
@@ -15,7 +15,7 @@ interface Props {
 export default function RecordCard({ listing, resetKey, className = "", imageLoading = "lazy", disableFlip = false, framed = false }: Props) {
   const [flipped, setFlipped] = useState(false)
   const pointerDown = useRef<{ x: number; y: number } | null>(null)
-  const { inPile, addToPile, removeFromPile } = useDigSessionContext()
+  const { inPile, addToPile, removeFromPile } = usePileContext()
   const canFlip = !disableFlip
 
   useEffect(() => {
