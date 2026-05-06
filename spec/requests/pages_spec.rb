@@ -11,6 +11,13 @@ RSpec.describe "Pages", type: :request do
       get "/"
       expect(response.body).to include("home")
     end
+
+    it "does not render retired dig-session navigation" do
+      get "/"
+
+      expect(response.body).not_to include("Sessions")
+      expect(response.body).not_to include("session-bar")
+    end
   end
 
   describe "GET /apply" do
@@ -32,6 +39,13 @@ RSpec.describe "Pages", type: :request do
 
       expect(response.body).to include("turnstile")
       expect(response.body).to include("site-key")
+    end
+
+    it "renders without retired dig-session UI" do
+      get "/apply"
+
+      expect(response.body).not_to include("Sessions")
+      expect(response.body).not_to include("session-bar")
     end
   end
 end

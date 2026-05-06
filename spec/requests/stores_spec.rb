@@ -27,6 +27,13 @@ RSpec.describe "Stores", type: :request do
         get "/teststore"
         expect(response.body).to include("stores/featured")
       end
+
+      it "renders successfully without retired dig-session UI" do
+        get "/teststore"
+
+        expect(response.body).not_to include("Sessions")
+        expect(response.body).not_to include("session-bar")
+      end
     end
 
     context "with unknown slug" do
