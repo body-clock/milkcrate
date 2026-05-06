@@ -19,9 +19,20 @@ class EnrichReleasesJob < ApplicationJob
       Release.find_by(discogs_release_id: rid)&.then { |r| !r.stale? }
     end
 
-    Rails.logger.info "[EnrichReleasesJob] #{stale_release_ids.size} releases to enrich for store #{store.name}"
+    # Also re-enrich releases whose listings were downgraded to thumbnails by a
+    # subsequent sync (ListingReconciler no longer overwrites cover_image_url on
+    # update, but historical damage needs repair).
+    downgraded_release_ids = store.listings
+      .where(discogs_release_id: release_ids)
+      .where("cover_image_url = thumbnail_url AND cover_image_url IS NOT NULL AND thumbnail_url IS NOT NULL")
+      .distinct
+      .pluck(:discogs_release_id)
 
-    stale_release_ids.each_slice(BATCH_SIZE) do |batch|
+    enrich_ids = (stale_release_ids + downgraded_release_ids).uniq
+
+    Rails.logger.info "[EnrichReleasesJob] #{enrich_ids.size} releases to enrich for store #{store.name} (stale: #{stale_release_ids.size}, downgraded: #{downgraded_release_ids.size})"
+
+    enrich_ids.each_slice(BATCH_SIZE) do |batch|
       batch.each do |release_id|
         remaining = enrich_release(client, release_id, store)
         if remaining <= RATE_LIMIT_LOW
