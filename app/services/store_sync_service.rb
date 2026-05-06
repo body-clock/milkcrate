@@ -13,28 +13,10 @@ class StoreSyncService
   def full_sync(max_pages: nil, sort_order: "desc", manage_status: true)
     sync_started_at = Time.current
     @store.update!(sync_status: "syncing") if manage_status
-    page = 1
-    total_imported = 0
+    fetcher = StoreSync::InventoryFetcher.new(@store, client: @client)
+    result = fetcher.fetch(sort_order: sort_order, max_pages: max_pages)
 
-    loop do
-      data = @client.seller_inventory(@store.discogs_username, page: page, sort_order: sort_order)
-      listings = data["listings"] || []
-      break if listings.empty?
-
-      import_listings(listings)
-      total_imported += listings.size
-
-      pagination = data["pagination"] || {}
-      break if page >= (pagination["pages"] || 1)
-      break if max_pages && page >= max_pages
-
-      page += 1
-      sleep(0.5) # be kind to the API
-    rescue DiscogsClient::ApiError => e
-      raise unless e.message.include?("Pagination above 100")
-      Rails.logger.info "[StoreSyncService] Hit Discogs 100-page limit for #{@store.discogs_username}, stopping at page #{page}"
-      break
-    end
+    import_listings(result.listings)
 
     if manage_status
       @store.update!(
@@ -44,8 +26,8 @@ class StoreSyncService
       )
     end
 
-    total_imported
-  rescue StandardError => e
+    result.listings.size
+  rescue StandardError
     @store.update!(sync_status: "failed") if manage_status
     raise
   end
@@ -106,29 +88,12 @@ class StoreSyncService
   end
 
   def fetch_public_listings(sort_order:, max_pages:)
-    page = 1
-    page_count = 0
-    fetched_listings = []
+    fetcher = StoreSync::InventoryFetcher.new(@store, client: @client)
+    result = fetcher.fetch(sort_order: sort_order, max_pages: max_pages)
 
-    loop do
-      data = @client.seller_inventory(@store.discogs_username, page:, sort_order:)
-      listings = data["listings"] || []
-      pagination = data["pagination"] || {}
-      page_count = [ page_count, pagination.fetch("pages", page).to_i, page ].max
-
-      fetched_listings.concat(listings)
-      break if listings.empty?
-      break if page >= page_count
-      break if max_pages && page >= max_pages
-
-      page += 1
-      sleep(0.5)
-    rescue DiscogsClient::ApiError => e
-      raise unless e.message.include?("Pagination above 100")
-      Rails.logger.info "[StoreSyncService] Hit Discogs 100-page limit for #{@store.discogs_username}, stopping at page #{page}"
-      break
-    end
-
-    { listings: fetched_listings, page_count: page_count }
+    {
+      listings: result.listings,
+      page_count: [ result.pages_fetched, result.total_pages.to_i ].max
+    }
   end
 end
