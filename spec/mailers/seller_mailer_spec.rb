@@ -7,8 +7,8 @@ RSpec.describe SellerMailer, type: :mailer do
 
     it "renders the headers" do
       expect(mail.subject).to eq("Welcome to Milkcrate — we're reviewing your store")
-      expect(mail.to).to eq(["store@example.com"])
-      expect(mail.from).to eq(["from@example.com"])
+      expect(mail.to).to eq([ "store@example.com" ])
+      expect(mail.from).to eq([ "from@example.com" ])
     end
 
     it "renders the body with seller name" do
