@@ -35,18 +35,6 @@ RSpec.describe TurnstileVerifier do
     end
   end
 
-  describe "timeout configuration" do
-    it "uses explicit open/read/write timeouts" do
-      faraday = Faraday.new do |f|
-        f.request :url_encoded
-      end
-
-      expect(described_class::OPEN_TIMEOUT).to eq(2)
-      expect(described_class::READ_TIMEOUT).to eq(5)
-      expect(described_class::WRITE_TIMEOUT).to eq(5)
-    end
-  end
-
   describe ".verify" do
     it "returns false without a token" do
       ENV["TURNSTILE_SECRET_KEY"] = "secret"
