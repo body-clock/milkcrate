@@ -18,7 +18,10 @@ RSpec.describe "milkcrate:score" do
       last_surfaced_at: nil
     )
   end
-  let(:expected_breakdown) { PicksSelector.new(store).score_breakdown_for(listing) }
+  let(:expected_breakdown) do
+    genre_counts = store.listings.available.lp_only.pluck(:genres).map(&:first).compact.tally
+    RecordScorer.new(genre_counts:, today: Date.today).score_breakdown(listing)
+  end
   let(:expected_total) { expected_breakdown.values.sum.round(3) }
 
   before(:all) do
