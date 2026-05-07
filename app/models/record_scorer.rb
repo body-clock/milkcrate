@@ -27,6 +27,9 @@ class RecordScorer
 
   NOISE_MAGNITUDE = 1.5
 
+  COVER_BOOST = 1.0
+  COVER_PENALTY = -1.0
+
   def initialize(genre_counts:, today: Date.today)
     @genre_counts = genre_counts
     @today = today
@@ -43,6 +46,7 @@ class RecordScorer
       section: section_points(listing),
       desirability: desirability_points(listing),
       metadata: metadata_penalty(listing),
+      cover_quality: cover_quality_points(listing),
       freshness: freshness_score(listing),
       noise: daily_noise(listing)
     }
@@ -87,6 +91,17 @@ class RecordScorer
 
   def metadata_penalty(listing)
     listing.styles.empty? && listing.genres.size <= 1 && listing.year.nil? ? -1.0 : 0.0
+  end
+
+  def cover_quality_points(listing)
+    cover = listing.cover_image_url
+    thumb = listing.thumbnail_url
+
+    return 0.0 if cover.nil? && thumb.nil?
+    return COVER_PENALTY if cover.nil? || thumb.nil?
+    return COVER_PENALTY if cover == thumb
+
+    COVER_BOOST
   end
 
   def freshness_score(listing)

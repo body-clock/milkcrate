@@ -87,8 +87,9 @@ namespace :milkcrate do
 
     store    = default_store
     listing  = store.listings.find(args[:id])
-    selector = PicksSelector.new(store)
-    breakdown = selector.score_breakdown_for(listing)
+    genre_counts = store.listings.available.lp_only.pluck(:genres).map(&:first).compact.tally
+    scorer = RecordScorer.new(genre_counts:, today: Date.today)
+    breakdown = scorer.score_breakdown(listing)
     score    = breakdown.values.sum
 
     today    = Date.today
