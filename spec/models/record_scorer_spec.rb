@@ -8,6 +8,7 @@ RSpec.describe RecordScorer do
   ScorerFakeListing = Struct.new(
     :id, :genres, :styles, :year, :condition,
     :want_count, :have_count, :last_surfaced_at,
+    :cover_image_url, :thumbnail_url,
     keyword_init: true
   ) do
     def primary_genre = genres.first
@@ -119,6 +120,32 @@ RSpec.describe RecordScorer do
 
       expect(same_day_score).to eq(today_score)
       expect(next_day_score).not_to eq(today_score)
+    end
+
+    describe "cover quality" do
+      it "boosts listings with a distinct cover image" do
+        scorer = described_class.new(genre_counts: { "Jazz" => 5 }, today: Date.new(2026, 5, 5))
+        good_cover = fake_listing(id: 1, genres: [ "Jazz" ], cover_image_url: "https://example.com/cover.jpg", thumbnail_url: "https://example.com/thumb.jpg")
+        thumb_only = fake_listing(id: 2, genres: [ "Jazz" ], cover_image_url: "https://example.com/thumb.jpg", thumbnail_url: "https://example.com/thumb.jpg")
+
+        expect(scorer.score(good_cover)).to be > scorer.score(thumb_only)
+      end
+
+      it "penalizes listings where cover equals thumbnail" do
+        scorer = described_class.new(genre_counts: { "Jazz" => 5 }, today: Date.new(2026, 5, 5))
+        matched = fake_listing(id: 1, genres: [ "Jazz" ], cover_image_url: "https://example.com/img.jpg", thumbnail_url: "https://example.com/img.jpg")
+        none = fake_listing(id: 1, genres: [ "Jazz" ], cover_image_url: nil, thumbnail_url: nil)
+
+        expect(scorer.score(none)).to be > scorer.score(matched)
+      end
+
+      it "penalizes listings missing a cover image" do
+        scorer = described_class.new(genre_counts: { "Jazz" => 5 }, today: Date.new(2026, 5, 5))
+        thumb_only = fake_listing(id: 1, genres: [ "Jazz" ], cover_image_url: nil, thumbnail_url: "https://example.com/thumb.jpg")
+        none = fake_listing(id: 1, genres: [ "Jazz" ], cover_image_url: nil, thumbnail_url: nil)
+
+        expect(scorer.score(none)).to be > scorer.score(thumb_only)
+      end
     end
   end
 end
