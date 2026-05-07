@@ -59,9 +59,9 @@ RSpec.describe "Stores", type: :request do
     end
 
     it "builds a genre bin for each primary genre present" do
-      # genre cap is count/3=4, so create 6 per genre to guarantee survivors after picks exclusion
-      create_list(:listing, 6, store: store, genres: [ "Jazz" ], format: "LP")
-      create_list(:listing, 6, store: store, genres: [ "Rock" ], format: "LP")
+      # Need enough records that genre crates survive after picks + featured (up to 100) dedup
+      create_list(:listing, 100, store: store, genres: [ "Jazz" ], format: "LP")
+      create_list(:listing, 100, store: store, genres: [ "Rock" ], format: "LP")
 
       crates = inertia_get("/teststore").dig("props", "crates")
       slugs = crates.map { |c| c["slug"] }
@@ -83,11 +83,12 @@ RSpec.describe "Stores", type: :request do
     end
 
     it "caps each genre bin at 50 records" do
-      create_list(:listing, 60, store: store, genres: [ "Jazz" ], format: "LP")
+      # Need 200: picks(4) + new_arrivals(50) + thematic(50) + genre(50) = 154 consumed from pool
+      create_list(:listing, 200, store: store, genres: [ "Jazz" ], format: "LP")
 
       crates = inertia_get("/teststore").dig("props", "crates")
       jazz_crate = crates.find { |c| c["slug"] == "jazz" }
-      expect(jazz_crate["records"].size).to eq(48)
+      expect(jazz_crate["records"].size).to eq(50)
     end
 
     it "returns explicit storefront section semantics in payload order" do
