@@ -9,9 +9,10 @@ export default function Featured({ store, crates, storefront_sections }: Feature
   const [startIndex, setStartIndex] = useState(0)
 
   const allCrates = useMemo(() => {
-    if (!storefront_sections?.length) return crates
+    if (crates.length > 0) return crates
+    if (!storefront_sections?.length) return []
     return storefront_sections.flatMap((s) => ("crate" in s ? [s.crate] : s.crates))
-  }, [storefront_sections, crates])
+  }, [crates, storefront_sections])
 
   const handleSelectCrate = (slug: string, index = 0) => {
     setStartIndex(index)

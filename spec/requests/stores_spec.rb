@@ -87,7 +87,7 @@ RSpec.describe "Stores", type: :request do
 
       crates = inertia_get("/teststore").dig("props", "crates")
       jazz_crate = crates.find { |c| c["slug"] == "jazz" }
-      expect(jazz_crate["records"].size).to eq(50)
+      expect(jazz_crate["records"].size).to eq(48)
     end
 
     it "returns explicit storefront section semantics in payload order" do

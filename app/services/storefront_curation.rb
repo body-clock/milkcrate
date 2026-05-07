@@ -1,7 +1,6 @@
 require "set"
 
 class StorefrontCuration
-  FEATURED_CRATE_SIZE = 4
   FEATURED_MIN_RECORDS = 4
   GENRE_CRATE_SIZE = 50
 
@@ -15,9 +14,14 @@ class StorefrontCuration
     picks_list = selector.select_picks(count: 12)
     picks_ids = picks_list.map(&:id).to_set
 
+    featured_crates = build_featured_crates(excluded_ids: picks_ids)
+    featured_ids = featured_crates.flat_map(&:listings).map(&:id).to_set
+    all_excluded = picks_ids | featured_ids
+
     [
       CuratedCrate.new(slug: "picks", name: "Milkcrate Picks", listings: picks_list),
-      *build_genre_crates(excluded_ids: picks_ids)
+      *featured_crates,
+      *build_genre_crates(excluded_ids: all_excluded)
     ]
   end
 
@@ -49,7 +53,7 @@ class StorefrontCuration
   private
 
   def build_featured_crates(excluded_ids:)
-    new_arrivals_listings = new_arrivals_listings(excluded_ids: excluded_ids)
+    new_arrivals_listings = new_arrivals_listings(excluded_ids: excluded_ids).first(GENRE_CRATE_SIZE)
     featured_seen_ids = excluded_ids | new_arrivals_listings.map(&:id).to_set
 
     new_arrivals = CuratedCrate.new(
@@ -58,6 +62,7 @@ class StorefrontCuration
       listings: new_arrivals_listings
     )
     thematic = thematic_crate(excluded_ids: featured_seen_ids)
+    thematic = CuratedCrate.new(slug: thematic.slug, name: thematic.name, listings: thematic.listings.first(GENRE_CRATE_SIZE))
 
     return [] if [ new_arrivals, thematic ].any? { |crate| crate.listings.size < FEATURED_MIN_RECORDS }
 
