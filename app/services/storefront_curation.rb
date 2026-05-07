@@ -87,14 +87,18 @@ class StorefrontCuration
     seen_ids = excluded_ids.dup
     scorer   = RecordScorer.new(genre_counts:, today: Date.today)
 
+    # Score all eligible (non-excluded) listings once, sorted best-first.
+    # Each genre then filters its slice from this shared scored pool.
+    scored = eligible_listings
+      .reject { |l| excluded_ids.include?(l.id) }
+      .map    { |l| [ l, scorer.score(l) ] }
+      .sort_by { |_, s| -s }
+
     genre_counts.sort_by { |_, count| -count }.filter_map do |genre, _|
-      listings = eligible_listings
-        .select { |l| l.primary_genre == genre }
-        .reject { |l| seen_ids.include?(l.id) }
-        .map    { |l| [ l, scorer.score(l) ] }
-        .sort_by { |_, s| -s }
-        .map(&:first)
+      listings = scored
+        .select { |l, _| l.primary_genre == genre && !seen_ids.include?(l.id) }
         .first(CuratedCrate::CRATE_SIZE)
+        .map(&:first)
 
       next if listings.empty?
 
