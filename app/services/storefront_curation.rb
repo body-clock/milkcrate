@@ -56,11 +56,10 @@ class StorefrontCuration
     na_listings = new_arrivals_strategy.select(eligible_listings, excluded_ids:)
       .first(CuratedCrate::CRATE_SIZE)
 
-    return [] if na_listings.size < CuratedCrate::MIN_RECORDS
+    new_arrivals = CuratedCrate.new(slug: "new-arrivals", name: "New Arrivals", listings: na_listings)
+    return [] unless new_arrivals.viable?
 
     na_seen = excluded_ids | na_listings.map(&:id).to_set
-    new_arrivals = CuratedCrate.new(slug: "new-arrivals", name: "New Arrivals", listings: na_listings)
-
     thematic = build_thematic_crate(excluded_ids: na_seen)
     return [ new_arrivals ] unless thematic
 
@@ -73,9 +72,10 @@ class StorefrontCuration
 
     name, listings = result
     capped = listings.first(CuratedCrate::CRATE_SIZE)
-    return if capped.size < CuratedCrate::MIN_RECORDS
+    crate = CuratedCrate.new(slug: "thematic", name:, listings: capped)
+    return unless crate.viable?
 
-    CuratedCrate.new(slug: "thematic", name:, listings: capped)
+    crate
   end
 
   # -----------------------------------------------------------------------
@@ -99,10 +99,11 @@ class StorefrontCuration
         .first(CuratedCrate::CRATE_SIZE)
         .map(&:first)
 
-      next if listings.empty?
+      crate = CuratedCrate.new(slug: genre.parameterize, name: genre, listings:)
+      next unless crate.viable?
 
       listings.each { |listing| seen_ids.add(listing.id) }
-      CuratedCrate.new(slug: genre.parameterize, name: genre, listings:)
+      crate
     end
   end
 

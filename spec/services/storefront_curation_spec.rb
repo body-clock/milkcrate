@@ -48,9 +48,9 @@ RSpec.describe StorefrontCuration do
 
     it "adds genre crates after picks" do
       store = create(:store)
-      listing = lp_listing(store, genres: [ "Jazz" ])
+      listings = lp_listings(store, count: 5, genres: [ "Jazz" ], styles: [ "Bop" ])
 
-      curation = curation_with_strategies(store, picks: [], genre_scores: { listing.id => 10 })
+      curation = curation_with_strategies(store, picks: [], genre_scores: listings.each_with_index.to_h { |l, i| [ l.id, i + 1 ] })
       crates = curation.crates
       expect(crates.first.slug).to eq("picks")
       expect(crates.map(&:name)).to include("Jazz")
@@ -77,11 +77,14 @@ RSpec.describe StorefrontCuration do
       store = create(:store)
       jazz1 = lp_listing(store, genres: [ "Jazz" ])
       jazz2 = lp_listing(store, genres: [ "Jazz" ])
+      jazz3 = lp_listing(store, genres: [ "Jazz" ])
+      jazz4 = lp_listing(store, genres: [ "Jazz" ])
+      jazz5 = lp_listing(store, genres: [ "Jazz" ])
 
-      curation = curation_with_strategies(store, picks: [ jazz1 ], genre_scores: { jazz1.id => 5, jazz2.id => 10 })
+      curation = curation_with_strategies(store, picks: [ jazz1 ], genre_scores: { jazz1.id => 5, jazz2.id => 10, jazz3.id => 9, jazz4.id => 8, jazz5.id => 7 })
       jazz_crate = curation.crates.find { |crate| crate.name == "Jazz" }
       expect(jazz_crate).to be_present
-      expect(jazz_crate.listings).to eq([ jazz2 ])
+      expect(jazz_crate.listings).to eq([ jazz2, jazz3, jazz4, jazz5 ])
     end
   end
 
@@ -92,7 +95,7 @@ RSpec.describe StorefrontCuration do
         picks = lp_listings(store, count: 1, genres: [ "Jazz" ], styles: [ "Bop" ], listed_at: 10.days.ago)
         fresh = lp_listings(store, count: 4, genres: [ "Soul" ], styles: [ "Deep Funk" ], listed_at: 1.day.ago)
         themed = lp_listings(store, count: 4, genres: [ "Funk / Soul" ], styles: [ "Boogie" ], listed_at: 5.days.ago)
-        genre_only = lp_listings(store, count: 1, genres: [ "Rock" ], styles: [ "Indie Rock" ], listed_at: 9.days.ago)
+        genre_only = lp_listings(store, count: 4, genres: [ "Rock" ], styles: [ "Indie Rock" ], listed_at: 9.days.ago)
 
         all_listings = picks + fresh + themed + genre_only
         genre_scores = all_listings.each_with_index.to_h { |l, i| [ l.id, all_listings.size - i ] }
@@ -124,7 +127,7 @@ RSpec.describe StorefrontCuration do
         pick = lp_listings(store, count: 1, genres: [ "Jazz" ], styles: [ "Bop" ], listed_at: 10.days.ago)
         fresh = lp_listings(store, count: 4, genres: [ "Soul" ], styles: [ "Deep Funk" ], listed_at: 1.day.ago)
         themed = lp_listings(store, count: 4, genres: [ "Funk / Soul" ], styles: [ "Boogie" ], listed_at: 5.days.ago)
-        genre = lp_listings(store, count: 1, genres: [ "Rock" ], styles: [ "Indie Rock" ], listed_at: 9.days.ago)
+        genre = lp_listings(store, count: 4, genres: [ "Rock" ], styles: [ "Indie Rock" ], listed_at: 9.days.ago)
 
         all_listings = pick + fresh + themed + genre
         genre_scores = all_listings.each_with_index.to_h { |l, i| [ l.id, all_listings.size - i ] }
@@ -153,9 +156,9 @@ RSpec.describe StorefrontCuration do
       travel_to(Time.zone.parse("2026-05-05 12:00:00")) do
         store = create(:store)
         pick = lp_listings(store, count: 1, genres: [ "Jazz" ], styles: [ "Bop" ])
-        fresh = lp_listings(store, count: 1, genres: [ "Soul" ], styles: [ "Deep Funk" ], listed_at: 1.day.ago)
-        themed = lp_listings(store, count: 1, genres: [ "Funk / Soul" ], styles: [ "Boogie" ], listed_at: 2.days.ago)
-        genre = lp_listings(store, count: 1, genres: [ "Rock" ], styles: [ "Indie Rock" ])
+        fresh = lp_listings(store, count: 4, genres: [ "Soul" ], styles: [ "Deep Funk" ], listed_at: 1.day.ago)
+        themed = lp_listings(store, count: 4, genres: [ "Funk / Soul" ], styles: [ "Boogie" ], listed_at: 2.days.ago)
+        genre = lp_listings(store, count: 4, genres: [ "Rock" ], styles: [ "Indie Rock" ])
 
         all_listings = pick + fresh + themed + genre
         genre_scores = all_listings.each_with_index.to_h { |l, i| [ l.id, all_listings.size - i ] }

@@ -11,4 +11,8 @@ class CuratedCrate
     @name = name
     @listings = listings
   end
+
+  def viable?
+    listings.size >= MIN_RECORDS
+  end
 end

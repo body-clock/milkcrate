@@ -71,8 +71,8 @@ RSpec.describe "Stores", type: :request do
     it "excludes records from a genre bin when that genre is not primary" do
       # Jazz primary, Rock secondary — should NOT appear in Rock bin
       jazz_primary = create(:listing, store: store, genres: [ "Jazz", "Rock" ], format: "LP")
-      # Rock primary records — enough to survive picks exclusion
-      rock_listings = create_list(:listing, 6, store: store, genres: [ "Rock" ], format: "LP")
+      # Rock primary records — need enough that genre crate survives after picks + new_arrivals(50) + thematic(up to 50) dedup
+      rock_listings = create_list(:listing, 200, store: store, genres: [ "Rock" ], format: "LP")
 
       crates = inertia_get("/teststore").dig("props", "crates")
       rock_crate = crates.find { |c| c["slug"] == "rock" }
