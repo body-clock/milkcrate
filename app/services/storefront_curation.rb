@@ -1,7 +1,6 @@
 require "set"
 
 class StorefrontCuration
-
   def initialize(store)
     @store = store
   end
