@@ -1,7 +1,6 @@
 require "set"
 
 class StorefrontCuration
-  FEATURED_MIN_RECORDS = 4
 
   def initialize(store)
     @store = store
@@ -57,7 +56,7 @@ class StorefrontCuration
     na_listings = new_arrivals_strategy.select(eligible_listings, excluded_ids:)
       .first(CuratedCrate::CRATE_SIZE)
 
-    return [] if na_listings.size < FEATURED_MIN_RECORDS
+    return [] if na_listings.size < CuratedCrate::MIN_RECORDS
 
     na_seen = excluded_ids | na_listings.map(&:id).to_set
     new_arrivals = CuratedCrate.new(slug: "new-arrivals", name: "New Arrivals", listings: na_listings)
@@ -74,7 +73,7 @@ class StorefrontCuration
 
     name, listings = result
     capped = listings.first(CuratedCrate::CRATE_SIZE)
-    return if capped.size < FEATURED_MIN_RECORDS
+    return if capped.size < CuratedCrate::MIN_RECORDS
 
     CuratedCrate.new(slug: "thematic", name:, listings: capped)
   end
