@@ -52,8 +52,5 @@ node_modules
 *.local
 .compound-engineering/*.local.yaml
 
-docs/*
-!docs/solutions/
 .claude
-RAILS_AUDIT_REPORT.md
 .kamal/secrets
