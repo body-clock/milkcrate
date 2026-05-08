@@ -1,7 +1,7 @@
 namespace :milkcrate do
   def default_store
     store = Store.find_by(discogs_username: Settings.discogs_username)
-    raise "No store found for username '#{Settings.discogs_username}'. Run corpus:seed or create one." unless store
+    raise "No store found for username '#{Settings.discogs_username}'. Create one via the Rails console." unless store
     store
   end
 
