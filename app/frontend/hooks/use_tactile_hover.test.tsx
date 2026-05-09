@@ -47,18 +47,19 @@ describe("useTactileHover", () => {
     expect(result.current.transform).toEqual({ rotate: 0, scale: 1, y: 0 })
   })
 
-  it("sets proximity on pointer enter (mouse)", () => {
+  it("computes proximity on pointer enter (mouse) from enter event position", () => {
     const { result } = renderHook(() => useTactileHover(), { wrapper })
 
+    // Enter at element center (50, 50) — should get high proximity immediately
     act(() =>
       result.current.handlers.onPointerEnter(
-        pointerEvent({ pointerType: "mouse" }),
+        pointerEvent({ pointerType: "mouse", clientX: 50, clientY: 50 }),
       ),
     )
 
-    // Binary fallback without onPointerMove: proximity becomes 0
-    // (enter doesn't set proximity for mouse — move handler does)
-    expect(result.current.proximity).toBe(0)
+    // At center: proximity should be near 1 without needing a move event
+    expect(result.current.proximity).toBeGreaterThan(0.9)
+    expect(result.current.isHovered).toBe(true)
   })
 
   it("sets proximity=1 on pointer enter (touch — binary fallback)", () => {
