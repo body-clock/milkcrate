@@ -3,6 +3,7 @@ import { Link, usePage } from "@inertiajs/react"
 import { useTheme } from "@/hooks/use_theme"
 import { PileProvider, usePileContext } from "@/contexts/pile_context"
 import PileSheet from "@/components/pile_sheet"
+import StorefrontMotionConfig from "@/components/storefront_motion_config"
 import { useIsDesktop } from "@/hooks/use_is_desktop"
 
 function AppLayoutInner({ children }: { children: React.ReactNode }) {
@@ -87,8 +88,10 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <PileProvider>
-      <AppLayoutInner>{children}</AppLayoutInner>
-    </PileProvider>
+    <StorefrontMotionConfig>
+      <PileProvider>
+        <AppLayoutInner>{children}</AppLayoutInner>
+      </PileProvider>
+    </StorefrontMotionConfig>
   )
 }
