@@ -5,6 +5,7 @@ import RecordCard from "./record_card"
 import { buildCrateWindow } from "../lib/crate_window"
 import { useIsDesktop } from "@/hooks/use_is_desktop"
 import { usePileContext } from "@/contexts/pile_context"
+import { SCALE_PRESS, springPress } from "@/lib/motion_tokens"
 import type { Crate, Listing } from "../types/inertia"
 
 interface Props {
@@ -323,7 +324,8 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
           type="button"
           onClick={() => navigate(-1)}
           disabled={index <= 0}
-          whileTap={{ scale: 0.92 }}
+          whileTap={{ scale: SCALE_PRESS }}
+          transition={springPress}
           className="flex items-center justify-center w-14 h-14 rounded-full bg-mc-bg-raised text-mc-text text-xl disabled:opacity-20 disabled:cursor-not-allowed hover:bg-mc-bg-card transition-colors select-none"
           aria-label="Previous record"
         >
@@ -338,7 +340,8 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
           type="button"
           onClick={() => navigate(1)}
           disabled={index >= total - 1}
-          whileTap={{ scale: 0.92 }}
+          whileTap={{ scale: SCALE_PRESS }}
+          transition={springPress}
           className="flex items-center justify-center w-14 h-14 rounded-full bg-mc-bg-raised text-mc-text text-xl disabled:opacity-20 disabled:cursor-not-allowed hover:bg-mc-bg-card transition-colors select-none"
           aria-label="Next record"
         >

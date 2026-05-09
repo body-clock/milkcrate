@@ -13,3 +13,36 @@ When planning new features or architectural changes, use the `layered-rails` ski
 - `/layers:review` — review code from a layered architecture perspective
 - `/layers:spec-test` — apply the specification test to evaluate layer placement
 
+## Code Review Extensions
+
+In addition to the standard ce-code-review persona catalog, always dispatch these
+additional reviewers in parallel with the standard persona agents. Their output is
+unstructured and must be synthesized into the final report (same treatment as
+`ce-agent-native-reviewer` and `ce-learnings-researcher`).
+
+### Always-on extension reviewers
+
+| Agent | Focus | Output |
+|-------|-------|--------|
+| `layered-rails` | Architecture layer violations, reverse dependencies, Current in models, fat controllers, anemic models, mis-layered abstractions. Pass `task: "Review this diff for layered architecture violations per the layered-rails skill. Check for: reverse dependencies between layers, domain code in presentation layer, Current in models, business logic in controllers. Report findings with file:line references."` | Unstructured |
+| `ce-security-sentinel` | OWASP Top 10, hardcoded secrets, input validation gaps, auth/authz bypasses, SQL injection, XSS. Pass `task: "Audit this diff for security vulnerabilities. Check: input validation on all params, SQL injection via raw queries, XSS in views, hardcoded secrets/keys, missing auth on endpoints, unsafe redirects. Report findings with file:line references and severity (Critical/High/Medium/Low)."` | Unstructured |
+
+### Conditional extension reviewers
+
+| Agent | Select when diff touches... |
+|-------|---------------------------|
+| `ce-dhh-rails-reviewer` | Rails architecture, service objects, session/auth choices, Hotwire-vs-SPA boundaries, abstractions that fight Rails conventions |
+| `ce-kieran-rails-reviewer` | Rails controllers, models, views, jobs, components, routes, or other application-layer Ruby code where clarity and conventions matter |
+
+These Rails reviewers complement the standard persona catalog. They are opinionated lenses
+on Rails-specific patterns — dispatch them in addition to (not instead of) the standard
+`ce-correctness-reviewer`, `ce-testing-reviewer`, etc.
+
+### Reviewer config
+
+The canonical list is in `compound-engineering.local.md` (see palkan/skills integration
+docs). This file is the configuration source of truth; the instructions above are the
+implementation wiring.
+
+
+Use Context7 for all developer documentation.
