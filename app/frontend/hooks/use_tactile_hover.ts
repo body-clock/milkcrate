@@ -61,7 +61,8 @@ export function useTactileHover(
   // ── Proximity math ───────────────────────────────────────
 
   const updateProximity = useCallback((e: React.PointerEvent) => {
-    const el = e.currentTarget as HTMLElement
+    const el = e.currentTarget as HTMLElement | null
+    if (!el) return 0
     const rect = el.getBoundingClientRect()
 
     const cx = rect.left + rect.width / 2
@@ -102,7 +103,9 @@ export function useTactileHover(
 
       rafRef.current = requestAnimationFrame(() => {
         rafRef.current = null
-        setProximity(updateProximity(e))
+        if (e.currentTarget) {
+          setProximity(updateProximity(e))
+        }
       })
     },
     [reducedMotion, updateProximity],
