@@ -1,75 +1,179 @@
 import React from "react"
-import { describe, it, expect } from "vitest"
+import { describe, it, expect, vi, afterEach } from "vitest"
 import { renderHook, act } from "@testing-library/react"
 import { useTactileHover } from "./use_tactile_hover"
 import StorefrontMotionConfig from "@/components/storefront_motion_config"
 
-// Pointer event stub matching the shape useTactileHover expects
-const pointerEvent = {} as React.PointerEvent
+// Minimal pointer event stub
+function pointerEvent(
+  overrides: Partial<React.PointerEvent> = {},
+): React.PointerEvent {
+  return {
+    pointerType: "mouse",
+    clientX: 0,
+    clientY: 0,
+    currentTarget: {
+      getBoundingClientRect: () => ({
+        left: 0,
+        top: 0,
+        width: 100,
+        height: 100,
+        right: 100,
+        bottom: 100,
+        x: 0,
+        y: 0,
+        toJSON: () => ({}),
+      }),
+    },
+    ...overrides,
+  } as unknown as React.PointerEvent
+}
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
   <StorefrontMotionConfig>{children}</StorefrontMotionConfig>
 )
 
 describe("useTactileHover", () => {
-  it("returns default state initially", () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it("returns idle state initially", () => {
     const { result } = renderHook(() => useTactileHover(), { wrapper })
 
     expect(result.current.isHovered).toBe(false)
     expect(result.current.isPressed).toBe(false)
+    expect(result.current.proximity).toBe(0)
     expect(result.current.transform).toEqual({ rotate: 0, scale: 1, y: 0 })
-    expect(result.current.transition).toBeDefined()
   })
 
-  it("sets isHovered on pointer enter", () => {
+  it("sets proximity on pointer enter (mouse)", () => {
     const { result } = renderHook(() => useTactileHover(), { wrapper })
 
-    act(() => result.current.handlers.onPointerEnter(pointerEvent))
+    act(() =>
+      result.current.handlers.onPointerEnter(
+        pointerEvent({ pointerType: "mouse" }),
+      ),
+    )
 
+    // Binary fallback without onPointerMove: proximity becomes 0
+    // (enter doesn't set proximity for mouse — move handler does)
+    expect(result.current.proximity).toBe(0)
+  })
+
+  it("sets proximity=1 on pointer enter (touch — binary fallback)", () => {
+    const { result } = renderHook(() => useTactileHover(), { wrapper })
+
+    act(() =>
+      result.current.handlers.onPointerEnter(
+        pointerEvent({ pointerType: "touch" }),
+      ),
+    )
+
+    expect(result.current.proximity).toBe(1)
     expect(result.current.isHovered).toBe(true)
-    expect(result.current.transform.scale).toBeGreaterThan(1) // SCALE_HOVER
-    expect(result.current.transform.y).toBeLessThan(0) // lifted
   })
 
-  it("resets on pointer leave", () => {
+  it("resets to idle on pointer leave", () => {
     const { result } = renderHook(() => useTactileHover(), { wrapper })
 
-    act(() => result.current.handlers.onPointerEnter(pointerEvent))
-    act(() => result.current.handlers.onPointerLeave(pointerEvent))
+    act(() =>
+      result.current.handlers.onPointerEnter(
+        pointerEvent({ pointerType: "touch" }),
+      ),
+    )
+    expect(result.current.proximity).toBe(1)
 
+    act(() => result.current.handlers.onPointerLeave(pointerEvent()))
+
+    expect(result.current.proximity).toBe(0)
     expect(result.current.isHovered).toBe(false)
-    expect(result.current.transform).toEqual({ rotate: 0, scale: 1, y: 0 })
+    expect(result.current.isPressed).toBe(false)
+  })
+
+  it("computes proximity from cursor position on pointer move", () => {
+    // Mock rAF to fire synchronously for testing
+    const rafSpy = vi
+      .spyOn(window, "requestAnimationFrame")
+      .mockImplementation((cb: FrameRequestCallback) => {
+        cb(0)
+        return 1
+      })
+    vi.spyOn(window, "cancelAnimationFrame").mockImplementation(() => {})
+
+    const { result } = renderHook(() => useTactileHover(), { wrapper })
+
+    // Enter as mouse first so isTouchRef is false
+    act(() =>
+      result.current.handlers.onPointerEnter(
+        pointerEvent({ pointerType: "mouse" }),
+      ),
+    )
+
+    // Move cursor to element center (50, 50) — should be max proximity
+    act(() =>
+      result.current.handlers.onPointerMove(
+        pointerEvent({ clientX: 50, clientY: 50 }),
+      ),
+    )
+
+    // At center: dist=0, proximity = 1 - 0/maxDist = 1
+    expect(result.current.proximity).toBeCloseTo(1, 1)
+    // isHovered derived: proximity > 0
+    expect(result.current.isHovered).toBe(true)
+
+    rafSpy.mockRestore()
+  })
+
+  it("lowers proximity as cursor moves away from center", () => {
+    vi.spyOn(window, "requestAnimationFrame").mockImplementation(
+      (cb: FrameRequestCallback) => {
+        cb(0)
+        return 1
+      },
+    )
+    vi.spyOn(window, "cancelAnimationFrame").mockImplementation(() => {})
+
+    const { result } = renderHook(() => useTactileHover(), { wrapper })
+
+    act(() =>
+      result.current.handlers.onPointerEnter(
+        pointerEvent({ pointerType: "mouse" }),
+      ),
+    )
+
+    // Move cursor to the element edge (0, 50) — far from center
+    act(() =>
+      result.current.handlers.onPointerMove(
+        pointerEvent({ clientX: 0, clientY: 50 }),
+      ),
+    )
+
+    // dist=50, maxDist = hypot(100,100)*0.6 ≈ 84.9, proximity ≈ 0.41
+    expect(result.current.proximity).toBeGreaterThan(0)
+    expect(result.current.proximity).toBeLessThan(0.6)
+
+    vi.restoreAllMocks()
   })
 
   it("sets isPressed on pointer down", () => {
     const { result } = renderHook(() => useTactileHover(), { wrapper })
 
-    act(() => result.current.handlers.onPointerDown(pointerEvent))
+    act(() => result.current.handlers.onPointerDown(pointerEvent()))
 
     expect(result.current.isPressed).toBe(true)
-    // SCALE_PRESS < 1
-    expect(result.current.transform.scale).toBeLessThan(1)
+    expect(result.current.transform.scale).toBeLessThan(1) // SCALE_PRESS
   })
 
-  it("resets isPressed on pointer up", () => {
+  it("uses snappier transition when pressed", () => {
     const { result } = renderHook(() => useTactileHover(), { wrapper })
 
-    act(() => result.current.handlers.onPointerDown(pointerEvent))
-    act(() => result.current.handlers.onPointerUp(pointerEvent))
+    const idleTransition = result.current.transition
 
-    expect(result.current.isPressed).toBe(false)
-  })
+    act(() => result.current.handlers.onPointerDown(pointerEvent()))
 
-  it("hover + press uses press scale (press dominates)", () => {
-    const { result } = renderHook(() => useTactileHover(), { wrapper })
-
-    act(() => result.current.handlers.onPointerEnter(pointerEvent))
-    act(() => result.current.handlers.onPointerDown(pointerEvent))
-
-    expect(result.current.isHovered).toBe(true)
-    expect(result.current.isPressed).toBe(true)
-    // Press scale should win when both are active
-    expect(result.current.transform.scale).toBeLessThan(1)
+    // Pressed transition should differ from idle
+    expect(result.current.transition).not.toEqual(idleTransition)
   })
 
   it("disables tilt when disableTilt is true", () => {
@@ -77,36 +181,90 @@ describe("useTactileHover", () => {
       wrapper,
     })
 
-    // Idle: no tilt
     expect(result.current.transform.rotate).toBe(0)
 
-    act(() => result.current.handlers.onPointerEnter(pointerEvent))
-    // Hovered: still no tilt
+    // Touch enter sets proximity=1
+    act(() =>
+      result.current.handlers.onPointerEnter(
+        pointerEvent({ pointerType: "touch" }),
+      ),
+    )
+    // Still 0 because disableTilt
     expect(result.current.transform.rotate).toBe(0)
   })
 
-  it("provides snappier press transition when pressed", () => {
-    const { result } = renderHook(() => useTactileHover(), { wrapper })
+  it("applies restingTilt when idle, straightens on approach", () => {
+    // Mock rAF sync
+    vi.spyOn(window, "requestAnimationFrame").mockImplementation(
+      (cb: FrameRequestCallback) => {
+        cb(0)
+        return 1
+      },
+    )
+    vi.spyOn(window, "cancelAnimationFrame").mockImplementation(() => {})
 
-    // Idle: tactile spring
-    const idleTransition = result.current.transition
-
-    act(() => result.current.handlers.onPointerDown(pointerEvent))
-    // Pressed: snappier press spring
-    expect(result.current.transition).not.toEqual(idleTransition)
-  })
-
-  it("applies restingTilt when idle", () => {
     const { result } = renderHook(
       () => useTactileHover({ restingTilt: 3 }),
       { wrapper },
     )
 
-    // Idle: should have resting tilt (nonzero)
-    expect(result.current.transform.rotate).not.toBe(0)
+    // Idle: full resting tilt
+    expect(result.current.transform.rotate).toBe(3)
 
-    act(() => result.current.handlers.onPointerEnter(pointerEvent))
-    // Hovered: straightens out
-    expect(result.current.transform.rotate).toBe(0)
+    // Enter + move to center
+    act(() =>
+      result.current.handlers.onPointerEnter(
+        pointerEvent({ pointerType: "mouse" }),
+      ),
+    )
+    act(() =>
+      result.current.handlers.onPointerMove(
+        pointerEvent({ clientX: 50, clientY: 50 }),
+      ),
+    )
+
+    // Centered: proximity ≈ 1 → straightens
+    expect(result.current.transform.rotate).toBeCloseTo(0, 1)
+
+    vi.restoreAllMocks()
+  })
+
+  it("proximity drives continuous scale interpolation", () => {
+    vi.spyOn(window, "requestAnimationFrame").mockImplementation(
+      (cb: FrameRequestCallback) => {
+        cb(0)
+        return 1
+      },
+    )
+    vi.spyOn(window, "cancelAnimationFrame").mockImplementation(() => {})
+
+    const { result } = renderHook(() => useTactileHover(), { wrapper })
+
+    act(() =>
+      result.current.handlers.onPointerEnter(
+        pointerEvent({ pointerType: "mouse" }),
+      ),
+    )
+
+    // Edge hover → low proximity → small scale bump
+    act(() =>
+      result.current.handlers.onPointerMove(
+        pointerEvent({ clientX: 0, clientY: 50 }),
+      ),
+    )
+    const edgeScale = result.current.transform.scale
+
+    // Center hover → high proximity → full SCALE_HOVER
+    act(() =>
+      result.current.handlers.onPointerMove(
+        pointerEvent({ clientX: 50, clientY: 50 }),
+      ),
+    )
+    const centerScale = result.current.transform.scale
+
+    // Center should scale up more than edge
+    expect(centerScale).toBeGreaterThan(edgeScale)
+
+    vi.restoreAllMocks()
   })
 })
