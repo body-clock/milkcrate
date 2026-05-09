@@ -1,4 +1,6 @@
 import { motion } from "framer-motion"
+import { useTactileHover } from "@/hooks/use_tactile_hover"
+import { springTactile, springPress, SCALE_HOVER, SCALE_PRESS } from "@/lib/motion_tokens"
 import type { Crate } from "../types/inertia"
 
 interface Props {
@@ -10,12 +12,11 @@ interface Props {
 export default function CrateCard({ crate, variant, onSelectCrate }: Props) {
   const isFeatured = variant === "featured"
   const nameClass = isFeatured ? "text-base font-semibold" : "text-sm font-semibold"
-
-  const cardClasses = `group flex flex-col w-full rounded-lg bg-mc-bg-card border border-mc-border overflow-hidden hover:border-mc-accent transition-colors cursor-pointer text-left`
+  const { isHovered, isPressed, handlers } = useTactileHover({ restingTilt: -0.5 })
 
   if (crate.records.length === 0) {
     return (
-      <div className={cardClasses}>
+      <div className="flex flex-col w-full rounded-lg bg-mc-bg-card border border-mc-border overflow-hidden text-left">
         <div className="px-3 pt-3 pb-2">
           <div className="mc-section-header">
             <span className={`mc-section-name ${nameClass}`}>{crate.name}</span>
@@ -29,34 +30,56 @@ export default function CrateCard({ crate, variant, onSelectCrate }: Props) {
   }
 
   return (
-    <button
+    <motion.button
       type="button"
       onClick={() => onSelectCrate(crate.slug)}
-      className={cardClasses}
+      className="flex flex-col w-full rounded-lg bg-mc-bg-card border border-mc-border overflow-hidden cursor-pointer text-left"
+      animate={{
+        borderColor: isHovered ? "var(--mc-accent)" : "var(--mc-border)",
+        scale: isPressed ? SCALE_PRESS : isHovered ? SCALE_HOVER : 1,
+        y: isHovered ? -3 : 0,
+        rotate: isHovered ? 0 : -0.5,
+      }}
+      transition={isPressed ? springPress : springTactile}
       aria-label={`Open ${crate.name}`}
+      {...handlers}
     >
-      <div className="px-3 pt-3 pb-1.5">
+      {/* Header row — lid lift on hover */}
+      <motion.div
+        className="px-3 pt-3 pb-1.5"
+        style={{ transformOrigin: "top" }}
+        animate={{ y: isHovered ? -2 : 0 }}
+        transition={springTactile}
+      >
         <div className="flex items-center justify-between gap-2 border-b border-mc-border pb-1">
           <span className={`mc-section-name ${nameClass} truncate flex-1`}>{crate.name}</span>
           <div className="flex items-center gap-2 flex-shrink-0">
-            <span className="text-[10px] text-mc-accent font-bold uppercase tracking-widest sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+            {/* DIG → label — slides in on hover */}
+            <motion.span
+              className="text-[10px] text-mc-accent font-bold uppercase tracking-widest"
+              animate={{ opacity: isHovered ? 1 : 0, x: isHovered ? 0 : -4 }}
+              transition={springTactile}
+            >
               DIG →
-            </span>
+            </motion.span>
             <span className="mc-section-count text-xs">{crate.count}</span>
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      <div className="grid grid-cols-2 gap-1.5 px-3 pb-3 pt-1.5">
+      {/* Thumbnail grid — scale together as a group */}
+      <motion.div
+        className="grid grid-cols-2 gap-1.5 px-3 pb-3 pt-1.5"
+        animate={{ scale: isHovered ? SCALE_HOVER : 1 }}
+        transition={springTactile}
+      >
         {crate.records.slice(0, 4).map((record, i) => {
           const src = record.cover_image_url ?? record.thumbnail_url
           return (
-            <motion.button
+            <button
               key={record.id}
               type="button"
               className="aspect-square rounded-sm bg-mc-bg-raised overflow-hidden border border-mc-border/50 cursor-pointer"
-              whileHover={{ scale: 1.05, zIndex: 10 }}
-              transition={{ type: "spring", stiffness: 300, damping: 22 }}
               onClick={(e) => {
                 e.stopPropagation()
                 onSelectCrate(crate.slug, i)
@@ -74,10 +97,10 @@ export default function CrateCard({ crate, variant, onSelectCrate }: Props) {
               ) : (
                 <div className="w-full h-full flex items-center justify-center mc-dim text-lg">♪</div>
               )}
-            </motion.button>
+            </button>
           )
         })}
-      </div>
-    </button>
+      </motion.div>
+    </motion.button>
   )
 }
