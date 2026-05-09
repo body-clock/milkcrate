@@ -1,6 +1,5 @@
 import { motion } from "framer-motion"
 import { useTactileHover } from "@/hooks/use_tactile_hover"
-import { springTactile } from "@/lib/motion_tokens"
 
 interface Props {
   /** Resting rotation in degrees when not hovered. */
@@ -27,12 +26,12 @@ export default function TactileCard({
   className,
   style,
 }: Props) {
-  const { transform, handlers } = useTactileHover({ restingTilt, disableTilt })
+  const { transform, transition, handlers } = useTactileHover({ restingTilt, disableTilt })
 
   return (
     <motion.div
       animate={transform}
-      transition={springTactile}
+      transition={transition}
       className={className}
       style={style}
       {...handlers}

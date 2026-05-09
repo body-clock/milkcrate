@@ -18,6 +18,7 @@ describe("useTactileHover", () => {
     expect(result.current.isHovered).toBe(false)
     expect(result.current.isPressed).toBe(false)
     expect(result.current.transform).toEqual({ rotate: 0, scale: 1, y: 0 })
+    expect(result.current.transition).toBeDefined()
   })
 
   it("sets isHovered on pointer enter", () => {
@@ -82,6 +83,17 @@ describe("useTactileHover", () => {
     act(() => result.current.handlers.onPointerEnter(pointerEvent))
     // Hovered: still no tilt
     expect(result.current.transform.rotate).toBe(0)
+  })
+
+  it("provides snappier press transition when pressed", () => {
+    const { result } = renderHook(() => useTactileHover(), { wrapper })
+
+    // Idle: tactile spring
+    const idleTransition = result.current.transition
+
+    act(() => result.current.handlers.onPointerDown(pointerEvent))
+    // Pressed: snappier press spring
+    expect(result.current.transition).not.toEqual(idleTransition)
   })
 
   it("applies restingTilt when idle", () => {
