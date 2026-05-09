@@ -25,6 +25,16 @@
   --mc-accent-dim:  #8a3020;
   --mc-border:      #352a20;
   --mc-notice:      #352020;
+
+  /* Motion tokens — inspectable in DevTools, usable by non-React CSS */
+  --mc-spring-stiffness: 300;
+  --mc-spring-damping: 26;
+  --mc-scale-press: 0.97;
+  --mc-scale-hover: 1.05;
+  --mc-tilt-hover: 1.5deg;
+  --mc-lift-hover: 3px;
+  --mc-duration-hover: 0.2s;
+  --mc-duration-press: 0.12s;
 }
 
 [data-theme="light"] {

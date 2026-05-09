@@ -1,10 +1,12 @@
 import { useState, useCallback, useMemo } from "react"
-import type { MotionStyle } from "framer-motion"
+import type { MotionStyle, Transition } from "framer-motion"
 import {
   SCALE_PRESS,
   SCALE_HOVER,
   LIFT_HOVER,
   TILT_HOVER,
+  springTactile,
+  springPress,
 } from "@/lib/motion_tokens"
 import { useReducedMotionContext } from "@/components/storefront_motion_config"
 
@@ -27,6 +29,8 @@ interface TactileState {
   isPressed: boolean
   /** Framer Motion animate target — updated reactively. */
   transform: MotionStyle
+  /** Transition to use for the current state — snappier on press. */
+  transition: Transition
   /** Pointer event handlers to spread onto a motion element. */
   handlers: TactileHandlers
 }
@@ -98,5 +102,5 @@ export function useTactileHover(
     return { rotate, scale, y }
   }, [reducedMotion, disableTilt, isHovered, isPressed, restingTilt])
 
-  return { isHovered, isPressed, transform, handlers }
+  return { isHovered, isPressed, transform, transition: isPressed ? springPress : springTactile, handlers }
 }
