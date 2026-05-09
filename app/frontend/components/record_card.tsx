@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react"
 import { motion } from "framer-motion"
 import { usePileContext } from "../contexts/pile_context"
+import { springFlip } from "@/lib/motion_tokens"
 import type { Listing } from "../types/inertia"
 
 interface Props {
@@ -79,7 +80,7 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
             : undefined,
         }}
         animate={{ rotateY: flipped ? 180 : 0 }}
-        transition={{ type: "spring", stiffness: 260, damping: 24 }}
+        transition={springFlip}
       >
         {/* Front */}
         <div

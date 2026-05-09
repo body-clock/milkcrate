@@ -69,3 +69,66 @@ export interface ReducedMotionTokens {
   lift: typeof REDUCED_MOTION_LIFT
   tilt: typeof REDUCED_MOTION_TILT
 }
+
+// ── Motion preset factory ─────────────────────────────────────
+// Call motionPreset("wall-card") instead of hand-picking spring
+// configs. The knowledge of which spring is right for which
+// element lives here, not scattered across components.
+
+export type MotionKind =
+  | "wall-card"
+  | "crate-bin"
+  | "crate-thumbnail"
+  | "drawer"
+  | "press"
+  | "card-flip"
+
+interface MotionPreset {
+  spring: typeof springTactile
+  scale: number
+  lift: number
+  tilt: number
+}
+
+const presets: Record<MotionKind, MotionPreset> = {
+  "wall-card": {
+    spring: springTactile,
+    scale: SCALE_HOVER,
+    lift: LIFT_HOVER,
+    tilt: TILT_HOVER,
+  },
+  "crate-bin": {
+    spring: springTactile,
+    scale: SCALE_HOVER,
+    lift: LIFT_HOVER,
+    tilt: -0.5,
+  },
+  "crate-thumbnail": {
+    spring: springTactile,
+    scale: SCALE_HOVER,
+    lift: 0,
+    tilt: 0,
+  },
+  drawer: {
+    spring: springDrawer,
+    scale: 1,
+    lift: 0,
+    tilt: 0,
+  },
+  press: {
+    spring: springPress,
+    scale: SCALE_PRESS,
+    lift: 0,
+    tilt: 0,
+  },
+  "card-flip": {
+    spring: springFlip,
+    scale: 1,
+    lift: 0,
+    tilt: 0,
+  },
+}
+
+export function motionPreset(kind: MotionKind): MotionPreset {
+  return presets[kind]
+}
