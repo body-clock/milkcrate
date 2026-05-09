@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react"
+import { useState, useCallback, useMemo, useRef } from "react"
 import type { MotionStyle, Transition } from "framer-motion"
 import {
   SCALE_PRESS,
@@ -22,11 +22,15 @@ interface TactileHandlers {
   onPointerLeave: (e: React.PointerEvent) => void
   onPointerDown: (e: React.PointerEvent) => void
   onPointerUp: (e: React.PointerEvent) => void
+  onPointerMove: (e: React.PointerEvent) => void
 }
 
 interface TactileState {
+  /** True when proximity > 0 (derived — not a separate state). */
   isHovered: boolean
   isPressed: boolean
+  /** Cursor proximity to element center, 0 (idle) to 1 (centered). */
+  proximity: number
   /** Framer Motion animate target — updated reactively. */
   transform: MotionStyle
   /** Transition to use for the current state — snappier on press. */
@@ -38,11 +42,10 @@ interface TactileState {
 const isBrowser = typeof window !== "undefined"
 
 /**
- * Binary hover hook — toggles isHovered / isPressed on pointer events
- * and computes a framer-motion-ready transform target.
- *
- * Phase 3 will add cursor-proximity tracking (proximity 0–1) and
- * an onPointerMove handler for continuous response.
+ * Cursor-proximity hover hook. Tracks pointer position relative to
+ * the element center and returns a continuous 0–1 proximity value.
+ * Falls back to binary behavior on touch devices and when reduced
+ * motion is active.
  */
 export function useTactileHover(
   options: UseTactileHoverOptions = {},
@@ -50,17 +53,63 @@ export function useTactileHover(
   const { restingTilt = 0, disableTilt = false } = options
   const reducedMotion = useReducedMotionContext()
 
-  const [isHovered, setIsHovered] = useState(false)
+  const [proximity, setProximity] = useState(0)
   const [isPressed, setIsPressed] = useState(false)
+  const isTouchRef = useRef(false)
+  const rafRef = useRef<number | null>(null)
 
-  const enter = useCallback(() => {
-    if (!isBrowser || reducedMotion) return
-    setIsHovered(true)
-  }, [reducedMotion])
+  // ── Pointer handlers ──────────────────────────────────────
+
+  const enter = useCallback(
+    (e: React.PointerEvent) => {
+      if (!isBrowser) return
+      const isTouch = e.pointerType !== "mouse"
+      isTouchRef.current = isTouch
+
+      if (reducedMotion || isTouch) {
+        // Binary fallback: snap to full proximity
+        setProximity(1)
+        return
+      }
+      // Mouse: proximity set by onPointerMove
+    },
+    [reducedMotion],
+  )
+
+  const move = useCallback(
+    (e: React.PointerEvent) => {
+      if (!isBrowser || reducedMotion || isTouchRef.current) return
+
+      // Cancel any pending frame before scheduling the next
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current)
+      }
+
+      rafRef.current = requestAnimationFrame(() => {
+        rafRef.current = null
+        const el = e.currentTarget as HTMLElement
+        const rect = el.getBoundingClientRect()
+
+        const cx = rect.left + rect.width / 2
+        const cy = rect.top + rect.height / 2
+        const dx = e.clientX - cx
+        const dy = e.clientY - cy
+        const dist = Math.hypot(dx, dy)
+        const maxDist = Math.hypot(rect.width, rect.height) * 0.6
+
+        setProximity(Math.max(0, Math.min(1, 1 - dist / maxDist)))
+      })
+    },
+    [reducedMotion],
+  )
 
   const leave = useCallback(() => {
     if (!isBrowser) return
-    setIsHovered(false)
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current)
+      rafRef.current = null
+    }
+    setProximity(0)
     setIsPressed(false)
   }, [])
 
@@ -80,27 +129,42 @@ export function useTactileHover(
       onPointerLeave: leave,
       onPointerDown: down,
       onPointerUp: up,
+      onPointerMove: move,
     }),
-    [enter, leave, down, up],
+    [enter, leave, down, up, move],
   )
+
+  // ── Derived state ─────────────────────────────────────────
+
+  const isHovered = proximity > 0
 
   const transform = useMemo<MotionStyle>(() => {
     if (reducedMotion) {
       return { rotate: 0, scale: 1, y: 0 }
     }
 
+    // Tilt: straightens as cursor approaches
     const rotate = disableTilt
       ? 0
-      : isHovered
-        ? 0
-        : restingTilt * (TILT_HOVER / 1.5)
+      : restingTilt * (TILT_HOVER / 1.5) * (1 - proximity)
 
-    const scale = isPressed ? SCALE_PRESS : isHovered ? SCALE_HOVER : 1
+    // Scale: SCALE_PRESS when pressed, otherwise interpolate
+    const scale = isPressed
+      ? SCALE_PRESS
+      : 1 + (SCALE_HOVER - 1) * proximity
 
-    const y = isHovered ? -LIFT_HOVER : 0
+    // Lift: increases as cursor approaches
+    const y = proximity === 0 ? 0 : -LIFT_HOVER * proximity
 
     return { rotate, scale, y }
-  }, [reducedMotion, disableTilt, isHovered, isPressed, restingTilt])
+  }, [reducedMotion, disableTilt, isPressed, restingTilt, proximity])
 
-  return { isHovered, isPressed, transform, transition: isPressed ? springPress : springTactile, handlers }
+  return {
+    isHovered,
+    isPressed,
+    proximity,
+    transform,
+    transition: isPressed ? springPress : springTactile,
+    handlers,
+  }
 }
