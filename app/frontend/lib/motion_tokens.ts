@@ -83,8 +83,14 @@ export type MotionKind =
   | "press"
   | "card-flip"
 
+interface SpringConfig {
+  type: "spring"
+  stiffness: number
+  damping: number
+}
+
 interface MotionPreset {
-  spring: typeof springTactile
+  spring: SpringConfig
   scale: number
   lift: number
   tilt: number

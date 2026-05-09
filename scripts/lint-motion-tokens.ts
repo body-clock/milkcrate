@@ -4,7 +4,7 @@
  * Scans .tsx/.ts files for inline animation values that should be
  * sourced from @/lib/motion_tokens instead.
  *
- * Run: node scripts/lint-motion-tokens.ts app/frontend/
+ * Run: npx tsx scripts/lint-motion-tokens.ts app/frontend/
  *
  * Flags:
  *   stiffness: <number> in an object literal (unless inside motion_tokens.ts itself)
@@ -21,7 +21,7 @@ import { globSync } from "node:fs"
 
 const root = process.argv[2] || "app/frontend"
 const files = globSync(`${root}/**/*.{ts,tsx}`, {
-  ignore: ["**/node_modules/**", "**/*.test.*"],
+  exclude: ["**/node_modules/**", "**/*.test.*"],
 })
 
 const VIOLATIONS: string[] = []
