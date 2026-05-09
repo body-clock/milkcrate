@@ -13,6 +13,7 @@ class WaitlistsController < ApplicationController
 
     if entry.save
       SellerMailer.confirmation(entry).deliver_later
+      SellerMailer.admin_notification(entry).deliver_later
       redirect_to apply_path, flash: { notice: "You're on the list! We'll be in touch.", submitted: true }
     else
       render inertia: "apply", props: apply_props.merge(
