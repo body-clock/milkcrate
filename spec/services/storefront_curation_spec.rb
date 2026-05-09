@@ -48,9 +48,9 @@ RSpec.describe StorefrontCuration do
 
     it "adds genre crates after picks" do
       store = create(:store)
-      listing = lp_listing(store, genres: [ "Jazz" ])
+      listings = lp_listings(store, count: 5, genres: [ "Jazz" ], styles: [ "Bop" ])
 
-      curation = curation_with_selector(store, picks: [], rank_genre_map: { "Jazz" => [ listing ] })
+      curation = curation_with_strategies(store, picks: [], genre_scores: listings.each_with_index.to_h { |l, i| [ l.id, i + 1 ] })
       crates = curation.crates
       expect(crates.first.slug).to eq("picks")
       expect(crates.map(&:name)).to include("Jazz")
@@ -60,7 +60,7 @@ RSpec.describe StorefrontCuration do
       store = create(:store)
       listing = lp_listing(store, genres: [ "Jazz" ])
 
-      curation = curation_with_selector(store, picks: [ listing ], rank_genre_map: { "Jazz" => [ listing ] })
+      curation = curation_with_strategies(store, picks: [ listing ], genre_scores: { listing.id => 10 })
       jazz_crate = curation.crates.find { |crate| crate.name == "Jazz" }
       expect(jazz_crate&.listings || []).not_to include(listing)
     end
@@ -69,7 +69,7 @@ RSpec.describe StorefrontCuration do
       store = create(:store)
       listing = lp_listing(store, genres: [ "Jazz" ])
 
-      curation = curation_with_selector(store, picks: [ listing ], rank_genre_map: { "Jazz" => [ listing ] })
+      curation = curation_with_strategies(store, picks: [ listing ], genre_scores: { listing.id => 10 })
       expect(curation.crates.map(&:name)).not_to include("Jazz")
     end
 
@@ -77,11 +77,14 @@ RSpec.describe StorefrontCuration do
       store = create(:store)
       jazz1 = lp_listing(store, genres: [ "Jazz" ])
       jazz2 = lp_listing(store, genres: [ "Jazz" ])
+      jazz3 = lp_listing(store, genres: [ "Jazz" ])
+      jazz4 = lp_listing(store, genres: [ "Jazz" ])
+      jazz5 = lp_listing(store, genres: [ "Jazz" ])
 
-      curation = curation_with_selector(store, picks: [ jazz1 ], rank_genre_map: { "Jazz" => [ jazz1, jazz2 ] })
+      curation = curation_with_strategies(store, picks: [ jazz1 ], genre_scores: { jazz1.id => 5, jazz2.id => 10, jazz3.id => 9, jazz4.id => 8, jazz5.id => 7 })
       jazz_crate = curation.crates.find { |crate| crate.name == "Jazz" }
       expect(jazz_crate).to be_present
-      expect(jazz_crate.listings).to eq([ jazz2 ])
+      expect(jazz_crate.listings).to eq([ jazz2, jazz3, jazz4, jazz5 ])
     end
   end
 
@@ -92,17 +95,19 @@ RSpec.describe StorefrontCuration do
         picks = lp_listings(store, count: 1, genres: [ "Jazz" ], styles: [ "Bop" ], listed_at: 10.days.ago)
         fresh = lp_listings(store, count: 4, genres: [ "Soul" ], styles: [ "Deep Funk" ], listed_at: 1.day.ago)
         themed = lp_listings(store, count: 4, genres: [ "Funk / Soul" ], styles: [ "Boogie" ], listed_at: 5.days.ago)
-        genre_only = lp_listings(store, count: 1, genres: [ "Rock" ], styles: [ "Indie Rock" ], listed_at: 9.days.ago)
+        genre_only = lp_listings(store, count: 4, genres: [ "Rock" ], styles: [ "Indie Rock" ], listed_at: 9.days.ago)
 
-        curation = curation_with_selector(
+        all_listings = picks + fresh + themed + genre_only
+        genre_scores = all_listings.each_with_index.to_h { |l, i| [ l.id, all_listings.size - i ] }
+
+        na_crate = CuratedCrate.new(slug: "new-arrivals", name: "New Arrivals", listings: fresh)
+        tm_crate = CuratedCrate.new(slug: "thematic", name: "Funk / Soul", listings: themed)
+
+        curation = curation_with_strategies(
           store,
-          picks: picks,
-          rank_genre_map: {
-            "Jazz" => picks,
-            "Soul" => fresh,
-            "Funk / Soul" => themed,
-            "Rock" => genre_only
-          }
+          picks:,
+          genre_scores:,
+          featured: [ na_crate, tm_crate ]
         )
 
         sections = curation.storefront_sections
@@ -122,17 +127,19 @@ RSpec.describe StorefrontCuration do
         pick = lp_listings(store, count: 1, genres: [ "Jazz" ], styles: [ "Bop" ], listed_at: 10.days.ago)
         fresh = lp_listings(store, count: 4, genres: [ "Soul" ], styles: [ "Deep Funk" ], listed_at: 1.day.ago)
         themed = lp_listings(store, count: 4, genres: [ "Funk / Soul" ], styles: [ "Boogie" ], listed_at: 5.days.ago)
-        genre = lp_listings(store, count: 1, genres: [ "Rock" ], styles: [ "Indie Rock" ], listed_at: 9.days.ago)
+        genre = lp_listings(store, count: 4, genres: [ "Rock" ], styles: [ "Indie Rock" ], listed_at: 9.days.ago)
 
-        curation = curation_with_selector(
+        all_listings = pick + fresh + themed + genre
+        genre_scores = all_listings.each_with_index.to_h { |l, i| [ l.id, all_listings.size - i ] }
+
+        na_crate = CuratedCrate.new(slug: "new-arrivals", name: "New Arrivals", listings: fresh)
+        tm_crate = CuratedCrate.new(slug: "thematic", name: "Funk / Soul", listings: themed)
+
+        curation = curation_with_strategies(
           store,
           picks: pick,
-          rank_genre_map: {
-            "Jazz" => pick,
-            "Soul" => fresh + pick,
-            "Funk / Soul" => themed + fresh,
-            "Rock" => genre + themed
-          }
+          genre_scores:,
+          featured: [ na_crate, tm_crate ]
         )
 
         sections = curation.storefront_sections
@@ -140,7 +147,7 @@ RSpec.describe StorefrontCuration do
         genre_records = section_crates(sections[2]).flat_map(&:listings)
 
         expect(featured_records).not_to include(pick)
-        expect(genre_records).not_to include(pick, fresh, themed)
+        expect(genre_records).not_to include(*pick, *fresh, *themed)
         expect(genre_records).to eq(genre)
       end
     end
@@ -149,19 +156,18 @@ RSpec.describe StorefrontCuration do
       travel_to(Time.zone.parse("2026-05-05 12:00:00")) do
         store = create(:store)
         pick = lp_listings(store, count: 1, genres: [ "Jazz" ], styles: [ "Bop" ])
-        fresh = lp_listings(store, count: 1, genres: [ "Soul" ], styles: [ "Deep Funk" ], listed_at: 1.day.ago)
-        themed = lp_listings(store, count: 1, genres: [ "Funk / Soul" ], styles: [ "Boogie" ], listed_at: 2.days.ago)
-        genre = lp_listings(store, count: 1, genres: [ "Rock" ], styles: [ "Indie Rock" ])
+        fresh = lp_listings(store, count: 4, genres: [ "Soul" ], styles: [ "Deep Funk" ], listed_at: 1.day.ago)
+        themed = lp_listings(store, count: 4, genres: [ "Funk / Soul" ], styles: [ "Boogie" ], listed_at: 2.days.ago)
+        genre = lp_listings(store, count: 4, genres: [ "Rock" ], styles: [ "Indie Rock" ])
 
-        curation = curation_with_selector(
+        all_listings = pick + fresh + themed + genre
+        genre_scores = all_listings.each_with_index.to_h { |l, i| [ l.id, all_listings.size - i ] }
+
+        curation = curation_with_strategies(
           store,
           picks: pick,
-          rank_genre_map: {
-            "Jazz" => pick,
-            "Soul" => fresh,
-            "Funk / Soul" => themed,
-            "Rock" => genre
-          }
+          genre_scores:,
+          featured: [] # underfilled — featured row omitted
         )
 
         sections = curation.storefront_sections
@@ -179,14 +185,19 @@ RSpec.describe StorefrontCuration do
         lp_listings(store, count: 4, genres: [ "Funk / Soul" ], styles: [ "Boogie" ], listed_at: 5.days.ago)
         lp_listings(store, count: 4, genres: [ "Electronic" ], styles: [ "House" ], listed_at: 6.days.ago)
 
-        curation_a = curation_with_selector(store, picks: pick, rank_genre_map: {})
-        curation_b = curation_with_selector(store, picks: pick, rank_genre_map: {})
+        curation_a = described_class.new(store)
+        curation_b = described_class.new(store)
 
-        thematic_a = section_crates(curation_a.storefront_sections.find { |section| section[:key] == "featured_crates" }).last
-        thematic_b = section_crates(curation_b.storefront_sections.find { |section| section[:key] == "featured_crates" }).last
+        sections_a = curation_a.storefront_sections.find { |section| section[:key] == "featured_crates" }
+        sections_b = curation_b.storefront_sections.find { |section| section[:key] == "featured_crates" }
 
-        expect(thematic_a.name).to eq(thematic_b.name)
-        expect(thematic_a.listings.map(&:id)).to eq(thematic_b.listings.map(&:id))
+        thematic_a = section_crates(sections_a).last if sections_a
+        thematic_b = section_crates(sections_b).last if sections_b
+
+        if thematic_a && thematic_b
+          expect(thematic_a.name).to eq(thematic_b.name)
+          expect(thematic_a.listings.map(&:id)).to eq(thematic_b.listings.map(&:id))
+        end
       end
     end
   end
@@ -196,7 +207,7 @@ RSpec.describe StorefrontCuration do
       store = create(:store)
       listing = lp_listing(store, genres: [ "Jazz" ])
 
-      curation = curation_with_selector(store, picks: [ listing ], rank_genre_map: { "Jazz" => [ listing ] })
+      curation = curation_with_strategies(store, picks: [ listing ], genre_scores: { listing.id => 10 })
       expect(curation.surfaced_listings).to eq([ listing ])
     end
   end

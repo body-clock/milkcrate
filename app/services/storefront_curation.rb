@@ -1,28 +1,27 @@
 require "set"
 
 class StorefrontCuration
-  FEATURED_CRATE_SIZE = 4
-  FEATURED_MIN_RECORDS = 4
-  GENRE_CRATE_SIZE = 50
-
   def initialize(store)
     @store = store
-    @arrivals_policy = NewArrivalsPolicy.new
   end
 
-  # Compatibility surface for current UI.
   def crates
-    picks_list = selector.select_picks(count: 12)
+    picks_list = picks_strategy.select(eligible_listings, excluded_ids: Set.new, count: 12)
     picks_ids = picks_list.map(&:id).to_set
+
+    featured_crates = build_featured_crates(excluded_ids: picks_ids)
+    featured_ids = featured_crates.flat_map(&:listings).map(&:id).to_set
+    all_excluded = picks_ids | featured_ids
 
     [
       CuratedCrate.new(slug: "picks", name: "Milkcrate Picks", listings: picks_list),
-      *build_genre_crates(excluded_ids: picks_ids)
+      *featured_crates,
+      *build_genre_crates(excluded_ids: all_excluded)
     ]
   end
 
   def storefront_sections
-    picks_crate = CuratedCrate.new(slug: "picks", name: "Milkcrate Picks", listings: selector.select_picks(count: 12))
+    picks_crate = CuratedCrate.new(slug: "picks", name: "Milkcrate Picks", listings: picks_strategy.select(eligible_listings, excluded_ids: Set.new, count: 12))
     seen_ids = picks_crate.listings.map(&:id).to_set
 
     sections = [ { key: "picks_wall", crate: picks_crate } ]
@@ -48,59 +47,131 @@ class StorefrontCuration
 
   private
 
+  # -----------------------------------------------------------------------
+  # Featured crates (New Arrivals + Thematic + Hidden Gems)
+  # -----------------------------------------------------------------------
+
   def build_featured_crates(excluded_ids:)
-    new_arrivals_listings = new_arrivals_listings(excluded_ids: excluded_ids)
-    featured_seen_ids = excluded_ids | new_arrivals_listings.map(&:id).to_set
+    crates = []
+    seen   = excluded_ids.dup
 
-    new_arrivals = CuratedCrate.new(
-      slug: "new-arrivals",
-      name: "New Arrivals",
-      listings: new_arrivals_listings
-    )
-    thematic = thematic_crate(excluded_ids: featured_seen_ids)
+    new_arrivals = build_new_arrivals_crate(excluded_ids: seen)
+    if new_arrivals
+      crates << new_arrivals
+      new_arrivals.listings.each { |l| seen.add(l.id) }
+    end
 
-    return [] if [ new_arrivals, thematic ].any? { |crate| crate.listings.size < FEATURED_MIN_RECORDS }
+    thematic = build_thematic_crate(excluded_ids: seen)
+    if thematic
+      crates << thematic
+      thematic.listings.each { |l| seen.add(l.id) }
+    end
 
-    [ new_arrivals, thematic ]
+    hidden_gems = build_hidden_gems_crate(excluded_ids: seen)
+    crates << hidden_gems if hidden_gems
+
+    crates
   end
+
+  def build_new_arrivals_crate(excluded_ids:)
+    listings = new_arrivals_strategy.select(eligible_listings, excluded_ids:)
+      .first(CuratedCrate::CRATE_SIZE)
+
+    crate = CuratedCrate.new(slug: "new-arrivals", name: "New Arrivals", listings:)
+    return unless crate.viable?
+
+    crate
+  end
+
+  def build_thematic_crate(excluded_ids:)
+    result = thematic_strategy.select(eligible_listings, excluded_ids:)
+    return if result.nil?
+
+    name, listings = result
+    capped = listings.first(CuratedCrate::CRATE_SIZE)
+    crate = CuratedCrate.new(slug: "thematic", name:, listings: capped)
+    return unless crate.viable?
+
+    crate
+  end
+
+  # -----------------------------------------------------------------------
+  # Genre crates
+  # -----------------------------------------------------------------------
 
   def build_genre_crates(excluded_ids:)
     seen_ids = excluded_ids.dup
+    scorer   = RecordScorer.new(genre_counts:, today: Date.today)
 
-    genre_counts.filter_map do |genre, _|
-      listings = selector.rank_genre(genre)
-        .reject { |listing| seen_ids.include?(listing.id) }
-        .first(GENRE_CRATE_SIZE)
-      next if listings.empty?
+    # Score all eligible (non-excluded) listings once, sorted best-first.
+    # Each genre then filters its slice from this shared scored pool.
+    scored = eligible_listings
+      .reject { |l| excluded_ids.include?(l.id) }
+      .map    { |l| [ l, scorer.score(l) ] }
+      .sort_by { |_, s| -s }
+
+    genre_counts.sort_by { |_, count| -count }.filter_map do |genre, _|
+      listings = scored
+        .select { |l, _| l.primary_genre == genre && !seen_ids.include?(l.id) }
+        .first(CuratedCrate::CRATE_SIZE)
+        .map(&:first)
+
+      crate = CuratedCrate.new(slug: genre.parameterize, name: genre, listings:)
+      next unless crate.viable?
 
       listings.each { |listing| seen_ids.add(listing.id) }
-      CuratedCrate.new(slug: genre.parameterize, name: genre, listings: listings)
+      crate
     end
   end
 
-  def new_arrivals_listings(excluded_ids:)
-    pool = eligible_listings.reject { |listing| excluded_ids.include?(listing.id) }
-    @arrivals_policy.select(pool, sort_key: ->(listing) { sort_timestamp_for(listing) })
+  # -----------------------------------------------------------------------
+  # Strategies (lazy)
+  # -----------------------------------------------------------------------
+
+  def picks_strategy
+    @picks_strategy ||= CrateStrategies::Picks.new(genre_counts:, today: Date.today)
   end
 
-  def thematic_crate(excluded_ids:)
-    selection = StorefrontThemeRotation.new(@store, listings: eligible_listings).select(excluded_ids:)
-    selection&.crate || CuratedCrate.new(slug: "thematic", name: "Daily Rotation", listings: [])
+  def new_arrivals_strategy
+    @new_arrivals_strategy ||= CrateStrategies::NewArrivals.new(genre_counts:, today: Date.today)
   end
 
-  def sort_timestamp_for(listing)
-    listing.listed_at&.to_i || listing.last_seen_at&.to_i || 0
+  def thematic_strategy
+    @thematic_strategy ||= CrateStrategies::Thematic.new(
+      store_id: @store.id,
+      genre_counts:,
+      today: Date.today
+    )
   end
 
-  def selector
-    @selector ||= PicksSelector.new(@store)
+  def hidden_gems_strategy
+    @hidden_gems_strategy ||= CrateStrategies::HiddenGems.new(genre_counts:)
   end
+
+  def build_hidden_gems_crate(excluded_ids:)
+    listings = hidden_gems_strategy.select(eligible_listings, excluded_ids:)
+    return if listings.empty?
+
+    capped = listings.first(CuratedCrate::CRATE_SIZE)
+    crate = CuratedCrate.new(slug: "hidden-gems", name: "Hidden Gems", listings: capped)
+    return unless crate.viable?
+
+    crate
+  end
+
+  # -----------------------------------------------------------------------
+  # Data sources
+  # -----------------------------------------------------------------------
 
   def eligible_listings
-    @eligible_listings ||= @store.listings.available.lp_only.to_a
+    @eligible_listings ||= begin
+      scope = @store.listings
+      scope = scope.available unless Rails.env.development?
+      scope.lp_only.to_a
+    end
   end
 
   def genre_counts
-    @genre_counts ||= eligible_listings.map(&:primary_genre).compact.tally.sort_by { |_, count| -count }
+    @genre_counts ||= eligible_listings.map(&:primary_genre).compact.tally
   end
 end

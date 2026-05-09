@@ -1,0 +1,34 @@
+<h1 style="font-size: 1.25rem; margin-bottom: 0.5rem;">New application: <%= @waitlist.name %></h1>
+
+<table style="border-collapse: collapse; width: 100%; max-width: 480px;">
+  <tr>
+    <td style="padding: 6px 0; color: #555; font-weight: 600; width: 140px;">Store name</td>
+    <td style="padding: 6px 0;"><%= @waitlist.name %></td>
+  </tr>
+  <tr>
+    <td style="padding: 6px 0; color: #555; font-weight: 600;">Email</td>
+    <td style="padding: 6px 0;"><%= @waitlist.email %></td>
+  </tr>
+  <tr>
+    <td style="padding: 6px 0; color: #555; font-weight: 600;">Discogs username</td>
+    <td style="padding: 6px 0;"><%= @waitlist.discogs_username %></td>
+  </tr>
+  <tr>
+    <td style="padding: 6px 0; color: #555; font-weight: 600;">Inventory size</td>
+    <td style="padding: 6px 0;"><%= @waitlist.inventory_size.presence || "—" %></td>
+  </tr>
+  <tr>
+    <td style="padding: 6px 0; color: #555; font-weight: 600;">Notes</td>
+    <td style="padding: 6px 0;"><%= @waitlist.notes.presence || "—" %></td>
+  </tr>
+  <tr>
+    <td style="padding: 6px 0; color: #555; font-weight: 600;">Submitted</td>
+    <td style="padding: 6px 0;"><%= @waitlist.created_at.strftime("%B %d, %Y at %I:%M %p %Z") %></td>
+  </tr>
+</table>
+
+<hr style="border: none; border-top: 1px solid #eee; margin: 2rem 0;">
+
+<p style="color: #999; font-size: 0.8rem;">
+  View all applications: <a href="https://<%= Settings.mail_host %>/admin" style="color: #999;">milkcrate.fm/admin</a>
+</p>

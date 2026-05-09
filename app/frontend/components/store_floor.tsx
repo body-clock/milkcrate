@@ -2,6 +2,8 @@ import { motion } from "framer-motion"
 import RecordCard from "./record_card"
 import FeaturedCratesRow from "./featured_crates_row"
 import GenreGrid from "./genre_grid"
+import TactileCard from "./tactile_card"
+import { springTactile, SCALE_HOVER, SCALE_PRESS } from "@/lib/motion_tokens"
 import { useIsDesktop } from "@/hooks/use_is_desktop"
 import type { StorefrontSection } from "../types/inertia"
 
@@ -39,15 +41,13 @@ export default function StoreFloor({ sections, onSelectCrate }: Props) {
                     {picks.records.slice(0, 12).map((record, i) => {
                       const tilt = i % 2 === 0 ? 1.5 : -1.5
                       return (
-                        <motion.div
+                        <TactileCard
                           key={record.id}
+                          restingTilt={tilt}
                           className="aspect-square"
-                          style={{ zIndex: 1 }}
-                          whileHover={{ rotate: tilt, y: -3, scale: 1.05, zIndex: 10 }}
-                          transition={{ type: "spring", stiffness: 300, damping: 22 }}
                         >
                           <RecordCard listing={record} imageLoading="lazy" />
-                        </motion.div>
+                        </TactileCard>
                       )
                     })}
                   </div>
@@ -60,8 +60,9 @@ export default function StoreFloor({ sections, onSelectCrate }: Props) {
                           key={record.id}
                           type="button"
                           className="flex-shrink-0 w-[46vw] h-[46vw] rounded bg-mc-bg-card overflow-hidden border border-mc-border cursor-pointer"
-                          whileHover={{ scale: 1.04, zIndex: 10 }}
-                          transition={{ type: "spring", stiffness: 300, damping: 22 }}
+                          whileHover={{ scale: SCALE_HOVER, zIndex: 10 }}
+                          whileTap={{ scale: SCALE_PRESS }}
+                          transition={springTactile}
                           onClick={() => onSelectCrate("picks", i)}
                           aria-label={`Open Milkcrate Picks at ${record.title ?? "record"}`}
                         >

@@ -2,7 +2,14 @@ import { describe, expect, it, vi } from "vitest"
 import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import StoreFloor from "./store_floor"
+import StorefrontMotionConfig from "./storefront_motion_config"
+import { PileProvider } from "@/contexts/pile_context"
+import { useIsDesktop } from "@/hooks/use_is_desktop"
 import type { Listing, StorefrontSection } from "../types/inertia"
+
+vi.mock("@/hooks/use_is_desktop", () => ({
+  useIsDesktop: vi.fn(() => false),
+}))
 
 const makeListing = (overrides: Partial<Listing> = {}): Listing => ({
   id: 1,
@@ -25,6 +32,12 @@ const makeListing = (overrides: Partial<Listing> = {}): Listing => ({
 })
 
 describe("storefront shell (StoreFloor with sections)", () => {
+  const renderStore = (ui: React.ReactElement) =>
+    render(
+      <StorefrontMotionConfig>
+        <PileProvider>{ui}</PileProvider>
+      </StorefrontMotionConfig>,
+    )
   it("renders picks wall section first with stronger header", async () => {
     const onSelectCrate = vi.fn()
     const sections: StorefrontSection[] = [
@@ -46,7 +59,7 @@ describe("storefront shell (StoreFloor with sections)", () => {
       },
     ]
 
-    render(<StoreFloor sections={sections} onSelectCrate={onSelectCrate} />)
+    renderStore(<StoreFloor sections={sections} onSelectCrate={onSelectCrate} />)
 
     const picksHeader = screen.getByText("Milkcrate Picks")
     expect(picksHeader).toBeInTheDocument()
@@ -72,12 +85,41 @@ describe("storefront shell (StoreFloor with sections)", () => {
       },
     ]
 
-    render(<StoreFloor sections={sections} onSelectCrate={onSelectCrate} />)
+    renderStore(<StoreFloor sections={sections} onSelectCrate={onSelectCrate} />)
 
     const button = screen.getByRole("button", { name: "Open Milkcrate Picks" })
     await user.click(button)
 
     expect(onSelectCrate).toHaveBeenCalledWith("picks")
+  })
+
+  it("renders desktop wall cards via TactileCard when isDesktop is true", async () => {
+    vi.mocked(useIsDesktop).mockReturnValue(true)
+    const onSelectCrate = vi.fn()
+    const sections: StorefrontSection[] = [
+      {
+        key: "picks_wall",
+        crate: {
+          slug: "picks",
+          name: "Milkcrate Picks",
+          count: 12,
+          records: [
+            makeListing({ id: 1, title: "Record 1" }),
+            makeListing({ id: 2, title: "Record 2" }),
+          ],
+        },
+      },
+      { key: "genre_grid", crates: [] },
+    ]
+
+    renderStore(<StoreFloor sections={sections} onSelectCrate={onSelectCrate} />)
+
+    // TactileCard renders children inside a motion.div — the RecordCard
+    // content should still be present
+    expect(screen.getByText("Record 1")).toBeInTheDocument()
+    expect(screen.getByText("Record 2")).toBeInTheDocument()
+
+    vi.mocked(useIsDesktop).mockRestore()
   })
 
   it("renders featured crates row when present", async () => {
@@ -121,7 +163,7 @@ describe("storefront shell (StoreFloor with sections)", () => {
       },
     ]
 
-    render(<StoreFloor sections={sections} onSelectCrate={onSelectCrate} />)
+    renderStore(<StoreFloor sections={sections} onSelectCrate={onSelectCrate} />)
 
     expect(screen.getByText("New Arrivals")).toBeInTheDocument()
     expect(screen.getByText("This Week's Theme")).toBeInTheDocument()
@@ -157,7 +199,7 @@ describe("storefront shell (StoreFloor with sections)", () => {
       },
     ]
 
-    render(<StoreFloor sections={sections} onSelectCrate={onSelectCrate} />)
+    renderStore(<StoreFloor sections={sections} onSelectCrate={onSelectCrate} />)
 
     const button = screen.getByRole("button", { name: "Open New Arrivals" })
     await user.click(button)
@@ -196,7 +238,7 @@ describe("storefront shell (StoreFloor with sections)", () => {
       },
     ]
 
-    render(<StoreFloor sections={sections} onSelectCrate={onSelectCrate} />)
+    renderStore(<StoreFloor sections={sections} onSelectCrate={onSelectCrate} />)
 
     expect(screen.getByText("Jazz")).toBeInTheDocument()
     expect(screen.getByText("Rock")).toBeInTheDocument()
@@ -231,7 +273,7 @@ describe("storefront shell (StoreFloor with sections)", () => {
       },
     ]
 
-    render(<StoreFloor sections={sections} onSelectCrate={onSelectCrate} />)
+    renderStore(<StoreFloor sections={sections} onSelectCrate={onSelectCrate} />)
 
     const button = screen.getByRole("button", { name: "Open Jazz at Jazz 2" })
     await user.click(button)
@@ -265,7 +307,7 @@ describe("storefront shell (StoreFloor with sections)", () => {
       },
     ]
 
-    render(<StoreFloor sections={sections} onSelectCrate={onSelectCrate} />)
+    renderStore(<StoreFloor sections={sections} onSelectCrate={onSelectCrate} />)
 
     const button = screen.getByRole("button", { name: "Open Jazz" })
     await user.click(button)
@@ -291,7 +333,7 @@ describe("storefront shell (StoreFloor with sections)", () => {
       },
     ]
 
-    render(<StoreFloor sections={sections} onSelectCrate={onSelectCrate} />)
+    renderStore(<StoreFloor sections={sections} onSelectCrate={onSelectCrate} />)
 
     expect(screen.queryByText("No genre crates available yet.")).not.toBeInTheDocument()
   })
@@ -314,7 +356,7 @@ describe("storefront shell (StoreFloor with sections)", () => {
       },
     ]
 
-    render(<StoreFloor sections={sections} onSelectCrate={onSelectCrate} />)
+    renderStore(<StoreFloor sections={sections} onSelectCrate={onSelectCrate} />)
 
     expect(screen.queryByText("New Arrivals")).not.toBeInTheDocument()
     expect(screen.queryByText("This Week's Theme")).not.toBeInTheDocument()
@@ -338,7 +380,7 @@ describe("storefront shell (StoreFloor with sections)", () => {
       },
     ]
 
-    render(<StoreFloor sections={sections} onSelectCrate={onSelectCrate} />)
+    renderStore(<StoreFloor sections={sections} onSelectCrate={onSelectCrate} />)
 
     expect(screen.queryByText("Milkcrate Picks")).not.toBeInTheDocument()
   })

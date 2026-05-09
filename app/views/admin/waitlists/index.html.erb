@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Milkcrate — Admin</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #111; color: #ddd; padding: 2rem; }
+    h1 { font-size: 1.5rem; margin-bottom: 1.5rem; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #333; font-size: 0.875rem; }
+    th { color: #888; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; }
+    tr:hover { background: #1a1a1a; }
+    .empty { color: #666; padding: 3rem 0; text-align: center; }
+    .notes { max-width: 280px; white-space: pre-wrap; word-break: break-word; color: #999; }
+    .date { color: #888; white-space: nowrap; }
+  </style>
+</head>
+<body>
+  <h1>Applications</h1>
+
+  <% if @waitlists.any? %>
+    <table>
+      <thead>
+        <tr>
+          <th>Store</th>
+          <th>Email</th>
+          <th>Discogs</th>
+          <th>Inventory</th>
+          <th>Notes</th>
+          <th>Submitted</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @waitlists.each do |w| %>
+          <tr>
+            <td><%= w.name %></td>
+            <td><%= w.email %></td>
+            <td><%= w.discogs_username %></td>
+            <td><%= w.inventory_size.presence || "—" %></td>
+            <td class="notes"><%= w.notes.presence || "—" %></td>
+            <td class="date"><%= w.created_at.strftime("%b %d, %Y %I:%M %p") %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="empty">No applications yet.</p>
+  <% end %>
+</body>
+</html>

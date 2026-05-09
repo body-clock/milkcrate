@@ -1,0 +1,10 @@
+New application: <%= @waitlist.name %>
+
+Store name:       <%= @waitlist.name %>
+Email:            <%= @waitlist.email %>
+Discogs username: <%= @waitlist.discogs_username %>
+Inventory size:   <%= @waitlist.inventory_size.presence || "—" %>
+Notes:            <%= @waitlist.notes.presence || "—" %>
+Submitted:        <%= @waitlist.created_at.strftime("%B %d, %Y at %I:%M %p %Z") %>
+
+View all applications: https://<%= Settings.mail_host %>/admin

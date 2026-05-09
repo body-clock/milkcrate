@@ -1,7 +1,7 @@
 namespace :milkcrate do
   def default_store
     store = Store.find_by(discogs_username: Settings.discogs_username)
-    raise "No store found for username '#{Settings.discogs_username}'. Run corpus:seed or create one." unless store
+    raise "No store found for username '#{Settings.discogs_username}'. Create one via the Rails console." unless store
     store
   end
 
@@ -87,8 +87,9 @@ namespace :milkcrate do
 
     store    = default_store
     listing  = store.listings.find(args[:id])
-    selector = PicksSelector.new(store)
-    breakdown = selector.score_breakdown_for(listing)
+    genre_counts = store.listings.available.lp_only.pluck(:genres).map(&:first).compact.tally
+    scorer = RecordScorer.new(genre_counts:, today: Date.today)
+    breakdown = scorer.score_breakdown(listing)
     score    = breakdown.values.sum
 
     today    = Date.today

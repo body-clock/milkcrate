@@ -4,3 +4,6 @@
 store_name: Philadelphia Music
 discogs_username: philadelphiamusic
 store_description:
+mail_from: patrick@milkcrate.fm
+mail_host: milkcrate.fm
+admin_email: patrick@milkcrate.fm

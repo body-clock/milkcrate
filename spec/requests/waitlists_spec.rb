@@ -29,6 +29,14 @@ RSpec.describe "Waitlists", type: :request do
         )
       end
 
+      it "sends an admin notification email" do
+        expect {
+          post "/waitlist", params: valid_params
+        }.to have_enqueued_job(ActionMailer::MailDeliveryJob).with(
+          "SellerMailer", "admin_notification", "deliver_now", any_args
+        )
+      end
+
       it "redirects to the apply page" do
         post "/waitlist", params: valid_params
         expect(response).to have_http_status(:found)

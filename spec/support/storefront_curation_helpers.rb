@@ -7,14 +7,25 @@ module StorefrontCurationHelpers
     create_list(:listing, count, store:, format: "LP", last_seen_at: Time.current, genres:, styles:, listed_at:)
   end
 
-  def curation_with_selector(store, picks:, rank_genre_map:)
-    selector = instance_double(PicksSelector)
-    allow(selector).to receive(:select_picks).with(count: 12).and_return(picks)
-    allow(selector).to receive(:rank_genre) do |genre|
-      rank_genre_map.fetch(genre, [])
+  # Stubs strategies and scorer so tests control what each crate section contains.
+  # genre_scores: { listing_id => score } — controls RecordScorer output for genre crates.
+  # featured: array of CuratedCrate — stubs build_featured_crates return value.
+  def curation_with_strategies(store, picks:, genre_scores: {}, featured: [])
+    curation = described_class.new(store)
+
+    picks_double = instance_double(CrateStrategies::Picks)
+    allow(picks_double).to receive(:select).and_return(picks)
+    allow(curation).to receive(:picks_strategy).and_return(picks_double)
+
+    allow(curation).to receive(:build_featured_crates).and_return(featured)
+
+    if genre_scores.any?
+      scorer = instance_double(RecordScorer)
+      allow(scorer).to receive(:score) { |listing| genre_scores.fetch(listing.id, 0) }
+      allow(RecordScorer).to receive(:new).and_return(scorer)
     end
-    allow(PicksSelector).to receive(:new).with(store).and_return(selector)
-    described_class.new(store)
+
+    curation
   end
 
   def section_crate(section)

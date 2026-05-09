@@ -3,6 +3,8 @@ Rails.application.routes.draw do
 
   mount MissionControl::Jobs::Engine, at: "/jobs"
 
+  get "/admin", to: "admin/waitlists#index"
+
   root "pages#home"
 
   get  "/apply",   to: "pages#apply"
