@@ -4,10 +4,6 @@ import { render, screen, fireEvent } from "@testing-library/react"
 import TactileCard from "./tactile_card"
 import StorefrontMotionConfig from "./storefront_motion_config"
 
-const wrapper = ({ children }: { children: React.ReactNode }) => (
-  <StorefrontMotionConfig>{children}</StorefrontMotionConfig>
-)
-
 describe("TactileCard", () => {
   it("renders children", () => {
     render(
