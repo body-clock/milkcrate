@@ -58,6 +58,22 @@ export function useTactileHover(
   const isTouchRef = useRef(false)
   const rafRef = useRef<number | null>(null)
 
+  // ── Proximity math ───────────────────────────────────────
+
+  const updateProximity = useCallback((e: React.PointerEvent) => {
+    const el = e.currentTarget as HTMLElement
+    const rect = el.getBoundingClientRect()
+
+    const cx = rect.left + rect.width / 2
+    const cy = rect.top + rect.height / 2
+    const dx = e.clientX - cx
+    const dy = e.clientY - cy
+    const dist = Math.hypot(dx, dy)
+    const maxDist = Math.hypot(rect.width, rect.height) * 0.6
+
+    return Math.max(0, Math.min(1, 1 - dist / maxDist))
+  }, [])
+
   // ── Pointer handlers ──────────────────────────────────────
 
   const enter = useCallback(
@@ -67,40 +83,29 @@ export function useTactileHover(
       isTouchRef.current = isTouch
 
       if (reducedMotion || isTouch) {
-        // Binary fallback: snap to full proximity
         setProximity(1)
         return
       }
-      // Mouse: proximity set by onPointerMove
+      // Mouse: compute proximity from the enter event's position
+      setProximity(updateProximity(e))
     },
-    [reducedMotion],
+    [reducedMotion, updateProximity],
   )
 
   const move = useCallback(
     (e: React.PointerEvent) => {
       if (!isBrowser || reducedMotion || isTouchRef.current) return
 
-      // Cancel any pending frame before scheduling the next
       if (rafRef.current !== null) {
         cancelAnimationFrame(rafRef.current)
       }
 
       rafRef.current = requestAnimationFrame(() => {
         rafRef.current = null
-        const el = e.currentTarget as HTMLElement
-        const rect = el.getBoundingClientRect()
-
-        const cx = rect.left + rect.width / 2
-        const cy = rect.top + rect.height / 2
-        const dx = e.clientX - cx
-        const dy = e.clientY - cy
-        const dist = Math.hypot(dx, dy)
-        const maxDist = Math.hypot(rect.width, rect.height) * 0.6
-
-        setProximity(Math.max(0, Math.min(1, 1 - dist / maxDist)))
+        setProximity(updateProximity(e))
       })
     },
-    [reducedMotion],
+    [reducedMotion, updateProximity],
   )
 
   const leave = useCallback(() => {
