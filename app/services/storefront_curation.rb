@@ -48,21 +48,39 @@ class StorefrontCuration
   private
 
   # -----------------------------------------------------------------------
-  # Featured crates (New Arrivals + Thematic)
+  # Featured crates (New Arrivals + Thematic + Hidden Gems)
   # -----------------------------------------------------------------------
 
   def build_featured_crates(excluded_ids:)
-    na_listings = new_arrivals_strategy.select(eligible_listings, excluded_ids:)
+    crates = []
+    seen   = excluded_ids.dup
+
+    new_arrivals = build_new_arrivals_crate(excluded_ids: seen)
+    if new_arrivals
+      crates << new_arrivals
+      new_arrivals.listings.each { |l| seen.add(l.id) }
+    end
+
+    thematic = build_thematic_crate(excluded_ids: seen)
+    if thematic
+      crates << thematic
+      thematic.listings.each { |l| seen.add(l.id) }
+    end
+
+    hidden_gems = build_hidden_gems_crate(excluded_ids: seen)
+    crates << hidden_gems if hidden_gems
+
+    crates
+  end
+
+  def build_new_arrivals_crate(excluded_ids:)
+    listings = new_arrivals_strategy.select(eligible_listings, excluded_ids:)
       .first(CuratedCrate::CRATE_SIZE)
 
-    new_arrivals = CuratedCrate.new(slug: "new-arrivals", name: "New Arrivals", listings: na_listings)
-    return [] unless new_arrivals.viable?
+    crate = CuratedCrate.new(slug: "new-arrivals", name: "New Arrivals", listings:)
+    return unless crate.viable?
 
-    na_seen = excluded_ids | na_listings.map(&:id).to_set
-    thematic = build_thematic_crate(excluded_ids: na_seen)
-    return [ new_arrivals ] unless thematic
-
-    [ new_arrivals, thematic ]
+    crate
   end
 
   def build_thematic_crate(excluded_ids:)
@@ -124,6 +142,21 @@ class StorefrontCuration
       genre_counts:,
       today: Date.today
     )
+  end
+
+  def hidden_gems_strategy
+    @hidden_gems_strategy ||= CrateStrategies::HiddenGems.new(genre_counts:)
+  end
+
+  def build_hidden_gems_crate(excluded_ids:)
+    listings = hidden_gems_strategy.select(eligible_listings, excluded_ids:)
+    return if listings.empty?
+
+    capped = listings.first(CuratedCrate::CRATE_SIZE)
+    crate = CuratedCrate.new(slug: "hidden-gems", name: "Hidden Gems", listings: capped)
+    return unless crate.viable?
+
+    crate
   end
 
   # -----------------------------------------------------------------------
