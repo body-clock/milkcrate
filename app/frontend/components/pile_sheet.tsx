@@ -2,6 +2,7 @@ import React from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { usePileContext } from "../contexts/pile_context"
 import { useIsDesktop } from "../hooks/use_is_desktop"
+import { springDrawer } from "@/lib/motion_tokens"
 
 interface Props {
   open: boolean
@@ -67,7 +68,7 @@ export default function PileSheet({ open, onClose }: Props) {
             initial={isDesktop ? { x: "100%" } : { y: "100%" }}
             animate={isDesktop ? { x: 0 } : { y: 0 }}
             exit={isDesktop ? { x: "100%" } : { y: "100%" }}
-            transition={{ type: "spring", stiffness: 300, damping: 32 }}
+            transition={springDrawer}
           >
             {!isDesktop && (
               <div className="w-12 h-1.5 bg-mc-border rounded-full mx-auto my-3 flex-shrink-0" />
