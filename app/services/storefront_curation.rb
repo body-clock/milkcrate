@@ -131,7 +131,11 @@ class StorefrontCuration
   # -----------------------------------------------------------------------
 
   def eligible_listings
-    @eligible_listings ||= @store.listings.available.lp_only.to_a
+    @eligible_listings ||= begin
+      scope = @store.listings
+      scope = scope.available unless Rails.env.development?
+      scope.lp_only.to_a
+    end
   end
 
   def genre_counts
