@@ -12,7 +12,7 @@ interface Props {
 export default function CrateCard({ crate, variant, onSelectCrate }: Props) {
   const isFeatured = variant === "featured"
   const nameClass = isFeatured ? "text-base font-semibold" : "text-sm font-semibold"
-  const { isHovered, isPressed, handlers } = useTactileHover({ restingTilt: -0.5 })
+  const { isHovered, isPressed, handlers } = useTactileHover()
 
   if (crate.records.length === 0) {
     return (
