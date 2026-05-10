@@ -170,7 +170,7 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
           <button
             type="button"
             onClick={onBack}
-            className="self-start text-xs text-mc-text-dim hover:text-mc-text transition-colors mb-3 flex items-center gap-1 cursor-pointer"
+            className="self-start text-sm sm:text-xs text-mc-text-dim hover:text-mc-text transition-colors mb-3 flex items-center gap-1 cursor-pointer py-1.5 px-2 -ml-2 rounded"
             aria-label="Back to store"
           >
             ← Store

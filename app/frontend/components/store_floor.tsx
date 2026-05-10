@@ -41,13 +41,17 @@ export default function StoreFloor({ sections, onSelectCrate }: Props) {
                     {picks.records.slice(0, 12).map((record, i) => {
                       const tilt = i % 2 === 0 ? 1.5 : -1.5
                       return (
-                        <TactileCard
+                        <button
                           key={record.id}
-                          restingTilt={tilt}
-                          className="aspect-square"
+                          type="button"
+                          onClick={() => onSelectCrate("picks", i)}
+                          className="aspect-square cursor-pointer"
+                          aria-label={`Open Milkcrate Picks at ${record.title ?? "record"}`}
                         >
-                          <RecordCard listing={record} imageLoading="lazy" />
-                        </TactileCard>
+                          <TactileCard restingTilt={tilt} className="aspect-square">
+                            <RecordCard listing={record} imageLoading="lazy" disableFlip />
+                          </TactileCard>
+                        </button>
                       )
                     })}
                   </div>
