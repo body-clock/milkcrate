@@ -32,8 +32,8 @@ export default function StoreFloor({ sections, onSelectCrate }: Props) {
                   </div>
                 </button>
 
-                {/* CSS Grid auto-fit: collapses naturally from 6→3→2 columns. */}
-                <div className="grid gap-1 sm:gap-2 px-3 pt-3 pb-4" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))" }}>
+                {/* CSS Grid auto-fit: collapses naturally from 5→3→2 columns. */}
+                <div className="grid gap-1 sm:gap-2 px-3 pt-3 pb-4 max-w-3xl mx-auto" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))" }}>
                   {picks.records.slice(0, 12).map((record, i) => {
                     const tilt = i % 2 === 0 ? 1.5 : -1.5
                     return (
@@ -42,7 +42,7 @@ export default function StoreFloor({ sections, onSelectCrate }: Props) {
                         restingTilt={tilt}
                         className="aspect-square"
                       >
-                        <RecordCard listing={record} imageLoading="lazy" />
+                        <RecordCard listing={record} imageLoading="lazy" touchActionNone={false} />
                       </TactileCard>
                     )
                   })}

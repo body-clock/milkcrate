@@ -13,9 +13,11 @@ interface Props {
   imageLoading?: "eager" | "lazy"
   disableFlip?: boolean
   framed?: boolean
+  /** Set to true when the card is in a drag context (CrateView). Defaults to true. */
+  touchActionNone?: boolean
 }
 
-export default function RecordCard({ listing, resetKey, className = "", imageLoading = "lazy", disableFlip = false, framed = false }: Props) {
+export default function RecordCard({ listing, resetKey, className = "", imageLoading = "lazy", disableFlip = false, framed = false, touchActionNone = true }: Props) {
   const [flipped, setFlipped] = useState(false)
   const pointerDown = useRef<{ x: number; y: number } | null>(null)
   const { inPile, addToPile, removeFromPile } = usePileContext()
@@ -76,7 +78,7 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
   return (
     <div
       className={`w-full h-full flex-shrink-0 cursor-pointer ${className}`}
-      style={{ perspective: 800, touchAction: "none" }}
+      style={{ perspective: 800, touchAction: touchActionNone ? "none" : "auto" }}
       role={canFlip ? "button" : undefined}
       tabIndex={canFlip ? 0 : undefined}
       aria-label={canFlip ? `${flipped ? "Show cover for" : "Show details for"} ${listing.title ?? "record"}` : undefined}

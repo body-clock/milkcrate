@@ -68,12 +68,12 @@ export default function PileSheet({ open, onClose }: Props) {
             tabIndex={-1}
             className={
               isCompact
-                ? "fixed top-0 right-0 bottom-0 z-50 bg-mc-bg border-l border-mc-border w-96 flex flex-col"
-                : "fixed bottom-0 left-0 right-0 z-50 bg-mc-bg border-t border-mc-border rounded-t-2xl max-h-[85vh] flex flex-col"
+                ? "fixed bottom-0 left-0 right-0 z-50 bg-mc-bg border-t border-mc-border rounded-t-2xl max-h-[85vh] flex flex-col"
+                : "fixed top-0 right-0 bottom-0 z-50 bg-mc-bg border-l border-mc-border w-96 flex flex-col"
             }
-            initial={!isCompact ? { x: "100%" } : { y: "100%" }}
-            animate={!isCompact ? { x: 0 } : { y: 0 }}
-            exit={!isCompact ? { x: "100%" } : { y: "100%" }}
+            initial={isCompact ? { y: "100%" } : { x: "100%" }}
+            animate={isCompact ? { y: 0 } : { x: 0 }}
+            exit={isCompact ? { y: "100%" } : { x: "100%" }}
             transition={springDrawer}
           >
             {isCompact && (

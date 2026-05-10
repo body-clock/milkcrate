@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react"
-import { Link, usePage, router } from "@inertiajs/react"
+import { Link, usePage } from "@inertiajs/react"
 import { motion } from "framer-motion"
 import { useTheme } from "@/hooks/use_theme"
 import { PileProvider, usePileContext } from "@/contexts/pile_context"
@@ -34,7 +34,7 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
       }
 
       if (tab === activeTab) {
-        // Re-tap: scroll to top or re-trigger genres scroll
+        // Re-tap: scroll to top or re-trigger genres scroll.
         if (tab === "browse") {
           window.scrollTo({ top: 0, behavior: "smooth" })
         } else if (tab === "genres") {
@@ -45,36 +45,15 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
 
       setActiveTab(tab)
 
-      // Detect if we're in CrateView (page component has an active crate)
-      const isInCrate = !!props.active_crate_slug
-
-      if (tab === "browse" && isInCrate) {
-        // Navigate back to the store floor
-        router.visit(window.location.pathname)
-        return
-      }
-
-      if (tab === "genres") {
-        if (isInCrate) {
-          // Navigate to floor, then scroll to genres after mount
-          router.visit(window.location.pathname, {
-            onFinish: () => {
-              setTimeout(() => {
-                document.querySelector('[data-section="genre_grid"]')?.scrollIntoView({ behavior: "smooth" })
-              }, 100)
-            },
-          })
-        } else {
-          document.querySelector('[data-section="genre_grid"]')?.scrollIntoView({ behavior: "smooth" })
-        }
-        return
-      }
-
       if (tab === "browse") {
         window.scrollTo({ top: 0, behavior: "smooth" })
+      } else if (tab === "genres") {
+        requestAnimationFrame(() => {
+          document.querySelector('[data-section="genre_grid"]')?.scrollIntoView({ behavior: "smooth" })
+        })
       }
     },
-    [activeTab, props.active_crate_slug],
+    [activeTab],
   )
 
   // Reset active tab to browse when pile closes (pile tab is transient).

@@ -62,7 +62,7 @@ describe("useTactileHover", () => {
     expect(result.current.isHovered).toBe(true)
   })
 
-  it("sets proximity=1 on pointer enter (touch — binary fallback)", () => {
+  it("sets proximity=0 on pointer enter (touch — no hover for touch)", () => {
     const { result } = renderHook(() => useTactileHover(), { wrapper })
 
     act(() =>
@@ -71,8 +71,8 @@ describe("useTactileHover", () => {
       ),
     )
 
-    expect(result.current.proximity).toBe(1)
-    expect(result.current.isHovered).toBe(true)
+    expect(result.current.proximity).toBe(0)
+    expect(result.current.isHovered).toBe(false)
   })
 
   it("resets to idle on pointer leave", () => {
@@ -80,10 +80,10 @@ describe("useTactileHover", () => {
 
     act(() =>
       result.current.handlers.onPointerEnter(
-        pointerEvent({ pointerType: "touch" }),
+        pointerEvent({ pointerType: "mouse", clientX: 50, clientY: 50 }),
       ),
     )
-    expect(result.current.proximity).toBe(1)
+    expect(result.current.proximity).toBeGreaterThan(0.9)
 
     act(() => result.current.handlers.onPointerLeave(pointerEvent()))
 
