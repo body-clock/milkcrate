@@ -4,12 +4,9 @@ import userEvent from "@testing-library/user-event"
 import StoreFloor from "./store_floor"
 import StorefrontMotionConfig from "./storefront_motion_config"
 import { PileProvider } from "@/contexts/pile_context"
-import { useIsDesktop } from "@/hooks/use_is_desktop"
+import { ViewportProvider } from "@/contexts/viewport_context"
+import { renderWithTier } from "@/test/viewport-test-utils"
 import type { Listing, StorefrontSection } from "../types/inertia"
-
-vi.mock("@/hooks/use_is_desktop", () => ({
-  useIsDesktop: vi.fn(() => false),
-}))
 
 const makeListing = (overrides: Partial<Listing> = {}): Listing => ({
   id: 1,
@@ -35,7 +32,9 @@ describe("storefront shell (StoreFloor with sections)", () => {
   const renderStore = (ui: React.ReactElement) =>
     render(
       <StorefrontMotionConfig>
-        <PileProvider>{ui}</PileProvider>
+        <ViewportProvider>
+          <PileProvider>{ui}</PileProvider>
+        </ViewportProvider>
       </StorefrontMotionConfig>,
     )
   it("renders picks wall section first with stronger header", async () => {
@@ -93,8 +92,7 @@ describe("storefront shell (StoreFloor with sections)", () => {
     expect(onSelectCrate).toHaveBeenCalledWith("picks")
   })
 
-  it("renders desktop wall cards via TactileCard when isDesktop is true", async () => {
-    vi.mocked(useIsDesktop).mockReturnValue(true)
+  it("renders desktop wall cards via TactileCard when viewport is comfy", async () => {
     const onSelectCrate = vi.fn()
     const sections: StorefrontSection[] = [
       {
@@ -112,14 +110,18 @@ describe("storefront shell (StoreFloor with sections)", () => {
       { key: "genre_grid", crates: [] },
     ]
 
-    renderStore(<StoreFloor sections={sections} onSelectCrate={onSelectCrate} />)
+    renderWithTier("comfy", (
+      <StorefrontMotionConfig>
+        <PileProvider>
+          <StoreFloor sections={sections} onSelectCrate={onSelectCrate} />
+        </PileProvider>
+      </StorefrontMotionConfig>
+    ))
 
     // TactileCard renders children inside a motion.div — the RecordCard
     // content should still be present
     expect(screen.getByText("Record 1")).toBeInTheDocument()
     expect(screen.getByText("Record 2")).toBeInTheDocument()
-
-    vi.mocked(useIsDesktop).mockRestore()
   })
 
   it("renders featured crates row when present", async () => {

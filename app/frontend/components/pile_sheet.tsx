@@ -1,8 +1,9 @@
 import React from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { usePileContext } from "../contexts/pile_context"
-import { useIsDesktop } from "../hooks/use_is_desktop"
+import { useViewport } from "@/hooks/use_viewport"
 import { springDrawer } from "@/lib/motion_tokens"
+import { useSwipeable } from "@/hooks/use_swipeable"
 
 interface Props {
   open: boolean
@@ -11,8 +12,13 @@ interface Props {
 
 export default function PileSheet({ open, onClose }: Props) {
   const { pile, removeFromPile, clearPile } = usePileContext()
-  const isDesktop = useIsDesktop()
+  const { isCompact } = useViewport()
   const [confirmClear, setConfirmClear] = React.useState(false)
+
+  const swipeHandlers = useSwipeable({
+    direction: "down",
+    onSwipe: () => onClose(),
+  })
   const dialogRef = React.useRef<HTMLDivElement>(null)
   const previousFocusRef = React.useRef<HTMLElement | null>(null)
 
@@ -61,17 +67,20 @@ export default function PileSheet({ open, onClose }: Props) {
             aria-labelledby="pile-sheet-title"
             tabIndex={-1}
             className={
-              isDesktop
+              isCompact
                 ? "fixed top-0 right-0 bottom-0 z-50 bg-mc-bg border-l border-mc-border w-96 flex flex-col"
                 : "fixed bottom-0 left-0 right-0 z-50 bg-mc-bg border-t border-mc-border rounded-t-2xl max-h-[85vh] flex flex-col"
             }
-            initial={isDesktop ? { x: "100%" } : { y: "100%" }}
-            animate={isDesktop ? { x: 0 } : { y: 0 }}
-            exit={isDesktop ? { x: "100%" } : { y: "100%" }}
+            initial={!isCompact ? { x: "100%" } : { y: "100%" }}
+            animate={!isCompact ? { x: 0 } : { y: 0 }}
+            exit={!isCompact ? { x: "100%" } : { y: "100%" }}
             transition={springDrawer}
           >
-            {!isDesktop && (
-              <div className="w-12 h-1.5 bg-mc-border rounded-full mx-auto my-3 flex-shrink-0" />
+            {isCompact && (
+              <div
+                className="w-12 h-1.5 bg-mc-border rounded-full mx-auto my-3 flex-shrink-0"
+                {...swipeHandlers.handlers}
+              />
             )}
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-mc-border flex-shrink-0">

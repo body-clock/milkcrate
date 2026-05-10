@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState } from "react"
 import { motion } from "framer-motion"
 import { usePileContext } from "../contexts/pile_context"
+import { useViewport } from "@/hooks/use_viewport"
 import { springFlip } from "@/lib/motion_tokens"
+import { useLongPress } from "@/hooks/use_long_press"
 import type { Listing } from "../types/inertia"
 
 interface Props {
@@ -17,7 +19,16 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
   const [flipped, setFlipped] = useState(false)
   const pointerDown = useRef<{ x: number; y: number } | null>(null)
   const { inPile, addToPile, removeFromPile } = usePileContext()
+  const { isCompact } = useViewport()
   const canFlip = !disableFlip
+  const longPressSuppressed = useRef(false)
+
+  const longPress = useLongPress({
+    onLongPress: () => {
+      longPressSuppressed.current = true
+      addToPile(listing)
+    },
+  })
 
   useEffect(() => {
     setFlipped(false)
@@ -25,6 +36,8 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
 
   const handlePointerDown = (e: React.PointerEvent) => {
     pointerDown.current = { x: e.clientX, y: e.clientY }
+    longPressSuppressed.current = false
+    if (isCompact) longPress.handlers.onPointerDown(e)
   }
 
   const movedSincePointerDown = (e: React.MouseEvent) => {
@@ -39,6 +52,10 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
     if (!canFlip) return
     if ((e.target as HTMLElement).closest("a, button, form")) return
     if (movedSincePointerDown(e)) return
+    if (longPressSuppressed.current) {
+      longPressSuppressed.current = false
+      return
+    }
     setFlipped((f) => !f)
   }
 
@@ -66,6 +83,7 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
       onDragStart={(e) => e.preventDefault()}
       onClick={handleFlip}
       onKeyDown={handleKeyDown}
+      {...(isCompact ? { onPointerMove: longPress.handlers.onPointerMove, onPointerUp: longPress.handlers.onPointerUp, onPointerCancel: longPress.handlers.onPointerCancel } : {})}
     >
       <motion.div
         className={framed ? "rounded-lg" : undefined}

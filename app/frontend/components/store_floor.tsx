@@ -4,7 +4,7 @@ import FeaturedCratesRow from "./featured_crates_row"
 import GenreGrid from "./genre_grid"
 import TactileCard from "./tactile_card"
 import { springTactile, SCALE_HOVER, SCALE_PRESS } from "@/lib/motion_tokens"
-import { useIsDesktop } from "@/hooks/use_is_desktop"
+import { useViewport } from "@/hooks/use_viewport"
 import type { StorefrontSection } from "../types/inertia"
 
 interface Props {
@@ -13,7 +13,7 @@ interface Props {
 }
 
 export default function StoreFloor({ sections, onSelectCrate }: Props) {
-  const isDesktop = useIsDesktop()
+  const { isCompact } = useViewport()
   const today = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" })
 
   return (
@@ -23,7 +23,7 @@ export default function StoreFloor({ sections, onSelectCrate }: Props) {
           const picks = section.crate
           return (
             picks.records.length > 0 && (
-              <div key="picks" className="-mx-4 mb-6 bg-mc-bg-raised border-y border-mc-border">
+              <div key="picks" className="-mx-4 mb-6 bg-mc-bg-raised border-y border-mc-border" data-section="picks_wall">
                 <button
                   type="button"
                   onClick={() => onSelectCrate("picks")}
@@ -36,7 +36,8 @@ export default function StoreFloor({ sections, onSelectCrate }: Props) {
                   </div>
                 </button>
 
-                {isDesktop ? (
+                {/* NOTE: isCompact ternary preserved for IU-4 migration to CSS Grid auto-fit */}
+                {!isCompact ? (
                   <div className="grid grid-cols-6 gap-1 px-3 pt-3 pb-4">
                     {picks.records.slice(0, 12).map((record, i) => {
                       const tilt = i % 2 === 0 ? 1.5 : -1.5
@@ -88,11 +89,11 @@ export default function StoreFloor({ sections, onSelectCrate }: Props) {
         }
 
         if (section.key === "featured_crates") {
-          return <FeaturedCratesRow key="featured" crates={section.crates} onSelectCrate={onSelectCrate} />
+          return <div key="featured" data-section="featured_crates"><FeaturedCratesRow crates={section.crates} onSelectCrate={onSelectCrate} /></div>
         }
 
         if (section.key === "genre_grid") {
-          return <GenreGrid key="genres" crates={section.crates} onSelectCrate={onSelectCrate} />
+          return <div key="genres" data-section="genre_grid"><GenreGrid crates={section.crates} onSelectCrate={onSelectCrate} /></div>
         }
 
         return null
