@@ -45,7 +45,9 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
     const deltaX = Math.abs(e.clientX - pointerDown.current.x)
     const deltaY = Math.abs(e.clientY - pointerDown.current.y)
     pointerDown.current = null
-    return Math.hypot(deltaX, deltaY) > 8
+    // 16px on touch (thumb tremor tolerance), 8px on mouse (precision pointer).
+    const threshold = e.nativeEvent.pointerType !== "mouse" ? 16 : 8
+    return Math.hypot(deltaX, deltaY) > threshold
   }
 
   const handleFlip = (e: React.MouseEvent) => {
@@ -150,7 +152,7 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
             {listing.genres.length > 0 && (
               <div className="flex gap-1 flex-wrap">
                 {listing.genres.slice(0, 3).map((g) => (
-                  <span key={g} className="text-[10px] px-1.5 py-0.5 rounded bg-mc-bg-raised text-mc-text-dim">
+                  <span key={g} className="text-xs px-1.5 py-0.5 rounded bg-mc-bg-raised text-mc-text-dim">
                     {g}
                   </span>
                 ))}
@@ -161,15 +163,15 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
             </div>
             <div className="flex gap-1 mt-1" onClick={(e) => e.stopPropagation()}>
               {inPile(listing.id) ? (
-                <button onClick={() => removeFromPile(listing.id)} className="mc-btn text-xs">
+                <button onClick={() => removeFromPile(listing.id)} className="mc-btn text-xs min-w-[44px] min-h-[44px] flex items-center justify-center">
                   ✓ In pile
                 </button>
               ) : (
-                <button onClick={() => addToPile(listing)} className="mc-btn mc-btn-primary text-xs">
+                <button onClick={() => addToPile(listing)} className="mc-btn mc-btn-primary text-xs min-w-[44px] min-h-[44px] flex items-center justify-center">
                   + Pile
                 </button>
               )}
-              <a href={listing.discogs_url} target="_blank" rel="noopener" className="mc-btn text-xs">
+              <a href={listing.discogs_url} target="_blank" rel="noopener" className="mc-btn text-xs min-w-[44px] min-h-[44px] flex items-center justify-center">
                 Discogs ↗
               </a>
             </div>

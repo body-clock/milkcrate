@@ -1,10 +1,7 @@
-import { motion } from "framer-motion"
 import RecordCard from "./record_card"
 import FeaturedCratesRow from "./featured_crates_row"
 import GenreGrid from "./genre_grid"
 import TactileCard from "./tactile_card"
-import { springTactile, SCALE_HOVER, SCALE_PRESS } from "@/lib/motion_tokens"
-import { useViewport } from "@/hooks/use_viewport"
 import type { StorefrontSection } from "../types/inertia"
 
 interface Props {
@@ -13,7 +10,6 @@ interface Props {
 }
 
 export default function StoreFloor({ sections, onSelectCrate }: Props) {
-  const { isCompact } = useViewport()
   const today = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" })
 
   return (
@@ -36,53 +32,21 @@ export default function StoreFloor({ sections, onSelectCrate }: Props) {
                   </div>
                 </button>
 
-                {/* NOTE: isCompact ternary preserved for IU-4 migration to CSS Grid auto-fit */}
-                {!isCompact ? (
-                  <div className="grid grid-cols-6 gap-1 px-3 pt-3 pb-4">
-                    {picks.records.slice(0, 12).map((record, i) => {
-                      const tilt = i % 2 === 0 ? 1.5 : -1.5
-                      return (
-                        <TactileCard
-                          key={record.id}
-                          restingTilt={tilt}
-                          className="aspect-square"
-                        >
-                          <RecordCard listing={record} imageLoading="lazy" />
-                        </TactileCard>
-                      )
-                    })}
-                  </div>
-                ) : (
-                  <div className="flex gap-2 overflow-x-auto pl-4 pt-3 pb-4" style={{ scrollbarWidth: "none" }}>
-                    {picks.records.slice(0, 10).map((record, i) => {
-                      const src = record.cover_image_url ?? record.thumbnail_url
-                      return (
-                        <motion.button
-                          key={record.id}
-                          type="button"
-                          className="flex-shrink-0 w-[46vw] h-[46vw] rounded bg-mc-bg-card overflow-hidden border border-mc-border cursor-pointer"
-                          whileHover={{ scale: SCALE_HOVER, zIndex: 10 }}
-                          whileTap={{ scale: SCALE_PRESS }}
-                          transition={springTactile}
-                          onClick={() => onSelectCrate("picks", i)}
-                          aria-label={`Open Milkcrate Picks at ${record.title ?? "record"}`}
-                        >
-                          {src ? (
-                            <img
-                              src={src}
-                              alt={record.title ?? ""}
-                              className="w-full h-full object-cover"
-                              draggable={false}
-                              loading="lazy"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center mc-dim text-2xl">♪</div>
-                          )}
-                        </motion.button>
-                      )
-                    })}
-                  </div>
-                )}
+                {/* CSS Grid auto-fit: collapses naturally from 6→3→2 columns. */}
+                <div className="grid gap-1 sm:gap-2 px-3 pt-3 pb-4" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))" }}>
+                  {picks.records.slice(0, 12).map((record, i) => {
+                    const tilt = i % 2 === 0 ? 1.5 : -1.5
+                    return (
+                      <TactileCard
+                        key={record.id}
+                        restingTilt={tilt}
+                        className="aspect-square"
+                      >
+                        <RecordCard listing={record} imageLoading="lazy" />
+                      </TactileCard>
+                    )
+                  })}
+                </div>
               </div>
             )
           )

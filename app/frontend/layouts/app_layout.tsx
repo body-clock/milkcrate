@@ -9,6 +9,8 @@ import { ViewportProvider } from "@/contexts/viewport_context"
 import { useViewport } from "@/hooks/use_viewport"
 import { useScrollAwareHeader } from "@/hooks/use_scroll_aware_header"
 import MobileTabBar, { type TabId } from "@/components/mobile_tab_bar"
+import InstallBanner from "@/components/install_banner"
+import OfflineIndicator from "@/components/offline_indicator"
 import { springDrawer } from "@/lib/motion_tokens"
 
 function AppLayoutInner({ children }: { children: React.ReactNode }) {
@@ -179,6 +181,8 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
         </div>
       )}
 
+      <OfflineIndicator />
+
       <main
         ref={containerRef}
         className="flex-1 overflow-y-auto"
@@ -203,6 +207,8 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
       {isCompact && (
         <MobileTabBar activeTab={activeTab} pileOpen={pileOpen} onSelect={handleTabSelect} />
       )}
+
+      <InstallBanner />
 
       <PileSheet open={pileOpen} onClose={handlePileClose} />
     </div>
