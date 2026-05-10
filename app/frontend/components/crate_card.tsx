@@ -33,7 +33,6 @@ export default function CrateCard({ crate, variant, onSelectCrate }: Props) {
     <motion.div
       role="button"
       tabIndex={0}
-      layoutId={`crate-${crate.slug}`}
       onClick={() => onSelectCrate(crate.slug)}
       onKeyDown={(e) => {
         if ((e.target as HTMLElement).closest("button, a")) return

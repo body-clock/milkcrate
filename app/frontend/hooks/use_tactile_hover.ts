@@ -84,8 +84,7 @@ export function useTactileHover(
       isTouchRef.current = isTouch
 
       if (reducedMotion || isTouch) {
-        // Touch: no hover proximity — only press state matters.
-        setProximity(0)
+        setProximity(1)
         return
       }
       // Mouse: compute proximity from the enter event's position

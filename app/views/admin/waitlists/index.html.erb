@@ -15,24 +15,6 @@
     .empty { color: #666; padding: 3rem 0; text-align: center; }
     .notes { max-width: 280px; white-space: pre-wrap; word-break: break-word; color: #999; }
     .date { color: #888; white-space: nowrap; }
-
-    /* Stacked cards on mobile */
-    .card-list { display: none; }
-    @media (max-width: 767px) {
-      table { display: none; }
-      .card-list { display: flex; flex-direction: column; gap: 1rem; }
-      .card {
-        background: #1a1a1a;
-        border: 1px solid #333;
-        border-radius: 8px;
-        padding: 1rem;
-      }
-      .card h2 { font-size: 1rem; margin-bottom: 0.5rem; color: #eee; }
-      .card .field { display: flex; justify-content: space-between; align-items: baseline; padding: 0.25rem 0; font-size: 0.8125rem; border-bottom: 1px solid #222; }
-      .card .field:last-child { border-bottom: none; }
-      .card .field-label { color: #888; font-weight: 500; flex-shrink: 0; margin-right: 1rem; }
-      .card .field-value { color: #ccc; text-align: right; word-break: break-word; }
-    }
   </style>
 </head>
 <body>
@@ -63,19 +45,6 @@
         <% end %>
       </tbody>
     </table>
-
-    <div class="card-list">
-      <% @waitlists.each do |w| %>
-        <div class="card">
-          <h2><%= w.name %></h2>
-          <div class="field"><span class="field-label">Email</span><span class="field-value"><%= w.email %></span></div>
-          <div class="field"><span class="field-label">Discogs</span><span class="field-value"><%= w.discogs_username %></span></div>
-          <div class="field"><span class="field-label">Inventory</span><span class="field-value"><%= w.inventory_size.presence || "—" %></span></div>
-          <div class="field"><span class="field-label">Notes</span><span class="field-value"><%= w.notes.presence || "—" %></span></div>
-          <div class="field"><span class="field-label">Submitted</span><span class="field-value"><%= w.created_at.strftime("%b %d, %Y %I:%M %p") %></span></div>
-        </div>
-      <% end %>
-    </div>
   <% else %>
     <p class="empty">No applications yet.</p>
   <% end %>

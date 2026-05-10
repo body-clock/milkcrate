@@ -1,9 +1,7 @@
 import React, { useEffect, useRef, useState } from "react"
 import { motion } from "framer-motion"
 import { usePileContext } from "../contexts/pile_context"
-import { useViewport } from "@/hooks/use_viewport"
 import { springFlip } from "@/lib/motion_tokens"
-import { useLongPress } from "@/hooks/use_long_press"
 import type { Listing } from "../types/inertia"
 
 interface Props {
@@ -13,24 +11,13 @@ interface Props {
   imageLoading?: "eager" | "lazy"
   disableFlip?: boolean
   framed?: boolean
-  /** Set to true when the card is in a drag context (CrateView). Defaults to true. */
-  touchActionNone?: boolean
 }
 
-export default function RecordCard({ listing, resetKey, className = "", imageLoading = "lazy", disableFlip = false, framed = false, touchActionNone = true }: Props) {
+export default function RecordCard({ listing, resetKey, className = "", imageLoading = "lazy", disableFlip = false, framed = false }: Props) {
   const [flipped, setFlipped] = useState(false)
   const pointerDown = useRef<{ x: number; y: number } | null>(null)
   const { inPile, addToPile, removeFromPile } = usePileContext()
-  const { isCompact } = useViewport()
   const canFlip = !disableFlip
-  const longPressSuppressed = useRef(false)
-
-  const longPress = useLongPress({
-    onLongPress: () => {
-      longPressSuppressed.current = true
-      addToPile(listing)
-    },
-  })
 
   useEffect(() => {
     setFlipped(false)
@@ -38,8 +25,6 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
 
   const handlePointerDown = (e: React.PointerEvent) => {
     pointerDown.current = { x: e.clientX, y: e.clientY }
-    longPressSuppressed.current = false
-    if (isCompact) longPress.handlers.onPointerDown(e)
   }
 
   const movedSincePointerDown = (e: React.MouseEvent) => {
@@ -47,19 +32,13 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
     const deltaX = Math.abs(e.clientX - pointerDown.current.x)
     const deltaY = Math.abs(e.clientY - pointerDown.current.y)
     pointerDown.current = null
-    // 16px on touch (thumb tremor tolerance), 8px on mouse (precision pointer).
-    const threshold = e.nativeEvent.pointerType !== "mouse" ? 16 : 8
-    return Math.hypot(deltaX, deltaY) > threshold
+    return Math.hypot(deltaX, deltaY) > 8
   }
 
   const handleFlip = (e: React.MouseEvent) => {
     if (!canFlip) return
     if ((e.target as HTMLElement).closest("a, button, form")) return
     if (movedSincePointerDown(e)) return
-    if (longPressSuppressed.current) {
-      longPressSuppressed.current = false
-      return
-    }
     setFlipped((f) => !f)
   }
 
@@ -78,7 +57,7 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
   return (
     <div
       className={`w-full h-full flex-shrink-0 cursor-pointer ${className}`}
-      style={{ perspective: 800, touchAction: touchActionNone ? "none" : "auto" }}
+      style={{ perspective: 800, touchAction: "none" }}
       role={canFlip ? "button" : undefined}
       tabIndex={canFlip ? 0 : undefined}
       aria-label={canFlip ? `${flipped ? "Show cover for" : "Show details for"} ${listing.title ?? "record"}` : undefined}
@@ -87,7 +66,6 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
       onDragStart={(e) => e.preventDefault()}
       onClick={handleFlip}
       onKeyDown={handleKeyDown}
-      {...(isCompact ? { onPointerMove: longPress.handlers.onPointerMove, onPointerUp: longPress.handlers.onPointerUp, onPointerCancel: longPress.handlers.onPointerCancel } : {})}
     >
       <motion.div
         className={framed ? "rounded-lg" : undefined}
@@ -154,7 +132,7 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
             {listing.genres.length > 0 && (
               <div className="flex gap-1 flex-wrap">
                 {listing.genres.slice(0, 3).map((g) => (
-                  <span key={g} className="text-xs px-1.5 py-0.5 rounded bg-mc-bg-raised text-mc-text-dim">
+                  <span key={g} className="text-[10px] px-1.5 py-0.5 rounded bg-mc-bg-raised text-mc-text-dim">
                     {g}
                   </span>
                 ))}
@@ -165,15 +143,15 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
             </div>
             <div className="flex gap-1 mt-1" onClick={(e) => e.stopPropagation()}>
               {inPile(listing.id) ? (
-                <button onClick={() => removeFromPile(listing.id)} className="mc-btn text-xs min-w-[44px] min-h-[44px] flex items-center justify-center">
+                <button onClick={() => removeFromPile(listing.id)} className="mc-btn text-xs">
                   ✓ In pile
                 </button>
               ) : (
-                <button onClick={() => addToPile(listing)} className="mc-btn mc-btn-primary text-xs min-w-[44px] min-h-[44px] flex items-center justify-center">
+                <button onClick={() => addToPile(listing)} className="mc-btn mc-btn-primary text-xs">
                   + Pile
                 </button>
               )}
-              <a href={listing.discogs_url} target="_blank" rel="noopener" className="mc-btn text-xs min-w-[44px] min-h-[44px] flex items-center justify-center">
+              <a href={listing.discogs_url} target="_blank" rel="noopener" className="mc-btn text-xs">
                 Discogs ↗
               </a>
             </div>

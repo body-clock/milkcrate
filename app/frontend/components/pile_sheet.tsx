@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion"
 import { usePileContext } from "../contexts/pile_context"
 import { useViewport } from "@/hooks/use_viewport"
 import { springDrawer } from "@/lib/motion_tokens"
-import { useSwipeable } from "@/hooks/use_swipeable"
 
 interface Props {
   open: boolean
@@ -14,11 +13,6 @@ export default function PileSheet({ open, onClose }: Props) {
   const { pile, removeFromPile, clearPile } = usePileContext()
   const { isCompact } = useViewport()
   const [confirmClear, setConfirmClear] = React.useState(false)
-
-  const swipeHandlers = useSwipeable({
-    direction: "down",
-    onSwipe: () => onClose(),
-  })
   const dialogRef = React.useRef<HTMLDivElement>(null)
   const previousFocusRef = React.useRef<HTMLElement | null>(null)
 
@@ -77,10 +71,7 @@ export default function PileSheet({ open, onClose }: Props) {
             transition={springDrawer}
           >
             {isCompact && (
-              <div
-                className="w-12 h-1.5 bg-mc-border rounded-full mx-auto my-3 flex-shrink-0"
-                {...swipeHandlers.handlers}
-              />
+              <div className="w-12 h-1.5 bg-mc-border rounded-full mx-auto my-3 flex-shrink-0" />
             )}
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-mc-border flex-shrink-0">

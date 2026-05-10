@@ -1,9 +1,7 @@
 import { useState, useEffect, useMemo } from "react"
-import { motion, AnimatePresence } from "framer-motion"
 import AppLayout from "@/layouts/app_layout"
 import CrateView from "@/components/crate_view"
 import StoreFloor from "@/components/store_floor"
-import { springTactile } from "@/lib/motion_tokens"
 import type { FeaturedProps } from "@/types/inertia"
 
 export default function Featured({ store, crates, storefront_sections }: FeaturedProps) {
@@ -60,37 +58,16 @@ export default function Featured({ store, crates, storefront_sections }: Feature
         <div className="py-16 text-center mc-dim text-sm">
           <p>No vinyl found yet.</p>
         </div>
+      ) : activeSlug === null ? (
+        <StoreFloor sections={storefront_sections ?? []} onSelectCrate={handleSelectCrate} />
       ) : (
-        <AnimatePresence mode="wait">
-          {activeSlug === null ? (
-            <motion.div
-              key="store-floor"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={springTactile}
-            >
-              <StoreFloor sections={storefront_sections ?? []} onSelectCrate={handleSelectCrate} />
-            </motion.div>
-          ) : (
-            <motion.div
-              key={`crate-${activeSlug}`}
-              layoutId={`crate-${activeSlug}`}
-              initial={{ opacity: 0, scale: 0.97 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
-              transition={springTactile}
-            >
-              <CrateView
-                crates={allCrates}
-                activeSlug={activeSlug}
-                startIndex={startIndex}
-                onSelectCrate={handleSelectCrate}
-                onBack={() => history.back()}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <CrateView
+          crates={allCrates}
+          activeSlug={activeSlug}
+          startIndex={startIndex}
+          onSelectCrate={handleSelectCrate}
+          onBack={() => history.back()}
+        />
       )}
     </AppLayout>
   )
