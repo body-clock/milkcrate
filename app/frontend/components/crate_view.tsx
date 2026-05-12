@@ -6,6 +6,8 @@ import { buildCrateWindow } from "../lib/crate_window"
 import { useViewport } from "@/hooks/use_viewport"
 import { usePileContext } from "@/contexts/pile_context"
 import { SCALE_PRESS, springPress } from "@/lib/motion_tokens"
+import Text from "@/components/text"
+import Button from "@/components/button"
 import type { Crate, Listing } from "../types/inertia"
 
 interface Props {
@@ -52,14 +54,14 @@ function RecordDetails({ listing, direction }: { listing: Listing; direction: nu
         className="flex flex-col gap-3"
       >
         <div>
-          <div className="text-xl font-semibold leading-tight">{listing.title}</div>
-          <div className="text-sm text-mc-text-dim mt-1">{listing.artist}</div>
+          <Text variant="display" as="div" className="!text-xl leading-tight">{listing.title}</Text>
+          <Text variant="dim" className="mt-1 !text-mc-label">{listing.artist}</Text>
         </div>
-        {meta && <div className="text-xs text-mc-text-dim">{meta}</div>}
+        {meta && <Text variant="dim">{meta}</Text>}
         {listing.genres.length > 0 && (
           <div className="flex gap-1.5 flex-wrap">
             {listing.genres.slice(0, 4).map((g) => (
-              <span key={g} className="text-[11px] px-2 py-0.5 rounded bg-mc-bg-raised text-mc-text-dim">
+              <span key={g} className="text-mc-label-sm px-2 py-0.5 rounded-mc-sharp bg-mc-bg-raised text-mc-text-dim">
                 {g}
               </span>
             ))}
@@ -68,27 +70,25 @@ function RecordDetails({ listing, direction }: { listing: Listing; direction: nu
         {listing.styles.length > 0 && (
           <div className="flex gap-1.5 flex-wrap">
             {listing.styles.slice(0, 4).map((s) => (
-              <span key={s} className="text-[11px] px-2 py-0.5 rounded bg-mc-bg-raised text-mc-text-dim/70">
+              <span key={s} className="text-mc-label-sm px-2 py-0.5 rounded-mc-sharp bg-mc-bg-raised text-mc-text-dim/70">
                 {s}
               </span>
             ))}
           </div>
         )}
-        <div className="text-2xl font-medium mt-2">
+        <Text variant="display" as="div" className="!text-2xl !font-medium mt-2">
           {listing.price ? `$${parseFloat(listing.price).toFixed(2)}` : "—"}
-        </div>
+        </Text>
         <div className="flex gap-2">
           {inPile(listing.id) ? (
-            <button onClick={() => removeFromPile(listing.id)} className="mc-btn">✓ In pile</button>
+            <Button variant="ghost" onClick={() => removeFromPile(listing.id)}>✓ In pile</Button>
           ) : (
-            <button onClick={() => addToPile(listing)} className="mc-btn mc-btn-primary">+ Pile</button>
+            <Button variant="primary" onClick={() => addToPile(listing)}>+ Pile</Button>
           )}
-          <a href={listing.discogs_url} target="_blank" rel="noopener" className="mc-btn">
-            Discogs ↗
-          </a>
+          <Button variant="ghost" href={listing.discogs_url} external>Discogs ↗</Button>
         </div>
         {listing.notes && (
-          <p className="text-xs text-mc-text-dim leading-relaxed line-clamp-4 mt-1">{listing.notes}</p>
+          <Text variant="dim" className="leading-relaxed line-clamp-4 mt-1">{listing.notes}</Text>
         )}
       </motion.div>
     </AnimatePresence>
@@ -147,14 +147,9 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
   const activeRecord = records[index]
 
   const backButton = onBack ? (
-    <button
-      type="button"
-      onClick={onBack}
-      className="self-start text-xs font-medium text-mc-text-dim bg-mc-bg-raised border border-mc-border rounded-lg hover:border-mc-accent hover:text-mc-accent transition-colors mb-4 flex items-center gap-1.5 cursor-pointer py-3 px-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
-      aria-label="Back to store"
-    >
+    <Button variant="ghost" onClick={onBack} className="self-start mb-4 gap-1.5 !border-mc-border hover:!border-mc-accent hover:!text-mc-accent !text-mc-btn !rounded-mc-gentle !py-3 !px-3" aria-label="Back to store">
       ← Store
-    </button>
+    </Button>
   ) : null
 
   usePreload(records, index)

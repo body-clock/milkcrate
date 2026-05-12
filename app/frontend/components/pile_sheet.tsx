@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from "framer-motion"
 import { usePileContext } from "../contexts/pile_context"
 import { useViewport } from "@/hooks/use_viewport"
 import { springDrawer } from "@/lib/motion_tokens"
+import Text from "@/components/text"
+import Button from "@/components/button"
 
 interface Props {
   open: boolean
@@ -78,8 +80,10 @@ export default function PileSheet({ open, onClose }: Props) {
             <div className="flex items-center justify-between px-4 py-3 border-b border-mc-border flex-shrink-0">
 
               <div className="flex items-center gap-3">
-                <span id="pile-sheet-title" className="text-sm font-semibold">
-                  Your pile {pile.length > 0 && <span className="text-mc-text-dim font-normal">· {pile.length} records</span>}
+                <span id="pile-sheet-title">
+                  <Text variant="section-name" className="!text-mc-body !text-mc-text">
+                    Your pile{pile.length > 0 && <> · {pile.length} records</>}
+                  </Text>
                 </span>
                 {pile.length > 0 && (
                   confirmClear ? (
@@ -121,8 +125,8 @@ export default function PileSheet({ open, onClose }: Props) {
             {/* Records list */}
             <div className="flex-1 overflow-y-auto">
               {pile.length === 0 ? (
-                <div className="py-16 text-center text-sm text-mc-text-dim">
-                  No records in your pile yet.
+                <div className="py-16 text-center">
+                  <Text variant="dim">No records in your pile yet.</Text>
                 </div>
               ) : (
                 <ul>
@@ -169,16 +173,12 @@ export default function PileSheet({ open, onClose }: Props) {
             {pile.length > 0 && (
               <div className="flex-shrink-0 px-4 py-4 border-t border-mc-border flex flex-col gap-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-mc-text-dim uppercase tracking-wider">Total</span>
-                  <span className="text-sm font-semibold">${total.toFixed(2)}</span>
+                  <Text variant="label">Total</Text>
+                  <Text variant="body" className="!font-semibold">${total.toFixed(2)}</Text>
                 </div>
-                <button
-                  disabled
-                  className="w-full mc-btn mc-btn-primary py-2.5 text-sm opacity-40 cursor-not-allowed"
-                  title="Coming soon — requires Discogs login"
-                >
+                <Button variant="primary" disabled className="w-full" title="Coming soon — requires Discogs login">
                   Add all to Discogs cart
-                </button>
+                </Button>
               </div>
             )}
           </motion.div>

@@ -34,7 +34,7 @@ export default function CrateTabs({ crates, activeSlug, onSelect }: Props) {
             tabIndex={selected ? 0 : -1}
             onClick={() => onSelect(crate.slug)}
             onKeyDown={(e) => handleKeyDown(e, i)}
-            className={`whitespace-nowrap px-2.5 py-1 rounded text-xs sm:text-sm cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-1 focus-visible:ring-offset-mc-bg ${
+            className={`whitespace-nowrap px-2.5 py-1 rounded-mc-gentle text-xs sm:text-sm cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-1 focus-visible:ring-offset-mc-bg ${
               selected
                 ? "bg-mc-accent text-mc-on-accent font-semibold"
                 : "bg-mc-bg-raised text-mc-text-dim hover:bg-mc-bg-card hover:text-mc-text"

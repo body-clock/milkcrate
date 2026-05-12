@@ -62,7 +62,7 @@ describe("storefront shell (StoreFloor with sections)", () => {
 
     const picksHeader = screen.getByText("Milkcrate Picks")
     expect(picksHeader).toBeInTheDocument()
-    expect(picksHeader.className).toContain("font-semibold")
+    expect(picksHeader.className).toContain("font-bold")
   })
 
   it("opens picks crate when picks header is clicked", async () => {

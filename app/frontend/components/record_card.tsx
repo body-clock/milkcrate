@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from "react"
 import { motion } from "framer-motion"
 import { usePileContext } from "../contexts/pile_context"
 import { springFlip } from "@/lib/motion_tokens"
+import Text from "@/components/text"
+import Button from "@/components/button"
 import type { Listing } from "../types/inertia"
 
 interface Props {
@@ -120,40 +122,40 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
           }}
         >
           <div className="flex flex-col h-full p-4 gap-2">
-            <div className="text-sm font-semibold leading-tight line-clamp-3">
+            <Text variant="section-name" className="!text-mc-body leading-tight line-clamp-3 !text-mc-text">
               {listing.title}
-            </div>
-            <div className="text-xs text-mc-text leading-tight">
+            </Text>
+            <Text variant="dim" className="!text-mc-text">
               {listing.artist}
-            </div>
+            </Text>
             {meta && (
-              <div className="text-xs text-mc-text-dim">{meta}</div>
+              <Text variant="dim">{meta}</Text>
             )}
             {listing.genres.length > 0 && (
               <div className="flex gap-1 flex-wrap">
                 {listing.genres.slice(0, 3).map((g) => (
-                  <span key={g} className="text-[10px] px-1.5 py-0.5 rounded bg-mc-bg-raised text-mc-text-dim">
+                  <span key={g} className="text-mc-label-sm px-1.5 py-0.5 rounded-mc-sharp bg-mc-bg-raised text-mc-text-dim">
                     {g}
                   </span>
                 ))}
               </div>
             )}
-            <div className="text-sm font-medium mt-auto">
+            <Text variant="body" className="!font-semibold mt-auto">
               {listing.price ? `$${parseFloat(listing.price).toFixed(2)}` : "—"}
-            </div>
+            </Text>
             <div className="flex gap-1 mt-1" onClick={(e) => e.stopPropagation()}>
               {inPile(listing.id) ? (
-                <button onClick={() => removeFromPile(listing.id)} className="mc-btn text-xs">
+                <Button variant="ghost" onClick={() => removeFromPile(listing.id)}>
                   ✓ In pile
-                </button>
+                </Button>
               ) : (
-                <button onClick={() => addToPile(listing)} className="mc-btn mc-btn-primary text-xs">
+                <Button variant="primary" onClick={() => addToPile(listing)}>
                   + Pile
-                </button>
+                </Button>
               )}
-              <a href={listing.discogs_url} target="_blank" rel="noopener" className="mc-btn text-xs">
+              <Button variant="ghost" href={listing.discogs_url} external>
                 Discogs ↗
-              </a>
+              </Button>
             </div>
           </div>
         </div>

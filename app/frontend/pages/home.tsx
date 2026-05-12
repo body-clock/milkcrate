@@ -1,7 +1,8 @@
 import React from "react"
-import { Link } from "@inertiajs/react"
 import { motion } from "framer-motion"
 import MarketingLayout from "@/layouts/marketing_layout"
+import Text from "@/components/text"
+import Button from "@/components/button"
 
 interface Props {
   copy: {
@@ -21,9 +22,6 @@ const fadeUp = {
     transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] },
   },
 }
-
-const ctaBase =
-  "w-full px-6 py-3 rounded-lg font-semibold text-sm tracking-wide text-center transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
 
 export default function Home({ copy }: Props) {
   return (
@@ -45,42 +43,32 @@ export default function Home({ copy }: Props) {
         <motion.h1
           variants={fadeUp}
           id="home-headline"
-          className="text-2xl font-bold mc-text mb-3 leading-tight"
+          className="mb-3 leading-tight"
         >
-          {copy.headline}
+          <Text variant="display" as="span" className="!text-2xl !tracking-normal !normal-case">
+            {copy.headline}
+          </Text>
         </motion.h1>
 
-        <motion.p
-          variants={fadeUp}
-          className="text-sm text-mc-text-dim mb-10 leading-relaxed"
-        >
-          {copy.subhead}
-        </motion.p>
+        <motion.div variants={fadeUp} className="mb-10 leading-relaxed">
+          <Text variant="body">{copy.subhead}</Text>
+        </motion.div>
 
         <motion.div
           variants={fadeUp}
           className="flex flex-col items-center gap-3 w-full max-w-xs"
         >
-          <Link
-            href="/philadelphiamusic"
-            className={`${ctaBase} bg-mc-accent text-mc-on-accent hover:opacity-90`}
-          >
+          <Button variant="primary" href="/philadelphiamusic" className="w-full">
             {copy.cta_demo}
-          </Link>
-          <Link
-            href="/apply"
-            className={`${ctaBase} border border-mc-border mc-text hover:border-mc-accent hover:text-mc-accent`}
-          >
+          </Button>
+          <Button variant="ghost" href="/apply" className="w-full border-mc-border hover:border-mc-accent">
             {copy.cta_apply}
-          </Link>
+          </Button>
         </motion.div>
 
-        <motion.p
-          variants={fadeUp}
-          className="mt-6 text-xs text-mc-text-dim"
-        >
-          {copy.footnote}
-        </motion.p>
+        <motion.div variants={fadeUp} className="mt-6">
+          <Text variant="dim">{copy.footnote}</Text>
+        </motion.div>
       </motion.section>
     </MarketingLayout>
   )

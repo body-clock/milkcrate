@@ -20,7 +20,6 @@ export default function GenreGrid({ crates, onSelectCrate }: Props) {
           <CrateCard
             key={crate.slug}
             crate={crate}
-            variant="genre"
             onSelectCrate={onSelectCrate}
           />
         ))}

@@ -28,20 +28,19 @@ describe("StorefrontMotionConfig", () => {
     expect(screen.getByTestId("result").textContent).toBe("false")
   })
 
-  it("throws when useReducedMotionContext is called outside the provider", () => {
-    // Suppress console.error for the expected throw
-    const spy = vi.spyOn(console, "error").mockImplementation(() => {})
+  it("returns true (reduced motion) when used outside the provider", () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {})
 
+    let value: boolean | undefined
     function Outside() {
-      useReducedMotionContext()
+      value = useReducedMotionContext()
       return null
     }
 
-    expect(() => render(<Outside />)).toThrow(
-      "useReducedMotionContext must be used within StorefrontMotionConfig",
-    )
+    render(<Outside />)
+    expect(value).toBe(true)
 
-    spy.mockRestore()
+    warnSpy.mockRestore()
   })
 
   it("wraps children in framer-motion MotionConfig without errors", () => {

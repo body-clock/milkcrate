@@ -72,7 +72,7 @@ export default function StoreFloor({ sections, onSelectCrate }: Props) {
                           <motion.button
                             key={record.id}
                             type="button"
-                            className="flex-shrink-0 w-[46vw] h-[46vw] rounded bg-mc-bg-card overflow-hidden border border-mc-border cursor-pointer"
+                            className="flex-shrink-0 w-[46vw] h-[46vw] rounded-mc-gentle bg-mc-bg-card overflow-hidden border border-mc-border cursor-pointer"
                             whileHover={{ scale: SCALE_HOVER, zIndex: 10 }}
                             whileTap={{ scale: SCALE_PRESS }}
                             transition={springTactile}

@@ -6,6 +6,8 @@ import PileSheet from "@/components/pile_sheet"
 import StorefrontMotionConfig from "@/components/storefront_motion_config"
 import { ViewportProvider } from "@/contexts/viewport_context"
 import { useViewport } from "@/hooks/use_viewport"
+import Text from "@/components/text"
+import Button from "@/components/button"
 
 function AppLayoutInner({ children }: { children: React.ReactNode }) {
   const page = usePage()
@@ -34,12 +36,12 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
           {storeName ? (
             <>
               <span className="text-base font-bold tracking-wide mc-text truncate">{storeName}</span>
-              <span className="text-[10px] tracking-widest uppercase text-mc-text-dim">
+              <Text variant="label">
                 {isCompact ? "on MC" : "on Milkcrate"}
-              </span>
+              </Text>
             </>
           ) : (
-            <span className="mc-wordmark text-lg sm:text-xl font-bold tracking-widest uppercase whitespace-nowrap">🥛 Milkcrate</span>
+            <Text variant="display" className="whitespace-nowrap">🥛 Milkcrate</Text>
           )}
         </Link>
         <div className="flex items-center gap-2.5 sm:gap-3 flex-shrink-0">
@@ -87,9 +89,9 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
       <main className="flex-1 px-4 py-4 sm:py-6 max-w-7xl mx-auto" id="main-content">{children}</main>
 
       <footer className="px-4 py-4 border-t mc-border text-center">
-        <span className="text-[11px] text-mc-text-dim tracking-wide">
+        <Text variant="label">
           Powered by <span className="font-semibold tracking-widest uppercase">🥛 Milkcrate</span>
-        </span>
+        </Text>
       </footer>
 
       <PileSheet open={pileOpen} onClose={() => setPileOpen(false)} />

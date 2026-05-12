@@ -1,29 +1,27 @@
 import { motion } from "framer-motion"
 import { useTactileHover } from "@/hooks/use_tactile_hover"
 import { springTactile, springPress, SCALE_HOVER, SCALE_PRESS, SCALE_INNER_HOVER } from "@/lib/motion_tokens"
+import Text from "@/components/text"
 import type { Crate } from "../types/inertia"
 
 interface Props {
   crate: Crate
-  variant: "featured" | "genre"
   onSelectCrate: (slug: string, startIndex?: number) => void
 }
 
-export default function CrateCard({ crate, variant, onSelectCrate }: Props) {
-  const isFeatured = variant === "featured"
-  const nameClass = isFeatured ? "text-base font-semibold" : "text-sm font-semibold"
+export default function CrateCard({ crate, onSelectCrate }: Props) {
   const { isHovered, isPressed, handlers } = useTactileHover()
 
   if (crate.records.length === 0) {
     return (
-      <div className="flex flex-col w-full rounded-lg bg-mc-bg-card border border-mc-border overflow-hidden text-left">
+      <div className="flex flex-col w-full rounded-mc-gentle bg-mc-bg-card border border-mc-border overflow-hidden text-left">
         <div className="px-3 pt-3 pb-2">
-          <div className="mc-section-header">
-            <span className={`mc-section-name ${nameClass}`}>{crate.name}</span>
+          <div className="flex items-baseline gap-2 mb-1.5 border-b border-mc-border pb-1">
+            <Text variant="section-name">{crate.name}</Text>
           </div>
         </div>
-        <div className="aspect-square flex items-center justify-center mc-dim text-xs px-3 pb-3">
-          No records yet
+        <div className="aspect-square flex items-center justify-center px-3 pb-3">
+          <Text variant="dim">No records yet</Text>
         </div>
       </div>
     )
@@ -41,7 +39,7 @@ export default function CrateCard({ crate, variant, onSelectCrate }: Props) {
           onSelectCrate(crate.slug)
         }
       }}
-      className="flex flex-col w-full rounded-lg bg-mc-bg-card border border-mc-border overflow-hidden cursor-pointer text-left"
+      className="flex flex-col w-full rounded-mc-gentle bg-mc-bg-card border border-mc-border overflow-hidden cursor-pointer text-left"
       animate={{
         borderColor: isHovered ? "var(--mc-accent)" : "var(--mc-border)",
         scale: isPressed ? SCALE_PRESS : isHovered ? SCALE_HOVER : 1,
@@ -60,17 +58,19 @@ export default function CrateCard({ crate, variant, onSelectCrate }: Props) {
         transition={springTactile}
       >
         <div className="flex items-center justify-between gap-2 border-b border-mc-border pb-1">
-          <span className={`mc-section-name ${nameClass} truncate flex-1`}>{crate.name}</span>
+          <span className="truncate flex-1">
+            <Text variant="section-name">{crate.name}</Text>
+          </span>
           <div className="flex items-center gap-2 flex-shrink-0">
             {/* DIG → label — slides in on hover */}
             <motion.span
-              className="text-[10px] text-mc-accent font-bold uppercase tracking-widest"
+              className="text-mc-label-sm text-mc-accent font-bold uppercase tracking-widest"
               animate={{ opacity: isHovered ? 1 : 0, x: isHovered ? 0 : -4 }}
               transition={springTactile}
             >
               DIG →
             </motion.span>
-            <span className="mc-section-count text-xs">{crate.count}</span>
+            <Text variant="section-count">{crate.count}</Text>
           </div>
         </div>
       </motion.div>

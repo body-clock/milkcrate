@@ -28,13 +28,20 @@ export default function StorefrontMotionConfig({
 /**
  * Returns true when the user has requested reduced motion at the OS
  * level. Consumers use this to gate animation behavior.
+ *
+ * Falls back to `true` (treat as reduced motion — no animation) when
+ * used outside a StorefrontMotionConfig provider, so components like
+ * Button remain safe in marketing pages and test environments.
  */
 export function useReducedMotionContext(): boolean {
   const value = useContext(ReducedMotionCtx)
   if (value === null) {
-    throw new Error(
-      "useReducedMotionContext must be used within StorefrontMotionConfig",
-    )
+    if (typeof window !== "undefined" && import.meta.env.DEV) {
+      console.warn(
+        "useReducedMotionContext used outside StorefrontMotionConfig — animations disabled. Wrap with <StorefrontMotionConfig> for motion support.",
+      )
+    }
+    return true
   }
   return value
 }
