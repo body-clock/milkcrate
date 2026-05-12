@@ -87,6 +87,6 @@ describe("page smoke tests", () => {
   it("renders the store page", () => {
     render(<Featured {...featuredProps} />)
 
-    expect(screen.getByText("No vinyl found yet.")).toBeInTheDocument()
+    expect(screen.getByText(/No vinyl found yet/)).toBeInTheDocument()
   })
 })

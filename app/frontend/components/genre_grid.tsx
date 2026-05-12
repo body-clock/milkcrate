@@ -15,15 +15,15 @@ export default function GenreGrid({ crates, onSelectCrate }: Props) {
     <div className="mb-8">
       <div className="-mx-4 bg-mc-accent mb-6">
         <div className="px-4 py-2.5 flex items-center justify-between">
-          <span className="font-serif text-base font-bold tracking-wide text-mc-bg">
+          <span className="font-serif text-base font-bold tracking-wide text-mc-on-accent">
             Browse by genre
           </span>
-          <span className="font-sans text-xs font-bold text-mc-bg">
+          <span className="font-sans text-xs font-bold text-mc-on-accent/70">
             {crates.length}
           </span>
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
         {crates.map((crate) => (
           <CrateCard
             key={crate.slug}

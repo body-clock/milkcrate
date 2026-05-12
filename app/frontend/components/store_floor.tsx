@@ -63,34 +63,46 @@ export default function StoreFloor({ sections, onSelectCrate }: Props) {
                     })}
                   </div>
                 ) : (
-                  <div className="flex gap-2 overflow-x-auto pl-4 pt-3 pb-4" style={{ scrollbarWidth: "none" }}>
-                    {picks.records.slice(0, 10).map((record, i) => {
-                      const src = record.cover_image_url ?? record.thumbnail_url
-                      return (
-                        <motion.button
-                          key={record.id}
-                          type="button"
-                          className="flex-shrink-0 w-[46vw] h-[46vw] rounded bg-mc-bg-card overflow-hidden border border-mc-border cursor-pointer"
-                          whileHover={{ scale: SCALE_HOVER, zIndex: 10 }}
-                          whileTap={{ scale: SCALE_PRESS }}
-                          transition={springTactile}
-                          onClick={() => onSelectCrate("picks", i)}
-                          aria-label={`Open Milkcrate Picks at ${record.title ?? "record"}`}
-                        >
-                          {src ? (
-                            <img
-                              src={src}
-                              alt={record.title ?? ""}
-                              className="w-full h-full object-cover"
-                              draggable={false}
-                              loading="lazy"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center mc-dim text-2xl">♪</div>
-                          )}
-                        </motion.button>
-                      )
-                    })}
+                  <div className="relative">
+                    <div
+                      className="flex gap-2 overflow-x-auto pl-4 pt-3 pb-4"
+                      style={{ scrollbarWidth: "none" }}
+                    >
+                      {picks.records.slice(0, 10).map((record, i) => {
+                        const src = record.cover_image_url ?? record.thumbnail_url
+                        return (
+                          <motion.button
+                            key={record.id}
+                            type="button"
+                            className="flex-shrink-0 w-[46vw] h-[46vw] rounded bg-mc-bg-card overflow-hidden border border-mc-border cursor-pointer"
+                            whileHover={{ scale: SCALE_HOVER, zIndex: 10 }}
+                            whileTap={{ scale: SCALE_PRESS }}
+                            transition={springTactile}
+                            onClick={() => onSelectCrate("picks", i)}
+                            aria-label={`Open Milkcrate Picks at ${record.title ?? "record"}`}
+                          >
+                            {src ? (
+                              <img
+                                src={src}
+                                alt={record.title ?? ""}
+                                className="w-full h-full object-cover"
+                                draggable={false}
+                                loading="lazy"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center mc-dim text-2xl">♪</div>
+                            )}
+                          </motion.button>
+                        )
+                      })}
+                    </div>
+                    <div
+                      aria-hidden="true"
+                      className="absolute right-0 top-0 bottom-0 w-12 pointer-events-none"
+                      style={{
+                        background: "linear-gradient(to right, transparent, var(--mc-bg-raised))",
+                      }}
+                    />
                   </div>
                 )}
               </div>

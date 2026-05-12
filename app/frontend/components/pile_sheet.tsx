@@ -56,6 +56,7 @@ export default function PileSheet({ open, onClose }: Props) {
           {/* Sheet */}
           <motion.div
             ref={dialogRef}
+            id="pile-sheet"
             role="dialog"
             aria-modal="true"
             aria-labelledby="pile-sheet-title"

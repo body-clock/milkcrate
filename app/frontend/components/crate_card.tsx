@@ -1,6 +1,6 @@
 import { motion } from "framer-motion"
 import { useTactileHover } from "@/hooks/use_tactile_hover"
-import { springTactile, springPress, SCALE_HOVER, SCALE_PRESS } from "@/lib/motion_tokens"
+import { springTactile, springPress, SCALE_HOVER, SCALE_PRESS, SCALE_INNER_HOVER } from "@/lib/motion_tokens"
 import type { Crate } from "../types/inertia"
 
 interface Props {
@@ -78,7 +78,7 @@ export default function CrateCard({ crate, variant, onSelectCrate }: Props) {
       {/* Thumbnail grid — scale together as a group */}
       <motion.div
         className="grid grid-cols-2 gap-1.5 px-3 pb-3 pt-1.5"
-        animate={{ scale: isHovered ? SCALE_HOVER : 1 }}
+        animate={{ scale: isHovered ? SCALE_INNER_HOVER : 1 }}
         transition={springTactile}
       >
         {crate.records.slice(0, 4).map((record, i) => {
