@@ -4,7 +4,8 @@ import { useTheme } from "@/hooks/use_theme"
 import { PileProvider, usePileContext } from "@/contexts/pile_context"
 import PileSheet from "@/components/pile_sheet"
 import StorefrontMotionConfig from "@/components/storefront_motion_config"
-import { useIsDesktop } from "@/hooks/use_is_desktop"
+import { ViewportProvider } from "@/contexts/viewport_context"
+import { useViewport } from "@/hooks/use_viewport"
 
 function AppLayoutInner({ children }: { children: React.ReactNode }) {
   const page = usePage()
@@ -13,7 +14,7 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
   const storeName = props.store?.name as string | undefined
   const discogsUsername = props.store?.discogs_username as string | undefined
   const { theme, toggle } = useTheme()
-  const isDesktop = useIsDesktop()
+  const { isCompact } = useViewport()
   const { pile } = usePileContext()
   const [pileOpen, setPileOpen] = useState(false)
 
@@ -25,7 +26,7 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
             <>
               <span className="text-base font-bold tracking-wide mc-text truncate">{storeName}</span>
               <span className="text-[9px] sm:text-[10px] tracking-widest uppercase text-mc-text-dim">
-                {isDesktop ? "on Milkcrate" : "on MC"}
+                {isCompact ? "on MC" : "on Milkcrate"}
               </span>
             </>
           ) : (
@@ -41,7 +42,7 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
               className="text-xs text-mc-text-dim hover:text-mc-text transition-colors select-none"
               aria-label="View store on Discogs"
             >
-              {isDesktop ? "Discogs ↗" : "Store ↗"}
+              {isCompact ? "Store ↗" : "Discogs ↗"}
             </a>
           )}
           {pile.length > 0 && (
@@ -89,9 +90,11 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <StorefrontMotionConfig>
-      <PileProvider>
-        <AppLayoutInner>{children}</AppLayoutInner>
-      </PileProvider>
+      <ViewportProvider>
+        <PileProvider>
+          <AppLayoutInner>{children}</AppLayoutInner>
+        </PileProvider>
+      </ViewportProvider>
     </StorefrontMotionConfig>
   )
 }

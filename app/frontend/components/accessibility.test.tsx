@@ -5,6 +5,7 @@ import userEvent from "@testing-library/user-event"
 import RecordCard from "./record_card"
 import PileSheet from "./pile_sheet"
 import { PileProvider } from "../contexts/pile_context"
+import { ViewportProvider } from "../contexts/viewport_context"
 import type { Listing } from "../types/inertia"
 
 const makeListing = (overrides: Partial<Listing> = {}): Listing => ({
@@ -28,7 +29,7 @@ const makeListing = (overrides: Partial<Listing> = {}): Listing => ({
 })
 
 const renderWithPile = (ui: React.ReactElement) => (
-  render(<PileProvider>{ui}</PileProvider>)
+  render(<ViewportProvider><PileProvider>{ui}</PileProvider></ViewportProvider>)
 )
 
 beforeEach(() => {

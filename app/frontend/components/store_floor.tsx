@@ -4,7 +4,7 @@ import FeaturedCratesRow from "./featured_crates_row"
 import GenreGrid from "./genre_grid"
 import TactileCard from "./tactile_card"
 import { springTactile, SCALE_HOVER, SCALE_PRESS } from "@/lib/motion_tokens"
-import { useIsDesktop } from "@/hooks/use_is_desktop"
+import { useViewport } from "@/hooks/use_viewport"
 import type { StorefrontSection } from "../types/inertia"
 
 interface Props {
@@ -13,7 +13,7 @@ interface Props {
 }
 
 export default function StoreFloor({ sections, onSelectCrate }: Props) {
-  const isDesktop = useIsDesktop()
+  const { isCompact } = useViewport()
   const today = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" })
 
   return (
@@ -36,18 +36,29 @@ export default function StoreFloor({ sections, onSelectCrate }: Props) {
                   </div>
                 </button>
 
-                {isDesktop ? (
+                {!isCompact ? (
                   <div className="grid grid-cols-6 gap-1 px-3 pt-3 pb-4">
                     {picks.records.slice(0, 12).map((record, i) => {
                       const tilt = i % 2 === 0 ? 1.5 : -1.5
                       return (
-                        <TactileCard
+                        <div
                           key={record.id}
-                          restingTilt={tilt}
-                          className="aspect-square"
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => onSelectCrate("picks", i)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault()
+                              onSelectCrate("picks", i)
+                            }
+                          }}
+                          className="aspect-square cursor-pointer"
+                          aria-label={`Open Milkcrate Picks at ${record.title ?? "record"}`}
                         >
-                          <RecordCard listing={record} imageLoading="lazy" />
-                        </TactileCard>
+                          <TactileCard restingTilt={tilt} className="aspect-square">
+                            <RecordCard listing={record} imageLoading="lazy" disableFlip />
+                          </TactileCard>
+                        </div>
                       )
                     })}
                   </div>

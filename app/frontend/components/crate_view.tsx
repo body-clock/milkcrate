@@ -3,7 +3,7 @@ import { motion, AnimatePresence, useMotionValue, useReducedMotion, useTransform
 import CrateTabs from "./crate_tabs"
 import RecordCard from "./record_card"
 import { buildCrateWindow } from "../lib/crate_window"
-import { useIsDesktop } from "@/hooks/use_is_desktop"
+import { useViewport } from "@/hooks/use_viewport"
 import { usePileContext } from "@/contexts/pile_context"
 import { SCALE_PRESS, springPress } from "@/lib/motion_tokens"
 import type { Crate, Listing } from "../types/inertia"
@@ -112,7 +112,7 @@ function usePreload(records: { id: number; cover_image_url?: string | null }[], 
 }
 
 export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs = false, onSelectCrate, onBack }: Props) {
-  const isDesktop = useIsDesktop()
+  const { isCompact } = useViewport()
   const activeCrate = crates.find((c) => c.slug === activeSlug) ?? crates[0]
   const records = activeCrate?.records ?? []
   const total = records.length
@@ -170,7 +170,7 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
           <button
             type="button"
             onClick={onBack}
-            className="self-start text-xs text-mc-text-dim hover:text-mc-text transition-colors mb-3 flex items-center gap-1 cursor-pointer"
+            className="self-start text-sm sm:text-xs text-mc-text-dim hover:text-mc-text transition-colors mb-3 flex items-center gap-1 cursor-pointer py-1.5 px-2 -ml-2 rounded"
             aria-label="Back to store"
           >
             ← Store
@@ -292,7 +292,7 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
                       resetKey={`${activeSlug}-${slot.record.id}`}
                       className="rounded-lg"
                       imageLoading="eager"
-                      disableFlip={isDesktop}
+                      disableFlip={!isCompact}
                       framed
                     />
                   </motion.div>

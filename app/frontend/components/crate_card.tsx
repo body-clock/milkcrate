@@ -30,9 +30,17 @@ export default function CrateCard({ crate, variant, onSelectCrate }: Props) {
   }
 
   return (
-    <motion.button
-      type="button"
+    <motion.div
+      role="button"
+      tabIndex={0}
       onClick={() => onSelectCrate(crate.slug)}
+      onKeyDown={(e) => {
+        if ((e.target as HTMLElement).closest("button, a")) return
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault()
+          onSelectCrate(crate.slug)
+        }
+      }}
       className="flex flex-col w-full rounded-lg bg-mc-bg-card border border-mc-border overflow-hidden cursor-pointer text-left"
       animate={{
         borderColor: isHovered ? "var(--mc-accent)" : "var(--mc-border)",
@@ -101,6 +109,6 @@ export default function CrateCard({ crate, variant, onSelectCrate }: Props) {
           )
         })}
       </motion.div>
-    </motion.button>
+    </motion.div>
   )
 }
