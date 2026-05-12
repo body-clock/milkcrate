@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react"
+import { motion } from "framer-motion"
 import AppLayout from "@/layouts/app_layout"
 import CrateView from "@/components/crate_view"
 import StoreFloor from "@/components/store_floor"
@@ -17,7 +18,13 @@ export default function Featured({ store, crates, storefront_sections }: Feature
   const handleSelectCrate = (slug: string, index = 0) => {
     setStartIndex(index)
     setActiveSlug(slug)
-    history.pushState({ crateSlug: slug, startIndex: index }, "")
+    // Push on first entry; replace on subsequent switches so back
+    // always returns to the store floor regardless of browsing depth.
+    if (activeSlug === null) {
+      history.pushState({ crateSlug: slug, startIndex: index }, "")
+    } else {
+      history.replaceState({ crateSlug: slug, startIndex: index }, "")
+    }
   }
 
   useEffect(() => {
@@ -33,33 +40,87 @@ export default function Featured({ store, crates, storefront_sections }: Feature
   return (
     <AppLayout>
       {(store.description || store.total_listings) && (
-        <div className="mb-4">
+        <motion.div
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="mb-6"
+        >
           {store.description && (
-            <p className="text-sm mc-dim max-w-prose">{store.description}</p>
+            <p className="text-sm mc-text leading-relaxed max-w-prose">
+              {store.description}
+            </p>
           )}
           {store.total_listings && (
-            <p className="text-xs mc-dim mt-1">{store.total_listings} vinyl listings</p>
+            <p className="text-xs mc-dim mt-1.5">
+              {store.total_listings.toLocaleString()} vinyl listings
+            </p>
           )}
-        </div>
+        </motion.div>
       )}
 
       {store.sync_status === "failed" && (
-        <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/8 px-4 py-3 text-sm text-red-100">
-          Sync failed{store.last_sync_error_at ? ` on ${new Date(store.last_sync_error_at).toLocaleString()}` : ""}. Inventory may be stale.
+        <div
+          role="alert"
+          className="mb-6 rounded border border-mc-accent/30 bg-mc-notice px-4 py-3"
+        >
+          <p className="text-sm mc-text font-medium">
+            Sync failed
+            {store.last_sync_error_at
+              ? ` on ${new Date(store.last_sync_error_at).toLocaleString()}`
+              : ""}
+          </p>
+          <p className="text-xs text-mc-text-dim mt-1">
+            Inventory may be stale. Try running the sync again from the Rails console.
+          </p>
         </div>
       )}
 
       {store.sync_status === "syncing" ? (
-        <div className="py-16 text-center mc-dim text-sm">
-          <p className="text-4xl mb-4">⏳</p>
-          <p>Syncing inventory… check back in a moment.</p>
+        <div
+          role="status"
+          aria-live="polite"
+          className="py-16 text-center"
+        >
+          <svg
+            className="motion-safe:animate-spin h-8 w-8 mx-auto mb-4 text-mc-accent"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            />
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+            />
+          </svg>
+          <p className="text-sm mc-dim">
+            Syncing inventory… check back in a moment.
+          </p>
         </div>
       ) : crates.length === 0 ? (
-        <div className="py-16 text-center mc-dim text-sm">
-          <p>No vinyl found yet.</p>
+        <div className="py-16 text-center">
+          <span className="text-4xl mb-4 block" aria-hidden="true">
+            🎵
+          </span>
+          <p className="text-sm mc-dim">
+            No vinyl found yet. Once the store syncs, curated crates will appear here.
+          </p>
         </div>
       ) : activeSlug === null ? (
-        <StoreFloor sections={storefront_sections ?? []} onSelectCrate={handleSelectCrate} />
+        <StoreFloor
+          sections={storefront_sections ?? []}
+          onSelectCrate={handleSelectCrate}
+        />
       ) : (
         <CrateView
           crates={allCrates}

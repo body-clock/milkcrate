@@ -8,6 +8,7 @@
   --color-mc-text-dim:   var(--mc-text-dim);
   --color-mc-accent:     var(--mc-accent);
   --color-mc-accent-dim: var(--mc-accent-dim);
+  --color-mc-on-accent:  var(--mc-on-accent);
   --color-mc-border:     var(--mc-border);
   --color-mc-notice:     var(--mc-notice);
 }
@@ -23,6 +24,7 @@
   --mc-text-dim:    #807060;
   --mc-accent:      #c84830;
   --mc-accent-dim:  #8a3020;
+  --mc-on-accent:   #f5f0e8;
   --mc-border:      #352a20;
   --mc-notice:      #352020;
 
@@ -38,19 +40,6 @@
 }
 
 [data-theme="light"] {
-  /* Light mode — warm kraft paper, oxblood accent */
-  --mc-bg:          #f2ebe0;
-  --mc-bg-raised:   #e8e0d0;
-  --mc-bg-card:     #ddd4c0;
-  --mc-text:        #1c1814;
-  --mc-text-dim:    #807060;
-  --mc-accent:      #b84028;
-  --mc-accent-dim:  #d47060;
-  --mc-border:      #c8bca8;
-  --mc-notice:      #f0e0d0;
-}
-
-[data-theme="light"] {
   --mc-bg:          #f5f0e8;
   --mc-bg-raised:   #ece6d8;
   --mc-bg-card:     #e0d8c8;
@@ -58,6 +47,7 @@
   --mc-text-dim:    #6b5a44;
   --mc-accent:      #b07030;
   --mc-accent-dim:  #d4a870;
+  --mc-on-accent:   #1a1410;
   --mc-border:      #c8bca8;
   --mc-notice:      #f0e8d0;
 }

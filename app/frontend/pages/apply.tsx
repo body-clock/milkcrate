@@ -102,7 +102,8 @@ export default function Apply({ submitted = false, errors = {}, turnstile, copy 
   if (submitted) {
     return (
       <MarketingLayout>
-        <div className="flex flex-col items-center text-center px-4 py-16 max-w-lg mx-auto">
+        <div className="flex flex-col items-center text-center px-4 py-20 max-w-lg mx-auto">
+          <span className="text-5xl mb-6" aria-hidden="true">📦</span>
           <h1 className="text-2xl font-bold mc-text mb-3">{copy.confirmation_headline}</h1>
           <p className="text-sm text-mc-text-dim leading-relaxed max-w-sm">
             {copy.confirmation_body}
@@ -112,10 +113,13 @@ export default function Apply({ submitted = false, errors = {}, turnstile, copy 
     )
   }
 
+  const errorCount = Object.keys(errors).length
+  const fieldErrors = Object.entries(errors).filter(([key]) => key !== "turnstile")
+
   return (
     <MarketingLayout>
       <div className="max-w-md mx-auto px-4 py-12">
-        <h1 className="text-2xl font-bold mc-text mb-1">{copy.headline}</h1>
+        <h1 className="text-2xl font-bold mc-text mb-2">{copy.headline}</h1>
         <p className="text-sm text-mc-text-dim mb-8 leading-relaxed">
           {copy.subhead}
         </p>
@@ -125,43 +129,89 @@ export default function Apply({ submitted = false, errors = {}, turnstile, copy 
             e.preventDefault()
             post("/waitlist")
           }}
-          className="flex flex-col gap-5"
+          className="flex flex-col gap-6"
+          noValidate
         >
-          <Field label={copy.fields.name} error={errors.name?.[0]?.error}>
+          {errorCount > 0 && (
+            <div
+              role="alert"
+              className="px-4 py-3 rounded bg-mc-notice border border-mc-border text-sm mc-text"
+            >
+              <p className="font-semibold mb-1">
+                {errorCount === 1 ? "There's a problem with your submission." : `There are ${errorCount} problems with your submission.`}
+              </p>
+              <ul className="list-disc list-inside text-xs text-mc-text-dim space-y-0.5">
+                {fieldErrors.map(([, errs]) =>
+                  errs.map((e, i) => <li key={i}>{e.error}</li>)
+                )}
+              </ul>
+            </div>
+          )}
+
+          <Field
+            label={copy.fields.name}
+            name="name"
+            error={errors.name?.[0]?.error}
+          >
             <input
+              id="apply-name"
               type="text"
               value={data.name}
               onChange={(e) => setData("name", e.target.value)}
               placeholder="Philadelphia Music"
               className="mc-input"
               required
+              aria-required="true"
+              aria-describedby={errors.name?.[0]?.error ? "name-error" : undefined}
+              aria-invalid={errors.name?.[0]?.error ? true : undefined}
             />
           </Field>
 
-          <Field label={copy.fields.discogs_username} error={errors.discogs_username?.[0]?.error}>
+          <Field
+            label={copy.fields.discogs_username}
+            name="discogs_username"
+            error={errors.discogs_username?.[0]?.error}
+          >
             <input
+              id="apply-discogs-username"
               type="text"
               value={data.discogs_username}
               onChange={(e) => setData("discogs_username", e.target.value)}
               placeholder="philadelphiamusic"
               className="mc-input"
               required
+              aria-required="true"
+              aria-describedby={errors.discogs_username?.[0]?.error ? "discogs_username-error" : undefined}
+              aria-invalid={errors.discogs_username?.[0]?.error ? true : undefined}
             />
           </Field>
 
-          <Field label={copy.fields.email} error={errors.email?.[0]?.error}>
+          <Field
+            label={copy.fields.email}
+            name="email"
+            error={errors.email?.[0]?.error}
+          >
             <input
+              id="apply-email"
               type="email"
               value={data.email}
               onChange={(e) => setData("email", e.target.value)}
               placeholder="you@yourstore.com"
               className="mc-input"
               required
+              aria-required="true"
+              aria-describedby={errors.email?.[0]?.error ? "email-error" : undefined}
+              aria-invalid={errors.email?.[0]?.error ? true : undefined}
             />
           </Field>
 
-          <Field label={copy.fields.inventory_size} hint="Optional">
+          <Field
+            label={copy.fields.inventory_size}
+            name="inventory_size"
+            hint="Optional"
+          >
             <select
+              id="apply-inventory_size"
               value={data.inventory_size}
               onChange={(e) => setData("inventory_size", e.target.value)}
               className="mc-input"
@@ -174,8 +224,13 @@ export default function Apply({ submitted = false, errors = {}, turnstile, copy 
             </select>
           </Field>
 
-          <Field label={copy.fields.notes} hint="Optional">
+          <Field
+            label={copy.fields.notes}
+            name="notes"
+            hint="Optional"
+          >
             <textarea
+              id="apply-notes"
               value={data.notes}
               onChange={(e) => setData("notes", e.target.value)}
               placeholder="Tell us about your store, what you specialize in, or any questions you have."
@@ -191,9 +246,16 @@ export default function Apply({ submitted = false, errors = {}, turnstile, copy 
                 data-testid="turnstile-widget"
                 data-sitekey={turnstileSiteKey}
                 className="min-h-[65px]"
+                role="presentation"
               />
               {errors.turnstile?.[0]?.error && (
-                <p className="text-xs text-red-500">{errors.turnstile[0].error}</p>
+                <p
+                  id="apply-turnstile-error"
+                  role="alert"
+                  className="text-xs text-mc-accent"
+                >
+                  {errors.turnstile[0].error}
+                </p>
               )}
             </div>
           )}
@@ -201,9 +263,22 @@ export default function Apply({ submitted = false, errors = {}, turnstile, copy 
           <button
             type="submit"
             disabled={processing}
-            className="px-6 py-3 rounded-lg bg-mc-accent text-white font-semibold text-sm tracking-wide hover:opacity-90 transition-opacity disabled:opacity-50"
+            aria-busy={processing}
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-mc-accent text-mc-on-accent font-semibold text-sm tracking-wide hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {processing ? copy.submitting : copy.submit}
+            {processing && (
+              <svg
+                className="motion-safe:animate-spin h-4 w-4 text-mc-on-accent/80"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+            )}
+            <span>{processing ? copy.submitting : copy.submit}</span>
           </button>
         </form>
       </div>
@@ -213,23 +288,39 @@ export default function Apply({ submitted = false, errors = {}, turnstile, copy 
 
 function Field({
   label,
+  name,
   hint,
   error,
   children,
 }: {
   label: string
+  name: string
   hint?: string
   error?: string
   children: React.ReactNode
 }) {
+  const errorId = `${name}-error`
+  const inputId = `apply-${name}`
+
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-1.5">
       <div className="flex items-baseline gap-2">
-        <label className="text-xs font-semibold uppercase tracking-wider mc-text">{label}</label>
-        {hint && <span className="text-xs text-mc-text-dim">{hint}</span>}
+        <label
+          htmlFor={inputId}
+          className="text-xs font-normal uppercase tracking-widest mc-text-dim"
+        >
+          {label}
+        </label>
+        {hint && (
+          <span className="text-[10px] text-mc-text-dim">{hint}</span>
+        )}
       </div>
       {children}
-      {error && <p className="text-xs text-red-500">{error}</p>}
+      {error && (
+        <p id={errorId} role="alert" className="text-xs text-mc-accent font-medium">
+          {error}
+        </p>
+      )}
     </div>
   )
 }
