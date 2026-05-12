@@ -84,7 +84,7 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
         </div>
       )}
 
-      <main className="flex-1 px-4 py-4 sm:py-6" id="main-content">{children}</main>
+      <main className="flex-1 px-4 py-4 sm:py-6 max-w-6xl mx-auto" id="main-content">{children}</main>
 
       <footer className="px-4 py-4 border-t mc-border text-center">
         <span className="text-[11px] text-mc-text-dim tracking-wide">
