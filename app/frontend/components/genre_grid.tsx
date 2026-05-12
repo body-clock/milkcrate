@@ -13,7 +13,7 @@ export default function GenreGrid({ crates, onSelectCrate }: Props) {
 
   return (
     <div className="mb-6">
-      <div className="flex items-center justify-between gap-2 border-l-[3px] border-l-mc-accent pl-3 border-b border-mc-border pb-2 mb-4">
+      <div className="flex items-center justify-between gap-2 border-b border-mc-border pb-2 mb-4">
         <span className="mc-section-name text-base font-semibold">Browse by genre</span>
         <span className="mc-section-count">{crates.length}</span>
       </div>

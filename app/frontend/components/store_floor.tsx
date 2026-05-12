@@ -30,7 +30,7 @@ export default function StoreFloor({ sections, onSelectCrate }: Props) {
                   className="w-full text-left cursor-pointer group px-4 pt-3 pb-2"
                   aria-label="Open Milkcrate Picks"
                 >
-                  <div className="flex items-baseline gap-3 pb-2 border-l-[3px] border-l-mc-accent pl-3 border-b border-mc-border">
+                  <div className="flex items-baseline gap-3 pb-2 border-b border-mc-border">
                     <span className="mc-section-name text-base font-semibold">Milkcrate Picks</span>
                     <span className="mc-section-count">{today}</span>
                   </div>
