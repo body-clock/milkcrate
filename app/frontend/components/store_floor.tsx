@@ -31,7 +31,7 @@ export default function StoreFloor({ sections, onSelectCrate }: Props) {
                   className="w-full text-left cursor-pointer group"
                   aria-label="Open Milkcrate Picks"
                 >
-                  <SectionHeader title="Milkcrate Picks" count={today} variant="hero" borderAccent="top" />
+                  <SectionHeader title="Milkcrate Picks" count={today} variant="hero" />
                 </button>
 
                 {!isCompact ? (
