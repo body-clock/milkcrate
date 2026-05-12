@@ -16,7 +16,7 @@ const variantClasses: Record<SectionHeaderVariant, string> = {
 }
 
 const accentClasses: Record<SectionHeaderAccent, string> = {
-  top: "border-t-2 border-mc-accent pt-3",
+  top: "border-t-2 border-mc-accent py-3",
   left: "border-l-[3px] border-l-mc-accent pl-3",
 }
 
@@ -25,7 +25,7 @@ export default function SectionHeader({ title, count, variant = "feature", borde
   const accentClass = borderAccent ? accentClasses[borderAccent] : ""
 
   return (
-    <div className={`flex items-center justify-between gap-2 pb-2 mb-4 ${variantClass} ${accentClass} ${className}`}>
+    <div className={`flex items-center justify-between gap-2 py-2 mb-4 ${variantClass} ${accentClass} ${className}`}>
       <span className="mc-section-name font-semibold">{title}</span>
       {count !== undefined && <span className="mc-section-count">{count}</span>}
     </div>
