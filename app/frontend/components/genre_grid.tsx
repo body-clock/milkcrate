@@ -13,7 +13,7 @@ export default function GenreGrid({ crates, onSelectCrate }: Props) {
   }
 
   return (
-    <div className="mb-[--mc-section-gap] border-t border-mc-border pt-[calc(var(--mc-section-gap)*1.5)]">
+    <div className="mb-[--mc-section-gap] pt-[calc(var(--mc-section-gap)*1.5)]">
       <SectionHeader title="Browse by genre" count={crates.length} />
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
         {crates.map((crate) => (
