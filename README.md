@@ -25,7 +25,7 @@ The catalog flow:
 The storefront shows a layered browsing experience:
 
 - **Milkcrate Picks** — 12 genre-diverse, top-scored records across the full inventory, displayed as a wall of cover art.
-- **Featured crates** — New Arrivals (most-recent window, scored) and a Daily Rotation (random style or genre theme, scored). Displayed 2-wide on desktop.
+- **Featured crates** — New Arrivals (most-recent window, scored) and a Daily Rotation (random style or genre theme, scored). Displayed 3-wide on desktop.
 - **Genre crates** — one crate per primary genre, shown in a 4-wide grid. Each holds up to 50 records.
 - **Crate view** — clicking any crate opens a card-stack browser with up/down navigation. Featured crates appear in the crate view tab bar alongside picks and genres.
 - **Pile** — a client-side shopping list stored in `localStorage`.
@@ -225,7 +225,7 @@ Key components:
 | Component | Role |
 |-----------|------|
 | `StoreFloor` | Renders picks wall, featured crates row, and genre grid |
-| `FeaturedCratesRow` | 2-wide featured crate cards (New Arrivals, Daily Rotation) |
+| `FeaturedCratesRow` | 3-wide featured crate cards (New Arrivals, Daily Rotation) |
 | `GenreGrid` | 4-wide grid of genre crate cards |
 | `CrateCard` | Preview card — shows 4 cover images, crate name, and record count |
 | `CrateView` | Full crate browser — card stack with up/down navigation, desktop details panel |

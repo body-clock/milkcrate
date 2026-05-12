@@ -146,6 +146,17 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
   const progress = total > 0 ? ((index + 1) / total) * 100 : 0
   const activeRecord = records[index]
 
+  const backButton = onBack ? (
+    <button
+      type="button"
+      onClick={onBack}
+      className="self-start text-xs font-medium text-mc-text-dim bg-mc-bg-raised border border-mc-border rounded-lg hover:border-mc-accent hover:text-mc-accent transition-colors mb-4 flex items-center gap-1.5 cursor-pointer py-3 px-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
+      aria-label="Back to store"
+    >
+      ← Store
+    </button>
+  ) : null
+
   usePreload(records, index)
   const visibleRecords = useMemo(
     () => buildCrateWindow(records, index, WINDOW_RADIUS),
@@ -166,17 +177,8 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
   if (!activeCrate || total === 0) {
     return (
       <div>
-        {onBack && (
-          <button
-            type="button"
-            onClick={onBack}
-            className="self-start text-sm sm:text-xs text-mc-text-dim hover:text-mc-text transition-colors mb-3 flex items-center gap-1 cursor-pointer py-1.5 px-2 -ml-2 rounded"
-            aria-label="Back to store"
-          >
-            ← Store
-          </button>
-        )}
-        <div className="flex items-center justify-between mb-3">
+        {backButton}
+        <div className="mb-3">
           <CrateTabs crates={crates} activeSlug={activeSlug} onSelect={onSelectCrate} />
         </div>
         <div className="py-16 text-center mc-dim text-sm">No records in this crate yet.</div>
@@ -303,13 +305,20 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
         </div>
       </div>
 
-      {/* Crate position */}
+      {/* Progress bar */}
       <div className="w-full max-w-xs sm:max-w-sm mx-auto mb-4">
         <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.14em] text-mc-text-dim mb-1.5 select-none">
           <span>front of crate</span>
           <span>back</span>
         </div>
-        <div className="h-1.5 bg-mc-bg-raised rounded-full overflow-hidden">
+        <div
+          role="progressbar"
+          aria-valuenow={index + 1}
+          aria-valuemin={1}
+          aria-valuemax={total}
+          aria-label={`Record ${index + 1} of ${total}`}
+          className="h-1.5 bg-mc-bg-raised rounded-full overflow-hidden"
+        >
           <motion.div
             className="h-full bg-mc-accent rounded-full"
             animate={{ width: `${progress}%` }}
@@ -326,13 +335,13 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
           disabled={index <= 0}
           whileTap={{ scale: SCALE_PRESS }}
           transition={springPress}
-          className="flex items-center justify-center w-14 h-14 rounded-full bg-mc-bg-raised text-mc-text text-xl disabled:opacity-20 disabled:cursor-not-allowed hover:bg-mc-bg-card transition-colors select-none"
+          className="flex items-center justify-center w-14 h-14 rounded-full bg-mc-bg-raised text-mc-text text-xl disabled:opacity-20 disabled:cursor-not-allowed hover:bg-mc-bg-card transition-colors select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
           aria-label="Previous record"
         >
           ↑
         </motion.button>
 
-        <span className="text-sm text-mc-text-dim tabular-nums w-20 text-center select-none" aria-live="polite">
+        <span className="text-sm text-mc-text-dim tabular-nums w-20 text-center select-none" aria-live="polite" aria-atomic="true">
           {index + 1} of {total}
         </span>
 
@@ -342,14 +351,14 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
           disabled={index >= total - 1}
           whileTap={{ scale: SCALE_PRESS }}
           transition={springPress}
-          className="flex items-center justify-center w-14 h-14 rounded-full bg-mc-bg-raised text-mc-text text-xl disabled:opacity-20 disabled:cursor-not-allowed hover:bg-mc-bg-card transition-colors select-none"
+          className="flex items-center justify-center w-14 h-14 rounded-full bg-mc-bg-raised text-mc-text text-xl disabled:opacity-20 disabled:cursor-not-allowed hover:bg-mc-bg-card transition-colors select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
           aria-label="Next record"
         >
           ↓
         </motion.button>
       </div>
 
-      <p className="text-center text-[10px] text-mc-text-dim mt-4 select-none md:hidden">
+      <p className="text-center text-xs text-mc-text-dim mt-4 select-none md:hidden">
         pull forward for next &middot; push back for previous &middot; tap for details
       </p>
     </>
@@ -357,18 +366,9 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
 
   return (
     <div className="flex flex-col">
-      {onBack && (
-        <button
-          type="button"
-          onClick={onBack}
-          className="self-start text-xs text-mc-text-dim hover:text-mc-text transition-colors mb-3 flex items-center gap-1 cursor-pointer"
-          aria-label="Back to store"
-        >
-          ← Store
-        </button>
-      )}
+      {backButton}
       {!hideTabs && (
-        <div className="flex items-center justify-between mb-4">
+        <div className="mb-4">
           <CrateTabs crates={crates} activeSlug={activeSlug} onSelect={onSelectCrate} />
         </div>
       )}

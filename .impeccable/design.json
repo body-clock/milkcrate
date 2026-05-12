@@ -1,0 +1,378 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-05-12T14:48:00Z",
+  "title": "Design System: Milkcrate",
+  "extensions": {
+    "colorMeta": {
+      "oxblood-wax": {
+        "role": "primary",
+        "displayName": "Oxblood Wax",
+        "canonical": "oklch(45% 0.14 30)",
+        "theme": "dark",
+        "tonalRamp": [
+          "oklch(15% 0.03 30)",
+          "oklch(24% 0.07 30)",
+          "oklch(33% 0.11 30)",
+          "oklch(42% 0.14 30)",
+          "oklch(52% 0.14 30)",
+          "oklch(63% 0.12 30)",
+          "oklch(76% 0.08 30)",
+          "oklch(91% 0.03 30)"
+        ]
+      },
+      "oxblood-deep": {
+        "role": "primary-dark",
+        "displayName": "Oxblood Deep",
+        "canonical": "oklch(35% 0.13 30)",
+        "theme": "dark",
+        "tonalRamp": [
+          "oklch(12% 0.03 30)",
+          "oklch(20% 0.07 30)",
+          "oklch(28% 0.11 30)",
+          "oklch(35% 0.13 30)",
+          "oklch(45% 0.12 30)",
+          "oklch(56% 0.10 30)",
+          "oklch(70% 0.06 30)",
+          "oklch(88% 0.02 30)"
+        ]
+      },
+      "warm-ash": {
+        "role": "neutral-bg",
+        "displayName": "Warm Ash",
+        "canonical": "oklch(12% 0.005 70)",
+        "theme": "dark",
+        "tonalRamp": [
+          "oklch(8% 0.002 70)",
+          "oklch(12% 0.003 70)",
+          "oklch(16% 0.004 70)",
+          "oklch(20% 0.005 70)",
+          "oklch(28% 0.005 70)",
+          "oklch(42% 0.005 70)",
+          "oklch(62% 0.004 70)",
+          "oklch(90% 0.003 70)"
+        ]
+      },
+      "warm-ash-raised": {
+        "role": "neutral-surface",
+        "displayName": "Warm Ash Raised",
+        "canonical": "oklch(16% 0.005 70)",
+        "theme": "dark",
+        "tonalRamp": [
+          "oklch(10% 0.003 70)",
+          "oklch(14% 0.004 70)",
+          "oklch(18% 0.005 70)",
+          "oklch(22% 0.005 70)",
+          "oklch(30% 0.005 70)",
+          "oklch(44% 0.005 70)",
+          "oklch(64% 0.004 70)",
+          "oklch(92% 0.003 70)"
+        ]
+      },
+      "warm-ash-card": {
+        "role": "neutral-card",
+        "displayName": "Warm Ash Card",
+        "canonical": "oklch(20% 0.005 70)",
+        "theme": "dark",
+        "tonalRamp": [
+          "oklch(12% 0.003 70)",
+          "oklch(16% 0.004 70)",
+          "oklch(20% 0.005 70)",
+          "oklch(24% 0.005 70)",
+          "oklch(32% 0.005 70)",
+          "oklch(46% 0.005 70)",
+          "oklch(66% 0.004 70)",
+          "oklch(94% 0.003 70)"
+        ]
+      },
+      "cream-text": {
+        "role": "neutral-text",
+        "displayName": "Cream Text",
+        "canonical": "oklch(88% 0.01 80)",
+        "theme": "dark",
+        "tonalRamp": [
+          "oklch(15% 0.003 80)",
+          "oklch(32% 0.005 80)",
+          "oklch(48% 0.007 80)",
+          "oklch(62% 0.009 80)",
+          "oklch(74% 0.010 80)",
+          "oklch(82% 0.011 80)",
+          "oklch(90% 0.008 80)",
+          "oklch(96% 0.004 80)"
+        ]
+      },
+      "dust-text": {
+        "role": "neutral-text-dim",
+        "displayName": "Dust Text",
+        "canonical": "oklch(52% 0.02 70)",
+        "theme": "dark",
+        "tonalRamp": [
+          "oklch(18% 0.005 70)",
+          "oklch(30% 0.010 70)",
+          "oklch(40% 0.015 70)",
+          "oklch(52% 0.020 70)",
+          "oklch(62% 0.018 70)",
+          "oklch(74% 0.012 70)",
+          "oklch(86% 0.007 70)",
+          "oklch(95% 0.003 70)"
+        ]
+      },
+      "bark-border": {
+        "role": "neutral-border",
+        "displayName": "Bark Border",
+        "canonical": "oklch(22% 0.01 70)",
+        "theme": "dark",
+        "tonalRamp": [
+          "oklch(10% 0.005 70)",
+          "oklch(16% 0.008 70)",
+          "oklch(22% 0.010 70)",
+          "oklch(30% 0.010 70)",
+          "oklch(40% 0.008 70)",
+          "oklch(54% 0.006 70)",
+          "oklch(72% 0.004 70)",
+          "oklch(92% 0.002 70)"
+        ]
+      },
+      "notice-surface": {
+        "role": "neutral-notice",
+        "displayName": "Notice Surface",
+        "canonical": "oklch(20% 0.01 15)",
+        "theme": "dark",
+        "tonalRamp": [
+          "oklch(10% 0.005 15)",
+          "oklch(16% 0.008 15)",
+          "oklch(22% 0.010 15)",
+          "oklch(28% 0.010 15)",
+          "oklch(38% 0.008 15)",
+          "oklch(52% 0.006 15)",
+          "oklch(70% 0.004 15)",
+          "oklch(90% 0.002 15)"
+        ]
+      },
+      "amber-accent-light": {
+        "role": "primary-light",
+        "displayName": "Amber Gold",
+        "canonical": "oklch(55% 0.12 65)",
+        "theme": "light",
+        "tonalRamp": [
+          "oklch(20% 0.04 65)",
+          "oklch(30% 0.07 65)",
+          "oklch(40% 0.10 65)",
+          "oklch(50% 0.12 65)",
+          "oklch(60% 0.12 65)",
+          "oklch(72% 0.10 65)",
+          "oklch(84% 0.06 65)",
+          "oklch(94% 0.03 65)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Wordmark and store name in the header. Used exactly once per page."
+      },
+      "section": {
+        "displayName": "Section Header",
+        "purpose": "Crate names and section titles. Rendered in the accent color."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Extended reading, descriptions, form labels. Capped at 65ch."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Form labels, navigation links, metadata chips, footer text."
+      }
+    },
+    "shadows": [
+      {
+        "name": "framed-card",
+        "value": "0 0 0 1px var(--mc-border), 0 25px 50px -12px rgb(0 0 0 / 0.35)",
+        "purpose": "Crate-view record card only. Gives the card-stack physical presence."
+      }
+    ],
+    "motion": [
+      {
+        "name": "spring-tactile",
+        "value": "spring(stiffness: 300, damping: 26)",
+        "purpose": "Default interactive response: hover lift, scale, tilt."
+      },
+      {
+        "name": "spring-press",
+        "value": "spring(stiffness: 400, damping: 28)",
+        "purpose": "Click/tap compression (scale to 0.97). Snappier than tactile."
+      },
+      {
+        "name": "spring-flip",
+        "value": "spring(stiffness: 260, damping: 24)",
+        "purpose": "Record card flip. Heavier, more deliberate."
+      },
+      {
+        "name": "spring-drawer",
+        "value": "spring(stiffness: 300, damping: 32)",
+        "purpose": "Pile sheet slide-in. More damped for a controlled reveal."
+      },
+      {
+        "name": "scale-hover",
+        "value": "1.05",
+        "purpose": "Hover scale for interactive cards and buttons."
+      },
+      {
+        "name": "scale-press",
+        "value": "0.97",
+        "purpose": "Press/active scale for buttons."
+      },
+      {
+        "name": "lift-hover",
+        "value": "3px",
+        "purpose": "Vertical lift on hover for cards."
+      },
+      {
+        "name": "tilt-hover",
+        "value": "1.5deg",
+        "purpose": "Subtle rotation on hover for cards."
+      },
+      {
+        "name": "duration-hover",
+        "value": "0.2s",
+        "purpose": "Hover transition duration for CSS hover effects."
+      },
+      {
+        "name": "duration-press",
+        "value": "0.12s",
+        "purpose": "Press transition duration for CSS active effects."
+      }
+    ],
+    "breakpoints": [
+      { "name": "compact", "value": "max-width: 767px", "purpose": "Mobile-first compact layout. Condensed labels, full-width pile drawer." },
+      { "name": "comfy", "value": "768px – 1023px", "purpose": "Tablet / small desktop. Intermediate layout." },
+      { "name": "wide", "value": "min-width: 1024px", "purpose": "Full desktop layout. Side pile drawer, full labels." }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Main call-to-action. Oxblood Wax background, cream text. Used for store entry, form submission, and crate navigation.",
+      "html": "<button class=\"ds-btn-primary\">BROWSE THE CRATES</button>",
+      "css": ".ds-btn-primary { display: inline-block; padding: 12px 24px; border-radius: 8px; background: #c84830; color: #15120e; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.875rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; border: none; cursor: pointer; transition: opacity 0.15s ease; } .ds-btn-primary:hover { opacity: 0.9; } .ds-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Secondary action. Transparent background, dust-colored text and border. Used for Discogs links, pile removal, secondary navigation.",
+      "html": "<button class=\"ds-btn-ghost\">DISCOSGS ↗</button>",
+      "css": ".ds-btn-ghost { display: inline-block; padding: 4px 8px; border-radius: 2px; background: transparent; color: #807060; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.65rem; border: 1px solid #352a20; cursor: pointer; transition: color 0.15s ease, border-color 0.15s ease; } .ds-btn-ghost:hover { color: #c84830; border-color: #c84830; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Form text field. Warm Ash Raised background, Bark Border, sharp radius. Serif body font.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"philadelphiamusic\" />",
+      "css": ".ds-input { width: 100%; padding: 10px 12px; border-radius: 2px; border: 1px solid #352a20; background: #1e1a15; color: #e6ddd0; font-family: Georgia, ui-serif, serif; font-size: 0.875rem; outline: none; transition: border-color 0.15s ease; } .ds-input::placeholder { color: #807060; } .ds-input:focus { border-color: #c84830; }"
+    },
+    {
+      "name": "Crate Card",
+      "kind": "card",
+      "refersTo": "crate-card",
+      "description": "Genre or featured crate preview card. Warm Ash Card background, gentle radius. Shows crate name, record count, and 2×2 thumbnail grid. Interactive hover: border shifts to accent, card lifts and scales.",
+      "html": "<div class=\"ds-crate-card\"><div class=\"ds-crate-card-header\"><span class=\"ds-crate-card-name\">HIP-HOP</span><span class=\"ds-crate-card-count\">48</span></div><div class=\"ds-crate-card-grid\"><div class=\"ds-crate-card-thumb\">♪</div><div class=\"ds-crate-card-thumb\">♪</div><div class=\"ds-crate-card-thumb\">♪</div><div class=\"ds-crate-card-thumb\">♪</div></div></div>",
+      "css": ".ds-crate-card { display: flex; flex-direction: column; width: 100%; border-radius: 8px; background: #26211b; border: 1px solid #352a20; overflow: hidden; cursor: pointer; transition: border-color 0.2s ease, transform 0.2s ease; } .ds-crate-card:hover { border-color: #c84830; transform: translateY(-3px) scale(1.05) rotate(-0.5deg); } .ds-crate-card-header { display: flex; align-items: baseline; justify-content: space-between; padding: 12px 12px 6px; border-bottom: 1px solid #352a20; } .ds-crate-card-name { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: #c84830; } .ds-crate-card-count { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.65rem; color: #807060; } .ds-crate-card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 12px; } .ds-crate-card-thumb { aspect-ratio: 1; border-radius: 2px; background: #1e1a15; border: 1px solid rgba(53, 42, 32, 0.5); display: flex; align-items: center; justify-content: center; color: #807060; font-size: 1.125rem; }"
+    },
+    {
+      "name": "Record Card",
+      "kind": "card",
+      "refersTo": "record-card",
+      "description": "Individual record display card. Square aspect ratio, sharp radius. Click to flip: front shows cover art, back shows title, artist, metadata, genre chips, and actions. Framed variant in crate view adds a large shadow.",
+      "html": "<div class=\"ds-record-card\"><div class=\"ds-record-card-inner\"><div class=\"ds-record-front\"><img src=\"\" alt=\"\" /></div><div class=\"ds-record-back\"><span class=\"ds-record-back-title\">Blue Lines</span><span class=\"ds-record-back-artist\">Massive Attack</span><span class=\"ds-record-back-meta\">1991 · VG+</span><div class=\"ds-record-back-chips\"><span class=\"ds-chip\">Trip Hop</span><span class=\"ds-chip\">Electronic</span></div><span class=\"ds-record-back-price\">$24.00</span><div class=\"ds-record-back-actions\"><button class=\"ds-btn-primary\">+ PILE</button><button class=\"ds-btn-ghost\">DISCOSGS ↗</button></div></div></div></div>",
+      "css": ".ds-record-card { width: 220px; height: 220px; perspective: 800px; cursor: pointer; flex-shrink: 0; } .ds-record-card-inner { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); } .ds-record-card.flipped .ds-record-card-inner { transform: rotateY(180deg); } .ds-record-front, .ds-record-back { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 2px; overflow: hidden; } .ds-record-front { background: #26211b; border: 1px solid #352a20; } .ds-record-front img { width: 100%; height: 100%; object-fit: cover; } .ds-record-back { background: #1e1a15; transform: rotateY(180deg); padding: 16px; display: flex; flex-direction: column; gap: 8px; font-family: ui-sans-serif, system-ui, sans-serif; } .ds-record-back-title { font-size: 0.75rem; font-weight: 700; color: #e6ddd0; line-height: 1.3; } .ds-record-back-artist { font-size: 0.7rem; color: #807060; } .ds-record-back-meta { font-size: 0.65rem; color: #807060; margin-top: auto; } .ds-record-back-price { font-size: 0.85rem; font-weight: 700; color: #c84830; } .ds-record-back-chips { display: flex; gap: 4px; flex-wrap: wrap; } .ds-chip { font-size: 0.625rem; padding: 2px 6px; border-radius: 2px; background: #26211b; color: #807060; font-family: ui-sans-serif, system-ui, sans-serif; } .ds-record-back-actions { display: flex; gap: 4px; margin-top: 4px; }"
+    },
+    {
+      "name": "Section Header",
+      "kind": "custom",
+      "refersTo": "section-header",
+      "description": "Crate section heading. Accent-colored uppercase name paired with a dimmed count or date, separated by a bottom border.",
+      "html": "<div class=\"ds-section-header\"><span class=\"ds-section-header-name\">NEW ARRIVALS</span><span class=\"ds-section-header-context\">12 records</span></div>",
+      "css": ".ds-section-header { display: flex; align-items: baseline; gap: 16px; padding-bottom: 8px; margin-bottom: 24px; border-bottom: 1px solid #352a20; } .ds-section-header-name { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: #c84830; } .ds-section-header-context { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.65rem; color: #807060; }"
+    },
+    {
+      "name": "Storefront Header",
+      "kind": "nav",
+      "refersTo": "storefront-header",
+      "description": "Sticky top navigation bar. Store name on the left, Discogs link, pile count badge, and theme toggle on the right. Warm Ash Raised background with backdrop blur.",
+      "html": "<header class=\"ds-storefront-header\"><a href=\"/\" class=\"ds-storefront-logo\"><span class=\"ds-storefront-name\">PHILADELPHIA MUSIC</span><span class=\"ds-storefront-byline\">on Milkcrate</span></a><div class=\"ds-storefront-actions\"><a href=\"#\" class=\"ds-nav-link\">Discogs ↗</a><button class=\"ds-pile-badge\">3 in pile</button><button class=\"ds-theme-toggle\" aria-label=\"Toggle light/dark mode\">☀︎</button></div></header>",
+      "css": ".ds-storefront-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 16px; border-bottom: 1px solid #352a20; background: rgba(30, 26, 21, 0.95); backdrop-filter: blur(4px); position: sticky; top: 0; z-index: 30; } .ds-storefront-logo { display: flex; flex-direction: column; text-decoration: none; line-height: 1; min-width: 0; } .ds-storefront-name { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 1rem; font-weight: 700; letter-spacing: 0.025em; color: #e6ddd0; } .ds-storefront-byline { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.625rem; letter-spacing: 0.2em; text-transform: uppercase; color: #807060; } .ds-storefront-actions { display: flex; align-items: center; gap: 12px; flex-shrink: 0; } .ds-nav-link { font-size: 0.75rem; color: #807060; text-decoration: none; transition: color 0.15s ease; } .ds-nav-link:hover { color: #e6ddd0; } .ds-pile-badge { font-size: 0.75rem; font-weight: 500; color: #c84830; background: none; border: none; cursor: pointer; transition: opacity 0.15s ease; } .ds-pile-badge:hover { opacity: 0.8; } .ds-theme-toggle { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 9999px; border: none; background: none; color: #807060; font-size: 1.25rem; cursor: pointer; transition: color 0.15s ease, background 0.15s ease; } .ds-theme-toggle:hover { color: #e6ddd0; background: #1e1a15; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Record Store at Golden Hour",
+    "overview": "Milkcrate's interface feels like walking into a record shop in late afternoon. Low warm light, rich wood tones, the quiet anticipation of flipping through crates. The design is warm, tactile, and deliberate. Every surface has weight. Nothing floats; nothing dissolves. The interface serves the records, not itself.\n\nThe default theme is dark — deep charcoal backgrounds, oxblood accents, cream text — evoking a dimly lit shop interior. A light theme exists for accessibility and preference, switching to warm kraft-paper tones with an amber accent. Both themes share the same typographic voice: serif body type (Georgia) for extended reading and sans-serif for navigation and labels.\n\nThis system explicitly rejects: Discogs-style data density, SaaS-generic blue-and-white palettes, Inter font, glassmorphism, hero-metric templates, and identical card grids. If it looks like a search results page or a dashboard, it's wrong.",
+    "keyCharacteristics": [
+      "Dark first, light as an equal alternative",
+      "Warm, earthy palette — never clinical",
+      "Serif body, sans-serif UI — the pairing carries the tactile feel",
+      "Tonal layering over shadow — depth comes from color, not drop shadows",
+      "Spring-based motion, reduced-motion first",
+      "Every interaction lands with weight"
+    ],
+    "rules": [
+      {
+        "name": "The Golden Hour Rule",
+        "body": "Every neutral is tinted toward warm brown (chroma ~0.005 in OKLCH). Pure black, pure white, and cool grays are forbidden.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Accent Rule",
+        "body": "A single accent color carries all calls-to-action, section headers, and interactive emphasis. It is never decorative. It is never used as a background fill larger than a button. If the accent appears on more than 15% of the viewport, something is wrong.",
+        "section": "colors"
+      },
+      {
+        "name": "The Scale Jump Rule",
+        "body": "Adjacent typographic steps differ by at least 1.25× in size. No flat scales. If section headers and body text feel the same weight, the scale is wrong.",
+        "section": "typography"
+      },
+      {
+        "name": "The Serif Body Rule",
+        "body": "All prose, descriptions, and extended text use the serif stack. Sans-serif is reserved for navigation, labels, and interactive text. Never swap them.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-By-Default Rule",
+        "body": "Surfaces are flat at rest. Tonal contrast conveys depth. Drop shadows appear only on the crate-view record card, and even then only in the framed variant.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Three-Step Ceiling",
+        "body": "No surface exceeds three tonal steps from the page background. If you need a fourth layer, flatten the hierarchy instead.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Tactile Response Rule",
+        "body": "Every interactive element responds to pointer input with spring-based motion (stiffness 300, damping 26). Hover lifts and scales. Press compresses to 0.97×. No element is inert to touch.",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "Do use Oxblood Wax as the single accent — section headers, primary buttons, active states, pile count. Nothing else gets this color.",
+      "Do tint every neutral toward warm brown. Pure black and pure white are banned.",
+      "Do use Georgia / serif for body text and descriptions. Sans-serif is for UI only.",
+      "Do keep cards flat at rest. Let tonal contrast carry the depth.",
+      "Do respect prefers-reduced-motion. Spring animations collapse to instant; scales collapse to 1.",
+      "Do use the three background tones (bg, bg-raised, bg-card) rather than stacking shadows or adding overlay divs.",
+      "Do target WCAG 2.1 AA contrast in both themes. Test Oxblood Wax on Warm Ash and Amber Gold on Cream."
+    ],
+    "donts": [
+      "Don't look like Discogs — no data tables, no white backgrounds, no dense metadata grids, no personality-free listings.",
+      "Don't look like SaaS — no Inter font, no hero-metric templates, no blue accent, no glassmorphism, no identical card grids.",
+      "Don't look like a marketplace — no filter-heavy UIs, no search-narrowing form as the primary interaction, no sort-by-price dropdowns.",
+      "Don't use border-left or border-right greater than 1px as a colored accent stripe. Full borders or nothing.",
+      "Don't use gradient text (background-clip: text). A single solid color carries emphasis through weight, size, or the accent.",
+      "Don't wrap cards inside cards. If you need nesting, flatten the hierarchy instead.",
+      "Don't use modals as your first answer. Exhaust inline expansion, sheet drawers, and progressive disclosure before reaching for a dialog.",
+      "Don't use bounce or elastic easing curves. Springs only, exponential decay. Motion should land and stay landed.",
+      "Don't use em dashes. Commas, colons, periods, or parentheses only."
+    ]
+  }
+}
