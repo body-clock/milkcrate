@@ -37,6 +37,10 @@
   --mc-lift-hover: 3px;
   --mc-duration-hover: 0.2s;
   --mc-duration-press: 0.12s;
+
+  /* Layout tokens — section spacing */
+  --mc-section-gap: 1.5rem;
+  --mc-section-padding: 1rem;
 }
 
 [data-theme="light"] {

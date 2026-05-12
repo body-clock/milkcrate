@@ -3,6 +3,7 @@ import RecordCard from "./record_card"
 import FeaturedCratesRow from "./featured_crates_row"
 import GenreGrid from "./genre_grid"
 import TactileCard from "./tactile_card"
+import SectionHeader from "./section_header"
 import { springTactile, SCALE_HOVER, SCALE_PRESS } from "@/lib/motion_tokens"
 import { useViewport } from "@/hooks/use_viewport"
 import type { StorefrontSection } from "../types/inertia"
@@ -23,17 +24,14 @@ export default function StoreFloor({ sections, onSelectCrate }: Props) {
           const picks = section.crate
           return (
             picks.records.length > 0 && (
-              <div key="picks" className="-mx-4 mb-6 bg-mc-bg-raised border-y border-mc-border">
+              <div key="picks" className="mb-[--mc-section-gap]">
                 <button
                   type="button"
                   onClick={() => onSelectCrate("picks")}
-                  className="w-full text-left cursor-pointer group px-4 pt-3 pb-2"
+                  className="w-full text-left cursor-pointer group"
                   aria-label="Open Milkcrate Picks"
                 >
-                  <div className="flex items-baseline gap-3 pb-2 border-b border-mc-border">
-                    <span className="mc-section-name text-base font-semibold">Milkcrate Picks</span>
-                    <span className="mc-section-count">{today}</span>
-                  </div>
+                  <SectionHeader title="Milkcrate Picks" count={today} variant="hero" />
                 </button>
 
                 {!isCompact ? (
@@ -100,7 +98,7 @@ export default function StoreFloor({ sections, onSelectCrate }: Props) {
                       aria-hidden="true"
                       className="absolute right-0 top-0 bottom-0 w-12 pointer-events-none"
                       style={{
-                        background: "linear-gradient(to right, transparent, var(--mc-bg-raised))",
+                        background: "linear-gradient(to right, transparent, var(--mc-bg))",
                       }}
                     />
                   </div>
