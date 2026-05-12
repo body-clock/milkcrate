@@ -12,7 +12,7 @@ export default function FeaturedCratesRow({ crates, onSelectCrate }: Props) {
 
   return (
     <div className="mb-[--mc-section-gap]">
-      <SectionHeader title="Featured" count={crates.length} variant="feature" />
+      <SectionHeader title="Featured" count={crates.length} variant="feature" borderAccent="left" />
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {crates.map((crate) => (
           <CrateCard key={crate.slug} crate={crate} variant="featured" onSelectCrate={onSelectCrate} />
