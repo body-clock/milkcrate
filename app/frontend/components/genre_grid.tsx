@@ -1,4 +1,5 @@
 import CrateCard from "./crate_card"
+import SectionHeader from "./section_header"
 import type { Crate } from "../types/inertia"
 
 interface Props {
@@ -12,11 +13,8 @@ export default function GenreGrid({ crates, onSelectCrate }: Props) {
   }
 
   return (
-    <div className="mb-6">
-      <div className="flex items-center justify-between gap-2 border-b border-mc-border pb-2 mb-4">
-        <span className="mc-section-name text-base font-semibold">Browse by genre</span>
-        <span className="mc-section-count">{crates.length}</span>
-      </div>
+    <div className="mb-[--mc-section-gap]">
+      <SectionHeader title="Browse by genre" count={crates.length} variant="compact" />
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
         {crates.map((crate) => (
           <CrateCard
