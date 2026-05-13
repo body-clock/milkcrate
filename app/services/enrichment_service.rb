@@ -1,15 +1,17 @@
-class EnrichReleasesJob < ApplicationJob
-  queue_as :default
-
+class EnrichmentService
   BATCH_SIZE = 50
   RATE_LIMIT_SLEEP = 1.1   # safe floor — Discogs allows 60 req/min authenticated
   RATE_LIMIT_LOW   = 5     # remaining threshold to pause briefly
   RATE_LIMIT_PAUSE = 10    # seconds to wait when nearly exhausted
 
-  def perform(store_id, listing_ids: nil)
-    store = Store.find(store_id)
-    client = DiscogsClient.new
+  def initialize
+    @discogs = DiscogsClient.new
+    @musicbrainz = MusicBrainzClient.new
+  end
 
+  # ── Discogs Release Enrichment ──────────────────────────────────────────
+
+  def enrich_releases(store, listing_ids: nil)
     scope = store.listings.where.not(discogs_release_id: nil)
     scope = scope.where(id: listing_ids) if listing_ids&.any?
 
@@ -19,9 +21,7 @@ class EnrichReleasesJob < ApplicationJob
       Release.find_by(discogs_release_id: rid)&.then { |r| !r.stale? }
     end
 
-    # Also re-enrich releases whose listings were downgraded to thumbnails by a
-    # subsequent sync (ListingReconciler no longer overwrites cover_image_url on
-    # update, but historical damage needs repair).
+    # Also re-enrich releases whose listings were downgraded to thumbnails.
     downgraded_release_ids = store.listings
       .where(discogs_release_id: release_ids)
       .where("cover_image_url = thumbnail_url AND cover_image_url IS NOT NULL AND thumbnail_url IS NOT NULL")
@@ -30,33 +30,70 @@ class EnrichReleasesJob < ApplicationJob
 
     enrich_ids = (stale_release_ids + downgraded_release_ids).uniq
 
-    Rails.logger.info "[EnrichReleasesJob] #{enrich_ids.size} releases to enrich for store #{store.name} (stale: #{stale_release_ids.size}, downgraded: #{downgraded_release_ids.size})"
+    Rails.logger.info "[EnrichmentService] #{enrich_ids.size} releases to enrich for store #{store.name} (stale: #{stale_release_ids.size}, downgraded: #{downgraded_release_ids.size})"
 
     enrich_ids.each_slice(BATCH_SIZE) do |batch|
       batch.each do |release_id|
-        remaining = enrich_release(client, release_id, store)
+        remaining = enrich_release(release_id, store)
         if remaining <= RATE_LIMIT_LOW
-          Rails.logger.info "[EnrichReleasesJob] Rate limit low (#{remaining} remaining), pausing #{RATE_LIMIT_PAUSE}s"
+          Rails.logger.info "[EnrichmentService] Rate limit low (#{remaining} remaining), pausing #{RATE_LIMIT_PAUSE}s"
           sleep(RATE_LIMIT_PAUSE)
         else
           sleep(RATE_LIMIT_SLEEP)
         end
       rescue DiscogsClient::RateLimitError
-        Rails.logger.warn "[EnrichReleasesJob] Rate limited on release #{release_id}, sleeping 15s"
+        Rails.logger.warn "[EnrichmentService] Rate limited on release #{release_id}, sleeping 15s"
         sleep(15)
         retry
       rescue DiscogsClient::ApiError => e
-        Rails.logger.warn "[EnrichReleasesJob] API error for release #{release_id}: #{e.message}"
+        Rails.logger.warn "[EnrichmentService] API error for release #{release_id}: #{e.message}"
       end
     end
+  end
 
-    EnrichMusicBrainzImagesJob.perform_later(store_id)
+  # ── MusicBrainz Cover Image Enrichment ──────────────────────────────────
+
+  def enrich_music_brainz_images(store)
+    candidate_release_ids = store.listings
+      .joins("INNER JOIN releases ON releases.discogs_release_id = listings.discogs_release_id")
+      .where(releases: { discogs_image_missing: true, musicbrainz_id: nil })
+      .distinct
+      .pluck("listings.discogs_release_id")
+
+    Rails.logger.info "[EnrichmentService] #{candidate_release_ids.size} releases to search for store #{store.name}"
+
+    candidate_release_ids.each do |discogs_release_id|
+      listing = store.listings.find_by(discogs_release_id: discogs_release_id)
+      next unless listing
+
+      mbid = @musicbrainz.search_release(artist: listing.artist, title: listing.title)
+
+      if mbid.nil?
+        Release.where(discogs_release_id: discogs_release_id).update_all(musicbrainz_id: "")
+        sleep(RATE_LIMIT_SLEEP)
+        next
+      end
+
+      cover_url = @musicbrainz.front_cover_url(mbid)
+
+      Release.where(discogs_release_id: discogs_release_id).update_all(musicbrainz_id: mbid)
+
+      if cover_url.present?
+        store.listings
+          .where(discogs_release_id: discogs_release_id)
+          .update_all(cover_image_url: cover_url)
+      end
+
+      sleep(RATE_LIMIT_SLEEP)
+    rescue MusicBrainzClient::ApiError => e
+      Rails.logger.warn "[EnrichmentService] API error for #{discogs_release_id}: #{e.message}"
+    end
   end
 
   private
 
-  def enrich_release(client, discogs_release_id, store)
-    data, remaining = client.release(discogs_release_id)
+  def enrich_release(discogs_release_id, store)
+    data, remaining = @discogs.release(discogs_release_id)
 
     want    = data.dig("community", "want").to_i
     have    = data.dig("community", "have").to_i
