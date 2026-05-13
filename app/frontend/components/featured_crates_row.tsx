@@ -1,5 +1,6 @@
 import CrateCard from "./crate_card"
 import type { Crate } from "../types/inertia"
+import { useViewport } from "@/hooks/use_viewport"
 
 interface Props {
   crates: Crate[]
@@ -7,15 +8,22 @@ interface Props {
 }
 
 export default function FeaturedCratesRow({ crates, onSelectCrate }: Props) {
+  const { isCompact, isComfy, isWide } = useViewport()
   if (crates.length === 0) return null
 
+  // Responsive columns: compact stays 1, comfy gets more, wide fills
+  const cols = isCompact ? 1 : isComfy ? 2 : 3
+
   return (
-    <div className="mb-6">
+    <div>
       <div className="flex items-center justify-between gap-2 border-b border-mc-border pb-2 mb-4">
         <span className="mc-section-name text-base font-semibold">Featured</span>
         <span className="mc-section-count">{crates.length}</span>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+      <div
+        className="grid gap-4"
+        style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}
+      >
         {crates.map((crate) => (
           <CrateCard key={crate.slug} crate={crate} variant="featured" onSelectCrate={onSelectCrate} />
         ))}
