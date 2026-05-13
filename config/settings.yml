@@ -7,3 +7,7 @@ store_description:
 mail_from: patrick@milkcrate.fm
 mail_host: milkcrate.fm
 admin_email: patrick@milkcrate.fm
+
+# Plausible Analytics — domain for the Plausible script data-domain attribute
+# Override via PLAUSIBLE_DOMAIN env var at deploy time
+plausible_domain: milkcrate.fm
