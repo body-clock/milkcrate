@@ -10,27 +10,27 @@ class StoreSyncService
   # Full sync: crawls all pages. Pass max_pages: 1 for a quick 100-record dev sync.
   def full_sync(max_pages: nil, sort_order: "desc")
     sync_started_at = Time.current
-    StoreSync::StateManager.start!(@store)
+    @store.update!(sync_status: "syncing")
 
     fetcher = StoreSync::InventoryFetcher.new(@store, client: @client)
     result = fetcher.fetch(sort_order: sort_order, max_pages: max_pages)
 
     import_listings(result.listings)
 
-    StoreSync::StateManager.succeed!(@store,
+    @store.mark_sync_succeeded!(
       last_synced_at: sync_started_at,
       total_listings: @store.listings.count
     )
 
     result.listings.size
   rescue StandardError => e
-    StoreSync::StateManager.fail!(@store, e)
+    @store.mark_sync_failed!(e)
     raise
   end
 
   def sync(max_pages: nil)
     sync_started_at = Time.current
-    StoreSync::StateManager.start!(@store)
+    @store.update!(sync_status: "syncing")
 
     desc_result = fetch_public_listings(sort_order: "desc", max_pages:)
     asc_result = fetch_public_listings(sort_order: "asc", max_pages:)
@@ -46,7 +46,7 @@ class StoreSyncService
       normalizer: @normalizer
     ).call
 
-    StoreSync::StateManager.succeed!(@store,
+    @store.mark_sync_succeeded!(
       last_synced_at: sync_started_at,
       total_listings: @store.listings.count,
       catalog_coverage:,
@@ -59,7 +59,7 @@ class StoreSyncService
       inventory_page_count: observed_page_count
     )
   rescue StandardError => e
-    StoreSync::StateManager.fail!(@store, e)
+    @store.mark_sync_failed!(e)
     raise
   end
 

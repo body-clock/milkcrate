@@ -16,7 +16,7 @@ RSpec.describe FullStoreSyncJob do
 
   before do
     allow(StoreSyncService).to receive(:new).with(store).and_return(sync_service)
-    # Simulate service managing sync status internally via StateManager.
+    # Simulate service managing sync status internally.
     allow(sync_service).to receive(:sync) do |**|
       store.update!(sync_status: "idle", last_synced_at: Time.current)
       sync_result
@@ -41,10 +41,10 @@ RSpec.describe FullStoreSyncJob do
       expect(store.last_sync_error).to be_nil
     end
 
-    it "enqueues EnrichReleasesJob after sync" do
+    it "enqueues EnrichmentJob after sync" do
       expect {
         described_class.new.perform(store.id)
-      }.to have_enqueued_job(EnrichReleasesJob).with(store.id, listing_ids: [ 11, 12 ])
+      }.to have_enqueued_job(EnrichmentJob).with(store.id, listing_ids: [ 11, 12 ])
     end
 
     it "enqueues DailyCurationJob after sync" do

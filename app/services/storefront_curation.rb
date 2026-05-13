@@ -1,8 +1,9 @@
 require "set"
 
 class StorefrontCuration
-  def initialize(store)
+  def initialize(store, filter_available: true)
     @store = store
+    @filter_available = filter_available
   end
 
   def crates
@@ -166,7 +167,7 @@ class StorefrontCuration
   def eligible_listings
     @eligible_listings ||= begin
       scope = @store.listings
-      scope = scope.available unless Rails.env.development?
+      scope = scope.available if @filter_available
       scope.lp_only.to_a
     end
   end

@@ -32,7 +32,11 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
         </div>
       </header>
 
-      <main className="flex-1 px-4 py-6" id="main-content">{children}</main>
+      <main className="flex-1" id="main-content">
+        <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
+          {children}
+        </div>
+      </main>
 
     </div>
   )

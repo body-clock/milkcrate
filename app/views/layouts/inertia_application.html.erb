@@ -19,10 +19,11 @@
     <% if Rails.env.production? %>
       <script nonce="<%= request.content_security_policy_nonce %>">addEventListener("load", () => navigator.serviceWorker?.register("/sw.js"))</script>
     <% end %>
-    <% clarity_id = Rails.application.credentials.dig(:clarity, :project_id) || ENV["CLARITY_PROJECT_ID"] %>
-    <% if clarity_id.present? %>
-      <script type="text/javascript" nonce="<%= request.content_security_policy_nonce %>">
-        (function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y)})(window,document,"clarity","script","<%= clarity_id %>");
+    <% analytics_domain = Settings.plausible_domain.presence || ENV["PLAUSIBLE_DOMAIN"] %>
+    <% if analytics_domain.present? %>
+      <script defer data-domain="<%= analytics_domain %>" src="https://plausible.io/js/script.outbound-links.js" nonce="<%= request.content_security_policy_nonce %>"></script>
+      <script nonce="<%= request.content_security_policy_nonce %>">
+        window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)}
       </script>
     <% end %>
   </head>

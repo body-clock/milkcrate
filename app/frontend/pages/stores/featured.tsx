@@ -39,7 +39,7 @@ export default function Featured({ store, crates, storefront_sections }: Feature
 
   return (
     <AppLayout>
-      {(store.description || store.total_listings) && (
+      {activeSlug === null && (store.description || store.total_listings) && (
         <motion.div
           initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: 1, y: 0 }}

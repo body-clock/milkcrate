@@ -1,6 +1,7 @@
 import React from "react"
 import { describe, expect, it, vi } from "vitest"
 import { render, screen } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import Home from "../../pages/home"
 import Apply from "../../pages/apply"
 import Featured from "../../pages/stores/featured"
@@ -88,5 +89,78 @@ describe("page smoke tests", () => {
     render(<Featured {...featuredProps} />)
 
     expect(screen.getByText(/No vinyl found yet/)).toBeInTheDocument()
+  })
+
+  it("hides store description after entering a crate", async () => {
+    const user = userEvent.setup()
+    const props: FeaturedProps = {
+      ...featuredProps,
+      crates: [
+        {
+          slug: "picks",
+          name: "Milkcrate Picks",
+          count: 1,
+          records: [
+            {
+              id: 1,
+              discogs_listing_id: "abc",
+              artist: "Artist",
+              title: "Record",
+              label: null,
+              year: null,
+              format: null,
+              genres: [],
+              styles: [],
+              condition: null,
+              price: "10.00",
+              currency: "USD",
+              cover_image_url: null,
+              thumbnail_url: null,
+              notes: null,
+              discogs_url: "https://www.discogs.com/sell/item/1",
+            },
+          ],
+        },
+      ],
+      storefront_sections: [
+        {
+          key: "picks_wall",
+          crate: {
+            slug: "picks",
+            name: "Milkcrate Picks",
+            count: 1,
+            records: [
+              {
+                id: 1,
+                discogs_listing_id: "abc",
+                artist: "Artist",
+                title: "Record",
+                label: null,
+                year: null,
+                format: null,
+                genres: [],
+                styles: [],
+                condition: null,
+                price: "10.00",
+                currency: "USD",
+                cover_image_url: null,
+                thumbnail_url: null,
+                notes: null,
+                discogs_url: "https://www.discogs.com/sell/item/1",
+              },
+            ],
+          },
+        },
+      ],
+    }
+
+    render(<Featured {...props} />)
+
+    expect(screen.getByText("Independent record store in South Philly.")).toBeInTheDocument()
+
+    await user.click(screen.getByRole("button", { name: "Open Milkcrate Picks" }))
+
+    expect(screen.queryByText("Independent record store in South Philly.")).not.toBeInTheDocument()
+    expect(screen.queryByText("120 vinyl listings")).not.toBeInTheDocument()
   })
 })

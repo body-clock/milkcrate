@@ -86,7 +86,7 @@ RSpec.describe CratePresenter do
       expect(props.keys).to match_array(%i[
         id discogs_listing_id artist title label year format
         genres styles condition price currency cover_image_url
-        thumbnail_url notes discogs_url
+        thumbnail_url notes discogs_url display_price
       ])
     end
 
@@ -95,6 +95,27 @@ RSpec.describe CratePresenter do
       props = described_class.new(fake_store).send(:listing_props, listing)
 
       expect(props[:price]).to be_a(String)
+    end
+
+    it "formats display_price" do
+      listing = fake_listing(price: BigDecimal("12.50"))
+      props = described_class.new(fake_store).send(:listing_props, listing)
+
+      expect(props[:display_price]).to eq("$12.50")
+    end
+
+    it "handles nil price in display_price" do
+      listing = fake_listing(price: nil)
+      props = described_class.new(fake_store).send(:listing_props, listing)
+
+      expect(props[:display_price]).to eq("—")
+    end
+
+    it "constructs discogs_url from discogs_listing_id" do
+      listing = fake_listing(discogs_listing_id: "abc123")
+      props = described_class.new(fake_store).send(:listing_props, listing)
+
+      expect(props[:discogs_url]).to eq("https://www.discogs.com/sell/item/abc123")
     end
 
     it "preserves nil cover_image_url" do
