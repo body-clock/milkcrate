@@ -7,10 +7,6 @@ class DailySelection < ApplicationRecord
     find_by(store: store, selected_on: date)
   end
 
-  def self.fetch_or_generate(store, date = Date.current)
-    on(store, date) || DailySelectionService.new(store).generate(date: date)
-  end
-
   def listings
     store.listings.where(id: listing_ids)
   end
