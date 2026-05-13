@@ -41,8 +41,8 @@
 
 [data-theme="light"] {
   --mc-bg:          #f5f0e8;
-  --mc-bg-raised:   #ece6d8;
-  --mc-bg-card:     #e0d8c8;
+  --mc-bg-raised:   #e0d8c8;
+  --mc-bg-card:     #ece6d8;
   --mc-text:        #1a1410;
   --mc-text-dim:    #6b5a44;
   --mc-accent:      #b07030;
