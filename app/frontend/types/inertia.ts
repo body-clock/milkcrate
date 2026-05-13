@@ -20,6 +20,7 @@ export interface Listing {
   styles: string[]
   condition: string | null
   price: string
+  display_price?: string
   currency: string
   cover_image_url: string | null
   thumbnail_url: string | null
