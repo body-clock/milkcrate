@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from "react"
 import { useForm } from "@inertiajs/react"
+import { motion } from "framer-motion"
 import MarketingLayout from "@/layouts/marketing_layout"
 
 type TurnstileWidgetId = string | number
@@ -102,12 +103,32 @@ export default function Apply({ submitted = false, errors = {}, turnstile, copy 
   if (submitted) {
     return (
       <MarketingLayout>
-        <div className="flex flex-col items-center text-center px-4 py-20 max-w-lg mx-auto">
-          <span className="text-5xl mb-6" aria-hidden="true">📦</span>
-          <h1 className="text-2xl font-bold mc-text mb-3">{copy.confirmation_headline}</h1>
-          <p className="text-sm text-mc-text-dim leading-relaxed max-w-sm">
+        <div className="flex flex-col items-center text-center pt-12 sm:pt-20 pb-16 max-w-lg mx-auto">
+          <motion.span
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 300, damping: 26 }}
+            className="text-5xl mb-6"
+            aria-hidden="true"
+          >
+            📦
+          </motion.span>
+          <motion.h1
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1, duration: 0.3 }}
+            className="text-2xl font-bold mc-text mb-3"
+          >
+            {copy.confirmation_headline}
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.3 }}
+            className="text-sm text-mc-text-dim leading-relaxed max-w-sm"
+          >
             {copy.confirmation_body}
-          </p>
+          </motion.p>
         </div>
       </MarketingLayout>
     )
@@ -118,7 +139,7 @@ export default function Apply({ submitted = false, errors = {}, turnstile, copy 
 
   return (
     <MarketingLayout>
-      <div className="max-w-md mx-auto px-4 py-12">
+      <div className="max-w-md mx-auto py-8 sm:py-12">
         <h1 className="text-2xl font-bold mc-text mb-2">{copy.headline}</h1>
         <p className="text-sm text-mc-text-dim mb-8 leading-relaxed">
           {copy.subhead}
