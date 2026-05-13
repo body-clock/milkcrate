@@ -130,11 +130,10 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
 
   const navigate = useCallback((delta: number) => {
     const next = index + delta
-    if (next < 0 || next >= total) return false
+    if (next < 0 || next >= total) return
     direction.current = delta
     setIndex(next)
     setShowGestureHint(false)
-    return true
   }, [index, total])
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -195,7 +194,7 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
     [records, index],
   )
 
-  const handleDragEnd = useCallback((_: any, info: { offset: { x: number; y: number } }) => {
+  const handleDragEnd = useCallback((_event: MouseEvent | TouchEvent | PointerEvent, info: { offset: { x: number; y: number } }) => {
     const dominantOffset = Math.abs(info.offset.x) > Math.abs(info.offset.y)
       ? info.offset.x
       : info.offset.y
@@ -210,7 +209,7 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
     return (
       <div>
         {isCompact ? compactHeader : backButton}
-        {!isCompact && (
+        {!isCompact && !hideTabs && (
           <div className="mb-3">
             <CrateTabs crates={crates} activeSlug={activeSlug} onSelect={onSelectCrate} />
           </div>

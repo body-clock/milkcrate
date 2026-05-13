@@ -168,4 +168,68 @@ describe("CrateView", () => {
     expect(screen.getByRole("progressbar", { name: "Record 1 of 3" })).toBeInTheDocument()
     expect(screen.getByText(/Swipe or use arrows to browse/)).toBeInTheDocument()
   })
+
+  it("renders the compact empty-crate state with header context and empty message", () => {
+    const emptyCrates: Crate[] = [
+      {
+        slug: "empty",
+        name: "Empty Crate",
+        count: 0,
+        records: [],
+      },
+    ]
+
+    renderCrateView("compact", { crates: emptyCrates, activeSlug: "empty" })
+
+    expect(screen.getByRole("button", { name: "Back to store" })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: "Empty Crate" })).toBeInTheDocument()
+    expect(screen.getByText("0 records")).toBeInTheDocument()
+    expect(screen.getByText("No records in this crate yet.")).toBeInTheDocument()
+  })
+
+  it("hides tabs in compact empty-crate state when hideTabs is true", () => {
+    const emptyCrates: Crate[] = [
+      {
+        slug: "empty",
+        name: "Empty Crate",
+        count: 0,
+        records: [],
+      },
+    ]
+
+    renderCrateView("compact", { crates: emptyCrates, activeSlug: "empty", hideTabs: true })
+
+    expect(screen.getByRole("button", { name: "Back to store" })).toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: "Empty Crate" })).toBeInTheDocument()
+    expect(screen.getByText("No records in this crate yet.")).toBeInTheDocument()
+    expect(screen.queryByRole("tablist", { name: "Crates" })).not.toBeInTheDocument()
+  })
+
+  it("reappears the gesture hint when switching crates", async () => {
+    const user = userEvent.setup()
+    const crates = makeCrates()
+
+    const { rerender } = renderWithTier("compact", (
+      <StorefrontMotionConfig>
+        <PileProvider>
+          <CrateView crates={crates} activeSlug="jazz" onSelectCrate={vi.fn()} onBack={vi.fn()} />
+        </PileProvider>
+      </StorefrontMotionConfig>
+    ))
+
+    // Dismiss the hint by navigating
+    await user.click(screen.getByRole("button", { name: "Next record" }))
+    expect(screen.queryByText(/Swipe or use arrows to browse/)).not.toBeInTheDocument()
+
+    // Rerender with a different activeSlug — hint should reappear
+    rerender(
+      <StorefrontMotionConfig>
+        <PileProvider>
+          <CrateView crates={crates} activeSlug="rock" onSelectCrate={vi.fn()} onBack={vi.fn()} />
+        </PileProvider>
+      </StorefrontMotionConfig>
+    )
+
+    expect(screen.getByText(/Swipe or use arrows to browse/)).toBeInTheDocument()
+  })
 })
