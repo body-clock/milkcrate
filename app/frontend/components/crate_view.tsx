@@ -117,6 +117,7 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
   const records = activeCrate?.records ?? []
   const total = records.length
   const [index, setIndex] = useState(startIndex)
+  const [showGestureHint, setShowGestureHint] = useState(true)
   const direction = useRef(0)
   const prefersReducedMotion = useReducedMotion()
   const dragX = useMotionValue(0)
@@ -124,6 +125,7 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
 
   useEffect(() => {
     setIndex(startIndex)
+    setShowGestureHint(true)
   }, [activeSlug, startIndex])
 
   const navigate = useCallback((delta: number) => {
@@ -131,6 +133,7 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
     if (next < 0 || next >= total) return
     direction.current = delta
     setIndex(next)
+    setShowGestureHint(false)
   }, [index, total])
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -157,13 +160,41 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
     </button>
   ) : null
 
+  const compactHeader = isCompact ? (
+    <div className="mb-3">
+      <div className="flex items-center gap-3">
+        {onBack && (
+          <button
+            type="button"
+            onClick={onBack}
+            className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-mc-border bg-mc-bg-raised text-lg leading-none text-mc-text-dim transition-[color,border-color,transform] hover:border-mc-accent hover:text-mc-accent active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
+            aria-label="Back to store"
+          >
+            <span aria-hidden="true" className="-translate-y-px">←</span>
+          </button>
+        )}
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate text-base font-semibold leading-tight">{activeCrate?.name}</h1>
+          <div className="text-[11px] uppercase tracking-[0.12em] text-mc-text-dim">
+            {total === 1 ? "1 record" : `${total} records`}
+          </div>
+        </div>
+      </div>
+      {!hideTabs && (
+        <div className="mt-2 -mx-1">
+          <CrateTabs crates={crates} activeSlug={activeSlug} onSelect={onSelectCrate} compact />
+        </div>
+      )}
+    </div>
+  ) : null
+
   usePreload(records, index)
   const visibleRecords = useMemo(
     () => buildCrateWindow(records, index, WINDOW_RADIUS),
     [records, index],
   )
 
-  const handleDragEnd = useCallback((_: any, info: { offset: { x: number; y: number } }) => {
+  const handleDragEnd = useCallback((_event: MouseEvent | TouchEvent | PointerEvent, info: { offset: { x: number; y: number } }) => {
     const dominantOffset = Math.abs(info.offset.x) > Math.abs(info.offset.y)
       ? info.offset.x
       : info.offset.y
@@ -177,10 +208,12 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
   if (!activeCrate || total === 0) {
     return (
       <div>
-        {backButton}
-        <div className="mb-3">
-          <CrateTabs crates={crates} activeSlug={activeSlug} onSelect={onSelectCrate} />
-        </div>
+        {isCompact ? compactHeader : backButton}
+        {!isCompact && !hideTabs && (
+          <div className="mb-3">
+            <CrateTabs crates={crates} activeSlug={activeSlug} onSelect={onSelectCrate} />
+          </div>
+        )}
         <div className="py-16 text-center mc-dim text-sm">No records in this crate yet.</div>
       </div>
     )
@@ -190,14 +223,20 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
     <>
       {/* Front-riffle crate stack */}
       <div
-        className="relative z-10 flex items-center justify-center min-h-[390px] md:min-h-[470px] py-5 sm:py-7 select-none"
+        data-testid="crate-stack"
+        data-viewport={isCompact ? "compact" : "wide"}
+        className={`relative z-10 flex items-center justify-center select-none ${
+          isCompact
+            ? "min-h-[min(72svh,360px)] pt-3 pb-8"
+            : "min-h-[390px] md:min-h-[470px] py-5 sm:py-7"
+        }`}
         style={{ touchAction: "none", overscrollBehavior: "contain" }}
       >
         <div
           className="relative"
           style={{
-            width: "min(82vw, 400px)",
-            height: "min(82vw, 400px)",
+            width: isCompact ? "min(80vw, 340px, 54svh)" : "min(82vw, 400px)",
+            height: isCompact ? "min(80vw, 340px, 54svh)" : "min(82vw, 400px)",
           }}
         >
           <AnimatePresence initial={!prefersReducedMotion} custom={direction.current}>
@@ -306,8 +345,8 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
       </div>
 
       {/* Progress bar */}
-      <div className="w-full max-w-xs sm:max-w-sm mx-auto mb-4">
-        <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.14em] text-mc-text-dim mb-1.5 select-none">
+      <div className={`w-full max-w-xs sm:max-w-sm mx-auto ${isCompact ? "mt-1 mb-3" : "mb-4"}`}>
+        <div className={`flex items-center justify-between text-[10px] uppercase tracking-[0.14em] text-mc-text-dim select-none ${isCompact ? "mb-1" : "mb-1.5"}`}>
           <span>front of crate</span>
           <span>back</span>
         </div>
@@ -328,20 +367,20 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
       </div>
 
       {/* Paginator */}
-      <div className="flex items-center justify-center gap-4 sm:gap-6">
+      <div className={`flex items-center justify-center ${isCompact ? "gap-3" : "gap-4 sm:gap-6"}`}>
         <motion.button
           type="button"
           onClick={() => navigate(-1)}
           disabled={index <= 0}
           whileTap={{ scale: SCALE_PRESS }}
           transition={springPress}
-          className="flex items-center justify-center w-14 h-14 rounded-full bg-mc-bg-raised text-mc-text text-xl disabled:opacity-20 disabled:cursor-not-allowed hover:bg-mc-bg-card transition-colors select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
+          className={`flex items-center justify-center rounded-full bg-mc-bg-raised text-mc-text disabled:opacity-20 disabled:cursor-not-allowed hover:bg-mc-bg-card transition-colors select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg ${isCompact ? "h-12 w-12 text-lg" : "w-14 h-14 text-xl"}`}
           aria-label="Previous record"
         >
           ↑
         </motion.button>
 
-        <span className="text-sm text-mc-text-dim tabular-nums w-20 text-center select-none" aria-live="polite" aria-atomic="true">
+        <span className={`${isCompact ? "w-16 text-xs" : "w-20 text-sm"} text-mc-text-dim tabular-nums text-center select-none`} aria-live="polite" aria-atomic="true">
           {index + 1} of {total}
         </span>
 
@@ -351,23 +390,25 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
           disabled={index >= total - 1}
           whileTap={{ scale: SCALE_PRESS }}
           transition={springPress}
-          className="flex items-center justify-center w-14 h-14 rounded-full bg-mc-bg-raised text-mc-text text-xl disabled:opacity-20 disabled:cursor-not-allowed hover:bg-mc-bg-card transition-colors select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
+          className={`flex items-center justify-center rounded-full bg-mc-bg-raised text-mc-text disabled:opacity-20 disabled:cursor-not-allowed hover:bg-mc-bg-card transition-colors select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg ${isCompact ? "h-12 w-12 text-lg" : "w-14 h-14 text-xl"}`}
           aria-label="Next record"
         >
           ↓
         </motion.button>
       </div>
 
-      <p className="text-center text-xs text-mc-text-dim mt-4 select-none md:hidden">
-        pull forward for next &middot; push back for previous &middot; tap for details
-      </p>
+      {isCompact && showGestureHint && (
+        <p className="text-center text-[11px] text-mc-text-dim mt-2 select-none" aria-live="polite">
+          Swipe or use arrows to browse · tap for details
+        </p>
+      )}
     </>
   )
 
   return (
     <div className="flex flex-col">
-      {backButton}
-      {!hideTabs && (
+      {isCompact ? compactHeader : backButton}
+      {!isCompact && !hideTabs && (
         <div className="mb-4">
           <CrateTabs crates={crates} activeSlug={activeSlug} onSelect={onSelectCrate} />
         </div>
