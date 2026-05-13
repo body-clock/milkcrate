@@ -16,7 +16,7 @@ RSpec.describe FullStoreSyncJob do
 
   before do
     allow(StoreSyncService).to receive(:new).with(store).and_return(sync_service)
-    # Simulate service managing sync status internally via StateManager.
+    # Simulate service managing sync status internally.
     allow(sync_service).to receive(:sync) do |**|
       store.update!(sync_status: "idle", last_synced_at: Time.current)
       sync_result
