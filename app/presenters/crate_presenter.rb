@@ -65,7 +65,13 @@ class CratePresenter
       cover_image_url: listing.cover_image_url,
       thumbnail_url: listing.thumbnail_url,
       notes: listing.notes,
-      discogs_url: listing.discogs_url
+      discogs_url: "https://www.discogs.com/sell/item/#{listing.discogs_listing_id}",
+      display_price: format_price(listing.price)
     }
+  end
+
+  def format_price(price)
+    return "—" unless price
+    "$#{'%.2f' % price}"
   end
 end

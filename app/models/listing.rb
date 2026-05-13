@@ -46,15 +46,6 @@ class Listing < ApplicationRecord
     genres.first
   end
 
-  def display_price
-    return "—" unless price
-    "$#{'%.2f' % price}"
-  end
-
-  def discogs_url
-    "https://www.discogs.com/sell/item/#{discogs_listing_id}"
-  end
-
   def self.vinyl
     where(format_matches_any(VINYL_FORMATS))
   end
