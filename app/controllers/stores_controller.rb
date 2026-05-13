@@ -18,7 +18,7 @@ class StoresController < ApplicationController
   private
 
   def render_store(store)
-    curation  = StorefrontCuration.new(store)
+    curation  = StorefrontCuration.new(store, filter_available: !Rails.env.development?)
     presenter = CratePresenter.new(store)
     curated_crates = curation.crates
 

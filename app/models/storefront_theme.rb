@@ -1,6 +1,5 @@
 class StorefrontTheme
   FEATURED_MIN_RECORDS = 4
-  FEATURED_CRATE_SIZE = 4
 
   attr_reader :slug, :name
 
@@ -28,14 +27,6 @@ class StorefrontTheme
 
   def eligible?(pool)
     listings_for(pool).size >= FEATURED_MIN_RECORDS
-  end
-
-  def crate_for(pool, slug: self.slug)
-    CuratedCrate.new(
-      slug:,
-      name:,
-      listings: listings_for(pool).first(FEATURED_CRATE_SIZE)
-    )
   end
 
   def listings_for(pool)

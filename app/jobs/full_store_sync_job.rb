@@ -19,7 +19,7 @@ class FullStoreSyncJob < ApplicationJob
 
     Rails.logger.info("FullStoreSync: synced #{store.listings.count} listings for #{store.discogs_username}")
 
-    EnrichReleasesJob.perform_later(store_id, listing_ids: result.listing_ids_for_enrichment) if result.listing_ids_for_enrichment.any?
+    EnrichmentJob.perform_later(store_id, listing_ids: result.listing_ids_for_enrichment) if result.listing_ids_for_enrichment.any?
     DailyCurationJob.perform_later(store_id)
   rescue StandardError => error
     Rails.logger.error(

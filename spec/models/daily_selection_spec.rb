@@ -28,29 +28,6 @@ RSpec.describe DailySelection, type: :model do
     end
   end
 
-  describe ".fetch_or_generate" do
-    context "when selection already exists" do
-      it "returns existing selection without calling service" do
-        ds = create(:daily_selection, store: store, selected_on: Date.today, listing_ids: [])
-        expect(DailySelectionService).not_to receive(:new)
-        result = DailySelection.fetch_or_generate(store, Date.today)
-        expect(result).to eq(ds)
-      end
-    end
-
-    context "when no selection exists" do
-      it "calls DailySelectionService to generate one" do
-        service_double = instance_double(DailySelectionService)
-        generated = build(:daily_selection, store: store, selected_on: Date.today, listing_ids: [])
-        allow(DailySelectionService).to receive(:new).with(store).and_return(service_double)
-        allow(service_double).to receive(:generate).with(date: Date.today).and_return(generated)
-
-        result = DailySelection.fetch_or_generate(store, Date.today)
-        expect(result).to eq(generated)
-      end
-    end
-  end
-
   describe "#listings" do
     it "returns listings matching listing_ids" do
       listing = create(:listing, store: store)
