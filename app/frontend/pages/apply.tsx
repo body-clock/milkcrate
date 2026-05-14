@@ -111,7 +111,7 @@ export default function Apply({ submitted = false, errors = {}, turnstile, copy 
   if (submitted) {
     return (
       <MarketingLayout>
-        <div className="flex flex-col items-center text-center pt-12 sm:pt-20 pb-16 max-w-lg mx-auto">
+        <div className="flex flex-col items-center text-center pb-16 max-w-lg mx-auto">
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -146,7 +146,7 @@ export default function Apply({ submitted = false, errors = {}, turnstile, copy 
 
   return (
     <MarketingLayout>
-      <div className="max-w-md mx-auto py-8 sm:py-12">
+      <div className="max-w-md mx-auto">
         <h1 className="text-2xl font-bold mc-text mb-2">{copy.headline}</h1>
         <p className="text-sm text-mc-text-dim mb-6 leading-relaxed">
           {copy.subhead}

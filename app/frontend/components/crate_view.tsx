@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useMemo, useRef } from "react"
-import { motion, AnimatePresence, useMotionValue, useReducedMotion, useTransform } from "framer-motion"
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
 import CrateTabs from "./crate_tabs"
 import RecordCard from "./record_card"
 import { buildCrateWindow } from "../lib/crate_window"
@@ -105,16 +105,45 @@ function RecordDetails({ listing, direction }: { listing: Listing; direction: nu
 }
 
 
-function usePreload(records: { id: number; cover_image_url?: string | null }[], index: number) {
+function preloadImage(url: string, priority: "high" | "low" = "high") {
+  if (priority === "high") {
+    const img = new Image()
+    img.decoding = "async"
+    img.src = url
+  } else {
+    // Idle priority — use requestIdleCallback with setTimeout(0) fallback
+    const schedule = typeof requestIdleCallback === "function"
+      ? requestIdleCallback
+      : (cb: IdleRequestCallback) => setTimeout(cb, 0)
+    schedule(() => {
+      const img = new Image()
+      img.decoding = "async"
+      img.src = url
+    }, { timeout: 2000 })
+  }
+}
+
+function usePreload(records: { id: number; cover_image_url?: string | null; thumbnail_url?: string | null }[], index: number) {
   useEffect(() => {
     for (let offset = -3; offset <= 3; offset++) {
       if (offset === 0) continue
 
       const r = records[index + offset]
-      if (r?.cover_image_url) {
-        const img = new Image()
-        img.decoding = "async"
-        img.src = r.cover_image_url
+      if (!r) continue
+
+      const absOffset = Math.abs(offset)
+
+      if (absOffset <= 1) {
+        // Adjacent slots: preload full-res cover (cache-warming for the decode gate)
+        if (r.cover_image_url) preloadImage(r.cover_image_url, "high")
+      } else {
+        // Edge slots: preload thumbnail only (full-res at idle priority)
+        if (r.thumbnail_url) {
+          preloadImage(r.thumbnail_url, "high")
+        }
+        if (r.cover_image_url) {
+          preloadImage(r.cover_image_url, "low")
+        }
       }
     }
   }, [records, index])
@@ -129,8 +158,6 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
   const [showGestureHint, setShowGestureHint] = useState(true)
   const direction = useRef(0)
   const prefersReducedMotion = useReducedMotion()
-  const dragX = useMotionValue(0)
-  const activeRotate = useTransform(dragX, [-120, 0, 120], [-8, 0, 8])
 
   useEffect(() => {
     setIndex(startIndex)
@@ -228,9 +255,7 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
 
     if (dominantOffset > DRAG_THRESHOLD) navigate(1)
     else if (dominantOffset < -DRAG_THRESHOLD) navigate(-1)
-
-    dragX.set(0)
-  }, [dragX, navigate])
+  }, [navigate])
 
   if (!activeCrate || total === 0) {
     return (
@@ -261,108 +286,128 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
             height: isCompact ? "min(80vw, 340px, 54svh)" : "min(82vw, 400px)",
           }}
         >
-          <AnimatePresence initial={!prefersReducedMotion} custom={direction.current}>
-            {visibleRecords.map((slot) => {
-              const depth = Math.abs(slot.offset)
-              const coverUrl = slot.record.cover_image_url ?? slot.record.thumbnail_url
-              const baseX = slot.offset * 16
-              const baseY = depth * 12
-              const baseRotate = slot.offset * -4
-              const scale = 1 - depth * 0.045
+          {/* Hint cards as plain divs with CSS transitions (compositor thread, no JS cost) */}
+          {visibleRecords.filter((s) => !s.isActive).map((slot) => {
+            const depth = Math.abs(slot.offset)
+            const hintUrl = slot.record.thumbnail_url ?? slot.record.cover_image_url
+            const baseX = slot.offset * 16
+            const baseY = depth * 12
+            const baseRotate = slot.offset * -4
+            const scale = 1 - depth * 0.045
 
-              if (!slot.isActive) {
-                return (
-                  <motion.div
-                    key={`hint-${slot.record.id}`}
-                    aria-hidden="true"
-                    className="absolute inset-0 rounded-lg overflow-hidden border border-mc-border bg-mc-bg-raised shadow-lg pointer-events-none"
-                    initial={prefersReducedMotion ? { opacity: 0, y: baseY + 10 } : { opacity: 0, y: baseY + 24 }}
-                    animate={{
-                      opacity: 0.38,
-                      x: baseX,
-                      y: baseY,
-                      rotate: baseRotate,
-                      scale,
-                    }}
-                    exit={prefersReducedMotion ? { opacity: 0, y: baseY + 10 } : { opacity: 0, y: baseY + 18 }}
-                    transition={prefersReducedMotion ? reducedEase : ease}
-                    style={{ ...compositedLayerStyle, zIndex: 10 - depth }}
-                  >
-                    {coverUrl ? (
+            return (
+              <div
+                key={`hint-${slot.offset}`}
+                aria-hidden="true"
+                className="absolute inset-0 rounded-lg overflow-hidden border border-mc-border bg-mc-bg-raised shadow-lg pointer-events-none"
+                style={{
+                  ...compositedLayerStyle,
+                  zIndex: 10 - depth,
+                  opacity: 0.38,
+                  transform: `translate(${baseX}px, ${baseY}px) rotate(${baseRotate}deg) scale(${scale})`,
+                  transition: prefersReducedMotion
+                    ? 'transform 0.01s ease-out, opacity 0.01s ease-out'
+                    : 'transform 0.2s ease-out, opacity 0.2s ease-out',
+                }}
+              >
+                {hintUrl ? (
+                  <img
+                    src={hintUrl}
+                    alt=""
+                    className="w-full h-full object-cover saturate-75"
+                    draggable={false}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-mc-text-dim text-5xl">♪</div>
+                )}
+                <div className="absolute inset-0 bg-mc-bg/35" />
+              </div>
+            )
+          })}
+
+          {/* Active card entry animation via AnimatePresence */}
+          {visibleRecords.filter((s) => s.isActive).map((slot) => (
+            <AnimatePresence
+              key={slot.record.id}
+              initial={!prefersReducedMotion}
+              custom={direction.current}
+            >
+              <motion.div
+                key={`active-${slot.record.id}`}
+                variants={{
+                  initial: (d: number) => (
+                    prefersReducedMotion
+                      ? { opacity: 0, y: d >= 0 ? -42 : 42, scale: 0.98 }
+                      : d >= 0
+                        ? { opacity: 0, y: -78, rotate: -3 }
+                        : { opacity: 0, y: 78, rotate: 3 }
+                  ),
+                  animate: { opacity: 1, y: 0, rotate: 0, scale: 1 },
+                  exit: (d: number) => (
+                    prefersReducedMotion
+                      ? { opacity: 0, y: d >= 0 ? 54 : -54, scale: 0.96 }
+                      : d >= 0
+                        ? { opacity: 0, y: 66, rotate: 4 }
+                        : { opacity: 0, y: -66, rotate: -4 }
+                  ),
+                }}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                transition={prefersReducedMotion ? reducedCardEase : ease}
+                className="absolute inset-0"
+                style={{ ...activeLayerStyle, zIndex: 30 }}
+              >
+                <motion.div
+                  className="w-full h-full"
+                  style={{
+                    touchAction: "none",
+                    willChange: "transform",
+                    backfaceVisibility: "hidden",
+                    WebkitBackfaceVisibility: "hidden",
+                    rotate: 'var(--drag-rotate, 0deg)',
+                  }}
+                  drag
+                  dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+                  dragElastic={0.28}
+                  dragMomentum={false}
+                  whileDrag={prefersReducedMotion ? undefined : { scale: 0.985 }}
+                  onDrag={(_, info) => {
+                    const el = (_.currentTarget as HTMLElement)
+                    el.style.setProperty('--drag-rotate', `${info.offset.x * 0.0667}deg`)
+                  }}
+                  onDragEnd={(e, info) => {
+                    const el = (e.currentTarget as HTMLElement)
+                    el.style.setProperty('--drag-rotate', '0deg')
+                    handleDragEnd(e, info)
+                  }}
+                >
+                  {/* Thumbnail backdrop — visible while full-res loads */}
+                  {slot.record.thumbnail_url && (
+                    <div className="absolute inset-0 rounded-lg overflow-hidden z-0 pointer-events-none">
                       <img
-                        src={coverUrl}
+                        src={slot.record.thumbnail_url}
                         alt=""
                         className="w-full h-full object-cover saturate-75"
+                        style={{ filter: 'blur(8px)' }}
                         draggable={false}
-                        loading="eager"
-                        decoding="async"
                       />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-mc-text-dim text-5xl">♪</div>
-                    )}
-                    <div className="absolute inset-0 bg-mc-bg/35" />
-                  </motion.div>
-                )
-              }
-
-              return (
-                <motion.div
-                  key={`active-${slot.record.id}`}
-                  custom={direction.current}
-                  variants={{
-                    initial: (d: number) => (
-                      prefersReducedMotion
-                        ? { opacity: 0, y: d >= 0 ? -42 : 42, scale: 0.98 }
-                        : d >= 0
-                          ? { opacity: 0, y: -78, rotate: -3 }
-                          : { opacity: 0, y: 78, rotate: 3 }
-                    ),
-                    animate: { opacity: 1, y: 0, rotate: 0, scale: 1 },
-                    exit: (d: number) => (
-                      prefersReducedMotion
-                        ? { opacity: 0, y: d >= 0 ? 54 : -54, scale: 0.96 }
-                        : d >= 0
-                          ? { opacity: 0, y: 66, rotate: 4 }
-                          : { opacity: 0, y: -66, rotate: -4 }
-                    ),
-                  }}
-                  initial="initial"
-                  animate="animate"
-                  exit="exit"
-                  transition={prefersReducedMotion ? reducedCardEase : ease}
-                  className="absolute inset-0"
-                  style={{ ...activeLayerStyle, zIndex: 30 }}
-                >
-                  <motion.div
-                    className="w-full h-full"
-                    style={{
-                      rotate: activeRotate,
-                      touchAction: "none",
-                      willChange: "transform",
-                      backfaceVisibility: "hidden",
-                      WebkitBackfaceVisibility: "hidden",
-                    }}
-                    drag
-                    dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-                    dragElastic={0.28}
-                    dragMomentum={false}
-                    whileDrag={prefersReducedMotion ? undefined : { scale: 0.985 }}
-                    onDrag={(_, info) => dragX.set(info.offset.x)}
-                    onDragEnd={handleDragEnd}
-                  >
-                    <RecordCard
-                      listing={slot.record}
-                      resetKey={`${activeSlug}-${slot.record.id}`}
-                      className="rounded-lg"
-                      imageLoading="eager"
-                      disableFlip={!isCompact}
-                      framed
-                    />
-                  </motion.div>
+                    </div>
+                  )}
+                  <RecordCard
+                    listing={slot.record}
+                    resetKey={`${activeSlug}-${slot.record.id}`}
+                    className="relative z-10 rounded-lg"
+                    imageLoading="eager"
+                    disableFlip={!isCompact}
+                    framed
+                  />
                 </motion.div>
-              )
-            })}
-          </AnimatePresence>
+              </motion.div>
+            </AnimatePresence>
+          ))}
         </div>
       </div>
 
