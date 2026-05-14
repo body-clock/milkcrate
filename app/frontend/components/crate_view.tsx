@@ -5,7 +5,7 @@ import RecordCard from "./record_card"
 import { buildCrateWindow } from "../lib/crate_window"
 import { useViewport } from "@/hooks/use_viewport"
 import { usePileContext } from "@/contexts/pile_context"
-import { SCALE_PRESS, springPress } from "@/lib/motion_tokens"
+import { SCALE_PRESS, springPress, transitionCrate, reducedMotionTransition } from "@/lib/motion_tokens"
 import type { Crate, Listing } from "../types/inertia"
 
 interface Props {
@@ -17,7 +17,6 @@ interface Props {
   onBack?: () => void
 }
 
-const ease = { duration: 0.2, ease: "easeOut" as const }
 const reducedEase = { duration: 0.16, ease: "easeOut" as const }
 const reducedCardEase = { duration: 0.24, ease: "easeOut" as const }
 const DRAG_THRESHOLD = 72
@@ -380,7 +379,7 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
                 initial="initial"
                 animate="animate"
                 exit="exit"
-                transition={prefersReducedMotion ? reducedCardEase : ease}
+                transition={prefersReducedMotion ? reducedMotionTransition : transitionCrate}
                 className="absolute inset-0"
                 style={{ ...activeLayerStyle, zIndex: 30 }}
               >
@@ -456,7 +455,7 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
           <motion.div
             className="h-full bg-mc-accent rounded-full"
             animate={{ width: `${progress}%` }}
-            transition={prefersReducedMotion ? reducedEase : ease}
+            transition={prefersReducedMotion ? reducedMotionTransition : transitionCrate}
           />
         </div>
       </div>

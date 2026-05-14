@@ -54,6 +54,11 @@ export const DURATION_PRESS = 0.12 // s
 export const transitionHover = springTactile
 export const transitionDrawer = springDrawer
 export const transitionFlip = springFlip
+export const transitionCrate = {
+  type: "spring" as const,
+  stiffness: 350,
+  damping: 30,
+}
 
 // ── Reduced-motion overrides ──────────────────────────────────
 // When prefers-reduced-motion is active, transitions collapse to
