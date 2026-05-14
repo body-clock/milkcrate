@@ -179,7 +179,7 @@ export default function Apply({ submitted = false, errors = {}, turnstile, copy 
         <form
           onSubmit={(e) => {
             e.preventDefault()
-            post("/waitlist")
+            post("/apply")
           }}
           className="flex flex-col gap-6"
           noValidate
