@@ -2,6 +2,7 @@ import React from "react"
 import { Link } from "@inertiajs/react"
 import { motion } from "framer-motion"
 import MarketingLayout from "@/layouts/marketing_layout"
+import type { HomepagePreview } from "@/types/inertia"
 
 interface Props {
   copy: {
@@ -11,6 +12,8 @@ interface Props {
     cta_apply: string
     footnote: string
   }
+  /** Bounded homepage preview data from the server. Consumed by the proof module (U6). */
+  preview: HomepagePreview
 }
 
 const fadeUp = {

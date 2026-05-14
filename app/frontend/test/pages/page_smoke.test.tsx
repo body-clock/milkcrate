@@ -43,6 +43,12 @@ const homeCopy = {
   footnote: "Free to start.",
 }
 
+const previewFallback = {
+  store_name: "Philadelphia Music",
+  store_slug: null,
+  sections: [],
+}
+
 const applyCopy = {
   headline: "Get your store on Milkcrate",
   subhead: "We're onboarding stores one at a time.",
@@ -74,13 +80,13 @@ const featuredProps: FeaturedProps = {
 
 describe("page smoke tests", () => {
   it("renders the home page", () => {
-    render(<Home copy={homeCopy} />)
+    render(<Home copy={homeCopy} preview={previewFallback} />)
 
     expect(screen.getByRole("heading", { name: homeCopy.headline })).toBeInTheDocument()
   })
 
   it("home page header does not render emoji wordmark", () => {
-    render(<Home copy={homeCopy} />)
+    render(<Home copy={homeCopy} preview={previewFallback} />)
 
     // The layout header link should use BrandMark, not the old emoji wordmark.
     // The wordmark text is plain "Milkcrate" without emoji prefix.

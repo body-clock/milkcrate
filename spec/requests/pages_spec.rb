@@ -18,6 +18,22 @@ RSpec.describe "Pages", type: :request do
       expect(response.body).not_to include("Sessions")
       expect(response.body).not_to include("session-bar")
     end
+
+    it "includes a preview prop in the Inertia response" do
+      get "/"
+
+      expect(response.body).to include("preview")
+      expect(response.body).to include("store_name")
+      expect(response.body).to include("sections")
+    end
+
+    it "renders successfully when no demo store exists" do
+      # The test DB has no store matching Settings.discogs_username by default
+      get "/"
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("home")
+    end
   end
 
   describe "GET /apply" do
