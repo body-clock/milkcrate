@@ -6,6 +6,7 @@ import PileSheet from "@/components/pile_sheet"
 import StorefrontMotionConfig from "@/components/storefront_motion_config"
 import { ViewportProvider } from "@/contexts/viewport_context"
 import { useViewport } from "@/hooks/use_viewport"
+import BrandMark from "@/components/brand_mark"
 
 function AppLayoutInner({ children }: { children: React.ReactNode }) {
   const page = usePage()
@@ -39,7 +40,7 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
               </span>
             </>
           ) : (
-            <span className="mc-wordmark text-lg sm:text-xl font-bold tracking-widest uppercase whitespace-nowrap">🥛 Milkcrate</span>
+            <BrandMark size="small" />
           )}
         </Link>
         <div className="flex items-center gap-2.5 sm:gap-3 flex-shrink-0">
@@ -92,7 +93,7 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
 
       <footer className="px-4 py-4 border-t mc-border text-center">
         <span className="text-[11px] text-mc-text-dim tracking-wide">
-          Powered by <span className="font-semibold tracking-widest uppercase">🥛 Milkcrate</span>
+          Powered by <span className="font-semibold tracking-widest uppercase">Milkcrate</span>
         </span>
       </footer>
 

@@ -79,6 +79,16 @@ describe("page smoke tests", () => {
     expect(screen.getByRole("heading", { name: homeCopy.headline })).toBeInTheDocument()
   })
 
+  it("home page header does not render emoji wordmark", () => {
+    render(<Home copy={homeCopy} />)
+
+    // The layout header link should use BrandMark, not the old emoji wordmark.
+    // The wordmark text is plain "Milkcrate" without emoji prefix.
+    const header = document.querySelector("header")
+    expect(header?.textContent).toContain("Milkcrate")
+    expect(header?.textContent).not.toContain("🥛")
+  })
+
   it("renders the apply page", () => {
     render(<Apply copy={applyCopy} turnstile={{ enabled: false, site_key: null }} />)
 
@@ -89,6 +99,16 @@ describe("page smoke tests", () => {
     render(<Featured {...featuredProps} />)
 
     expect(screen.getByText(/No vinyl found yet/)).toBeInTheDocument()
+  })
+
+  it("store page footer does not render emoji branding", () => {
+    render(<Featured {...featuredProps} />)
+
+    // The footer "Powered by Milkcrate" should be plain text — no emoji.
+    const footer = document.querySelector("footer")
+    expect(footer).toBeInTheDocument()
+    expect(footer?.textContent).not.toContain("🥛")
+    expect(footer?.textContent).toContain("Milkcrate")
   })
 
   it("hides store description after entering a crate", async () => {

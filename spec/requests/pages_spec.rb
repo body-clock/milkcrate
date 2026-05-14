@@ -60,4 +60,19 @@ RSpec.describe "Pages", type: :request do
       expect(response.body).not_to include("session-bar")
     end
   end
+
+  describe "branding regression" do
+    it "does not include the milk emoji in the home page response" do
+      get "/"
+
+      # The emoji wordmark must not appear in the Inertia-rendered page
+      expect(response.body).not_to include("🥛")
+    end
+
+    it "does not include the milk emoji in the apply page response" do
+      get "/apply"
+
+      expect(response.body).not_to include("🥛")
+    end
+  end
 end

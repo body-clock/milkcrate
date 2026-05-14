@@ -1,6 +1,7 @@
 import React from "react"
 import { Link } from "@inertiajs/react"
 import { useTheme } from "@/hooks/use_theme"
+import BrandMark from "@/components/brand_mark"
 
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {
   const { theme, toggle } = useTheme()
@@ -18,8 +19,9 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
           <Link
             href="/"
             className="flex items-center gap-2 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
+            aria-label="Milkcrate home"
           >
-            <span className="mc-wordmark text-xl font-bold tracking-widest uppercase">🥛 Milkcrate</span>
+            <BrandMark />
           </Link>
           <button
             type="button"
