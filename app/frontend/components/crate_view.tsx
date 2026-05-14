@@ -21,6 +21,7 @@ const ease = { duration: 0.2, ease: "easeOut" as const }
 const reducedEase = { duration: 0.16, ease: "easeOut" as const }
 const reducedCardEase = { duration: 0.24, ease: "easeOut" as const }
 const DRAG_THRESHOLD = 72
+const ROTATION_FACTOR = 8 / 120 // maps 120px drag to 8deg rotation
 const WINDOW_RADIUS = 2
 const compositedLayerStyle: React.CSSProperties = {
   willChange: "transform, opacity",
@@ -105,7 +106,7 @@ function RecordDetails({ listing, direction }: { listing: Listing; direction: nu
 }
 
 
-function preloadImage(url: string, priority: "high" | "low" = "high") {
+function preloadImage(url: string, priority: "high" | "low" = "high", signal?: AbortSignal) {
   if (priority === "high") {
     const img = new Image()
     img.decoding = "async"
@@ -115,16 +116,20 @@ function preloadImage(url: string, priority: "high" | "low" = "high") {
     const schedule = typeof requestIdleCallback === "function"
       ? requestIdleCallback
       : (cb: IdleRequestCallback) => setTimeout(cb, 0)
-    schedule(() => {
+    const deferred = () => {
+      if (signal?.aborted) return
       const img = new Image()
       img.decoding = "async"
       img.src = url
-    }, { timeout: 2000 })
+    }
+    schedule(deferred, { timeout: 2000 })
   }
 }
 
 function usePreload(records: { id: number; cover_image_url?: string | null; thumbnail_url?: string | null }[], index: number) {
   useEffect(() => {
+    const abort = new AbortController()
+
     for (let offset = -3; offset <= 3; offset++) {
       if (offset === 0) continue
 
@@ -142,10 +147,12 @@ function usePreload(records: { id: number; cover_image_url?: string | null; thum
           preloadImage(r.thumbnail_url, "high")
         }
         if (r.cover_image_url) {
-          preloadImage(r.cover_image_url, "low")
+          preloadImage(r.cover_image_url, "low", abort.signal)
         }
       }
     }
+
+    return () => abort.abort()
   }, [records, index])
 }
 
@@ -157,7 +164,13 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
   const [index, setIndex] = useState(startIndex)
   const [showGestureHint, setShowGestureHint] = useState(true)
   const direction = useRef(0)
+  const indexRef = useRef(index)
   const prefersReducedMotion = useReducedMotion()
+  const dragRotationRef = useRef<HTMLDivElement>(null)
+
+  // Keep indexRef in sync so navigate callback reads the latest index
+  // even before React re-renders (critical for rapid keyboard navigation)
+  indexRef.current = index
 
   useEffect(() => {
     setIndex(startIndex)
@@ -165,12 +178,13 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
   }, [activeSlug, startIndex])
 
   const navigate = useCallback((delta: number) => {
-    const next = index + delta
+    const next = indexRef.current + delta
     if (next < 0 || next >= total) return
     direction.current = delta
+    indexRef.current = next
     setIndex(next)
     setShowGestureHint(false)
-  }, [index, total])
+  }, [total])
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === "ArrowDown") navigate(1)
@@ -248,7 +262,7 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
     [records, index],
   )
 
-  const handleDragEnd = useCallback((_event: MouseEvent | TouchEvent | PointerEvent, info: { offset: { x: number; y: number } }) => {
+  const handleDragEnd = useCallback((info: { offset: { x: number; y: number } }) => {
     const dominantOffset = Math.abs(info.offset.x) > Math.abs(info.offset.y)
       ? info.offset.x
       : info.offset.y
@@ -327,13 +341,12 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
             )
           })}
 
-          {/* Active card entry animation via AnimatePresence */}
-          {visibleRecords.filter((s) => s.isActive).map((slot) => (
-            <AnimatePresence
-              key={slot.record.id}
-              initial={!prefersReducedMotion}
-              custom={direction.current}
-            >
+          {/* Active card entry + exit animation via AnimatePresence */}
+          <AnimatePresence
+            initial={!prefersReducedMotion}
+            custom={direction.current}
+          >
+            {visibleRecords.filter((s) => s.isActive).map((slot) => (
               <motion.div
                 key={`active-${slot.record.id}`}
                 variants={{
@@ -361,6 +374,7 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
                 style={{ ...activeLayerStyle, zIndex: 30 }}
               >
                 <motion.div
+                  ref={dragRotationRef}
                   className="w-full h-full"
                   style={{
                     touchAction: "none",
@@ -375,13 +389,11 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
                   dragMomentum={false}
                   whileDrag={prefersReducedMotion ? undefined : { scale: 0.985 }}
                   onDrag={(_, info) => {
-                    const el = (_.currentTarget as HTMLElement)
-                    el.style.setProperty('--drag-rotate', `${info.offset.x * 0.0667}deg`)
+                    dragRotationRef.current?.style.setProperty('--drag-rotate', `${info.offset.x * ROTATION_FACTOR}deg`)
                   }}
-                  onDragEnd={(e, info) => {
-                    const el = (e.currentTarget as HTMLElement)
-                    el.style.setProperty('--drag-rotate', '0deg')
-                    handleDragEnd(e, info)
+                  onDragEnd={(_e, info) => {
+                    dragRotationRef.current?.style.setProperty('--drag-rotate', '0deg')
+                    handleDragEnd(info)
                   }}
                 >
                   {/* Thumbnail backdrop — visible while full-res loads */}
@@ -393,6 +405,10 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
                         className="w-full h-full object-cover saturate-75"
                         style={{ filter: 'blur(8px)' }}
                         draggable={false}
+                        onError={(e) => {
+                          // Hide backdrop on image load failure to avoid broken-image artifact
+                          ;(e.currentTarget as HTMLElement).style.display = 'none'
+                        }}
                       />
                     </div>
                   )}
@@ -406,8 +422,8 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
                   />
                 </motion.div>
               </motion.div>
-            </AnimatePresence>
-          ))}
+            ))}
+          </AnimatePresence>
         </div>
       </div>
 

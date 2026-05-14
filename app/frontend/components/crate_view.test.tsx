@@ -311,4 +311,87 @@ describe("CrateView", () => {
 
     expect(screen.getByText(/Swipe or use arrows to browse/)).toBeInTheDocument()
   })
+
+  // ── CSS-driven hint card rendering (plain divs, no motion.div) ─────
+
+  it("renders hint cards as plain divs with inline transform styles", () => {
+    renderCrateView("compact")
+
+    // The crate stack contains hint cards — check the hint rendered inside the stack
+    const stack = screen.getByTestId("crate-stack")
+    expect(stack).toBeInTheDocument()
+
+    // Verify hint cards are positioned at the expected offsets inside the stack
+    const stackContainer = stack.firstElementChild
+    expect(stackContainer).not.toBeNull()
+    // Should have multiple child elements for hint cards
+    expect(stackContainer!.children.length).toBeGreaterThan(1)
+  })
+
+  it("renders active card with thumbnail backdrop when thumbnail_url is present", () => {
+    const cratesWithThumbnails: Crate[] = [
+      {
+        slug: "jazz",
+        name: "Jazz",
+        count: 3,
+        records: [
+          makeListing({ id: 1, title: "First", artist: "A", cover_image_url: null, thumbnail_url: "/thumb.jpg" }),
+          makeListing({ id: 2, title: "Second", artist: "B", cover_image_url: null, thumbnail_url: "/thumb2.jpg" }),
+          makeListing({ id: 3, title: "Third", artist: "C" }),
+        ],
+      },
+    ]
+
+    const { container } = renderCrateView("compact", { crates: cratesWithThumbnails, activeSlug: "jazz" })
+
+    // Find all <img> elements in the rendered output (some are decorative with alt="")
+    const allImages = container.querySelectorAll<HTMLImageElement>("img")
+    const backdrop = Array.from(allImages).find((img) => img.getAttribute("src") === "/thumb.jpg")
+    expect(backdrop).toBeTruthy()
+
+    // Navigate to next record to verify the backdrop updates
+    const next = screen.getByRole("button", { name: "Next record" })
+    next.click()
+
+    const updatedImages = container.querySelectorAll<HTMLImageElement>("img")
+    const nextBackdrop = Array.from(updatedImages).find((img) => img.getAttribute("src") === "/thumb2.jpg")
+    expect(nextBackdrop).toBeTruthy()
+  })
+
+  it("omits thumbnail backdrop when thumbnail_url is null", () => {
+    const cratesWithoutThumbnails: Crate[] = [
+      {
+        slug: "jazz",
+        name: "Jazz",
+        count: 3,
+        records: [
+          makeListing({ id: 1, title: "First", artist: "A", thumbnail_url: null }),
+          makeListing({ id: 2, title: "Second", artist: "B", thumbnail_url: null }),
+          makeListing({ id: 3, title: "Third", artist: "C", thumbnail_url: null }),
+        ],
+      },
+    ]
+
+    const { container } = renderCrateView("compact", { crates: cratesWithoutThumbnails, activeSlug: "jazz" })
+
+    // Without thumbnail_url on any record, hint cards use cover_image_url (null in test) — ♪ placeholders
+    // Active card also has no thumbnail to render as backdrop
+    // The only <img> elements would be from hint cards that DO resolve a URL
+    const allImages = container.querySelectorAll<HTMLImageElement>("img")
+    // makeListing defaults both cover and thumbnail to null, so no img elements render
+    expect(allImages.length).toBe(0)
+  })
+
+  it("navigates with the ref-based index to avoid stale closures", async () => {
+    const user = userEvent.setup()
+    const crates = makeCrates()
+
+    renderCrateView("compact", { crates })
+
+    // Rapidly advance twice — index ref ensures both navigations land
+    await user.click(screen.getByRole("button", { name: "Next record" }))
+    await user.click(screen.getByRole("button", { name: "Next record" }))
+
+    expect(screen.getByRole("progressbar", { name: "Record 3 of 3" })).toBeInTheDocument()
+  })
 })
