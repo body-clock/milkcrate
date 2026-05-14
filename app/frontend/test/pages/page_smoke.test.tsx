@@ -49,7 +49,7 @@ const homeCopy = {
     step3_title: "Share your store",
     step3_body: "One link. Your customers browse like they're in the shop.",
   },
-  preview_label: "A live Milkcrate store",
+  preview_label: "Flip Through Milkcrate Picks",
   record_fair_title: "Bring your store to the next record fair",
   record_fair_body:
     "QR codes on cards, bags, and signage turn foot traffic into return visitors — long after the fair ends.",
@@ -70,7 +70,7 @@ const applyCopy = {
   confirmation_headline: "You're on the list.",
   confirmation_body: "We'll review your store and reach out to you directly.",
   context_title: "What you need to know",
-  context_discogs_why: "We use your Discogs username to find your inventory — no API keys or technical setup needed.",
+  context_discogs_why: "We start with your Discogs username to review inventory quickly. API-key based onboarding is part of our deeper integration direction.",
   context_what_happens: "After you submit, we review your store, curate your inventory into browsable crates, and reach out when your storefront is live.",
   context_no_commitment: "No commitment. We're onboarding stores one at a time to make sure every storefront gets personal attention.",
   field_hint_discogs: "We pull your inventory from your public Discogs storefront.",

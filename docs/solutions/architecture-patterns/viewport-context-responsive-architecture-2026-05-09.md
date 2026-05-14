@@ -1,6 +1,7 @@
 ---
 title: "ViewportContext responsive architecture — replacing binary useIsDesktop with named tiers"
 date: 2026-05-09
+last_updated: 2026-05-14
 category: docs/solutions/architecture-patterns/
 module: storefront
 problem_type: architecture_pattern
@@ -32,13 +33,13 @@ Place at the app root alongside `StorefrontMotionConfig` and `PileProvider`. Reg
 // app/frontend/contexts/viewport_context.tsx
 export function ViewportProvider({ children }: { children: ReactNode }) {
   const [tier, setTier] = useState<ViewportTier>(() =>
-    tierFromWidth(window.innerWidth)
+    typeof window === "undefined" ? "compact" : tierFromWidth(window.innerWidth)
   )
 
   useEffect(() => {
-    const compactQuery = window.matchMedia(`(max-width: 767px)`)
+    const compactQuery = window.matchMedia(`(max-width: ${COMPACT_MAX}px)`)
     const comfyQuery = window.matchMedia(
-      `(min-width: 768px) and (max-width: 1023px)`
+      `(min-width: ${COMPACT_MAX + 1}px) and (max-width: ${COMFY_MAX}px)`
     )
     const sync = () => setTier(tierFromWidth(window.innerWidth))
     compactQuery.addEventListener("change", sync)
@@ -63,7 +64,7 @@ export function ViewportProvider({ children }: { children: ReactNode }) {
 }
 ```
 
-Three tiers: **compact** (≤767px), **comfy** (768–1023px), **wide** (≥1024px). The 768px boundary preserves backward compatibility with the old `useIsDesktop` threshold. The 1024px boundary aligns with Tailwind's `lg:` breakpoint.
+Three tiers: **compact** (≤767px), **comfy** (768–1023px), **wide** (≥1024px). The 768px boundary preserves backward compatibility with the old `useIsDesktop` threshold. The 1024px boundary aligns with Tailwind's `lg:` breakpoint. Named constants `COMPACT_MAX = 767` and `COMFY_MAX = 1023` are extracted from inline numbers for clarity and maintainability.
 
 ### Layer 3 — useViewport Hook
 
@@ -112,6 +113,8 @@ export function renderWithTier(
   })
 }
 ```
+
+A `TierWrapper` helper is also available for test files that need both viewport context and tier rendering in a single import — it avoids duplicating the `ViewportContext.Provider` wrapper when combined with other test utilities.
 
 ### Migration Pattern
 
@@ -184,16 +187,19 @@ exit={isCompact ? { y: "100%" } : { x: "100%" }}
 
 **Root cause:** `useTactileHover` set `proximity = 1` on touch `pointerenter`, triggering `isHovered = true` and the crate card's hover animation. The scroll gesture then immediately cancelled the pointer (`pointerleave`), reversing the animation. Net effect: one-frame flash.
 
-**Fix:** Touch devices don't need hover proximity effects — they only need press state (`isPressed`). Set `proximity = 0` on touch enter:
+**Fix:** Touch devices don't need hover proximity effects — they only need press state (`isPressed`). The intended fix was to set `proximity = 0` on touch enter, preventing the hover animation from activating:
 
 ```ts
-// Before
+// Intended fix (not yet applied as of 2026-05-14)
 if (reducedMotion || isTouch) {
-  setProximity(1)  // triggers hover animation briefly
+  setProximity(0)  // no hover for touch — press state handles feedback
   return
 }
+```
 
-// After
+**This fix has been applied** as of 2026-05-14. The code now correctly sets `proximity(0)` on touch enter:
+
+```ts
 if (reducedMotion || isTouch) {
   setProximity(0)  // no hover for touch — press state handles feedback
   return
@@ -259,6 +265,8 @@ describe("responsive surface matrix", () => {
 
 The matrix is structural smoke, not visual testing. Each test renders the surface and asserts it mounts and shows core content (heading, empty state). Visual snapshot tests are too brittle for responsive governance; this pattern gives CI-level protection against provider regressions without pixel-level flakiness.
 
+**The matrix pattern has since grown.** The actual `responsive_surface_matrix.test.tsx` now includes additional scenarios beyond the basic smoke test: live preview data, submitted/confirmation state, and populated crates. The pattern remains the same (`describe.each` + `renderWithTier`), but the file is more comprehensive than the simplified example shown.
+
 **Provider-stripping pattern for heavy wrappers:** Surfaces that render inside `AppLayout` (which creates its own `ViewportProvider`) need the layout mocked out so `renderWithTier`'s injected tier propagates. Mock `AppLayout` to render children directly, and mock `StorefrontMotionConfig` to supply `useReducedMotionContext`:
 
 ```tsx
@@ -291,6 +299,8 @@ describe.each([
   })
 })
 ```
+
+**The actual emoji regression test** has expanded beyond the simplified example above. `page_smoke.test.tsx` now checks for multiple emoji characters (`🥛`, `📀`, `👀`, `📦`) across all public surfaces, and `brand_mark.test.tsx`, `apply.test.tsx`, and `home.test.tsx` have additional emoji checks specific to their components.
 
 ### Accessibility Landmark Governance
 

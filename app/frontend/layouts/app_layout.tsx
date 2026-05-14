@@ -28,7 +28,7 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
       >
         {storeName ? (
           <>
-            <span className="text-base font-bold tracking-wide mc-text truncate">{storeName}</span>
+            <span className="mc-brand-title text-base font-bold mc-text truncate">{storeName}</span>
             <span className="text-[10px] tracking-widest uppercase text-mc-text-dim">
               {isCompact ? "on MC" : "on Milkcrate"}
             </span>

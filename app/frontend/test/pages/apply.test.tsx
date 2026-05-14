@@ -42,7 +42,7 @@ const copy = {
   confirmation_headline: "Thanks",
   confirmation_body: "We will be in touch",
   context_title: "What you need to know",
-  context_discogs_why: "No API keys needed.",
+  context_discogs_why: "We start with your Discogs username to review inventory quickly.",
   context_what_happens: "We review and set up your store.",
   context_no_commitment: "No commitment.",
   field_hint_discogs: "We pull from your Discogs.",

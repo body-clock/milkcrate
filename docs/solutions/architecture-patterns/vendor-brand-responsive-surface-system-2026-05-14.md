@@ -23,6 +23,20 @@ Milkcrate had three separate surface families — marketing (home, apply), store
 
 The vendor brand unification plan (2026-05-14) replaced this with a three-layer system: a single brand mark (U1), a shared shell contract (U2), and composable preview primitives (U3). Every public surface — marketing, store, crate, apply, and admin — now uses the same brand tokens and responsive vocabulary while keeping its own content and behavior decisions.
 
+## Pitfalls from Implementation
+
+These issues were discovered during the implementation of the vendor-brand system and are worth knowing when extending or modifying it (session history):
+
+1. **Conditional hook violation in `StorefrontPreview`** — `useViewport()` was called conditionally (`hasProvider ? useViewport() : ...`), violating React's rules of hooks. This also masked integration issues by fabricating a default tier state. **Fix**: Remove the conditional path; always call `useViewport()` and wrap `MarketingLayout` with `ViewportProvider` so all surfaces have context. Missing context should be a compile-time/test-time failure, not silent degradation.
+
+2. **`variants` on plain HTML elements** — `variants={fadeUp}` was placed on a plain `<h2>`, so the animation had no effect. **Fix**: Changed to `motion.h2`. Always verify that Framer Motion `variants` props target `motion.*` elements.
+
+3. **ViewportProvider runtime crash** — After fixing the conditional hook, the component always required viewport context, but `MarketingLayout` wasn't providing it, causing a runtime crash (`useViewportContext must be used within a ViewportProvider`). **Fix**: Wrapped `MilkcrateShell` in `MarketingLayout` with `ViewportProvider`.
+
+4. **Binary `useIsDesktop()` hydration flicker** — The old binary hook caused server/client mismatches. Replaced with Tailwind responsive classes or `useViewport()`. Do not re-introduce binary responsive hooks.
+
+5. **Inline spring values** — Apply confirmation used inline `{ type: 'spring', stiffness: 300, damping: 26 }`. **Fix**: Replaced with imported `springTactile` token from `@/lib/motion_tokens`.
+
 ## Guidance
 
 ### Layer 1 — Brand Mark (`BrandMark`)
@@ -93,6 +107,12 @@ export default function MarketingLayout({ children }) {
 **When to extend the shell:** Add a new region slot (e.g., `beforeFooter`). Keep it a slot — do not bake page-specific logic into the shell.
 
 **When NOT to use the shell:** Non-public pages that should intentionally look different from the main surfaces (e.g., a dedicated checkout flow, a micro-site, or an iframe embed). The shell is for surfaces that share the Milkcrate identity.
+
+### MarketingPreviewPresenter — Bounded Preview Data
+
+The homepage uses `MarketingPreviewPresenter` (backend) to bound the preview payload: `MAX_PREVIEW_RECORDS = 4`, `MAX_FEATURED_CRATES = 2`, `MAX_GENRE_CRATES = 2`. This prevents shipping an unbounded store payload. It uses `StorefrontCuration` and `CratePresenter` for serialization and falls back to typed data when no demo store exists — the homepage renders correctly without a synced local database.
+
+When adding new section types to `StorefrontPreview`, update both the presenter caps and the fallback data.
 
 ### Layer 3 — Preview Primitives (`RecordTile`, `CrateShelf`, `StorefrontPreview`)
 

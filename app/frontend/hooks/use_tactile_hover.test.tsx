@@ -62,7 +62,7 @@ describe("useTactileHover", () => {
     expect(result.current.isHovered).toBe(true)
   })
 
-  it("sets proximity=1 on pointer enter (touch — binary fallback)", () => {
+  it("sets proximity=0 on pointer enter (touch — no hover flash)", () => {
     const { result } = renderHook(() => useTactileHover(), { wrapper })
 
     act(() =>
@@ -71,8 +71,9 @@ describe("useTactileHover", () => {
       ),
     )
 
-    expect(result.current.proximity).toBe(1)
-    expect(result.current.isHovered).toBe(true)
+    // Touch devices should not trigger hover effects — press state handles feedback
+    expect(result.current.proximity).toBe(0)
+    expect(result.current.isHovered).toBe(false)
   })
 
   it("resets to idle on pointer leave", () => {
@@ -83,7 +84,7 @@ describe("useTactileHover", () => {
         pointerEvent({ pointerType: "touch" }),
       ),
     )
-    expect(result.current.proximity).toBe(1)
+    expect(result.current.proximity).toBe(0)
 
     act(() => result.current.handlers.onPointerLeave(pointerEvent()))
 
@@ -184,13 +185,13 @@ describe("useTactileHover", () => {
 
     expect(result.current.transform.rotate).toBe(0)
 
-    // Touch enter sets proximity=1
+    // Touch enter sets proximity=0 (no hover on touch)
     act(() =>
       result.current.handlers.onPointerEnter(
         pointerEvent({ pointerType: "touch" }),
       ),
     )
-    // Still 0 because disableTilt
+    // Still 0 because disableTilt and proximity is already 0
     expect(result.current.transform.rotate).toBe(0)
   })
 

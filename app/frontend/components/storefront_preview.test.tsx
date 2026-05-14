@@ -3,9 +3,19 @@ import { describe, expect, it, vi } from "vitest"
 import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import StorefrontPreview from "./storefront_preview"
+import StorefrontMotionConfig from "./storefront_motion_config"
 import { ViewportProvider } from "@/contexts/viewport_context"
 import { renderWithTier } from "@/test/viewport-test-utils"
 import type { Listing, StorefrontSection } from "../types/inertia"
+
+/** Wrap UI in providers needed by CrateShelf (which uses useTactileHover). */
+function wrapProviders(ui: React.ReactElement) {
+  return (
+    <StorefrontMotionConfig>
+      <ViewportProvider>{ui}</ViewportProvider>
+    </StorefrontMotionConfig>
+  )
+}
 
 const makeListing = (overrides: Partial<Listing> = {}): Listing => ({
   id: 1,
@@ -45,11 +55,7 @@ describe("StorefrontPreview", () => {
         },
       ]
 
-      render(
-        <ViewportProvider>
-          <StorefrontPreview sections={sections} />
-        </ViewportProvider>
-      )
+      render(wrapProviders(<StorefrontPreview sections={sections} />))
 
       expect(screen.getByText("Milkcrate Picks")).toBeInTheDocument()
     })
@@ -80,11 +86,7 @@ describe("StorefrontPreview", () => {
         },
       ]
 
-      render(
-        <ViewportProvider>
-          <StorefrontPreview sections={sections} />
-        </ViewportProvider>
-      )
+      render(wrapProviders(<StorefrontPreview sections={sections} />))
 
       expect(screen.getByText("New Arrivals")).toBeInTheDocument()
       expect(screen.getByText("This Week's Theme")).toBeInTheDocument()
@@ -115,11 +117,7 @@ describe("StorefrontPreview", () => {
         },
       ]
 
-      render(
-        <ViewportProvider>
-          <StorefrontPreview sections={sections} />
-        </ViewportProvider>
-      )
+      render(wrapProviders(<StorefrontPreview sections={sections} />))
 
       expect(screen.getByText("Jazz")).toBeInTheDocument()
       expect(screen.getByText("Rock")).toBeInTheDocument()
@@ -140,11 +138,7 @@ describe("StorefrontPreview", () => {
         },
       ]
 
-      render(
-        <ViewportProvider>
-          <StorefrontPreview sections={sections} />
-        </ViewportProvider>
-      )
+      render(wrapProviders(<StorefrontPreview sections={sections} />))
 
       // Non-interactive means no buttons
       expect(screen.queryByRole("button")).not.toBeInTheDocument()
@@ -165,11 +159,7 @@ describe("StorefrontPreview", () => {
         },
       ]
 
-      render(
-        <ViewportProvider>
-          <StorefrontPreview sections={sections} onSelectCrate={onSelectCrate} />
-        </ViewportProvider>
-      )
+      render(wrapProviders(<StorefrontPreview sections={sections} onSelectCrate={onSelectCrate} />))
 
       await user.click(screen.getByText("Milkcrate Picks"))
       expect(onSelectCrate).not.toHaveBeenCalled()
@@ -191,11 +181,7 @@ describe("StorefrontPreview", () => {
         },
       ]
 
-      render(
-        <ViewportProvider>
-          <StorefrontPreview sections={sections} interactive onSelectCrate={onSelectCrate} />
-        </ViewportProvider>
-      )
+      render(wrapProviders(<StorefrontPreview sections={sections} interactive onSelectCrate={onSelectCrate} />))
 
       const button = screen.getByRole("button", { name: "Open Milkcrate Picks" })
       expect(button).toBeInTheDocument()
@@ -216,11 +202,7 @@ describe("StorefrontPreview", () => {
         },
       ]
 
-      render(
-        <ViewportProvider>
-          <StorefrontPreview sections={sections} interactive onSelectCrate={onSelectCrate} />
-        </ViewportProvider>
-      )
+      render(wrapProviders(<StorefrontPreview sections={sections} interactive onSelectCrate={onSelectCrate} />))
 
       await user.click(screen.getByRole("button", { name: "Open Milkcrate Picks" }))
       expect(onSelectCrate).toHaveBeenCalledWith("picks")
@@ -243,11 +225,7 @@ describe("StorefrontPreview", () => {
         },
       ]
 
-      render(
-        <ViewportProvider>
-          <StorefrontPreview sections={sections} interactive onSelectCrate={onSelectCrate} />
-        </ViewportProvider>
-      )
+      render(wrapProviders(<StorefrontPreview sections={sections} interactive onSelectCrate={onSelectCrate} />))
 
       await user.click(screen.getByRole("button", { name: "Open New Arrivals" }))
       expect(onSelectCrate).toHaveBeenCalledWith("new-arrivals")
@@ -256,11 +234,7 @@ describe("StorefrontPreview", () => {
 
   describe("empty sections", () => {
     it("handles empty sections array", () => {
-      render(
-        <ViewportProvider>
-          <StorefrontPreview sections={[]} />
-        </ViewportProvider>
-      )
+      render(wrapProviders(<StorefrontPreview sections={[]} />))
 
       // Should render without errors — no crate names visible
       const body = document.body
@@ -280,11 +254,7 @@ describe("StorefrontPreview", () => {
         },
       ]
 
-      render(
-        <ViewportProvider>
-          <StorefrontPreview sections={sections} />
-        </ViewportProvider>
-      )
+      render(wrapProviders(<StorefrontPreview sections={sections} />))
 
       // Empty picks still renders the shelf (with "No records yet")
       expect(screen.getByText("Milkcrate Picks")).toBeInTheDocument()
@@ -298,11 +268,7 @@ describe("StorefrontPreview", () => {
         },
       ]
 
-      render(
-        <ViewportProvider>
-          <StorefrontPreview sections={sections} />
-        </ViewportProvider>
-      )
+      render(wrapProviders(<StorefrontPreview sections={sections} />))
 
       // Should render empty — no crates to display
       expect(document.body).toBeInTheDocument()
@@ -338,21 +304,22 @@ describe("StorefrontPreview", () => {
 
     it("renders genre grid in compact tier with 2 columns", () => {
       const { container } = renderWithTier("compact", (
-        <StorefrontPreview sections={sections} />
+        <StorefrontMotionConfig>
+          <StorefrontPreview sections={sections} />
+        </StorefrontMotionConfig>
       ))
 
-      // All crates should be present
       expect(screen.getByText("Jazz")).toBeInTheDocument()
       expect(screen.getByText("Rock")).toBeInTheDocument()
       expect(screen.getByText("Soul")).toBeInTheDocument()
-
-      // Should not overflow
       expect(container).toBeInTheDocument()
     })
 
     it("renders genre grid in comfy tier", () => {
       const { container } = renderWithTier("comfy", (
-        <StorefrontPreview sections={sections} />
+        <StorefrontMotionConfig>
+          <StorefrontPreview sections={sections} />
+        </StorefrontMotionConfig>
       ))
 
       expect(screen.getByText("Jazz")).toBeInTheDocument()
@@ -361,7 +328,9 @@ describe("StorefrontPreview", () => {
 
     it("renders genre grid in wide tier", () => {
       const { container } = renderWithTier("wide", (
-        <StorefrontPreview sections={sections} />
+        <StorefrontMotionConfig>
+          <StorefrontPreview sections={sections} />
+        </StorefrontMotionConfig>
       ))
 
       expect(screen.getByText("Jazz")).toBeInTheDocument()
@@ -390,7 +359,9 @@ describe("StorefrontPreview", () => {
       ]
 
       const { container } = renderWithTier("comfy", (
-        <StorefrontPreview sections={featuredSections} />
+        <StorefrontMotionConfig>
+          <StorefrontPreview sections={featuredSections} />
+        </StorefrontMotionConfig>
       ))
 
       expect(screen.getByText("New Arrivals")).toBeInTheDocument()
@@ -412,11 +383,7 @@ describe("StorefrontPreview", () => {
         },
       ]
 
-      render(
-        <ViewportProvider>
-          <StorefrontPreview sections={sections} className="preview-test" />
-        </ViewportProvider>
-      )
+      render(wrapProviders(<StorefrontPreview sections={sections} className="preview-test" />))
 
       expect(document.querySelector(".preview-test")).toBeInTheDocument()
     })
