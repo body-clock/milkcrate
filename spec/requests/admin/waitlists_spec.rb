@@ -18,6 +18,17 @@ RSpec.describe "Admin::Waitlists", type: :request do
       end
     end
 
+    context "when admin credentials are not configured" do
+      it "fails closed with 401" do
+        ENV.delete("ADMIN_HTTP_BASIC_USER")
+        ENV.delete("ADMIN_HTTP_BASIC_PASSWORD")
+
+        get "/admin"
+
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
     context "with wrong credentials" do
       it "returns 401" do
         get "/admin", headers: auth_headers("admin", "wrong")
