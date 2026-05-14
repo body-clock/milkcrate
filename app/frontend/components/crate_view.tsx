@@ -268,10 +268,20 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
     const dominantVelocity = isHorizontal ? info.velocity.x : info.velocity.y
     const absOffset = Math.abs(dominantOffset)
 
-    // Navigate on any drag past threshold, or on fast flicks past minimum offset
-    if (absOffset < DRAG_THRESHOLD && Math.abs(dominantVelocity) < DRAG_VELOCITY_THRESHOLD) return
+    // Above threshold: always navigate, direction from offset
+    if (absOffset >= DRAG_THRESHOLD) {
+      navigate(dominantOffset > 0 ? 1 : -1)
+      return
+    }
 
-    navigate(dominantOffset > 0 ? 1 : -1)
+    // Below threshold with small offset: navigate only if velocity exceeds threshold
+    // Use velocity direction when velocity triggers (handles offset/velocity sign mismatch)
+    if (absOffset >= 10 && Math.abs(dominantVelocity) >= DRAG_VELOCITY_THRESHOLD) {
+      navigate(dominantVelocity > 0 ? 1 : -1)
+      return
+    }
+
+    // Below both thresholds: snap back via dragSnapToOrigin
   }, [navigate])
 
   if (!activeCrate || total === 0) {
