@@ -384,9 +384,10 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
                     rotate: 'var(--drag-rotate, 0deg)',
                   }}
                   drag
-                  dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+                  dragConstraints={{ left: 0, right: 0, top: -180, bottom: 180 }}
                   dragElastic={0.28}
                   dragMomentum={false}
+                  dragSnapToOrigin
                   whileDrag={prefersReducedMotion ? undefined : { scale: 0.985 }}
                   onDrag={(_, info) => {
                     dragRotationRef.current?.style.setProperty('--drag-rotate', `${info.offset.x * ROTATION_FACTOR}deg`)
