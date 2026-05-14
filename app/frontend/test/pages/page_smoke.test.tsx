@@ -69,6 +69,12 @@ const applyCopy = {
   submitting: "Submitting",
   confirmation_headline: "You're on the list.",
   confirmation_body: "We'll review your store and reach out to you directly.",
+  context_title: "What you need to know",
+  context_discogs_why: "We use your Discogs username to find your inventory — no API keys or technical setup needed.",
+  context_what_happens: "After you submit, we review your store, curate your inventory into browsable crates, and reach out when your storefront is live.",
+  context_no_commitment: "No commitment. We're onboarding stores one at a time to make sure every storefront gets personal attention.",
+  field_hint_discogs: "We pull your inventory from your public Discogs storefront.",
+  field_hint_email: "We'll reach out when your Milkcrate storefront is ready.",
   fields: {
     name: "Store name",
     discogs_username: "Discogs username",
@@ -112,6 +118,14 @@ describe("page smoke tests", () => {
     render(<Apply copy={applyCopy} turnstile={{ enabled: false, site_key: null }} />)
 
     expect(screen.getByRole("heading", { name: applyCopy.headline })).toBeInTheDocument()
+  })
+
+  it("apply page does not render emoji branding", () => {
+    render(<Apply copy={applyCopy} turnstile={{ enabled: false, site_key: null }} />)
+
+    const textContent = document.body.textContent || ""
+    expect(textContent).not.toContain("🥛")
+    expect(textContent).not.toContain("📦")
   })
 
   it("renders the store page", () => {

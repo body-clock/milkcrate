@@ -26,6 +26,14 @@ vi.mock("@/layouts/marketing_layout", () => ({
   default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }))
 
+vi.mock("@/components/brand_mark", () => ({
+  default: ({ size, showWordmark }: { size?: string; showWordmark?: boolean }) => (
+    <span data-testid="brand-mark" data-size={size} data-show-wordmark={showWordmark ? "true" : "false"}>
+      BrandMark
+    </span>
+  ),
+}))
+
 const copy = {
   headline: "Apply",
   subhead: "Join the list",
@@ -33,6 +41,12 @@ const copy = {
   submitting: "Submitting",
   confirmation_headline: "Thanks",
   confirmation_body: "We will be in touch",
+  context_title: "What you need to know",
+  context_discogs_why: "No API keys needed.",
+  context_what_happens: "We review and set up your store.",
+  context_no_commitment: "No commitment.",
+  field_hint_discogs: "We pull from your Discogs.",
+  field_hint_email: "We'll reach out.",
   fields: {
     name: "Store name",
     discogs_username: "Discogs username",
@@ -43,15 +57,108 @@ const copy = {
 }
 
 describe("Apply", () => {
-  it("does not render Turnstile when disabled", () => {
-    render(<Apply copy={copy} turnstile={{ enabled: false, site_key: null }} />)
+  describe("form rendering", () => {
+    it("does not render Turnstile when disabled", () => {
+      render(<Apply copy={copy} turnstile={{ enabled: false, site_key: null }} />)
 
-    expect(screen.queryByTestId("turnstile-widget")).not.toBeInTheDocument()
+      expect(screen.queryByTestId("turnstile-widget")).not.toBeInTheDocument()
+    })
+
+    it("renders Turnstile with the configured site key when enabled", () => {
+      render(<Apply copy={copy} turnstile={{ enabled: true, site_key: "site-key" }} />)
+
+      expect(screen.getByTestId("turnstile-widget")).toHaveAttribute("data-sitekey", "site-key")
+    })
+
+    it("renders the vendor context panel with title and bullet points", () => {
+      render(<Apply copy={copy} turnstile={{ enabled: false, site_key: null }} />)
+
+      expect(screen.getByText(copy.context_title)).toBeInTheDocument()
+      expect(screen.getByText(copy.context_discogs_why)).toBeInTheDocument()
+      expect(screen.getByText(copy.context_what_happens)).toBeInTheDocument()
+      expect(screen.getByText(copy.context_no_commitment)).toBeInTheDocument()
+    })
+
+    it("renders the vendor context panel with accessible heading", () => {
+      render(<Apply copy={copy} turnstile={{ enabled: false, site_key: null }} />)
+
+      const heading = screen.getByRole("heading", { name: copy.context_title })
+      expect(heading).toBeInTheDocument()
+      expect(heading.tagName).toBe("H2")
+    })
+
+    it("renders field hints for discogs_username and email", () => {
+      render(<Apply copy={copy} turnstile={{ enabled: false, site_key: null }} />)
+
+      expect(screen.getByText(copy.field_hint_discogs)).toBeInTheDocument()
+      expect(screen.getByText(copy.field_hint_email)).toBeInTheDocument()
+    })
+
+    it("renders all form fields with their labels", () => {
+      render(<Apply copy={copy} turnstile={{ enabled: false, site_key: null }} />)
+
+      expect(screen.getByLabelText(copy.fields.name)).toBeInTheDocument()
+      expect(screen.getByLabelText(copy.fields.discogs_username)).toBeInTheDocument()
+      expect(screen.getByLabelText(copy.fields.email)).toBeInTheDocument()
+      expect(screen.getByLabelText(copy.fields.inventory_size)).toBeInTheDocument()
+      expect(screen.getByLabelText(copy.fields.notes)).toBeInTheDocument()
+    })
+
+    it("renders the submit button with correct text", () => {
+      render(<Apply copy={copy} turnstile={{ enabled: false, site_key: null }} />)
+
+      expect(screen.getByRole("button", { name: copy.submit })).toBeInTheDocument()
+    })
   })
 
-  it("renders Turnstile with the configured site key when enabled", () => {
-    render(<Apply copy={copy} turnstile={{ enabled: true, site_key: "site-key" }} />)
+  describe("confirmation state", () => {
+    it("renders confirmation headline and body when submitted", () => {
+      render(<Apply copy={copy} submitted={true} />)
 
-    expect(screen.getByTestId("turnstile-widget")).toHaveAttribute("data-sitekey", "site-key")
+      expect(screen.getByText(copy.confirmation_headline)).toBeInTheDocument()
+      expect(screen.getByText(copy.confirmation_body)).toBeInTheDocument()
+    })
+
+    it("does not render the 🥛 emoji in confirmation state", () => {
+      render(<Apply copy={copy} submitted={true} />)
+
+      const body = document.body.textContent || ""
+      expect(body).not.toContain("🥛")
+    })
+
+    it("does not render the 📦 emoji in confirmation state", () => {
+      render(<Apply copy={copy} submitted={true} />)
+
+      const body = document.body.textContent || ""
+      expect(body).not.toContain("📦")
+    })
+
+    it("renders the BrandMark component in confirmation state", () => {
+      render(<Apply copy={copy} submitted={true} />)
+
+      expect(screen.getByTestId("brand-mark")).toBeInTheDocument()
+    })
+
+    it("does not render the form when submitted", () => {
+      render(<Apply copy={copy} submitted={true} />)
+
+      expect(screen.queryByRole("button", { name: copy.submit })).not.toBeInTheDocument()
+    })
+  })
+
+  describe("emoji regression", () => {
+    const emojiChars = ["🥛", "📀", "👀", "📦"]
+
+    it.each(emojiChars)("does not render %s in the form view", (emoji) => {
+      render(<Apply copy={copy} turnstile={{ enabled: false, site_key: null }} />)
+
+      expect(document.body.textContent).not.toContain(emoji)
+    })
+
+    it.each(emojiChars)("does not render %s in the confirmation view", (emoji) => {
+      render(<Apply copy={copy} submitted={true} />)
+
+      expect(document.body.textContent).not.toContain(emoji)
+    })
   })
 })

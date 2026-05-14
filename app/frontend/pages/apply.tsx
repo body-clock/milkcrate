@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from "react"
 import { useForm } from "@inertiajs/react"
 import { motion } from "framer-motion"
 import MarketingLayout from "@/layouts/marketing_layout"
+import BrandMark from "@/components/brand_mark"
 
 type TurnstileWidgetId = string | number
 
@@ -36,6 +37,12 @@ type Props = {
     submitting: string
     confirmation_headline: string
     confirmation_body: string
+    context_title: string
+    context_discogs_why: string
+    context_what_happens: string
+    context_no_commitment: string
+    field_hint_discogs: string
+    field_hint_email: string
     fields: {
       name: string
       discogs_username: string
@@ -104,15 +111,14 @@ export default function Apply({ submitted = false, errors = {}, turnstile, copy 
     return (
       <MarketingLayout>
         <div className="flex flex-col items-center text-center pt-12 sm:pt-20 pb-16 max-w-lg mx-auto">
-          <motion.span
+          <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", stiffness: 300, damping: 26 }}
-            className="text-5xl mb-6"
-            aria-hidden="true"
+            className="mb-6"
           >
-            📦
-          </motion.span>
+            <BrandMark size="large" showWordmark={false} />
+          </motion.div>
           <motion.h1
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -141,9 +147,33 @@ export default function Apply({ submitted = false, errors = {}, turnstile, copy 
     <MarketingLayout>
       <div className="max-w-md mx-auto py-8 sm:py-12">
         <h1 className="text-2xl font-bold mc-text mb-2">{copy.headline}</h1>
-        <p className="text-sm text-mc-text-dim mb-8 leading-relaxed">
+        <p className="text-sm text-mc-text-dim mb-6 leading-relaxed">
           {copy.subhead}
         </p>
+
+        {/* Vendor context panel — explains what we're asking and why */}
+        <section
+          aria-labelledby="apply-context-title"
+          className="mb-8 px-5 py-4 rounded-lg bg-mc-bg-card border border-mc-border"
+        >
+          <h2 id="apply-context-title" className="text-xs font-semibold uppercase tracking-widest text-mc-text-dim mb-3">
+            {copy.context_title}
+          </h2>
+          <ul className="flex flex-col gap-2.5 text-xs text-mc-text-dim leading-relaxed list-none">
+            <li className="flex gap-2">
+              <span className="text-mc-accent flex-shrink-0 select-none mt-px" aria-hidden="true">•</span>
+              <span>{copy.context_discogs_why}</span>
+            </li>
+            <li className="flex gap-2">
+              <span className="text-mc-accent flex-shrink-0 select-none mt-px" aria-hidden="true">•</span>
+              <span>{copy.context_what_happens}</span>
+            </li>
+            <li className="flex gap-2">
+              <span className="text-mc-accent flex-shrink-0 select-none mt-px" aria-hidden="true">•</span>
+              <span>{copy.context_no_commitment}</span>
+            </li>
+          </ul>
+        </section>
 
         <form
           onSubmit={(e) => {
@@ -191,10 +221,11 @@ export default function Apply({ submitted = false, errors = {}, turnstile, copy 
           <Field
             label={copy.fields.discogs_username}
             name="discogs_username"
+            hint={copy.field_hint_discogs}
             error={errors.discogs_username?.[0]?.error}
           >
             <input
-              id="apply-discogs-username"
+              id="apply-discogs_username"
               type="text"
               value={data.discogs_username}
               onChange={(e) => setData("discogs_username", e.target.value)}
@@ -210,6 +241,7 @@ export default function Apply({ submitted = false, errors = {}, turnstile, copy 
           <Field
             label={copy.fields.email}
             name="email"
+            hint={copy.field_hint_email}
             error={errors.email?.[0]?.error}
           >
             <input
