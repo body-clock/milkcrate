@@ -1,5 +1,6 @@
 import { motion } from "framer-motion"
 import RecordCard from "./record_card"
+import RecordTile from "./record_tile"
 import FeaturedCratesRow from "./featured_crates_row"
 import GenreGrid from "./genre_grid"
 import TactileCard from "./tactile_card"
@@ -77,9 +78,7 @@ export default function StoreFloor({ sections, onSelectCrate }: Props) {
                       className="flex gap-2 overflow-x-auto pl-4 pr-8 pt-3 pb-5"
                       style={{ scrollbarWidth: "none" }}
                     >
-                      {picks.records.slice(0, 10).map((record, i) => {
-                        const src = record.cover_image_url ?? record.thumbnail_url
-                        return (
+                      {picks.records.slice(0, 10).map((record, i) => (
                           <motion.button
                             key={record.id}
                             type="button"
@@ -90,20 +89,9 @@ export default function StoreFloor({ sections, onSelectCrate }: Props) {
                             onClick={() => onSelectCrate("picks", i)}
                             aria-label={`Open Milkcrate Picks at ${record.title ?? "record"}`}
                           >
-                            {src ? (
-                              <img
-                                src={src}
-                                alt={record.title ?? ""}
-                                className="w-full h-full object-cover"
-                                draggable={false}
-                                loading="lazy"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center mc-dim text-2xl">♪</div>
-                            )}
+                            <RecordTile listing={record} imageLoading="lazy" />
                           </motion.button>
-                        )
-                      })}
+                        ))}
                     </div>
                     <div
                       aria-hidden="true"
