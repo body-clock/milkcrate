@@ -118,10 +118,10 @@ describe("storefront shell (StoreFloor with sections)", () => {
       </StorefrontMotionConfig>
     ))
 
-    // TactileCard renders children inside a motion.div — the RecordCard
-    // content should still be present
-    expect(screen.getByText("Record 1")).toBeInTheDocument()
-    expect(screen.getByText("Record 2")).toBeInTheDocument()
+    // TactileCard renders children inside a motion.div — the RecordTile
+    // content should be reachable via the accessible name on the wrapper
+    expect(screen.getByRole("button", { name: "Open Milkcrate Picks at Record 1" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Open Milkcrate Picks at Record 2" })).toBeInTheDocument()
   })
 
   it("renders featured crates row when present", async () => {

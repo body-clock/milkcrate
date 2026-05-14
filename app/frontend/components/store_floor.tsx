@@ -1,5 +1,4 @@
 import { motion } from "framer-motion"
-import RecordCard from "./record_card"
 import RecordTile from "./record_tile"
 import FeaturedCratesRow from "./featured_crates_row"
 import GenreGrid from "./genre_grid"
@@ -65,7 +64,7 @@ export default function StoreFloor({ sections, onSelectCrate }: Props) {
                           aria-label={`Open Milkcrate Picks at ${record.title ?? "record"}`}
                         >
                           <TactileCard restingTilt={tilt} className="aspect-square rounded-md overflow-hidden">
-                            <RecordCard listing={record} imageLoading="lazy" disableFlip />
+                            <RecordTile listing={record} imageLoading="lazy" />
                           </TactileCard>
                         </div>
                       )
