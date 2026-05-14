@@ -144,6 +144,32 @@ describe("page smoke tests", () => {
     expect(footer?.textContent).toContain("Milkcrate")
   })
 
+  // Cross-surface emoji regression matrix — guards against any page
+  // re-introducing milk emoji or emoji-based wordmarks.
+  describe.each([
+    ["home", () => render(<Home copy={homeCopy} preview={previewFallback} />)],
+    ["apply", () => render(<Apply copy={applyCopy} turnstile={{ enabled: false, site_key: null }} />)],
+    ["store", () => render(<Featured {...featuredProps} />)],
+  ])("emoji regression: %s page", (_label, renderPage) => {
+    it("does not render the milk emoji (🥛)", () => {
+      renderPage()
+      expect(document.body.textContent).not.toContain("🥛")
+    })
+
+    it("does not render the old emoji wordmark (🥛 Milkcrate)", () => {
+      renderPage()
+      expect(document.body.textContent).not.toContain("🥛 Milkcrate")
+    })
+
+    it("does not render decorative emoji icons (📀, 👀, 📦, ♪)", () => {
+      renderPage()
+      const text = document.body.textContent || ""
+      expect(text).not.toContain("📀")
+      expect(text).not.toContain("👀")
+      expect(text).not.toContain("📦")
+    })
+  })
+
   it("hides store description after entering a crate", async () => {
     const user = userEvent.setup()
     const props: FeaturedProps = {
