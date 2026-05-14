@@ -1,10 +1,28 @@
 {
   "name": "Milkcrate",
   "short_name": "Milkcrate",
-  "description": "Dig through record store crates",
+  "description": "Your Discogs inventory, turned into a warm, browsable record storefront.",
   "start_url": "/",
   "display": "standalone",
   "theme_color": "#15120e",
   "background_color": "#15120e",
-  "orientation": "portrait-primary"
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
 }
