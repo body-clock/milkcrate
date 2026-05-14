@@ -3,6 +3,7 @@ import { useForm } from "@inertiajs/react"
 import { motion } from "framer-motion"
 import MarketingLayout from "@/layouts/marketing_layout"
 import BrandMark from "@/components/brand_mark"
+import { springTactile } from "@/lib/motion_tokens"
 
 type TurnstileWidgetId = string | number
 
@@ -114,7 +115,7 @@ export default function Apply({ submitted = false, errors = {}, turnstile, copy 
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 300, damping: 26 }}
+            transition={springTactile}
             className="mb-6"
           >
             <BrandMark size="large" showWordmark={false} />
