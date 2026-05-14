@@ -17,13 +17,13 @@ RSpec.describe "Waitlists", type: :request do
     context "with valid params" do
       it "creates a waitlist entry" do
         expect {
-          post "/apply", params: valid_params
+          post "/waitlist", params: valid_params
         }.to change(Waitlist, :count).by(1)
       end
 
       it "sends a confirmation email" do
         expect {
-          post "/apply", params: valid_params
+          post "/waitlist", params: valid_params
         }.to have_enqueued_job(ActionMailer::MailDeliveryJob).with(
           "SellerMailer", "confirmation", "deliver_now", any_args
         )
@@ -31,27 +31,27 @@ RSpec.describe "Waitlists", type: :request do
 
       it "sends an admin notification email" do
         expect {
-          post "/apply", params: valid_params
+          post "/waitlist", params: valid_params
         }.to have_enqueued_job(ActionMailer::MailDeliveryJob).with(
           "SellerMailer", "admin_notification", "deliver_now", any_args
         )
       end
 
       it "redirects to the apply page" do
-        post "/apply", params: valid_params
+        post "/waitlist", params: valid_params
         expect(response).to have_http_status(:found)
         expect(response).to redirect_to(apply_path)
       end
 
       it "renders the apply page with submitted: true after redirect" do
-        post "/apply", params: valid_params
+        post "/waitlist", params: valid_params
         follow_redirect!
         expect(response).to have_http_status(:ok)
         expect(response.body).to include("submitted")
       end
 
       it "is refresh-safe: redirect prevents form resubmission on refresh" do
-        post "/apply", params: valid_params
+        post "/waitlist", params: valid_params
         expect(response).to have_http_status(:found)
       end
     end
@@ -63,12 +63,12 @@ RSpec.describe "Waitlists", type: :request do
 
       it "does not create an entry without a Turnstile token" do
         expect {
-          post "/apply", params: valid_params
+          post "/waitlist", params: valid_params
         }.not_to change(Waitlist, :count)
       end
 
       it "renders the apply page with submitted: false without a Turnstile token" do
-        post "/apply", params: valid_params
+        post "/waitlist", params: valid_params
 
         expect(response).to have_http_status(:ok)
         expect(response.body).to include("submitted")
@@ -82,7 +82,7 @@ RSpec.describe "Waitlists", type: :request do
         ).and_return(false)
 
         expect {
-          post "/apply", params: valid_params.merge(turnstile_token: "bad-token")
+          post "/waitlist", params: valid_params.merge(turnstile_token: "bad-token")
         }.not_to change(Waitlist, :count)
       end
 
@@ -92,7 +92,7 @@ RSpec.describe "Waitlists", type: :request do
           remote_ip: "127.0.0.1"
         ).and_return(false)
 
-        post "/apply", params: valid_params.merge(turnstile_token: "bad-token")
+        post "/waitlist", params: valid_params.merge(turnstile_token: "bad-token")
 
         expect(response).to have_http_status(:ok)
         expect(response.body).to include("Please confirm you are human.")
@@ -105,7 +105,7 @@ RSpec.describe "Waitlists", type: :request do
         ).and_return(false)
 
         expect {
-          post "/apply", params: valid_params.merge(turnstile_token: "timeout-token")
+          post "/waitlist", params: valid_params.merge(turnstile_token: "timeout-token")
         }.not_to change(Waitlist, :count)
 
         expect(response).to have_http_status(:ok)
@@ -120,7 +120,7 @@ RSpec.describe "Waitlists", type: :request do
         ).and_return(true)
 
         expect {
-          post "/apply", params: valid_params.merge(turnstile_token: "good-token")
+          post "/waitlist", params: valid_params.merge(turnstile_token: "good-token")
         }.to change(Waitlist, :count).by(1)
       end
     end
@@ -129,20 +129,20 @@ RSpec.describe "Waitlists", type: :request do
       it "does not create an entry" do
         params = valid_params.deep_merge(waitlist: { name: "" })
         expect {
-          post "/apply", params: params
+          post "/waitlist", params: params
         }.not_to change(Waitlist, :count)
       end
 
       it "renders the apply page with submitted: false" do
         params = valid_params.deep_merge(waitlist: { name: "" })
-        post "/apply", params: params
+        post "/waitlist", params: params
         expect(response).to have_http_status(:ok)
         expect(response.body).to include("submitted")
       end
 
       it "returns validation errors in the frontend-expected format" do
         params = valid_params.deep_merge(waitlist: { name: "" })
-        post "/apply", params: params
+        post "/waitlist", params: params
 
         expect(response).to have_http_status(:ok)
         expect(response.body).to include('"error":"can\'t be blank"')
@@ -154,7 +154,7 @@ RSpec.describe "Waitlists", type: :request do
       it "does not create an entry" do
         params = valid_params.deep_merge(waitlist: { email: "notvalid" })
         expect {
-          post "/apply", params: params
+          post "/waitlist", params: params
         }.not_to change(Waitlist, :count)
       end
     end
@@ -163,7 +163,7 @@ RSpec.describe "Waitlists", type: :request do
       it "does not create an entry" do
         params = valid_params.deep_merge(waitlist: { discogs_username: "" })
         expect {
-          post "/apply", params: params
+          post "/waitlist", params: params
         }.not_to change(Waitlist, :count)
       end
     end
