@@ -59,6 +59,7 @@
 .mc-session-bar { background: var(--mc-bg-raised); color: var(--mc-text-dim); }
 .mc-border      { border-color: var(--mc-border); }
 .mc-wordmark    { color: var(--mc-text); font-family: ui-sans-serif, system-ui, sans-serif; letter-spacing: 0.15em; }
+.mc-brand-title { color: var(--mc-text); font-family: ui-sans-serif, system-ui, sans-serif; letter-spacing: 0.08em; text-transform: uppercase; }
 .mc-nav-link    { color: var(--mc-text-dim); text-decoration: none; transition: color 0.15s; cursor: pointer; background: none; border: none; font: inherit; }
 .mc-nav-link:hover { color: var(--mc-text); }
 .mc-accent-link { color: var(--mc-accent); text-decoration: none; }

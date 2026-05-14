@@ -42,7 +42,7 @@ const copy = {
     step3_title: "Share your store",
     step3_body: "One link. Your customers browse like they\u2019re in the shop.",
   },
-  preview_label: "A live Milkcrate store",
+  preview_label: "Flip Through Milkcrate Picks",
   record_fair_title: "Bring your store to the next record fair",
   record_fair_body:
     "QR codes on cards, bags, and signage turn foot traffic into return visitors \u2014 long after the fair ends.",
@@ -147,7 +147,10 @@ describe("Home page — vendor-facing rebuild", () => {
         ],
       })
 
-      render(<Home copy={copy} preview={preview} />)
+      renderWithTier(
+        "wide",
+        <Home copy={copy} preview={preview} />
+      )
 
       // The picks crate name should appear in the preview section.
       // (It also appears in the store character section; getAllByText avoids ambiguity.)
@@ -199,6 +202,18 @@ describe("Home page — vendor-facing rebuild", () => {
       for (const emoji of emojiChars) {
         expect(body).not.toContain(emoji)
       }
+    })
+
+    it("does not advertise one-click Discogs cart transfer", () => {
+      render(<Home copy={copy} preview={makePreview()} />)
+
+      expect(screen.queryByText(/One click sends everything to their Discogs cart/i)).not.toBeInTheDocument()
+    })
+
+    it("does not claim stores manually spotlight featured crates", () => {
+      render(<Home copy={copy} preview={makePreview()} />)
+
+      expect(screen.queryByText(/Spotlight the crates you want customers to see first/i)).not.toBeInTheDocument()
     })
   })
 

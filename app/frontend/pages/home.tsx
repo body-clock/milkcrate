@@ -2,7 +2,8 @@ import React from "react"
 import { Link } from "@inertiajs/react"
 import { motion } from "framer-motion"
 import MarketingLayout from "@/layouts/marketing_layout"
-import StorefrontPreview from "@/components/storefront_preview"
+import CrateView from "@/components/crate_view"
+import { PileProvider } from "@/contexts/pile_context"
 import type { HomepagePreview } from "@/types/inertia"
 
 interface Props {
@@ -46,10 +47,13 @@ const fadeIn = {
 }
 
 const ctaBase =
-  "w-full px-6 py-3 rounded-lg font-semibold text-sm tracking-wide text-center transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
+  "w-full sm:flex-1 sm:min-w-0 min-h-11 px-6 sm:px-4 py-3 rounded-lg font-semibold text-sm sm:text-xs leading-5 tracking-wide text-center whitespace-nowrap inline-flex items-center justify-center transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
 
 export default function Home({ copy, preview }: Props) {
   const hasPreview = preview.sections.length > 0
+  const picksSection = preview.sections.find((section) => section.key === "picks_wall")
+  const picksCrate = picksSection?.key === "picks_wall" ? picksSection.crate : null
+  const hasPicksPreview = Boolean(picksCrate && picksCrate.records.length > 0)
 
   return (
     <MarketingLayout>
@@ -77,7 +81,7 @@ export default function Home({ copy, preview }: Props) {
 
         <motion.div
           variants={fadeUp}
-          className="flex flex-col sm:flex-row items-center gap-3 w-full max-w-sm"
+          className="flex flex-col sm:flex-row items-center gap-3 w-full max-w-md"
         >
           {hasPreview && preview.store_slug ? (
             <Link
@@ -110,7 +114,7 @@ export default function Home({ copy, preview }: Props) {
         </motion.p>
       </motion.section>
 
-      {/* ── Storefront Preview — live proof ────────── */}
+      {/* ── Storefront Preview — curation proof ─────── */}
       <motion.section
         initial="hidden"
         whileInView="visible"
@@ -124,10 +128,17 @@ export default function Home({ copy, preview }: Props) {
           </span>
         </div>
 
-        {hasPreview ? (
+        {hasPicksPreview ? (
           <>
             <div className="max-w-4xl mx-auto">
-              <StorefrontPreview sections={preview.sections} />
+              <PileProvider>
+                <CrateView
+                  crates={[picksCrate]}
+                  activeSlug={picksCrate.slug}
+                  hideTabs
+                  onSelectCrate={() => {}}
+                />
+              </PileProvider>
             </div>
             <div className="flex justify-center mt-6">
               {preview.store_slug ? (
@@ -150,7 +161,8 @@ export default function Home({ copy, preview }: Props) {
         ) : (
           <div className="text-center max-w-md mx-auto">
             <p className="text-sm text-mc-text-dim mb-4">
-              A live storefront is being prepared. In the meantime, visit our demo store.
+              We&apos;ll show the full Milkcrate experience in the demo store. Start with a
+              curated picks crate.
             </p>
             <Link
               href="/philadelphiamusic"
@@ -170,26 +182,19 @@ export default function Home({ copy, preview }: Props) {
         aria-labelledby="home-character-heading"
         className="border-t border-mc-border py-10 sm:py-16"
       >
-        <h2
+        <motion.h2
           variants={fadeUp}
           id="home-character-heading"
           className="text-lg sm:text-xl font-semibold mc-text text-center mb-10"
         >
           {copy.store_character_title}
-        </h2>
+        </motion.h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-4xl mx-auto">
           <motion.div
             variants={fadeIn}
             className="flex flex-col items-center text-center gap-3 p-4 rounded-xl bg-mc-bg-raised border border-mc-border"
           >
-            <div
-              className="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm"
-              style={{ backgroundColor: "var(--mc-accent)", color: "var(--mc-on-accent)" }}
-              aria-hidden="true"
-            >
-              P
-            </div>
             <h3 className="text-sm font-semibold mc-text">Milkcrate Picks</h3>
             <p className="text-xs text-mc-text-dim leading-relaxed">
               Our digger algorithm surfaces the most interesting records in your inventory —
@@ -201,17 +206,9 @@ export default function Home({ copy, preview }: Props) {
             variants={fadeIn}
             className="flex flex-col items-center text-center gap-3 p-4 rounded-xl bg-mc-bg-raised border border-mc-border"
           >
-            <div
-              className="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm"
-              style={{ backgroundColor: "var(--mc-accent)", color: "var(--mc-on-accent)" }}
-              aria-hidden="true"
-            >
-              F
-            </div>
             <h3 className="text-sm font-semibold mc-text">Featured Crates</h3>
             <p className="text-xs text-mc-text-dim leading-relaxed">
-              Spotlight the crates you want customers to see first. New arrivals, classics,
-              under-the-radar picks.
+              We shape a front-of-store view that highlights strong entry points for browsing.
             </p>
           </motion.div>
 
@@ -219,13 +216,6 @@ export default function Home({ copy, preview }: Props) {
             variants={fadeIn}
             className="flex flex-col items-center text-center gap-3 p-4 rounded-xl bg-mc-bg-raised border border-mc-border"
           >
-            <div
-              className="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm"
-              style={{ backgroundColor: "var(--mc-accent)", color: "var(--mc-on-accent)" }}
-              aria-hidden="true"
-            >
-              G
-            </div>
             <h3 className="text-sm font-semibold mc-text">Genre Bins</h3>
             <p className="text-xs text-mc-text-dim leading-relaxed">
               Records organized by genre, just like a real shop — jazz, soul, electronic,
@@ -237,17 +227,9 @@ export default function Home({ copy, preview }: Props) {
             variants={fadeIn}
             className="flex flex-col items-center text-center gap-3 p-4 rounded-xl bg-mc-bg-raised border border-mc-border"
           >
-            <div
-              className="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm"
-              style={{ backgroundColor: "var(--mc-accent)", color: "var(--mc-on-accent)" }}
-              aria-hidden="true"
-            >
-              P
-            </div>
             <h3 className="text-sm font-semibold mc-text">Build Your Pile</h3>
             <p className="text-xs text-mc-text-dim leading-relaxed">
-              Customers drop records into their pile as they browse. One click sends everything
-              to their Discogs cart.
+              Customers can collect records in a pile while they browse and compare finds.
             </p>
           </motion.div>
         </div>

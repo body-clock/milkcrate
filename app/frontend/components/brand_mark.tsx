@@ -10,12 +10,8 @@ export interface BrandMarkProps {
 }
 
 /**
- * The Milkcrate brand mark — a crate-plus-record silhouette that represents
- * the physical crate-digging experience. Renders an SVG icon plus optional
- * wordmark text. Replaces the old emoji-based branding.
- *
- * The SVG uses CSS custom properties (--mc-*) so it adapts to the current
- * theme without hard-coded colors.
+ * Temporary Milkcrate brand mark — a simple record icon plus optional
+ * wordmark text. This intentionally stays minimal while the brand evolves.
  */
 export default function BrandMark({
   size = "small",
@@ -32,17 +28,6 @@ export default function BrandMark({
     <span
       className={`inline-flex items-center gap-2 ${className ?? ""}`.trim()}
     >
-      {/*
-        The crate-plus-record mark.
-        viewBox 0 0 64 64 — designed for a square that scales from
-        favicon (16px) through header (24-32px) to large displays.
-        
-        Layers:
-          - Crate front (bottom rectangle + slat lines)
-          - Record disc (circle rising from the crate)
-          - Groove arc (thin inner circle)
-          - Center label (small filled circle, oxblood accent)
-      */}
       <svg
         width={iconSize}
         height={iconSize}
@@ -54,88 +39,29 @@ export default function BrandMark({
         role={showWordmark ? undefined : "img"}
         className="flex-shrink-0"
       >
-        {/* Crate front panel — warm brown rectangle */}
-        <rect
-          x="6"
-          y="34"
-          width="52"
-          height="26"
-          rx="2"
-          fill="var(--mc-text-dim)"
-        />
-
-        {/* Crate top rail — slightly lighter */}
-        <rect
-          x="6"
-          y="34"
-          width="52"
-          height="4"
-          rx="1"
-          fill="var(--mc-border)"
-        />
-
-        {/* Crate slats — horizontal divider lines */}
-        <line
-          x1="6" y1="44"
-          x2="58" y2="44"
-          stroke="var(--mc-border)"
-          strokeWidth="1.5"
-          strokeOpacity="0.6"
-        />
-        <line
-          x1="6" y1="52"
-          x2="58" y2="52"
-          stroke="var(--mc-border)"
-          strokeWidth="1.5"
-          strokeOpacity="0.6"
-        />
-
-        {/* Record disc — a dark circle rising from the crate top */}
+        {/* White record silhouette */}
         <circle
           cx="32"
-          cy="28"
-          r="18"
-          fill="var(--mc-bg-card)"
-          stroke="var(--mc-text)"
-          strokeWidth="1.5"
-        />
-
-        {/* Record groove — a thin inner ring suggesting the wax grooves */}
-        <circle
-          cx="32"
-          cy="28"
-          r="12"
+          cy="32"
+          r="24"
           fill="none"
-          stroke="var(--mc-border)"
-          strokeWidth="1"
-          strokeOpacity="0.7"
+          stroke="white"
+          strokeWidth="3"
         />
-
-        {/* Another subtle groove ring */}
         <circle
           cx="32"
-          cy="28"
-          r="14.5"
+          cy="32"
+          r="16"
           fill="none"
-          stroke="var(--mc-border)"
-          strokeWidth="0.5"
-          strokeOpacity="0.4"
+          stroke="white"
+          strokeWidth="2"
+          strokeOpacity="0.9"
         />
-
-        {/* Center label — oxblood accent disc */}
         <circle
           cx="32"
-          cy="28"
+          cy="32"
           r="6"
-          fill="var(--mc-accent)"
-        />
-
-        {/* Center label spindle hole — tiny cutout */}
-        <circle
-          cx="32"
-          cy="28"
-          r="1.5"
-          fill="var(--mc-bg)"
+          fill="white"
         />
       </svg>
 
