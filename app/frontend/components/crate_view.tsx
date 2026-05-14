@@ -160,36 +160,57 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
 
   const crateHeader = (
     <div className={isCompact ? "mb-3" : "mb-4"}>
-      <div className={isCompact ? "flex items-center gap-3" : "flex items-center gap-3 border-b border-mc-border pb-2 mb-3"}>
-        {onBack && (
-          <button
-            type="button"
-            onClick={onBack}
-            className={isCompact
-              ? "flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-mc-border bg-mc-bg-raised text-lg leading-none text-mc-text-dim transition-[color,border-color,transform] hover:border-mc-accent hover:text-mc-accent active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
-              : "flex items-center gap-1.5 text-xs font-medium text-mc-text-dim bg-mc-bg-raised border border-mc-border rounded-lg hover:border-mc-accent hover:text-mc-accent transition-colors whitespace-nowrap py-1.5 px-3 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
-            }
-            aria-label="Back to store"
-          >
-            {isCompact ? (
-              <span aria-hidden="true" className="-translate-y-px">←</span>
-            ) : (
-              <>← Store</>
+      {isCompact ? (
+        <>
+          <div className="flex items-center gap-3">
+            {onBack && (
+              <button
+                type="button"
+                onClick={onBack}
+                className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-mc-border bg-mc-bg-raised text-lg leading-none text-mc-text-dim transition-[color,border-color,transform] hover:border-mc-accent hover:text-mc-accent active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
+                aria-label="Back to store"
+              >
+                <span aria-hidden="true" className="-translate-y-px">←</span>
+              </button>
             )}
-          </button>
-        )}
-        {onBack && !hideTabs && !isCompact && <div className="w-px self-stretch bg-mc-border" />}
-        <div className="min-w-0 flex-1">
-          <h1 className="truncate text-base font-semibold leading-tight">{activeCrate?.name}</h1>
-          <div className="text-[11px] uppercase tracking-[0.12em] text-mc-text-dim">
-            {total === 1 ? "1 record" : `${total} records`}
+            <div className="min-w-0 flex-1">
+              <h1 className="truncate text-base font-semibold leading-tight">{activeCrate?.name}</h1>
+              <div className="text-[11px] uppercase tracking-[0.12em] text-mc-text-dim">
+                {total === 1 ? "1 record" : `${total} records`}
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-      {!hideTabs && (
-        <div className={isCompact ? "-mx-1" : ""}>
-          <CrateTabs crates={crates} activeSlug={activeSlug} onSelect={onSelectCrate} compact={isCompact} />
-        </div>
+          {!hideTabs && (
+            <div className="mt-2 -mx-1">
+              <CrateTabs crates={crates} activeSlug={activeSlug} onSelect={onSelectCrate} compact />
+            </div>
+          )}
+        </>
+      ) : (
+        <>
+          <div className="flex items-center gap-3 border-b border-mc-border pb-2 mb-3">
+            {onBack && (
+              <button
+                type="button"
+                onClick={onBack}
+                className="flex items-center gap-1.5 text-xs font-medium text-mc-text-dim bg-mc-bg-raised border border-mc-border rounded-lg hover:border-mc-accent hover:text-mc-accent transition-colors whitespace-nowrap py-1.5 px-3 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
+                aria-label="Back to store"
+              >
+                ← Store
+              </button>
+            )}
+            {onBack && !hideTabs && <div className="w-px self-stretch bg-mc-border" />}
+            <div className="min-w-0 flex-1">
+              <h1 className="truncate text-base font-semibold leading-tight">{activeCrate?.name}</h1>
+              <div className="text-[11px] uppercase tracking-[0.12em] text-mc-text-dim">
+                {total === 1 ? "1 record" : `${total} records`}
+              </div>
+            </div>
+          </div>
+          {!hideTabs && (
+            <CrateTabs crates={crates} activeSlug={activeSlug} onSelect={onSelectCrate} />
+          )}
+        </>
       )}
     </div>
   )
