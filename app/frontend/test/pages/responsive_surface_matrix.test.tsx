@@ -78,7 +78,7 @@ const homeCopy = {
     step3_body:
       "One link. Your customers browse like they\u2019re in the shop.",
   },
-  preview_label: "A live Milkcrate store",
+  preview_label: "Flip Through Milkcrate Picks",
   record_fair_title: "Bring your store to the next record fair",
   record_fair_body:
     "QR codes on cards, bags, and signage turn foot traffic into return visitors — long after the fair ends.",
@@ -100,7 +100,7 @@ const applyCopy = {
   confirmation_body: "We'll review your store and reach out to you directly.",
   context_title: "What you need to know",
   context_discogs_why:
-    "We use your Discogs username to find your inventory — no API keys or technical setup needed.",
+    "We start with your Discogs username to review inventory quickly. API-key based onboarding is part of our deeper integration direction.",
   context_what_happens:
     "After you submit, we review your store, curate your inventory into browsable crates, and reach out when your storefront is live.",
   context_no_commitment:
@@ -313,6 +313,111 @@ describe("responsive surface matrix", () => {
     ))
     expect(container).toBeTruthy()
     // Store floor should render when crates exist
+    expect(screen.getByText("Milkcrate Picks")).toBeInTheDocument()
+  })
+
+  // ── U4: Regression coverage for Picks surface and CrateView header ───
+
+  it("populated store page renders Picks surface at all viewport tiers", () => {
+    const propsWithSections: FeaturedProps = {
+      ...featuredProps,
+      crates: [
+        {
+          slug: "picks",
+          name: "Milkcrate Picks",
+          count: 2,
+          records: [
+            {
+              id: 1,
+              discogs_listing_id: "1",
+              artist: "Artist 1",
+              title: "Pick One",
+              label: null,
+              year: null,
+              format: null,
+              genres: [],
+              styles: [],
+              condition: null,
+              price: "10.00",
+              currency: "USD",
+              cover_image_url: null,
+              thumbnail_url: null,
+              notes: null,
+              discogs_url: "https://www.discogs.com/sell/item/1",
+            },
+            {
+              id: 2,
+              discogs_listing_id: "2",
+              artist: "Artist 2",
+              title: "Pick Two",
+              label: null,
+              year: null,
+              format: null,
+              genres: [],
+              styles: [],
+              condition: null,
+              price: "12.00",
+              currency: "USD",
+              cover_image_url: null,
+              thumbnail_url: null,
+              notes: null,
+              discogs_url: "https://www.discogs.com/sell/item/2",
+            },
+          ],
+        },
+      ],
+      storefront_sections: [
+        {
+          key: "picks_wall",
+          crate: {
+            slug: "picks",
+            name: "Milkcrate Picks",
+            count: 2,
+            records: [
+              {
+                id: 1,
+                discogs_listing_id: "1",
+                artist: "Artist 1",
+                title: "Pick One",
+                label: null,
+                year: null,
+                format: null,
+                genres: [],
+                styles: [],
+                condition: null,
+                price: "10.00",
+                currency: "USD",
+                cover_image_url: null,
+                thumbnail_url: null,
+                notes: null,
+                discogs_url: "https://www.discogs.com/sell/item/1",
+              },
+              {
+                id: 2,
+                discogs_listing_id: "2",
+                artist: "Artist 2",
+                title: "Pick Two",
+                label: null,
+                year: null,
+                format: null,
+                genres: [],
+                styles: [],
+                condition: null,
+                price: "12.00",
+                currency: "USD",
+                cover_image_url: null,
+                thumbnail_url: null,
+                notes: null,
+                discogs_url: "https://www.discogs.com/sell/item/2",
+              },
+            ],
+          },
+        },
+        { key: "genre_grid", crates: [] },
+      ],
+    }
+
+    renderWithTier("compact", <Featured {...propsWithSections} />)
     expect(screen.getByText("Milkcrate Picks")).toBeInTheDocument()
   })
 })
