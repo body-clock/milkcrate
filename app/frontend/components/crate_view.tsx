@@ -158,19 +158,27 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
   const progress = total > 0 ? ((index + 1) / total) * 100 : 0
   const activeRecord = records[index]
 
-  const compactHeader = isCompact ? (
-    <div className="mb-3">
-      <div className="flex items-center gap-3">
+  const crateHeader = (
+    <div className={isCompact ? "mb-3" : "mb-4"}>
+      <div className={isCompact ? "flex items-center gap-3" : "flex items-center gap-3 border-b border-mc-border pb-2 mb-3"}>
         {onBack && (
           <button
             type="button"
             onClick={onBack}
-            className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-mc-border bg-mc-bg-raised text-lg leading-none text-mc-text-dim transition-[color,border-color,transform] hover:border-mc-accent hover:text-mc-accent active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
+            className={isCompact
+              ? "flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-mc-border bg-mc-bg-raised text-lg leading-none text-mc-text-dim transition-[color,border-color,transform] hover:border-mc-accent hover:text-mc-accent active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
+              : "flex items-center gap-1.5 text-xs font-medium text-mc-text-dim bg-mc-bg-raised border border-mc-border rounded-lg hover:border-mc-accent hover:text-mc-accent transition-colors whitespace-nowrap py-1.5 px-3 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
+            }
             aria-label="Back to store"
           >
-            <span aria-hidden="true" className="-translate-y-px">←</span>
+            {isCompact ? (
+              <span aria-hidden="true" className="-translate-y-px">←</span>
+            ) : (
+              <>← Store</>
+            )}
           </button>
         )}
+        {onBack && !hideTabs && !isCompact && <div className="w-px self-stretch bg-mc-border" />}
         <div className="min-w-0 flex-1">
           <h1 className="truncate text-base font-semibold leading-tight">{activeCrate?.name}</h1>
           <div className="text-[11px] uppercase tracking-[0.12em] text-mc-text-dim">
@@ -179,12 +187,12 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
         </div>
       </div>
       {!hideTabs && (
-        <div className="mt-2 -mx-1">
-          <CrateTabs crates={crates} activeSlug={activeSlug} onSelect={onSelectCrate} compact />
+        <div className={isCompact ? "-mx-1" : ""}>
+          <CrateTabs crates={crates} activeSlug={activeSlug} onSelect={onSelectCrate} compact={isCompact} />
         </div>
       )}
     </div>
-  ) : null
+  )
 
   usePreload(records, index)
   const visibleRecords = useMemo(
@@ -203,31 +211,10 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
     dragX.set(0)
   }, [dragX, navigate])
 
-  const desktopToolbar = onBack || !hideTabs ? (
-    <div className="flex items-center gap-3 mb-4 border-b border-mc-border py-2">
-      {onBack && (
-        <button
-          type="button"
-          onClick={onBack}
-          className="flex items-center gap-1.5 text-xs font-medium text-mc-text-dim bg-mc-bg-raised border border-mc-border rounded-lg hover:border-mc-accent hover:text-mc-accent transition-colors whitespace-nowrap py-1.5 px-3 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
-          aria-label="Back to store"
-        >
-          ← Store
-        </button>
-      )}
-      {onBack && !hideTabs && <div className="w-px self-stretch bg-mc-border" />}
-      {!hideTabs && (
-        <div className="min-w-0 flex-1">
-          <CrateTabs crates={crates} activeSlug={activeSlug} onSelect={onSelectCrate} />
-        </div>
-      )}
-    </div>
-  ) : null
-
   if (!activeCrate || total === 0) {
     return (
       <div>
-        {isCompact ? compactHeader : desktopToolbar}
+        {crateHeader}
         <div className="py-16 text-center mc-dim text-sm">No records in this crate yet.</div>
       </div>
     )
@@ -421,7 +408,7 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
 
   return (
     <div className="flex flex-col">
-      {isCompact ? compactHeader : desktopToolbar}
+      {crateHeader}
 
       {/* Mobile: single column. Desktop: centered two-column */}
       <div className="md:mx-auto md:w-full md:grid md:grid-cols-[420px_1fr] md:gap-12 md:items-start">
