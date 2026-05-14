@@ -1,6 +1,7 @@
 ---
 title: "Responsive branching refactors silently drop guard conditions from non-primary paths"
 date: 2026-05-13
+last_updated: 2026-05-14
 category: logic-errors
 module: storefront
 problem_type: logic_error
@@ -13,6 +14,8 @@ resolution_type: code_fix
 severity: medium
 tags: [responsive, branching, guard-condition, refactoring, code-review, react, typescript, viewport]
 ---
+
+<!-- Note: component tag is frontend_stimulus (the closest schema enum value for React frontend components). CrateView is React/TypeScript, not a Stimulus controller. -->
 
 # Responsive Branching Refactors Silently Drop Guard Conditions
 
@@ -55,17 +58,22 @@ After the `isCompact` refactor — the `!hideTabs` guard was replicated to the c
 )}
 ```
 
-The fix adds the guard back:
+The fix adds the guard back. The current code has evolved beyond this simplified example — it now uses a `desktopToolbar` variable with two layers of guarding:
 
 ```tsx
-// Fixed — guard restored to the non-compact branch
-{isCompact ? compactHeader : backButton}
-{!isCompact && !hideTabs && (
-  <div className="mb-3">
-    <CrateTabs crates={crates} activeSlug={activeSlug} onSelect={onSelectCrate} />
+// Current implementation — outer existence guard + inner hideTabs guard
+const desktopToolbar = onBack || !hideTabs ? (
+  <div className="flex items-center gap-3 mb-4 border-b border-mc-border py-2">
+    {onBack && (...)}
+    {onBack && !hideTabs && <div className="w-px ..." />}
+    {!hideTabs && (
+      <CrateTabs ... />
+    )}
   </div>
-)}
+) : null
 ```
+
+This is a stronger pattern than the original single-guard fix: it guards both the existence of the toolbar (`onBack || !hideTabs`) and the inner content (`!hideTabs`), and adds a conditional separator between back button and tabs.
 
 ### Fix 2: Remove the dead boolean return
 
@@ -120,9 +128,15 @@ For dead return types: **when a function's contract changes during refactoring, 
 ```tsx
 // Guards the empty-crate desktop path
 it("hides tabs in empty desktop state when hideTabs is true", () => {
-  render(<CrateView crates={[]} activeSlug="" hideTabs={true} ... />)
+  renderCrateView("wide", { hideTabs: true })
   expect(screen.queryByRole("tablist")).not.toBeInTheDocument()
 })
+
+// NOTE (2026-05-14 refresh): As of the vendor-brand responsive surface system,
+// there is still no regression test for hideTabs on wide/desktop viewports.
+// The compact path is tested (hideTabs on compact), but the important case
+// — hideTabs on wide/desktop — remains untested. Adding this test remains
+// an open action item from this doc.
 
 // Guards against vestigial return types
 // (caught by code review, not tests — but if navigate were extracted as a hook,
