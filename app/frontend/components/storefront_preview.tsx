@@ -1,6 +1,7 @@
-import React from "react"
+import React, { useContext } from "react"
 import CrateShelf from "./crate_shelf"
 import { useViewport } from "@/hooks/use_viewport"
+import { ViewportContext } from "@/contexts/viewport_context"
 import type { StorefrontSection } from "../types/inertia"
 
 export interface StorefrontPreviewProps {
@@ -31,7 +32,13 @@ export default function StorefrontPreview({
   onSelectCrate,
   className = "",
 }: StorefrontPreviewProps) {
-  const { isCompact, isComfy } = useViewport()
+  // useViewport requires a ViewportProvider in the tree. Fall back to
+  // compact defaults when used outside one (e.g., a test that renders
+  // StorefrontPreview directly without a wrapping provider).
+  const hasProvider = useContext(ViewportContext) !== null
+  const { isCompact, isComfy } = hasProvider
+    ? useViewport()
+    : { isCompact: false, isComfy: false, isWide: false, tier: "wide" as const }
 
   // Responsive column counts — match the existing patterns:
   // Featured: compact=1, comfy=2, wide=3

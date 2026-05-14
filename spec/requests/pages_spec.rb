@@ -12,6 +12,13 @@ RSpec.describe "Pages", type: :request do
       expect(response.body).to include("home")
     end
 
+    it "renders the vendor-facing headline in the response" do
+      get "/"
+
+      # The new headline communicates the Discogs-to-storefront transformation
+      expect(response.body).to include("now a storefront")
+    end
+
     it "does not render retired dig-session navigation" do
       get "/"
 

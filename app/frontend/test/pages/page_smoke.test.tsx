@@ -36,11 +36,24 @@ vi.mock("@inertiajs/react", () => ({
 }))
 
 const homeCopy = {
-  headline: "Your Discogs inventory, but discoverable.",
-  subhead: "Milkcrate turns your Discogs inventory into a digital storefront worth sharing.",
-  cta_demo: "See the demo",
+  headline: "Your Discogs inventory, now a storefront.",
+  subhead: "Milkcrate turns your existing Discogs listings into a warm, browsable record shop that you can share in seconds.",
+  cta_demo: "See the demo \u2192",
   cta_apply: "Get your store on Milkcrate",
-  footnote: "Free to start.",
+  footnote: "Early access. We handle the setup.",
+  steps: {
+    step1_title: "Share your Discogs",
+    step1_body: "Tell us your Discogs username. That's it.",
+    step2_title: "We sync & curate",
+    step2_body: "Your inventory becomes curated crates — picks, featured, genre bins.",
+    step3_title: "Share your store",
+    step3_body: "One link. Your customers browse like they're in the shop.",
+  },
+  preview_label: "A live Milkcrate store",
+  record_fair_title: "Bring your store to the next record fair",
+  record_fair_body:
+    "QR codes on cards, bags, and signage turn foot traffic into return visitors — long after the fair ends.",
+  store_character_title: "Your shop. Crated for browsing.",
 }
 
 const previewFallback = {
