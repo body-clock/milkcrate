@@ -21,6 +21,8 @@ const ease = { duration: 0.2, ease: "easeOut" as const }
 const reducedEase = { duration: 0.16, ease: "easeOut" as const }
 const reducedCardEase = { duration: 0.24, ease: "easeOut" as const }
 const DRAG_THRESHOLD = 72
+const DRAG_MIN_OFFSET = 40
+const DRAG_VELOCITY_THRESHOLD = 300 // px/s
 const ROTATION_FACTOR = 8 / 120 // maps 120px drag to 8deg rotation
 const WINDOW_RADIUS = 2
 const compositedLayerStyle: React.CSSProperties = {
@@ -262,13 +264,22 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
     [records, index],
   )
 
-  const handleDragEnd = useCallback((info: { offset: { x: number; y: number } }) => {
-    const dominantOffset = Math.abs(info.offset.x) > Math.abs(info.offset.y)
-      ? info.offset.x
-      : info.offset.y
+  const handleDragEnd = useCallback((
+    info: { offset: { x: number; y: number }; velocity: { x: number; y: number } }
+  ) => {
+    const isHorizontal = Math.abs(info.offset.x) > Math.abs(info.offset.y)
+    const dominantOffset = isHorizontal ? info.offset.x : info.offset.y
+    const dominantVelocity = isHorizontal ? info.velocity.x : info.velocity.y
+    const absOffset = Math.abs(dominantOffset)
 
-    if (dominantOffset > DRAG_THRESHOLD) navigate(1)
-    else if (dominantOffset < -DRAG_THRESHOLD) navigate(-1)
+    // Three-zone decision:
+    // Less than 40px offset: always snap back (don't navigate)
+    // 40-72px: navigate only if velocity exceeds threshold (fast flick overrides short drag)
+    // 72px+: always navigate regardless of velocity
+    if (absOffset < DRAG_MIN_OFFSET) return
+    if (absOffset < DRAG_THRESHOLD && Math.abs(dominantVelocity) < DRAG_VELOCITY_THRESHOLD) return
+
+    navigate(dominantOffset > 0 ? 1 : -1)
   }, [navigate])
 
   if (!activeCrate || total === 0) {
