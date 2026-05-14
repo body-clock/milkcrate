@@ -17,10 +17,7 @@ interface Props {
   onBack?: () => void
 }
 
-const reducedEase = { duration: 0.16, ease: "easeOut" as const }
-const reducedCardEase = { duration: 0.24, ease: "easeOut" as const }
 const DRAG_THRESHOLD = 72
-const DRAG_MIN_OFFSET = 40
 const DRAG_VELOCITY_THRESHOLD = 300 // px/s
 const ROTATION_FACTOR = 8 / 120 // maps 120px drag to 8deg rotation
 const WINDOW_RADIUS = 2
@@ -271,11 +268,7 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
     const dominantVelocity = isHorizontal ? info.velocity.x : info.velocity.y
     const absOffset = Math.abs(dominantOffset)
 
-    // Three-zone decision:
-    // Less than 40px offset: always snap back (don't navigate)
-    // 40-72px: navigate only if velocity exceeds threshold (fast flick overrides short drag)
-    // 72px+: always navigate regardless of velocity
-    if (absOffset < DRAG_MIN_OFFSET) return
+    // Navigate on any drag past threshold, or on fast flicks past minimum offset
     if (absOffset < DRAG_THRESHOLD && Math.abs(dominantVelocity) < DRAG_VELOCITY_THRESHOLD) return
 
     navigate(dominantOffset > 0 ? 1 : -1)
