@@ -197,17 +197,14 @@ if (reducedMotion || isTouch) {
 }
 ```
 
-**As of 2026-05-14, this fix has not been applied.** The current code still sets `proximity(1)` on touch enter:
+**This fix has been applied** as of 2026-05-14. The code now correctly sets `proximity(0)` on touch enter:
 
 ```ts
-// Current behavior (still triggers hover flash on touch)
 if (reducedMotion || isTouch) {
-  setProximity(1)  // triggers hover animation briefly
+  setProximity(0)  // no hover for touch — press state handles feedback
   return
 }
 ```
-
-The `proximity(1)` on touch causes the one-frame hover flash described in the symptom. The fix should be applied as documented above.
 
 **Prevention:** When adding hover effects to interactive elements, gate them on `pointerType !== "mouse"` or use the `any-hover: hover` media query. Touch devices should get press-state feedback only.
 

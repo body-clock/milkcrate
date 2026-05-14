@@ -44,8 +44,8 @@ const isBrowser = typeof window !== "undefined"
 /**
  * Cursor-proximity hover hook. Tracks pointer position relative to
  * the element center and returns a continuous 0–1 proximity value.
- * Falls back to binary behavior on touch devices and when reduced
- * motion is active.
+ * Falls back to zero-proximity on touch devices and when reduced
+ * motion is active (no hover flash — press state handles feedback).
  */
 export function useTactileHover(
   options: UseTactileHoverOptions = {},
@@ -84,7 +84,7 @@ export function useTactileHover(
       isTouchRef.current = isTouch
 
       if (reducedMotion || isTouch) {
-        setProximity(1)
+        setProximity(0)
         return
       }
       // Mouse: compute proximity from the enter event's position
