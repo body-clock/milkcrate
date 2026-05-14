@@ -37,8 +37,8 @@ const activeLayerStyle: React.CSSProperties = {
 
 function RecordDetails({ listing, direction }: { listing: Listing; direction: number }) {
   const meta = [listing.format, listing.label, listing.year, listing.condition].filter(Boolean).join(" · ")
-  const enterY = direction >= 0 ? -16 : 16
-  const exitY = direction >= 0 ? 16 : -16
+  const enterY = direction >= 0 ? 16 : -16
+  const exitY = direction >= 0 ? -16 : 16
   const { inPile, addToPile, removeFromPile } = usePileContext()
 
   const currencySymbol = listing.currency === "GBP" ? "£" : listing.currency === "EUR" ? "€" : "$"
@@ -352,18 +352,18 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
                 variants={{
                   initial: (d: number) => (
                     prefersReducedMotion
-                      ? { opacity: 0, y: d >= 0 ? -42 : 42, scale: 0.98 }
+                      ? { opacity: 0, y: d >= 0 ? 42 : -42, scale: 0.98 }
                       : d >= 0
-                        ? { opacity: 0, y: -78, rotate: -3 }
-                        : { opacity: 0, y: 78, rotate: 3 }
+                        ? { opacity: 0, y: 78, rotate: 3 }
+                        : { opacity: 0, y: -78, rotate: -3 }
                   ),
                   animate: { opacity: 1, y: 0, rotate: 0, scale: 1 },
                   exit: (d: number) => (
                     prefersReducedMotion
-                      ? { opacity: 0, y: d >= 0 ? 54 : -54, scale: 0.96 }
+                      ? { opacity: 0, y: d >= 0 ? -54 : 54, scale: 0.96 }
                       : d >= 0
-                        ? { opacity: 0, y: 66, rotate: 4 }
-                        : { opacity: 0, y: -66, rotate: -4 }
+                        ? { opacity: 0, y: -66, rotate: -4 }
+                        : { opacity: 0, y: 66, rotate: 4 }
                   ),
                 }}
                 initial="initial"
