@@ -111,6 +111,46 @@ describe("Apply", () => {
     })
   })
 
+  describe("validation errors", () => {
+    it("shows error summary with field labels when validation fails", () => {
+      const errors = {
+        name: [{ error: "can't be blank", value: "" }],
+        email: [{ error: "is invalid", value: "not-an-email" }],
+      }
+
+      render(<Apply copy={copy} errors={errors} turnstile={{ enabled: false, site_key: null }} />)
+
+      expect(screen.getByText("There are 2 problems with your submission.")).toBeInTheDocument()
+      expect(screen.getByText(`${copy.fields.name} can't be blank`)).toBeInTheDocument()
+      expect(screen.getByText(`${copy.fields.email} is invalid`)).toBeInTheDocument()
+    })
+
+    it("shows singular error message when 1 validation fails", () => {
+      const errors = {
+        name: [{ error: "can't be blank", value: "" }],
+      }
+
+      render(<Apply copy={copy} errors={errors} turnstile={{ enabled: false, site_key: null }} />)
+
+      expect(screen.getByText("There's a problem with your submission.")).toBeInTheDocument()
+      expect(screen.getByText(`${copy.fields.name} can't be blank`)).toBeInTheDocument()
+    })
+
+    it("shows multiple error messages per field when applicable", () => {
+      const errors = {
+        email: [
+          { error: "can't be blank", value: "" },
+          { error: "is invalid", value: "" },
+        ],
+      }
+
+      render(<Apply copy={copy} errors={errors} turnstile={{ enabled: false, site_key: null }} />)
+
+      expect(screen.getByText(`${copy.fields.email} can't be blank`)).toBeInTheDocument()
+      expect(screen.getByText(`${copy.fields.email} is invalid`)).toBeInTheDocument()
+    })
+  })
+
   describe("confirmation state", () => {
     it("renders confirmation headline and body when submitted", () => {
       render(<Apply copy={copy} submitted={true} />)

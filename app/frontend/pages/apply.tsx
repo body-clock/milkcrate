@@ -193,8 +193,11 @@ export default function Apply({ submitted = false, errors = {}, turnstile, copy 
                 {errorCount === 1 ? "There's a problem with your submission." : `There are ${errorCount} problems with your submission.`}
               </p>
               <ul className="list-disc list-inside text-xs text-mc-text-dim space-y-0.5">
-                {fieldErrors.map(([, errs]) =>
-                  errs.map((e, i) => <li key={i}>{e.error}</li>)
+                {fieldErrors.map(([field, errs]) =>
+                  errs.map((e, i) => {
+                    const label = copy.fields[field as keyof typeof copy.fields]
+                    return <li key={`${field}-${i}`}>{label ? `${label} ` : ""}{e.error}</li>
+                  })
                 )}
               </ul>
             </div>
