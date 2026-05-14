@@ -53,3 +53,10 @@ export interface FeaturedProps {
   storefront_sections?: StorefrontSection[]
   active_crate_slug: string
 }
+
+/** Bounded homepage preview payload — sourced from the demo store when available. */
+export interface HomepagePreview {
+  store_name: string
+  store_slug: string | null
+  sections: StorefrontSection[]
+}

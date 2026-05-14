@@ -1,6 +1,7 @@
 import { motion } from "framer-motion"
 import { useTactileHover } from "@/hooks/use_tactile_hover"
 import { springTactile, springPress, SCALE_HOVER, SCALE_PRESS, SCALE_INNER_HOVER } from "@/lib/motion_tokens"
+import RecordTile from "./record_tile"
 import type { Crate } from "../types/inertia"
 
 interface Props {
@@ -81,33 +82,20 @@ export default function CrateCard({ crate, variant, onSelectCrate }: Props) {
         animate={{ scale: isHovered ? SCALE_INNER_HOVER : 1 }}
         transition={springTactile}
       >
-        {crate.records.slice(0, 4).map((record, i) => {
-          const src = record.cover_image_url ?? record.thumbnail_url
-          return (
+        {crate.records.slice(0, 4).map((record, i) => (
             <button
               key={record.id}
               type="button"
-              className="aspect-square rounded-sm bg-mc-bg-raised overflow-hidden border border-mc-border/50 cursor-pointer"
+              className="cursor-pointer rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-1 focus-visible:ring-offset-mc-bg-card"
               onClick={(e) => {
                 e.stopPropagation()
                 onSelectCrate(crate.slug, i)
               }}
               aria-label={`Open ${crate.name} at ${record.title ?? "record"}`}
             >
-              {src ? (
-                <img
-                  src={src}
-                  alt=""
-                  className="w-full h-full object-cover"
-                  draggable={false}
-                  loading="lazy"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center mc-dim text-lg">♪</div>
-              )}
+              <RecordTile listing={record} imageLoading="lazy" />
             </button>
-          )
-        })}
+          ))}
       </motion.div>
     </motion.div>
   )

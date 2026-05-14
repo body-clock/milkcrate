@@ -205,6 +205,85 @@ describe("CrateView", () => {
     expect(screen.queryByRole("tablist", { name: "Crates" })).not.toBeInTheDocument()
   })
 
+  // ── Guard-parity tests: wide/desktop header ────────────────────────
+
+  it("renders active crate heading and record count on wide viewports", () => {
+    renderCrateView("wide")
+
+    expect(screen.getByRole("heading", { name: "Jazz" })).toBeInTheDocument()
+    expect(screen.getByText("3 records")).toBeInTheDocument()
+  })
+
+  it("renders back control on wide viewports", () => {
+    renderCrateView("wide")
+
+    expect(screen.getByRole("button", { name: "Back to store" })).toBeInTheDocument()
+  })
+
+  it("calls onBack from the wide back control", async () => {
+    const user = userEvent.setup()
+    const onBack = vi.fn()
+
+    renderCrateView("wide", { onBack })
+
+    await user.click(screen.getByRole("button", { name: "Back to store" }))
+
+    expect(onBack).toHaveBeenCalledOnce()
+  })
+
+  it("keeps crate tab selection working on wide viewports", async () => {
+    const user = userEvent.setup()
+    const onSelectCrate = vi.fn()
+
+    renderCrateView("wide", { onSelectCrate })
+
+    await user.click(screen.getByRole("tab", { name: "Rock" }))
+
+    expect(onSelectCrate).toHaveBeenCalledWith("rock")
+  })
+
+  it("hides tabs on wide populated state when hideTabs is true", () => {
+    renderCrateView("wide", { hideTabs: true })
+
+    expect(screen.getByRole("heading", { name: "Jazz" })).toBeInTheDocument()
+    expect(screen.getByText("3 records")).toBeInTheDocument()
+    expect(screen.queryByRole("tablist", { name: "Crates" })).not.toBeInTheDocument()
+  })
+
+  it("hides tabs on wide empty-crate state when hideTabs is true", () => {
+    const emptyCrates: Crate[] = [
+      {
+        slug: "empty",
+        name: "Empty Crate",
+        count: 0,
+        records: [],
+      },
+    ]
+
+    renderCrateView("wide", { crates: emptyCrates, activeSlug: "empty", hideTabs: true })
+
+    expect(screen.getByRole("heading", { name: "Empty Crate" })).toBeInTheDocument()
+    expect(screen.getByText("No records in this crate yet.")).toBeInTheDocument()
+    expect(screen.queryByRole("tablist", { name: "Crates" })).not.toBeInTheDocument()
+  })
+
+  it("renders the wide empty-crate state with header context", () => {
+    const emptyCrates: Crate[] = [
+      {
+        slug: "empty",
+        name: "Empty Crate",
+        count: 0,
+        records: [],
+      },
+    ]
+
+    renderCrateView("wide", { crates: emptyCrates, activeSlug: "empty" })
+
+    expect(screen.getByRole("heading", { name: "Empty Crate" })).toBeInTheDocument()
+    expect(screen.getByText("0 records")).toBeInTheDocument()
+    expect(screen.getByText("No records in this crate yet.")).toBeInTheDocument()
+  })
+
   it("reappears the gesture hint when switching crates", async () => {
     const user = userEvent.setup()
     const crates = makeCrates()

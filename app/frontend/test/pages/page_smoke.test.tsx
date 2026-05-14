@@ -36,11 +36,30 @@ vi.mock("@inertiajs/react", () => ({
 }))
 
 const homeCopy = {
-  headline: "Your Discogs inventory, but discoverable.",
-  subhead: "Milkcrate turns your Discogs inventory into a digital storefront worth sharing.",
-  cta_demo: "See the demo",
+  headline: "Your Discogs inventory, now a storefront.",
+  subhead: "Milkcrate turns your existing Discogs listings into a warm, browsable record shop that you can share in seconds.",
+  cta_demo: "See the demo \u2192",
   cta_apply: "Get your store on Milkcrate",
-  footnote: "Free to start.",
+  footnote: "Early access. We handle the setup.",
+  steps: {
+    step1_title: "Share your Discogs",
+    step1_body: "Tell us your Discogs username. That's it.",
+    step2_title: "We sync & curate",
+    step2_body: "Your inventory becomes curated crates — picks, featured, genre bins.",
+    step3_title: "Share your store",
+    step3_body: "One link. Your customers browse like they're in the shop.",
+  },
+  preview_label: "Flip Through Milkcrate Picks",
+  record_fair_title: "Bring your store to the next record fair",
+  record_fair_body:
+    "QR codes on cards, bags, and signage turn foot traffic into return visitors — long after the fair ends.",
+  store_character_title: "Your shop. Crated for browsing.",
+}
+
+const previewFallback = {
+  store_name: "Philadelphia Music",
+  store_slug: null,
+  sections: [],
 }
 
 const applyCopy = {
@@ -50,6 +69,12 @@ const applyCopy = {
   submitting: "Submitting",
   confirmation_headline: "You're on the list.",
   confirmation_body: "We'll review your store and reach out to you directly.",
+  context_title: "What you need to know",
+  context_discogs_why: "We start with your Discogs username to review inventory quickly. API-key based onboarding is part of our deeper integration direction.",
+  context_what_happens: "After you submit, we review your store, curate your inventory into browsable crates, and reach out when your storefront is live.",
+  context_no_commitment: "No commitment. We're onboarding stores one at a time to make sure every storefront gets personal attention.",
+  field_hint_discogs: "We pull your inventory from your public Discogs storefront.",
+  field_hint_email: "We'll reach out when your Milkcrate storefront is ready.",
   fields: {
     name: "Store name",
     discogs_username: "Discogs username",
@@ -74,9 +99,19 @@ const featuredProps: FeaturedProps = {
 
 describe("page smoke tests", () => {
   it("renders the home page", () => {
-    render(<Home copy={homeCopy} />)
+    render(<Home copy={homeCopy} preview={previewFallback} />)
 
     expect(screen.getByRole("heading", { name: homeCopy.headline })).toBeInTheDocument()
+  })
+
+  it("home page header does not render emoji wordmark", () => {
+    render(<Home copy={homeCopy} preview={previewFallback} />)
+
+    // The layout header link should use BrandMark, not the old emoji wordmark.
+    // The wordmark text is plain "Milkcrate" without emoji prefix.
+    const header = document.querySelector("header")
+    expect(header?.textContent).toContain("Milkcrate")
+    expect(header?.textContent).not.toContain("🥛")
   })
 
   it("renders the apply page", () => {
@@ -85,10 +120,54 @@ describe("page smoke tests", () => {
     expect(screen.getByRole("heading", { name: applyCopy.headline })).toBeInTheDocument()
   })
 
+  it("apply page does not render emoji branding", () => {
+    render(<Apply copy={applyCopy} turnstile={{ enabled: false, site_key: null }} />)
+
+    const textContent = document.body.textContent || ""
+    expect(textContent).not.toContain("🥛")
+    expect(textContent).not.toContain("📦")
+  })
+
   it("renders the store page", () => {
     render(<Featured {...featuredProps} />)
 
     expect(screen.getByText(/No vinyl found yet/)).toBeInTheDocument()
+  })
+
+  it("store page footer does not render emoji branding", () => {
+    render(<Featured {...featuredProps} />)
+
+    // The footer "Powered by Milkcrate" should be plain text — no emoji.
+    const footer = document.querySelector("footer")
+    expect(footer).toBeInTheDocument()
+    expect(footer?.textContent).not.toContain("🥛")
+    expect(footer?.textContent).toContain("Milkcrate")
+  })
+
+  // Cross-surface emoji regression matrix — guards against any page
+  // re-introducing milk emoji or emoji-based wordmarks.
+  describe.each([
+    ["home", () => render(<Home copy={homeCopy} preview={previewFallback} />)],
+    ["apply", () => render(<Apply copy={applyCopy} turnstile={{ enabled: false, site_key: null }} />)],
+    ["store", () => render(<Featured {...featuredProps} />)],
+  ])("emoji regression: %s page", (_label, renderPage) => {
+    it("does not render the milk emoji (🥛)", () => {
+      renderPage()
+      expect(document.body.textContent).not.toContain("🥛")
+    })
+
+    it("does not render the old emoji wordmark (🥛 Milkcrate)", () => {
+      renderPage()
+      expect(document.body.textContent).not.toContain("🥛 Milkcrate")
+    })
+
+    it("does not render decorative emoji icons (📀, 👀, 📦, ♪)", () => {
+      renderPage()
+      const text = document.body.textContent || ""
+      expect(text).not.toContain("📀")
+      expect(text).not.toContain("👀")
+      expect(text).not.toContain("📦")
+    })
   })
 
   it("hides store description after entering a crate", async () => {

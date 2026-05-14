@@ -18,8 +18,8 @@
 
   <body class="mc-body min-h-screen">
     <header class="mc-header flex items-center justify-between px-4 py-3 border-b mc-border">
-      <%= link_to root_path, class: "mc-wordmark text-xl font-bold tracking-widest uppercase" do %>
-        🥛 Milkcrate
+      <%= link_to root_path, class: "mc-wordmark text-xl font-bold tracking-widest uppercase", "aria-label" => "Milkcrate home" do %>
+        Milkcrate
       <% end %>
 
       <button data-action="click->theme#toggle" class="mc-nav-link text-sm" title="Toggle light/dark">

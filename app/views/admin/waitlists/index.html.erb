@@ -1,52 +1,53 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Milkcrate — Admin</title>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #111; color: #ddd; padding: 2rem; }
-    h1 { font-size: 1.5rem; margin-bottom: 1.5rem; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #333; font-size: 0.875rem; }
-    th { color: #888; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; }
-    tr:hover { background: #1a1a1a; }
-    .empty { color: #666; padding: 3rem 0; text-align: center; }
-    .notes { max-width: 280px; white-space: pre-wrap; word-break: break-word; color: #999; }
-    .date { color: #888; white-space: nowrap; }
-  </style>
-</head>
-<body>
-  <h1>Applications</h1>
+<% content_for :title, "Admin – Milkcrate" %>
 
-  <% if @waitlists.any? %>
-    <table>
+<h1 class="text-xl font-bold mc-text font-sans tracking-wide mb-5">Applications</h1>
+
+<% if @waitlists.any? %>
+  <%# ── Desktop table (md and above) ─────────────────────── %>
+  <div class="hidden md:block">
+    <table class="w-full">
       <thead>
-        <tr>
-          <th>Store</th>
-          <th>Email</th>
-          <th>Discogs</th>
-          <th>Inventory</th>
-          <th>Notes</th>
-          <th>Submitted</th>
+        <tr class="border-b mc-border">
+          <th class="text-left p-2.5 text-xs uppercase tracking-wider mc-text-dim font-semibold font-sans">Store</th>
+          <th class="text-left p-2.5 text-xs uppercase tracking-wider mc-text-dim font-semibold font-sans">Email</th>
+          <th class="text-left p-2.5 text-xs uppercase tracking-wider mc-text-dim font-semibold font-sans">Discogs</th>
+          <th class="text-left p-2.5 text-xs uppercase tracking-wider mc-text-dim font-semibold font-sans">Inventory</th>
+          <th class="text-left p-2.5 text-xs uppercase tracking-wider mc-text-dim font-semibold font-sans">Notes</th>
+          <th class="text-left p-2.5 text-xs uppercase tracking-wider mc-text-dim font-semibold font-sans whitespace-nowrap">Submitted</th>
         </tr>
       </thead>
       <tbody>
         <% @waitlists.each do |w| %>
-          <tr>
-            <td><%= w.name %></td>
-            <td><%= w.email %></td>
-            <td><%= w.discogs_username %></td>
-            <td><%= w.inventory_size.presence || "—" %></td>
-            <td class="notes"><%= w.notes.presence || "—" %></td>
-            <td class="date"><%= w.created_at.strftime("%b %d, %Y %I:%M %p") %></td>
+          <tr class="border-b mc-border hover:bg-mc-bg-raised transition-colors">
+            <td class="p-2.5 text-sm mc-text"><%= w.name %></td>
+            <td class="p-2.5 text-sm mc-text"><%= w.email %></td>
+            <td class="p-2.5 text-sm mc-text"><%= w.discogs_username %></td>
+            <td class="p-2.5 text-sm mc-text"><%= w.inventory_size.presence || "—" %></td>
+            <td class="p-2.5 text-sm mc-dim max-w-[280px] whitespace-pre-wrap break-words"><%= w.notes.presence || "—" %></td>
+            <td class="p-2.5 text-sm mc-dim whitespace-nowrap"><%= w.created_at.strftime("%b %d, %Y %I:%M %p") %></td>
           </tr>
         <% end %>
       </tbody>
     </table>
-  <% else %>
-    <p class="empty">No applications yet.</p>
-  <% end %>
-</body>
-</html>
+  </div>
+
+  <%# ── Compact cards (below md) ────────────────────────── %>
+  <div class="md:hidden grid gap-3">
+    <% @waitlists.each do |w| %>
+      <div class="rounded-lg border mc-border p-4 bg-mc-bg-card">
+        <div class="text-sm font-semibold mc-text mb-1"><%= w.name %></div>
+        <div class="text-sm mc-text"><%= w.email %></div>
+        <div class="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs mc-dim">
+          <span>Discogs: <%= w.discogs_username %></span>
+          <span>Inventory: <%= w.inventory_size.presence || "—" %></span>
+        </div>
+        <% if w.notes.present? %>
+          <div class="text-xs mc-dim mt-1.5 whitespace-pre-wrap"><%= w.notes %></div>
+        <% end %>
+        <div class="text-xs mc-dim mt-1.5"><%= w.created_at.strftime("%b %d, %Y %I:%M %p") %></div>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <p class="text-center py-12 mc-dim text-sm">No applications yet.</p>
+<% end %>

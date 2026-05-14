@@ -3,7 +3,8 @@ class PagesController < ApplicationController
 
   def home
     render inertia: "home", props: {
-      copy: t("pages.home").to_h
+      copy: t("pages.home").to_h,
+      preview: MarketingPreviewPresenter.new.preview_data
     }
   end
 

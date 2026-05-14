@@ -35,7 +35,7 @@ describe("storefront shell (StoreFloor with sections)", () => {
         <ViewportProvider>
           <PileProvider>{ui}</PileProvider>
         </ViewportProvider>
-      </StorefrontMotionConfig>,
+      </StorefrontMotionConfig>
     )
   it("renders picks wall section first with stronger header", async () => {
     const onSelectCrate = vi.fn()
@@ -118,10 +118,10 @@ describe("storefront shell (StoreFloor with sections)", () => {
       </StorefrontMotionConfig>
     ))
 
-    // TactileCard renders children inside a motion.div — the RecordCard
-    // content should still be present
-    expect(screen.getByText("Record 1")).toBeInTheDocument()
-    expect(screen.getByText("Record 2")).toBeInTheDocument()
+    // TactileCard renders children inside a motion.div — the RecordTile
+    // content should be reachable via the accessible name on the wrapper
+    expect(screen.getByRole("button", { name: "Open Milkcrate Picks at Record 1" })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Open Milkcrate Picks at Record 2" })).toBeInTheDocument()
   })
 
   it("renders featured crates row when present", async () => {
@@ -385,5 +385,103 @@ describe("storefront shell (StoreFloor with sections)", () => {
     renderStore(<StoreFloor sections={sections} onSelectCrate={onSelectCrate} />)
 
     expect(screen.queryByText("Milkcrate Picks")).not.toBeInTheDocument()
+  })
+
+  // ── U2: Responsive Picks surface tests ────────────────────────────
+
+  it("compact tier opens picks crate via header click", async () => {
+    const onSelectCrate = vi.fn()
+    const user = userEvent.setup()
+    const sections: StorefrontSection[] = [
+      {
+        key: "picks_wall",
+        crate: {
+          slug: "picks",
+          name: "Milkcrate Picks",
+          count: 2,
+          records: [
+            makeListing({ id: 1, title: "Pick A" }),
+            makeListing({ id: 2, title: "Pick B" }),
+          ],
+        },
+      },
+      { key: "genre_grid", crates: [] },
+    ]
+
+    renderWithTier("compact", (
+      <StorefrontMotionConfig>
+        <PileProvider>
+          <StoreFloor sections={sections} onSelectCrate={onSelectCrate} />
+        </PileProvider>
+      </StorefrontMotionConfig>
+    ))
+
+    const header = screen.getByRole("button", { name: "Open Milkcrate Picks" })
+    await user.click(header)
+    expect(onSelectCrate).toHaveBeenCalledWith("picks")
+  })
+
+  it("compact tier preview record selection calls onSelectCrate with start index", async () => {
+    const onSelectCrate = vi.fn()
+    const user = userEvent.setup()
+    const sections: StorefrontSection[] = [
+      {
+        key: "picks_wall",
+        crate: {
+          slug: "picks",
+          name: "Milkcrate Picks",
+          count: 2,
+          records: [
+            makeListing({ id: 1, title: "Pick A" }),
+            makeListing({ id: 2, title: "Pick B" }),
+          ],
+        },
+      },
+      { key: "genre_grid", crates: [] },
+    ]
+
+    renderWithTier("compact", (
+      <StorefrontMotionConfig>
+        <PileProvider>
+          <StoreFloor sections={sections} onSelectCrate={onSelectCrate} />
+        </PileProvider>
+      </StorefrontMotionConfig>
+    ))
+
+    // Click the second record thumbnail
+    const recordBtn = screen.getByRole("button", { name: "Open Milkcrate Picks at Pick B" })
+    await user.click(recordBtn)
+    expect(onSelectCrate).toHaveBeenCalledWith("picks", 1)
+  })
+
+  it("wide tier renders picks as CrateShelf with multiple records", async () => {
+    const onSelectCrate = vi.fn()
+    const sections: StorefrontSection[] = [
+      {
+        key: "picks_wall",
+        crate: {
+          slug: "picks",
+          name: "Milkcrate Picks",
+          count: 8,
+          records: Array.from({ length: 8 }, (_, i) =>
+            makeListing({ id: i + 1, title: `Record ${i + 1}` })
+          ),
+        },
+      },
+      { key: "genre_grid", crates: [] },
+    ]
+
+    renderWithTier("wide", (
+      <StorefrontMotionConfig>
+        <PileProvider>
+          <StoreFloor sections={sections} onSelectCrate={onSelectCrate} />
+        </PileProvider>
+      </StorefrontMotionConfig>
+    ))
+
+    // Wide tier should show records (previewCount=8 in CrateShelf)
+    expect(screen.getByRole("button", { name: "Open Milkcrate Picks" })).toBeInTheDocument()
+    // Should show record thumbnails
+    expect(screen.getByRole("button", { name: "Open Milkcrate Picks at Record 1" })).toBeInTheDocument()
   })
 })
