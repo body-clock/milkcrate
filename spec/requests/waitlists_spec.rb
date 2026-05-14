@@ -139,6 +139,15 @@ RSpec.describe "Waitlists", type: :request do
         expect(response).to have_http_status(:ok)
         expect(response.body).to include("submitted")
       end
+
+      it "returns validation errors in the frontend-expected format" do
+        params = valid_params.deep_merge(waitlist: { name: "" })
+        post "/waitlist", params: params
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include('"error":"can\'t be blank"')
+        expect(response.body).to include('"value":null')
+      end
     end
 
     context "with invalid email" do
