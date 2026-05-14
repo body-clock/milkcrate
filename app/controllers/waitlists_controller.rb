@@ -18,7 +18,7 @@ class WaitlistsController < ApplicationController
     else
       render inertia: "apply", props: apply_props.merge(
         submitted: false,
-        errors: entry.errors.as_json
+        errors: serialize_errors(entry.errors)
       )
     end
   end
@@ -47,5 +47,13 @@ class WaitlistsController < ApplicationController
         site_key: TurnstileVerifier.site_key
       }
     }
+  end
+
+  def serialize_errors(errors)
+    errors.each_with_object({}) do |error, hash|
+      attribute = error.attribute
+      hash[attribute] ||= []
+      hash[attribute] << { error: error.message, value: error.options[:value] }
+    end
   end
 end
