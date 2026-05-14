@@ -8,7 +8,7 @@ Rails.application.routes.draw do
   root "pages#home"
 
   get  "/apply",   to: "pages#apply"
-  post "/waitlist", to: "waitlists#create"
+  post "/apply", to: "waitlists#create"
 
   get "/:slug", to: "stores#show", as: :store
 end

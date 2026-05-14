@@ -62,7 +62,7 @@ export default function Home({ copy, preview }: Props) {
         initial="hidden"
         animate="visible"
         aria-labelledby="home-headline"
-        className="flex flex-col items-center text-center pt-12 sm:pt-20 pb-10 sm:pb-16"
+        className="flex flex-col items-center text-center pt-4 pb-10 sm:pb-16"
       >
         <motion.h1
           variants={fadeUp}
