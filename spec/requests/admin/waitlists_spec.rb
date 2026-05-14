@@ -65,6 +65,71 @@ RSpec.describe "Admin::Waitlists", type: :request do
         get "/admin", headers: auth_headers("admin", "secret")
         expect(response.body).to include("No applications yet.")
       end
+
+      it "includes shared design-token CSS classes" do
+        create(:waitlist,
+          name: "Token Store",
+          email: "token@example.com",
+          discogs_username: "tokenstore"
+        )
+
+        get "/admin", headers: auth_headers("admin", "secret")
+
+        # The response should use mc-* token classes, not inline hard-coded colors
+        expect(response.body).to include("mc-text")
+        expect(response.body).to include("mc-border")
+        expect(response.body).to include("mc-text-dim")
+        expect(response.body).to include("mc-bg-card")
+
+        # Should NOT contain the old inline hard-coded dark colors
+        expect(response.body).not_to include("background: #111")
+        expect(response.body).not_to include("color: #ddd")
+        expect(response.body).not_to include("background: #1a1a1a")
+        expect(response.body).not_to include("color: #888")
+      end
+
+      it "renders compact card markup with all fields" do
+        create(:waitlist,
+          name: "Card Store",
+          email: "card@example.com",
+          discogs_username: "cardstore",
+          inventory_size: "under_500",
+          notes: "Card note."
+        )
+
+        get "/admin", headers: auth_headers("admin", "secret")
+
+        # Compact card structure: hidden on md+, visible below md
+        expect(response.body).to include("md:hidden")
+
+        # Both table and card views should contain the entry's data
+        expect(response.body).to include("Card Store")
+        expect(response.body).to include("card@example.com")
+        expect(response.body).to include("cardstore")
+        expect(response.body).to include("under_500")
+        expect(response.body).to include("Card note.")
+      end
+
+      it "renders table and card markup only when entries exist" do
+        create(:waitlist,
+          name: "Structural Store",
+          email: "structure@example.com",
+          discogs_username: "structure"
+        )
+
+        get "/admin", headers: auth_headers("admin", "secret")
+
+        # Table should be present (hidden on mobile via class, not via missing markup)
+        expect(response.body).to include("<table")
+        expect(response.body).to include("md:hidden")
+        expect(response.body).to include("hidden md:block")
+      end
+
+      it "sets the page title to 'Admin – Milkcrate'" do
+        get "/admin", headers: auth_headers("admin", "secret")
+        expect(response.body).to include("Admin")
+        expect(response.body).to include("Milkcrate")
+      end
     end
   end
 
