@@ -6,6 +6,7 @@ import RecordCard from "./record_card"
 import CrateShelf from "./crate_shelf"
 import PileSheet from "./pile_sheet"
 import BrandMark from "./brand_mark"
+import StorefrontMotionConfig from "./storefront_motion_config"
 import MilkcrateShell from "../layouts/milkcrate_shell"
 import { PileProvider } from "../contexts/pile_context"
 import { ViewportProvider } from "../contexts/viewport_context"
@@ -132,12 +133,18 @@ describe("no nested interactive controls", () => {
 
   it("CrateShelf interactive mode does not nest button elements inside button elements", () => {
     const crate = makeCrate()
-    renderWithPile(
-      <CrateShelf
-        crate={crate}
-        interactive={true}
-        onSelectCrate={vi.fn()}
-      />
+    render(
+      <StorefrontMotionConfig>
+        <PileProvider>
+          <ViewportProvider>
+            <CrateShelf
+              crate={crate}
+              interactive={true}
+              onSelectCrate={vi.fn()}
+            />
+          </ViewportProvider>
+        </PileProvider>
+      </StorefrontMotionConfig>,
     )
 
     // The header is a div with role="button"; thumbnails are <button>s.
@@ -151,11 +158,13 @@ describe("no nested interactive controls", () => {
 
   it("CrateShelf non-interactive mode renders no buttons", () => {
     const crate = makeCrate()
-    renderWithPile(
-      <CrateShelf
-        crate={crate}
-        interactive={false}
-      />
+    render(
+      <StorefrontMotionConfig>
+        <CrateShelf
+          crate={crate}
+          interactive={false}
+        />
+      </StorefrontMotionConfig>,
     )
 
     // Non-interactive mode should not render any buttons.

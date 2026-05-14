@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest"
 import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import CrateShelf from "./crate_shelf"
+import StorefrontMotionConfig from "./storefront_motion_config"
 import type { Crate, Listing } from "../types/inertia"
 
 const makeListing = (overrides: Partial<Listing> = {}): Listing => ({
@@ -38,12 +39,15 @@ const makeCrate = (overrides: Partial<Crate> = {}): Crate => ({
   ...overrides,
 })
 
+const renderShelf = (ui: React.ReactElement) =>
+  render(<StorefrontMotionConfig>{ui}</StorefrontMotionConfig>)
+
 describe("CrateShelf", () => {
   describe("non-interactive mode (default)", () => {
     it("renders crate name", () => {
       const crate = makeCrate()
 
-      render(<CrateShelf crate={crate} />)
+      renderShelf(<CrateShelf crate={crate} />)
 
       expect(screen.getByText("Jazz")).toBeInTheDocument()
     })
@@ -51,7 +55,7 @@ describe("CrateShelf", () => {
     it("renders record count", () => {
       const crate = makeCrate({ count: 4 })
 
-      render(<CrateShelf crate={crate} />)
+      renderShelf(<CrateShelf crate={crate} />)
 
       expect(screen.getByText("4")).toBeInTheDocument()
     })
@@ -59,27 +63,23 @@ describe("CrateShelf", () => {
     it("renders RecordTile components for records", () => {
       const crate = makeCrate()
 
-      render(<CrateShelf crate={crate} />)
+      renderShelf(<CrateShelf crate={crate} />)
 
-      // Record titles from RecordTile alt text
-      const imgs = document.querySelectorAll("img")
-      // Fallback ♪ since no cover images, so no img elements
-      // But we should see the fallback placeholders
+      // Record titles from RecordTile fallback — ♪ symbols for no-image tiles
       expect(document.querySelectorAll(".bg-mc-bg-raised").length).toBeGreaterThanOrEqual(1)
     })
 
-    it("renders at most 4 record tiles", () => {
+    it("renders at most 4 record tiles by default", () => {
       const crate = makeCrate({
+        count: 8,
         records: Array.from({ length: 8 }, (_, i) =>
           makeListing({ id: i + 1, title: `Record ${i + 1}` })
         ),
       })
 
-      render(<CrateShelf crate={crate} />)
+      renderShelf(<CrateShelf crate={crate} />)
 
-      // Should only render 4 tiles max (2x2 grid)
-      const fallbacks = document.querySelectorAll("img")
-      // With no cover images, we get ♪ fallbacks
+      // Should only render 4 tiles max (default previewCount)
       const notes = screen.getAllByText("♪")
       expect(notes.length).toBeLessThanOrEqual(4)
     })
@@ -87,9 +87,8 @@ describe("CrateShelf", () => {
     it("header is not a button in non-interactive mode", () => {
       const crate = makeCrate()
 
-      render(<CrateShelf crate={crate} />)
+      renderShelf(<CrateShelf crate={crate} />)
 
-      // The crate name should be present but not as a button
       expect(screen.getByText("Jazz")).toBeInTheDocument()
       expect(screen.queryByRole("button")).not.toBeInTheDocument()
     })
@@ -99,9 +98,8 @@ describe("CrateShelf", () => {
       const onSelectCrate = vi.fn()
       const crate = makeCrate()
 
-      render(<CrateShelf crate={crate} onSelectCrate={onSelectCrate} />)
+      renderShelf(<CrateShelf crate={crate} onSelectCrate={onSelectCrate} />)
 
-      // Click the crate name area
       await user.click(screen.getByText("Jazz"))
 
       expect(onSelectCrate).not.toHaveBeenCalled()
@@ -113,7 +111,7 @@ describe("CrateShelf", () => {
       const crate = makeCrate()
       const onSelectCrate = vi.fn()
 
-      render(
+      renderShelf(
         <CrateShelf crate={crate} interactive onSelectCrate={onSelectCrate} />
       )
 
@@ -126,7 +124,7 @@ describe("CrateShelf", () => {
       const onSelectCrate = vi.fn()
       const crate = makeCrate()
 
-      render(
+      renderShelf(
         <CrateShelf crate={crate} interactive onSelectCrate={onSelectCrate} />
       )
 
@@ -142,11 +140,10 @@ describe("CrateShelf", () => {
       const onSelectCrate = vi.fn()
       const crate = makeCrate()
 
-      render(
+      renderShelf(
         <CrateShelf crate={crate} interactive onSelectCrate={onSelectCrate} />
       )
 
-      // Click the first record thumbnail — it's a button with aria-label
       const recordBtn = screen.getByRole("button", { name: "Open Jazz at Record 1" })
       await user.click(recordBtn)
 
@@ -158,7 +155,7 @@ describe("CrateShelf", () => {
       const onSelectCrate = vi.fn()
       const crate = makeCrate()
 
-      render(
+      renderShelf(
         <CrateShelf crate={crate} interactive onSelectCrate={onSelectCrate} />
       )
 
@@ -173,7 +170,7 @@ describe("CrateShelf", () => {
       const onSelectCrate = vi.fn()
       const crate = makeCrate()
 
-      render(
+      renderShelf(
         <CrateShelf crate={crate} interactive onSelectCrate={onSelectCrate} />
       )
 
@@ -189,7 +186,7 @@ describe("CrateShelf", () => {
       const onSelectCrate = vi.fn()
       const crate = makeCrate()
 
-      render(
+      renderShelf(
         <CrateShelf crate={crate} interactive onSelectCrate={onSelectCrate} />
       )
 
@@ -204,12 +201,108 @@ describe("CrateShelf", () => {
       const user = userEvent.setup()
       const crate = makeCrate()
 
-      render(<CrateShelf crate={crate} interactive />)
+      renderShelf(<CrateShelf crate={crate} interactive />)
 
-      // Should not throw — just clicking without a handler
       const button = screen.getByRole("button", { name: "Open Jazz" })
       await user.click(button)
       // No assertion needed — test passes if no error thrown
+    })
+  })
+
+  describe("product-browsing variant", () => {
+    it("shows more than 4 records when previewCount is increased", () => {
+      const crate = makeCrate({
+        count: 8,
+        records: Array.from({ length: 8 }, (_, i) =>
+          makeListing({ id: i + 1, title: `Rec ${i + 1}` })
+        ),
+      })
+
+      renderShelf(
+        <CrateShelf crate={crate} interactive previewCount={6} onSelectCrate={vi.fn()} />
+      )
+
+      // 6 record buttons + 1 header button = 7 total
+      expect(screen.getAllByRole("button").length).toBe(7)
+    })
+
+    it("renders 3-column grid when previewCount is 6", () => {
+      const crate = makeCrate({
+        count: 8,
+        records: Array.from({ length: 8 }, (_, i) =>
+          makeListing({ id: i + 1, title: `Record ${i + 1}` })
+        ),
+      })
+
+      const { container } = renderShelf(
+        <CrateShelf crate={crate} interactive previewCount={6} onSelectCrate={vi.fn()} />
+      )
+
+      const grid = container.querySelector("[style*='grid-template-columns']")
+      expect(grid).toBeInTheDocument()
+      // 3 columns for 6-item preview
+      expect(grid?.getAttribute("style")).toContain("repeat(3, 1fr)")
+    })
+
+    it("renders 2-column grid by default (4-item preview)", () => {
+      const crate = makeCrate()
+
+      const { container } = renderShelf(
+        <CrateShelf crate={crate} interactive onSelectCrate={vi.fn()} />
+      )
+
+      const grid = container.querySelector("[style*='grid-template-columns']")
+      expect(grid).toBeInTheDocument()
+      expect(grid?.getAttribute("style")).toContain("repeat(2, 1fr)")
+    })
+
+    it("shows fewer records than previewCount when crate has fewer records", () => {
+      const crate = makeCrate({
+        count: 2,
+        records: [
+          makeListing({ id: 1, title: "Only Record" }),
+          makeListing({ id: 2, title: "Another" }),
+        ],
+      })
+
+      renderShelf(
+        <CrateShelf crate={crate} interactive previewCount={6} onSelectCrate={vi.fn()} />
+      )
+
+      // Should only render available records, not empty tiles
+      // 2 record buttons + 1 header button = 3 total
+      expect(screen.getAllByRole("button").length).toBe(3)
+    })
+
+    it("shows meta text instead of count when meta is provided", () => {
+      const crate = makeCrate()
+
+      renderShelf(<CrateShelf crate={crate} meta="May 14" />)
+
+      expect(screen.getByText("May 14")).toBeInTheDocument()
+      // Count "4" should NOT be shown — meta replaces it
+      expect(screen.queryByText("4")).not.toBeInTheDocument()
+    })
+
+    it("shows open label that is visible on hover in interactive mode", () => {
+      const crate = makeCrate()
+      const onSelectCrate = vi.fn()
+
+      renderShelf(
+        <CrateShelf crate={crate} interactive openLabel="DIG →" onSelectCrate={onSelectCrate} />
+      )
+
+      // The open label should be present (even if visually hidden via opacity)
+      expect(screen.getByText("DIG →")).toBeInTheDocument()
+    })
+
+    it("does not show open label in non-interactive mode", () => {
+      const crate = makeCrate()
+
+      renderShelf(<CrateShelf crate={crate} openLabel="DIG →" />)
+
+      // Open label is only for interactive mode — should not appear
+      expect(screen.queryByText("DIG →")).not.toBeInTheDocument()
     })
   })
 
@@ -217,10 +310,9 @@ describe("CrateShelf", () => {
     it("handles crate with 0 records", () => {
       const crate = makeCrate({ count: 0, records: [] })
 
-      render(<CrateShelf crate={crate} />)
+      renderShelf(<CrateShelf crate={crate} />)
 
       expect(screen.getByText("Jazz")).toBeInTheDocument()
-      // No records to render — should show empty state
       expect(screen.queryAllByText("♪").length).toBe(0)
     })
 
@@ -230,7 +322,7 @@ describe("CrateShelf", () => {
         records: [makeListing({ id: 1, title: "Solo" })],
       })
 
-      render(<CrateShelf crate={crate} />)
+      renderShelf(<CrateShelf crate={crate} />)
 
       expect(screen.getByText("Jazz")).toBeInTheDocument()
     })
@@ -238,17 +330,16 @@ describe("CrateShelf", () => {
     it("applies className prop", () => {
       const crate = makeCrate()
 
-      render(<CrateShelf crate={crate} className="test-shelf" />)
+      const { container } = renderShelf(<CrateShelf crate={crate} className="test-shelf" />)
 
-      const shelf = document.querySelector(".test-shelf")
+      const shelf = container.querySelector(".test-shelf")
       expect(shelf).toBeInTheDocument()
     })
 
     it("handles missing onSelectCrate gracefully in interactive mode", () => {
       const crate = makeCrate()
 
-      // Should render without crashing
-      render(<CrateShelf crate={crate} interactive />)
+      renderShelf(<CrateShelf crate={crate} interactive />)
 
       const button = screen.getByRole("button", { name: "Open Jazz" })
       expect(button).toBeInTheDocument()
@@ -260,7 +351,7 @@ describe("CrateShelf", () => {
       const crate = makeCrate()
       const onSelectCrate = vi.fn()
 
-      render(
+      renderShelf(
         <CrateShelf crate={crate} interactive onSelectCrate={onSelectCrate} />
       )
 
@@ -271,10 +362,28 @@ describe("CrateShelf", () => {
     it("non-interactive mode has no interactive elements", () => {
       const crate = makeCrate()
 
-      render(<CrateShelf crate={crate} />)
+      renderShelf(<CrateShelf crate={crate} />)
 
-      // No buttons, no tab-indexed elements
       expect(screen.queryByRole("button")).not.toBeInTheDocument()
+    })
+
+    it("interactive mode does not nest button elements inside button elements", () => {
+      const crate = makeCrate()
+      renderShelf(
+        <CrateShelf
+          crate={crate}
+          interactive={true}
+          onSelectCrate={vi.fn()}
+        />
+      )
+
+      // The header is a div with role="button"; thumbnails are <button>s.
+      // No <button> should contain another <button>.
+      const buttons = document.querySelectorAll("button")
+      buttons.forEach((btn) => {
+        const nestedButtons = btn.querySelectorAll("button")
+        expect(nestedButtons.length).toBe(0)
+      })
     })
   })
 })
