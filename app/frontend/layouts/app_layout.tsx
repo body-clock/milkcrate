@@ -12,7 +12,7 @@ import MilkcrateShell from "@/layouts/milkcrate_shell"
 function AppLayoutInner({ children }: { children: React.ReactNode }) {
   const page = usePage()
   const props = page.props as any
-  const flash = props.flash as { notice?: string; alert?: string } | undefined
+  const notice = props.notice as string | undefined
   const storeName = props.store?.name as string | undefined
   const discogsUsername = props.store?.discogs_username as string | undefined
   const { theme, toggle } = useTheme()
@@ -82,9 +82,9 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
     </footer>
   )
 
-  const afterHeader = flash?.notice ? (
+  const afterHeader = notice ? (
     <div className="px-4 py-2 text-sm mc-notice" role="alert" aria-live="polite">
-      {flash.notice}
+      {notice}
     </div>
   ) : undefined
 

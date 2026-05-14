@@ -2,11 +2,14 @@ import { createInertiaApp, router } from "@inertiajs/react"
 import { createRoot } from "react-dom/client"
 import React from "react"
 
-const pages = import.meta.glob<{ default: React.ComponentType<any> }>("../pages/**/*.tsx", { eager: true })
-
 createInertiaApp({
   resolve: (name) => {
-    return pages[`../pages/${name}.tsx`]
+    const pages = import.meta.glob<{ default: React.ComponentType<any> }>("../pages/**/*.tsx")
+    const page = pages[`../pages/${name}.tsx`]
+    if (!page) {
+      throw new Error(`Page not found: ${name}`)
+    }
+    return page()
   },
   setup({ el, App, props }) {
     createRoot(el).render(<App {...props} />)

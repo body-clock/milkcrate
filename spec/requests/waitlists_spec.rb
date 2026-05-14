@@ -46,8 +46,14 @@ RSpec.describe "Waitlists", type: :request do
       it "renders the apply page with submitted: true after redirect" do
         post "/apply", params: valid_params
         follow_redirect!
-        expect(response).to have_http_status(:ok)
-        expect(response.body).to include("submitted")
+        expect(inertia).to render_component("apply")
+        expect(inertia.props["submitted"]).to be true
+      end
+
+      it "includes success flash message after redirect" do
+        post "/apply", params: valid_params
+        follow_redirect!
+        expect(inertia).to have_flash(notice: "You're on the list! We'll be in touch.")
       end
 
       it "is refresh-safe: redirect prevents form resubmission on refresh" do
@@ -70,9 +76,9 @@ RSpec.describe "Waitlists", type: :request do
       it "renders the apply page with submitted: false without a Turnstile token" do
         post "/apply", params: valid_params
 
-        expect(response).to have_http_status(:ok)
-        expect(response.body).to include("submitted")
-        expect(response.body).to include("turnstile")
+        expect(inertia).to render_component("apply")
+        expect(inertia.props["submitted"]).to be false
+        expect(inertia.props["turnstile"]).to be_present
       end
 
       it "does not create an entry when Turnstile verification fails" do
@@ -94,8 +100,8 @@ RSpec.describe "Waitlists", type: :request do
 
         post "/apply", params: valid_params.merge(turnstile_token: "bad-token")
 
-        expect(response).to have_http_status(:ok)
-        expect(response.body).to include("Please confirm you are human.")
+        expect(inertia).to render_component("apply")
+        expect(inertia.props["errors"]["turnstile"]).to be_an(Array)
       end
 
       it "re-renders the apply page when upstream verification fails closed" do
@@ -108,9 +114,9 @@ RSpec.describe "Waitlists", type: :request do
           post "/apply", params: valid_params.merge(turnstile_token: "timeout-token")
         }.not_to change(Waitlist, :count)
 
-        expect(response).to have_http_status(:ok)
-        expect(response.body).to include("turnstile")
-        expect(response.body).to include("submitted")
+        expect(inertia).to render_component("apply")
+        expect(inertia.props["submitted"]).to be false
+        expect(inertia.props["turnstile"]).to be_present
       end
 
       it "creates an entry when Turnstile verification succeeds" do
@@ -136,8 +142,8 @@ RSpec.describe "Waitlists", type: :request do
       it "renders the apply page with submitted: false" do
         params = valid_params.deep_merge(waitlist: { name: "" })
         post "/apply", params: params
-        expect(response).to have_http_status(:ok)
-        expect(response.body).to include("submitted")
+        expect(inertia).to render_component("apply")
+        expect(inertia.props["submitted"]).to be false
       end
 
       it "returns validation errors in the frontend-expected format" do
