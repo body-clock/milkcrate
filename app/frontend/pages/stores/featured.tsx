@@ -76,7 +76,7 @@ export default function Featured({ store, crates, storefront_sections }: Feature
         </div>
       )}
 
-      {store.sync_status === "syncing" ? (
+      {(store.sync_status === "syncing" || store.enrichment_status === "enriching") ? (
         <div
           role="status"
           aria-live="polite"
@@ -104,7 +104,9 @@ export default function Featured({ store, crates, storefront_sections }: Feature
             />
           </svg>
           <p className="text-sm mc-dim">
-            Syncing inventory… check back in a moment.
+            {store.sync_status === "syncing"
+              ? "Syncing inventory… check back in a moment."
+              : "Setting up your store… check back in a moment."}
           </p>
         </div>
       ) : crates.length === 0 ? (
