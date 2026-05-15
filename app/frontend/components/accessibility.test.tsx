@@ -3,11 +3,13 @@ import { describe, expect, it, beforeEach, vi } from "vitest"
 import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import RecordCard from "./record_card"
+import CrateView from "./crate_view"
 import CrateShelf from "./crate_shelf"
 import PileSheet from "./pile_sheet"
 import BrandMark from "./brand_mark"
 import StorefrontMotionConfig from "./storefront_motion_config"
 import MilkcrateShell from "../layouts/milkcrate_shell"
+import { RIFFLE_LANGUAGE } from "@/lib/riffle_navigation"
 import { PileProvider } from "../contexts/pile_context"
 import { ViewportProvider } from "../contexts/viewport_context"
 import type { Listing, Crate } from "../types/inertia"
@@ -76,6 +78,26 @@ describe("interactive accessibility", () => {
     await userEvent.keyboard("{Escape}")
 
     expect(onClose).toHaveBeenCalledOnce()
+  })
+
+  it("exposes crate riffle controls and progress with front/deeper language", () => {
+    render(
+      <StorefrontMotionConfig>
+        <ViewportProvider>
+          <PileProvider>
+            <CrateView
+              crates={[makeCrate({ slug: "test-crate", name: "Test Crate" })]}
+              activeSlug="test-crate"
+              onSelectCrate={vi.fn()}
+            />
+          </PileProvider>
+        </ViewportProvider>
+      </StorefrontMotionConfig>,
+    )
+
+    expect(screen.getByRole("button", { name: RIFFLE_LANGUAGE.controls.front })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: RIFFLE_LANGUAGE.controls.deeper })).toBeInTheDocument()
+    expect(screen.getByRole("progressbar", { name: "Record 1 of 4, front to deeper" })).toBeInTheDocument()
   })
 })
 
