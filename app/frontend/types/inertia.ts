@@ -6,6 +6,8 @@ export interface Store {
   total_listings: number | null
   sync_status: string
   last_sync_error_at: string | null
+  enrichment_status: string
+  last_enriched_at: string | null
 }
 
 export interface Listing {
