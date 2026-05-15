@@ -81,10 +81,10 @@ test("shared language uses front and deeper vocabulary", () => {
 })
 
 test("active card motion follows the swipe direction", () => {
-  assert.deepEqual(riffleActiveCardMotion("deeper", false).initial, { opacity: 0, y: -78, rotate: -3 })
-  assert.deepEqual(riffleActiveCardMotion("deeper", false).exit, { opacity: 0, y: 66, rotate: 4 })
-  assert.deepEqual(riffleActiveCardMotion("front", false).initial, { opacity: 0, y: 78, rotate: 3 })
-  assert.deepEqual(riffleActiveCardMotion("front", false).exit, { opacity: 0, y: -66, rotate: -4 })
+  assert.deepEqual(riffleActiveCardMotion("deeper", false).initial, { opacity: 0, y: -86, rotate: -4 })
+  assert.deepEqual(riffleActiveCardMotion("deeper", false).exit, { opacity: 0, y: 74, rotate: 5 })
+  assert.deepEqual(riffleActiveCardMotion("front", false).initial, { opacity: 0, y: 86, rotate: 4 })
+  assert.deepEqual(riffleActiveCardMotion("front", false).exit, { opacity: 0, y: -74, rotate: -5 })
 })
 
 test("active card reduced-motion offsets preserve swipe direction", () => {

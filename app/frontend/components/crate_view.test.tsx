@@ -408,6 +408,65 @@ describe("CrateView", () => {
     expect(stackContainer!.children.length).toBeGreaterThan(1)
   })
 
+  it("marks compact drag surfaces as physics-enabled with a neutral baseline", () => {
+    renderCrateView("compact")
+
+    const dragSurface = screen.getByTestId("crate-drag-surface")
+
+    expect(dragSurface).toHaveAttribute("data-riffle-physics", "compact")
+    expect(dragSurface).toHaveAttribute("data-riffle-physics-direction", "neutral")
+    expect(dragSurface).toHaveAttribute("data-riffle-physics-progress", "0")
+  })
+
+  it("does not attach compact-only physics markers to the wide active card", () => {
+    renderCrateView("wide")
+
+    expect(screen.getByTestId("crate-drag-surface")).toHaveAttribute("data-riffle-physics", "static")
+    expect(screen.getByTestId("crate-stack").querySelector("[data-riffle-hint-physics]")).not.toBeInTheDocument()
+  })
+
+  it("keeps compact hint cards on the existing slot count while making them physics-aware", () => {
+    const { container } = renderCrateView("compact")
+
+    const hintCards = container.querySelectorAll("[data-riffle-slot]")
+
+    expect(hintCards.length).toBe(2)
+    expect(Array.from(hintCards).map((card) => card.getAttribute("data-riffle-hint-physics"))).toEqual([
+      "compact",
+      "compact",
+    ])
+  })
+
+  it("keeps compact physics wiring available when tabs are hidden", () => {
+    renderCrateView("compact", { hideTabs: true })
+
+    expect(screen.queryByRole("tablist", { name: "Crates" })).not.toBeInTheDocument()
+    expect(screen.getByTestId("crate-drag-surface")).toHaveAttribute("data-riffle-physics", "compact")
+  })
+
+  it("does not render physics surfaces for compact empty crates", () => {
+    const emptyCrates: Crate[] = [
+      {
+        slug: "empty",
+        name: "Empty Crate",
+        count: 0,
+        records: [],
+      },
+    ]
+
+    renderCrateView("compact", { crates: emptyCrates, activeSlug: "empty" })
+
+    expect(screen.queryByTestId("crate-drag-surface")).not.toBeInTheDocument()
+    expect(screen.queryByTestId("crate-stack")).not.toBeInTheDocument()
+  })
+
+  it.each(["comfy", "wide"] as const)("keeps %s rendering on the static physics path", (tier) => {
+    renderCrateView(tier)
+
+    expect(screen.getByTestId("crate-stack")).toHaveAttribute("data-viewport", "wide")
+    expect(screen.getByTestId("crate-drag-surface")).toHaveAttribute("data-riffle-physics", "static")
+  })
+
   it("renders active card with thumbnail backdrop when thumbnail_url is present", () => {
     const cratesWithThumbnails: Crate[] = [
       {

@@ -10,6 +10,7 @@ import {
   resolveRiffleMove,
   type RiffleDirection,
 } from "../lib/riffle_navigation"
+import { riffleActivePhysics, riffleHintPhysics, type RiffleActivePhysics } from "../lib/riffle_physics"
 import { useViewport } from "@/hooks/use_viewport"
 import { usePileContext } from "@/contexts/pile_context"
 import { SCALE_PRESS, springPress, transitionCrate, reducedMotionTransition } from "@/lib/motion_tokens"
@@ -27,6 +28,14 @@ interface Props {
 
 const ROTATION_FACTOR = 8 / 120 // maps 120px drag to 8deg rotation
 const WINDOW_RADIUS = 2
+const NEUTRAL_RIFFLE_PHYSICS: RiffleActivePhysics = {
+  direction: null,
+  progress: 0,
+  pitch: 0,
+  wobble: 0,
+  scale: 1,
+  pressure: 0,
+}
 const compositedLayerStyle: React.CSSProperties = {
   willChange: "transform, opacity",
   backfaceVisibility: "hidden",
@@ -172,6 +181,7 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
   const indexRef = useRef(index)
   const prefersReducedMotion = useReducedMotionContext()
   const dragRotationRef = useRef<HTMLDivElement>(null)
+  const [dragPhysics, setDragPhysics] = useState<RiffleActivePhysics>(NEUTRAL_RIFFLE_PHYSICS)
 
   // Keep indexRef in sync so navigate callback reads the latest index
   // even before React re-renders (critical for rapid keyboard navigation)
@@ -181,6 +191,7 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
     setIndex(startIndex)
     setShowGestureHint(true)
     setEdgeStatus(null)
+    setDragPhysics(NEUTRAL_RIFFLE_PHYSICS)
   }, [activeSlug, startIndex])
 
   const navigate = useCallback((riffleDirection: RiffleDirection) => {
@@ -323,8 +334,11 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
           {visibleRecords.filter((s) => !s.isActive).map((slot) => {
             const depth = Math.abs(slot.offset)
             const hintUrl = slot.record.thumbnail_url ?? slot.record.cover_image_url
-            const baseX = slot.offset * 16
-            const baseY = depth * 12
+            const hintPhysics = isCompact
+              ? riffleHintPhysics({ slotOffset: slot.offset, active: dragPhysics })
+              : { reveal: 0, lift: 0, opacityBoost: 0 }
+            const baseX = slot.offset * 16 + hintPhysics.reveal
+            const baseY = depth * 12 + hintPhysics.lift
             const baseRotate = slot.offset * -4
             const scale = 1 - depth * 0.045
 
@@ -333,11 +347,12 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
                 key={`hint-${slot.record.id}`}
                 aria-hidden="true"
                 data-riffle-slot={slot.offset}
+                data-riffle-hint-physics={isCompact ? "compact" : undefined}
                 className="absolute inset-0 rounded-lg overflow-hidden border border-mc-border bg-mc-bg-raised shadow-lg pointer-events-none"
                 style={{
                   ...compositedLayerStyle,
                   zIndex: 10 - depth,
-                  opacity: 0.38,
+                  opacity: 0.38 + hintPhysics.opacityBoost,
                   transform: `translate(${baseX}px, ${baseY}px) rotate(${baseRotate}deg) scale(${scale})`,
                   transition: prefersReducedMotion
                     ? 'transform 0.01s ease-out, opacity 0.01s ease-out'
@@ -389,24 +404,40 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
                 <motion.div
                   ref={dragRotationRef}
                   data-testid="crate-drag-surface"
+                  data-riffle-physics={isCompact ? "compact" : "static"}
+                  data-riffle-physics-direction={dragPhysics.direction ?? "neutral"}
+                  data-riffle-physics-progress={dragPhysics.progress}
                   className="w-full h-full"
                   style={{
                     touchAction: "none",
                     willChange: "transform",
                     backfaceVisibility: "hidden",
                     WebkitBackfaceVisibility: "hidden",
-                    rotate: 'var(--drag-rotate, 0deg)',
+                    rotate: isCompact ? undefined : 'var(--drag-rotate, 0deg)',
+                    rotateX: isCompact ? dragPhysics.pitch : undefined,
+                    rotateZ: isCompact ? dragPhysics.wobble : undefined,
+                    scale: isCompact ? dragPhysics.scale : undefined,
+                    opacity: isCompact ? 1 - dragPhysics.pressure * 0.04 : undefined,
                   }}
                   drag
                   dragConstraints={{ left: 0, right: 0, top: -180, bottom: 180 }}
                   dragElastic={0.28}
                   dragMomentum={false}
                   dragSnapToOrigin
-                  whileDrag={prefersReducedMotion ? undefined : { scale: 0.985 }}
+                  whileDrag={prefersReducedMotion || isCompact ? undefined : { scale: 0.985 }}
                   onDrag={(_, info) => {
-                    dragRotationRef.current?.style.setProperty('--drag-rotate', `${info.offset.x * ROTATION_FACTOR}deg`)
+                    if (isCompact) {
+                      setDragPhysics(riffleActivePhysics({
+                        offsetX: info.offset.x,
+                        offsetY: info.offset.y,
+                        reducedMotion: prefersReducedMotion,
+                      }))
+                    } else {
+                      dragRotationRef.current?.style.setProperty('--drag-rotate', `${info.offset.x * ROTATION_FACTOR}deg`)
+                    }
                   }}
                   onDragEnd={(_e, info) => {
+                    setDragPhysics(NEUTRAL_RIFFLE_PHYSICS)
                     dragRotationRef.current?.style.setProperty('--drag-rotate', '0deg')
                     handleDragEnd(info)
                   }}

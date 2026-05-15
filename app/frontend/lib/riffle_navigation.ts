@@ -130,11 +130,11 @@ export function riffleActiveCardMotion(
 
   return direction === "deeper"
     ? {
-        initial: { opacity: 0, y: -78, rotate: -3 },
-        exit: { opacity: 0, y: 66, rotate: 4 },
+        initial: { opacity: 0, y: -86, rotate: -4 },
+        exit: { opacity: 0, y: 74, rotate: 5 },
       }
     : {
-        initial: { opacity: 0, y: 78, rotate: 3 },
-        exit: { opacity: 0, y: -66, rotate: -4 },
+        initial: { opacity: 0, y: 86, rotate: 4 },
+        exit: { opacity: 0, y: -74, rotate: -5 },
       }
 }
