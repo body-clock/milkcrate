@@ -4,8 +4,25 @@ RSpec.describe "Stores", type: :request do
   include ActiveSupport::Testing::TimeHelpers
 
   describe "GET /:slug" do
+    shared_examples "resolves store at slug" do |slug|
+      it "returns 200 for /#{slug}" do
+        get "/#{slug}"
+        expect(response).to have_http_status(:ok)
+      end
+
+      it "renders the stores/featured Inertia component for /#{slug}" do
+        get "/#{slug}"
+        expect(inertia).to render_component("stores/featured")
+      end
+    end
+
     context "with existing store" do
-      let!(:store) { create(:store, discogs_username: "teststore") }
+      let!(:store) { create(:store, discogs_username: "TestStore") }
+
+      include_examples "resolves store at slug", "TestStore"
+      include_examples "resolves store at slug", "teststore"
+      include_examples "resolves store at slug", "TESTSTORE"
+      include_examples "resolves store at slug", "tEstStOre"
 
       before do
         curation = instance_double(StorefrontCuration, crates: [], storefront_sections: [])
@@ -16,16 +33,6 @@ RSpec.describe "Stores", type: :request do
         )
         allow(StorefrontCuration).to receive(:new).and_return(curation)
         allow(CratePresenter).to receive(:new).and_return(presenter_double)
-      end
-
-      it "returns 200" do
-        get "/teststore"
-        expect(response).to have_http_status(:ok)
-      end
-
-      it "renders the stores/featured Inertia component" do
-        get "/teststore"
-        expect(inertia).to render_component("stores/featured")
       end
 
       it "sends Content-Security-Policy header on the storefront page" do

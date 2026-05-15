@@ -9,7 +9,7 @@ class StoresController < ApplicationController
   end
 
   def show
-    store = Store.find_by(discogs_username: params[:slug])
+    store = Store.with_discogs_username(params[:slug]).first
     return render :no_stores unless store
 
     render_store(store)
