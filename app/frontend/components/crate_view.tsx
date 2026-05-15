@@ -15,7 +15,7 @@ import { useViewport } from "@/hooks/use_viewport"
 import { usePileContext } from "@/contexts/pile_context"
 import { SCALE_PRESS, springPress, transitionCrate, reducedMotionTransition } from "@/lib/motion_tokens"
 import { useReducedMotionContext } from "./storefront_motion_config"
-import { isLessonEligible, markLessonLearned, isLessonLearned, classifyDragAttempt } from "../lib/first_swipe_lesson"
+import { isLessonEligible, markLessonLearned, isLessonLearned } from "../lib/first_swipe_lesson"
 import type { Crate, Listing } from "../types/inertia"
 
 interface Props {
@@ -170,7 +170,7 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
   const [index, setIndex] = useState(startIndex)
   const [showGestureHint, setShowGestureHint] = useState(() => !isLessonLearned())
   const [edgeStatus, setEdgeStatus] = useState<string | null>(null)
-  const [horizontalRecoveryKey, setHorizontalRecoveryKey] = useState(0)
+
   const direction = useRef<RiffleDirection>("deeper")
   const indexRef = useRef(index)
   const prefersReducedMotion = useReducedMotionContext()
@@ -185,7 +185,6 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
     // Only re-show the hint if the lesson hasn't been learned this session
     setShowGestureHint(!isLessonLearned())
     setEdgeStatus(null)
-    setHorizontalRecoveryKey(0)
   }, [activeSlug, startIndex])
 
   const navigate = useCallback((riffleDirection: RiffleDirection) => {
@@ -299,20 +298,10 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
 
     if (riffleDirection) {
       navigate(riffleDirection)
-      return
     }
-
-    // Check for horizontal-swipe recovery on unlearned compact view
-    if (isCompact && !isLessonLearned()) {
-      const attempt = classifyDragAttempt({
-        offsetX: info.offset.x,
-        offsetY: info.offset.y,
-      })
-      if (attempt === "horizontal-recovery") {
-        setHorizontalRecoveryKey((k) => k + 1)
-      }
-    }
-  }, [navigate, isCompact])
+    // Horizontal swipes return no direction from resolveRiffleDrag, so
+    // nothing happens here — the cue stays floating, the record stays put.
+  }, [navigate])
 
   if (!activeCrate || total === 0) {
     return (
@@ -465,20 +454,9 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
           </AnimatePresence>
 
           {/* Ghost-finger lesson cue — overlays the active record card */}
-          {isCompact && (() => {
-            const recoveryActive = horizontalRecoveryKey > 0
-            const visible = showGestureHint || recoveryActive
-            if (!visible) return null
-
-            const eligible = isLessonEligible({ isCompact, isPopulated: total > 0 })
-
-            if (eligible) {
-              const replayKey = recoveryActive ? `recovery-${horizontalRecoveryKey}` : "hint"
-              return <GhostFingerCue reducedMotion={prefersReducedMotion} key={replayKey} />
-            }
-
-            return null
-          })()}
+          {isCompact && showGestureHint && isLessonEligible({ isCompact, isPopulated: total > 0 }) && (
+            <GhostFingerCue reducedMotion={prefersReducedMotion} />
+          )}
         </div>
       </div>
 
