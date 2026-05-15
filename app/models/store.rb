@@ -6,10 +6,7 @@ class Store < ApplicationRecord
   validates :name, presence: true
   validates :discogs_username, presence: true, uniqueness: true
 
-  # Uses LOWER() for safety during transition — existing data may not yet be normalized.
-  # Can simplify to `where(discogs_username: username.downcase)` after the
-  # milkcrate:normalize_usernames rake task has been run in production.
-  scope :with_discogs_username, ->(username) { where("LOWER(discogs_username) = LOWER(?)", username) }
+  scope :with_discogs_username, ->(username) { where(discogs_username: username.downcase) }
 
   enum :sync_status, {
     idle: "idle",
