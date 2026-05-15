@@ -10,6 +10,8 @@ gem "tailwindcss-rails"
 gem "faraday"
 gem "faraday-retry"
 
+gem "honeybadger", "~> 6.6"
+
 # Inertia Rails — server-driven single-page app
 gem "inertia_rails"
 
