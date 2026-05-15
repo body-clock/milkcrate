@@ -48,27 +48,38 @@ export const GHOST_FINGER_CUE_COPY = "Pull down to dig deeper"
 
 function GhostFingerCue({ reducedMotion }: { reducedMotion: boolean }) {
   return (
-    <div
-      className="flex flex-col items-center gap-2 mt-2 select-none pointer-events-none"
+    <motion.div
+      className="absolute inset-x-0 top-[18%] z-40 flex flex-col items-center gap-1.5 select-none pointer-events-none"
       aria-hidden="true"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4, delay: 0.3 }}
     >
-      {/* Animated down-direction arrow */}
+      {/* Animated down-direction arrow — pulses downward to teach the pull-down gesture */}
       <motion.div
-        className="text-lg leading-none opacity-60"
-        initial={{ opacity: 0, y: -4 }}
-        animate={reducedMotion ? { opacity: 0.6 } : { opacity: 0.6, y: [0, 6, 0] }}
+        className="text-2xl leading-none"
+        style={{ color: "rgba(255,255,255,0.85)", textShadow: "0 1px 8px rgba(0,0,0,0.5)" }}
+        initial={{ y: 0 }}
+        animate={
+          reducedMotion
+            ? { y: 0 }
+            : { y: [0, 16, 0] }
+        }
         transition={
           reducedMotion
             ? { duration: 0.2 }
-            : { repeat: Infinity, duration: 1.8, ease: "easeInOut" }
+            : { repeat: Infinity, duration: 2.2, ease: "easeInOut", times: [0, 0.55, 1] }
         }
       >
         ↓
       </motion.div>
-      <p className="text-[11px] text-mc-text-dim text-center leading-relaxed max-w-[220px]">
+      <p
+        className="text-[11px] text-center leading-relaxed max-w-[180px]"
+        style={{ color: "rgba(255,255,255,0.7)", textShadow: "0 1px 4px rgba(0,0,0,0.6)" }}
+      >
         {GHOST_FINGER_CUE_COPY}
       </p>
-    </div>
+    </motion.div>
   )
 }
 
@@ -494,6 +505,22 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
               </motion.div>
             ))}
           </AnimatePresence>
+
+          {/* Ghost-finger lesson cue — overlays the active record card */}
+          {isCompact && (() => {
+            const recoveryActive = horizontalRecoveryKey > 0
+            const visible = showGestureHint || recoveryActive
+            if (!visible) return null
+
+            const eligible = isLessonEligible({ isCompact, isPopulated: total > 0 })
+
+            if (eligible) {
+              const replayKey = recoveryActive ? `recovery-${horizontalRecoveryKey}` : "hint"
+              return <GhostFingerCue reducedMotion={prefersReducedMotion} key={replayKey} />
+            }
+
+            return null
+          })()}
         </div>
       </div>
 
@@ -561,22 +588,6 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
         </p>
       )}
 
-      {/* Gesture guidance — ghost-finger first-swipe lesson cue */}
-      {isCompact && (() => {
-        const recoveryActive = horizontalRecoveryKey > 0
-        const visible = showGestureHint || recoveryActive
-        if (!visible) return null
-
-        const eligible = isLessonEligible({ isCompact, isPopulated: total > 0 })
-
-        if (eligible) {
-          // Use a changing key to re-trigger entrance animation on horizontal-recovery replay
-          const replayKey = recoveryActive ? `recovery-${horizontalRecoveryKey}` : "hint"
-          return <GhostFingerCue reducedMotion={prefersReducedMotion} key={replayKey} />
-        }
-
-        return null
-      })()}
     </>
   )
 
