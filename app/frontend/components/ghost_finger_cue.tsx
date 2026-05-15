@@ -3,34 +3,21 @@ import { motion } from "framer-motion"
 export const GHOST_FINGER_CUE_TEST_ID = "ghost-finger-cue"
 
 /**
- * A single finger silhouette pointing down, with subtle motion trails
- * fading below — teaches the pull-down riffle gesture.
+ * Material Symbols "swipe_down" icon — a hand silhouette with one finger
+ * extended downward and motion-trail arcs below, communicating
+ * "touch and drag down."
  */
-function FingerIcon() {
+function SwipeDownIcon() {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 48 72"
-      width="48"
-      height="72"
-      fill="none"
+      viewBox="0 -960 960 960"
+      width="64"
+      height="64"
+      fill="white"
       aria-hidden="true"
     >
-      {/* Finger body — rounded rect from fingertip to base */}
-      <rect
-        x="15"
-        y="6"
-        width="18"
-        height="34"
-        rx="9"
-        fill="white"
-        opacity="0.9"
-      />
-
-      {/* Motion trails — fading dashes below the finger */}
-      <line x1="24" y1="48" x2="24" y2="54" stroke="white" strokeWidth="2.5" strokeLinecap="round" opacity="0.5" />
-      <line x1="24" y1="53" x2="24" y2="59" stroke="white" strokeWidth="2" strokeLinecap="round" opacity="0.3" />
-      <line x1="24" y1="58" x2="24" y2="64" stroke="white" strokeWidth="1.5" strokeLinecap="round" opacity="0.15" />
+      <path d="M170-389 44-515l28-28 74 73q-8-32-12-64t-4-64q0-77 24.5-149T226-880l29 29q-42 55-63.5 119.5T170-598q0 34 6 67t14 65l78-77 28 28-126 126Zm476 263q-20 8-42 7t-42-11L295-254l7-26q5-19 19-31t34-14l99-8-117-320q-5-12 .5-22.5T355-691q12-5 23 .5t16 17.5l144 394-128 12 178 83q9 4 19 4t19-3l159-58q39-14 56.5-51.5T845-369l-62-169q-5-12 .5-23t17.5-16q12-5 23 .5t16 17.5l61 169q23 63-4.5 122.5T806-185l-160 59Zm-83-279-58-160q-5-12 .5-22.5T523-603q12-5 22.5.5T561-585l58 160-56 20Zm118-43-44-122q-5-12 .5-23t17.5-16q12-5 22.5.5T693-591l45 123-57 20Zm-4 104Z" />
     </svg>
   )
 }
@@ -41,8 +28,8 @@ interface Props {
 
 /**
  * Ghost-finger cue that overlays the active record card, teaching the
- * pull-down riffle gesture. A single finger silhouette pulses downward
- * with fading motion trails. No text — pure gesture.
+ * pull-down riffle gesture. Uses the Material Symbols swipe_down hand
+ * icon, pulsing downward. No text — pure gesture.
  */
 export default function GhostFingerCue({ reducedMotion }: Props) {
   return (
@@ -59,16 +46,16 @@ export default function GhostFingerCue({ reducedMotion }: Props) {
         animate={
           reducedMotion
             ? { y: 0 }
-            : { y: [0, 22, 0] }
+            : { y: [0, 26, 0] }
         }
         transition={
           reducedMotion
             ? { duration: 0.2 }
             : { repeat: Infinity, duration: 2.0, ease: "easeInOut", times: [0, 0.5, 1] }
         }
-        style={{ filter: "drop-shadow(0 2px 10px rgba(0,0,0,0.4))" }}
+        style={{ filter: "drop-shadow(0 2px 10px rgba(0,0,0,0.35))" }}
       >
-        <FingerIcon />
+        <SwipeDownIcon />
       </motion.div>
     </motion.div>
   )
