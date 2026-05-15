@@ -2,7 +2,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test:frontend": "node --test --import tsx app/frontend/lib/*.test.ts",
+    "test:frontend": "node --experimental-webstorage --test --import tsx app/frontend/lib/*.test.ts",
     "test:components": "vitest run",
     "test:components:watch": "vitest"
   },
