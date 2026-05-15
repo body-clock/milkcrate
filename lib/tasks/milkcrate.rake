@@ -134,6 +134,18 @@ namespace :milkcrate do
     puts "Sync queued. Store will be live at: /#{store.discogs_username}"
   end
 
+  desc "Normalize existing discogs_username values to lowercase"
+  task normalize_usernames: :environment do
+    updated = Store.where("discogs_username != LOWER(discogs_username)")
+                   .update_all("discogs_username = LOWER(discogs_username)")
+
+    if updated == 0
+      puts "All #{Store.count} store(s) already have lowercase discogs_username."
+    else
+      puts "Normalized #{updated} store(s) discogs_username to lowercase."
+    end
+  end
+
   desc "Print curation and enrichment stats for the current store"
   task stats: :environment do
     store = default_store
