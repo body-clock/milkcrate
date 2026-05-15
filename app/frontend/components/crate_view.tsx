@@ -44,41 +44,37 @@ const activeLayerStyle: React.CSSProperties = {
 // Rendered only for compact populated crates when the user has not
 // yet learned the vertical riffle gesture this browser session.
 
-export const GHOST_FINGER_CUE_COPY = "Pull down to dig deeper"
+export const GHOST_FINGER_CUE_TEST_ID = "ghost-finger-cue"
 
 function GhostFingerCue({ reducedMotion }: { reducedMotion: boolean }) {
   return (
     <motion.div
-      className="absolute inset-x-0 top-[18%] z-40 flex flex-col items-center gap-1.5 select-none pointer-events-none"
+      data-testid={GHOST_FINGER_CUE_TEST_ID}
+      className="absolute inset-0 z-40 flex items-center justify-center select-none pointer-events-none"
       aria-hidden="true"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.4, delay: 0.3 }}
+      transition={{ duration: 0.5, delay: 0.4 }}
     >
-      {/* Animated down-direction arrow — pulses downward to teach the pull-down gesture */}
-      <motion.div
-        className="text-2xl leading-none"
-        style={{ color: "rgba(255,255,255,0.85)", textShadow: "0 1px 8px rgba(0,0,0,0.5)" }}
-        initial={{ y: 0 }}
+      <motion.span
+        className="text-6xl leading-none"
+        style={{
+          filter: "drop-shadow(0 2px 12px rgba(0,0,0,0.45))",
+        }}
+        initial={{ y: 0, opacity: 0.85 }}
         animate={
           reducedMotion
-            ? { y: 0 }
-            : { y: [0, 16, 0] }
+            ? { y: 0, opacity: 0.85 }
+            : { y: [0, 28, 0], opacity: [0.85, 0.55, 0.85] }
         }
         transition={
           reducedMotion
             ? { duration: 0.2 }
-            : { repeat: Infinity, duration: 2.2, ease: "easeInOut", times: [0, 0.55, 1] }
+            : { repeat: Infinity, duration: 2.0, ease: "easeInOut", times: [0, 0.5, 1] }
         }
       >
-        ↓
-      </motion.div>
-      <p
-        className="text-[11px] text-center leading-relaxed max-w-[180px]"
-        style={{ color: "rgba(255,255,255,0.7)", textShadow: "0 1px 4px rgba(0,0,0,0.6)" }}
-      >
-        {GHOST_FINGER_CUE_COPY}
-      </p>
+        👇
+      </motion.span>
     </motion.div>
   )
 }

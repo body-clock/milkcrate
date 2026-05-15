@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest"
 import { screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import CrateView, { GHOST_FINGER_CUE_COPY } from "./crate_view"
+import CrateView, { GHOST_FINGER_CUE_TEST_ID } from "./crate_view"
 import StorefrontMotionConfig from "./storefront_motion_config"
 import { RIFFLE_LANGUAGE } from "@/lib/riffle_navigation"
 import { PileProvider } from "@/contexts/pile_context"
@@ -166,13 +166,13 @@ describe("CrateView", () => {
     renderCrateView("compact")
 
     // First-swipe lesson is eligible for compact populated unlearned users
-    expect(screen.getByText(GHOST_FINGER_CUE_COPY)).toBeInTheDocument()
+    expect(screen.getByTestId(GHOST_FINGER_CUE_TEST_ID)).toBeInTheDocument()
 
     await user.click(screen.getByRole("button", { name: RIFFLE_LANGUAGE.controls.deeper }))
 
     expect(screen.getByRole("progressbar", { name: "Record 2 of 3, front to deeper" })).toBeInTheDocument()
     // showGestureHint is set false after navigation, hiding the cue
-    expect(screen.queryByText(GHOST_FINGER_CUE_COPY)).not.toBeInTheDocument()
+    expect(screen.queryByTestId(GHOST_FINGER_CUE_TEST_ID)).not.toBeInTheDocument()
   })
 
   it("clicking the front control from record two returns to record one", async () => {
@@ -195,7 +195,7 @@ describe("CrateView", () => {
 
     expect(screen.getByRole("progressbar", { name: "Record 1 of 3, front to deeper" })).toBeInTheDocument()
     // showGestureHint stays true because navigation was blocked
-    expect(screen.getByText(GHOST_FINGER_CUE_COPY)).toBeInTheDocument()
+    expect(screen.getByTestId(GHOST_FINGER_CUE_TEST_ID)).toBeInTheDocument()
     expect(screen.getByText(RIFFLE_LANGUAGE.edgeStatus.front)).toBeInTheDocument()
   })
 
@@ -385,7 +385,7 @@ describe("CrateView", () => {
 
     // Navigate — marks lesson learned and dismisses the hint
     await user.click(screen.getByRole("button", { name: RIFFLE_LANGUAGE.controls.deeper }))
-    expect(screen.queryByText(GHOST_FINGER_CUE_COPY)).not.toBeInTheDocument()
+    expect(screen.queryByTestId(GHOST_FINGER_CUE_TEST_ID)).not.toBeInTheDocument()
 
     // Rerender with a different activeSlug — learned state persists in sessionStorage,
     // so the lesson cue should NOT reappear across crate switches
@@ -397,7 +397,7 @@ describe("CrateView", () => {
       </StorefrontMotionConfig>
     )
 
-    expect(screen.queryByText(GHOST_FINGER_CUE_COPY)).not.toBeInTheDocument()
+    expect(screen.queryByTestId(GHOST_FINGER_CUE_TEST_ID)).not.toBeInTheDocument()
   })
 
   // ── CSS-driven hint card rendering (plain divs, no motion.div) ─────
@@ -584,7 +584,7 @@ describe("CrateView", () => {
   it("shows the ghost-finger lesson cue on compact populated first render", () => {
     renderCrateView("compact")
 
-    expect(screen.getByText(GHOST_FINGER_CUE_COPY)).toBeInTheDocument()
+    expect(screen.getByTestId(GHOST_FINGER_CUE_TEST_ID)).toBeInTheDocument()
     // Core controls still present
     expect(screen.getByRole("button", { name: RIFFLE_LANGUAGE.controls.deeper })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: RIFFLE_LANGUAGE.controls.front })).toBeInTheDocument()
@@ -594,13 +594,13 @@ describe("CrateView", () => {
   it("does not show the first-swipe lesson cue on wide tier", () => {
     renderCrateView("wide")
 
-    expect(screen.queryByText(GHOST_FINGER_CUE_COPY)).not.toBeInTheDocument()
+    expect(screen.queryByTestId(GHOST_FINGER_CUE_TEST_ID)).not.toBeInTheDocument()
   })
 
   it("does not show the first-swipe lesson cue on comfy tier", () => {
     renderCrateView("comfy")
 
-    expect(screen.queryByText(GHOST_FINGER_CUE_COPY)).not.toBeInTheDocument()
+    expect(screen.queryByTestId(GHOST_FINGER_CUE_TEST_ID)).not.toBeInTheDocument()
   })
 
   it("does not show the first-swipe lesson cue on compact empty crate", () => {
@@ -610,21 +610,21 @@ describe("CrateView", () => {
 
     renderCrateView("compact", { crates: emptyCrates, activeSlug: "empty" })
 
-    expect(screen.queryByText(GHOST_FINGER_CUE_COPY)).not.toBeInTheDocument()
+    expect(screen.queryByTestId(GHOST_FINGER_CUE_TEST_ID)).not.toBeInTheDocument()
     expect(screen.queryByText("Pull down")).not.toBeInTheDocument()
   })
 
   it("shows the lesson cue on compact hideTabs when populated", () => {
     renderCrateView("compact", { hideTabs: true })
 
-    expect(screen.getByText(GHOST_FINGER_CUE_COPY)).toBeInTheDocument()
+    expect(screen.getByTestId(GHOST_FINGER_CUE_TEST_ID)).toBeInTheDocument()
     expect(screen.queryByRole("tablist", { name: "Crates" })).not.toBeInTheDocument()
   })
 
   it("does not show the lesson cue on wide hideTabs", () => {
     renderCrateView("wide", { hideTabs: true })
 
-    expect(screen.queryByText(GHOST_FINGER_CUE_COPY)).not.toBeInTheDocument()
+    expect(screen.queryByTestId(GHOST_FINGER_CUE_TEST_ID)).not.toBeInTheDocument()
     expect(screen.queryByRole("tablist", { name: "Crates" })).not.toBeInTheDocument()
   })
 
@@ -632,11 +632,11 @@ describe("CrateView", () => {
     renderCrateView("compact")
 
     // The lesson cue should be decorative / status-like, not an interactive element
-    const cueEl = screen.getByText(GHOST_FINGER_CUE_COPY)
+    const cueEl = screen.getByTestId(GHOST_FINGER_CUE_TEST_ID)
     // Verify it's not a button, link, or input
-    expect(cueEl.tagName).toBe("P")
-    // The parent container is aria-hidden so screen readers skip it
-    expect(cueEl.parentElement).toHaveAttribute("aria-hidden", "true")
+    expect(cueEl.tagName).toBe("DIV")
+    // The container itself is aria-hidden so screen readers skip it
+    expect(cueEl).toHaveAttribute("aria-hidden", "true")
   })
 
   // ── Same-session mastery persistence (U3) ──────────────────
@@ -646,11 +646,11 @@ describe("CrateView", () => {
 
     renderCrateView("compact")
 
-    expect(screen.getByText(GHOST_FINGER_CUE_COPY)).toBeInTheDocument()
+    expect(screen.getByTestId(GHOST_FINGER_CUE_TEST_ID)).toBeInTheDocument()
 
     await user.click(screen.getByRole("button", { name: RIFFLE_LANGUAGE.controls.deeper }))
 
-    expect(screen.queryByText(GHOST_FINGER_CUE_COPY)).not.toBeInTheDocument()
+    expect(screen.queryByTestId(GHOST_FINGER_CUE_TEST_ID)).not.toBeInTheDocument()
     expect(screen.getByRole("progressbar", { name: "Record 2 of 3, front to deeper" })).toBeInTheDocument()
 
     // Re-render fresh component — learned state persists in sessionStorage
@@ -658,7 +658,7 @@ describe("CrateView", () => {
     unmount()
     renderCrateView("compact")
 
-    expect(screen.queryByText(GHOST_FINGER_CUE_COPY)).not.toBeInTheDocument()
+    expect(screen.queryByTestId(GHOST_FINGER_CUE_TEST_ID)).not.toBeInTheDocument()
   })
 
   it("marks lesson learned after successful front navigation", async () => {
@@ -666,18 +666,18 @@ describe("CrateView", () => {
 
     renderCrateView("compact", { startIndex: 1 })
 
-    expect(screen.getByText(GHOST_FINGER_CUE_COPY)).toBeInTheDocument()
+    expect(screen.getByTestId(GHOST_FINGER_CUE_TEST_ID)).toBeInTheDocument()
 
     await user.click(screen.getByRole("button", { name: RIFFLE_LANGUAGE.controls.front }))
 
     expect(screen.getByRole("progressbar", { name: "Record 1 of 3, front to deeper" })).toBeInTheDocument()
-    expect(screen.queryByText(GHOST_FINGER_CUE_COPY)).not.toBeInTheDocument()
+    expect(screen.queryByTestId(GHOST_FINGER_CUE_TEST_ID)).not.toBeInTheDocument()
 
     // Verify learned state persists
     const { unmount } = renderCrateView("compact", { startIndex: 1 })
     unmount()
     renderCrateView("compact", { startIndex: 1 })
-    expect(screen.queryByText(GHOST_FINGER_CUE_COPY)).not.toBeInTheDocument()
+    expect(screen.queryByTestId(GHOST_FINGER_CUE_TEST_ID)).not.toBeInTheDocument()
   })
 
   it("does not mark lesson learned when front navigation is blocked at edge", async () => {
@@ -689,7 +689,7 @@ describe("CrateView", () => {
 
     expect(screen.getByText(RIFFLE_LANGUAGE.edgeStatus.front)).toBeInTheDocument()
     // Lesson is still eligible
-    expect(screen.getByText(GHOST_FINGER_CUE_COPY)).toBeInTheDocument()
+    expect(screen.getByTestId(GHOST_FINGER_CUE_TEST_ID)).toBeInTheDocument()
   })
 
   it("does not mark lesson learned when deeper navigation is blocked at last record", async () => {
@@ -701,7 +701,7 @@ describe("CrateView", () => {
 
     expect(screen.getByText(RIFFLE_LANGUAGE.edgeStatus.deeper)).toBeInTheDocument()
     // Lesson is still eligible  
-    expect(screen.getByText(GHOST_FINGER_CUE_COPY)).toBeInTheDocument()
+    expect(screen.getByTestId(GHOST_FINGER_CUE_TEST_ID)).toBeInTheDocument()
   })
 
   it("supports rapid keyboard navigation while marking mastery", async () => {
@@ -727,7 +727,7 @@ describe("CrateView", () => {
     renderCrateView("compact")
 
     // Crate renders normally with the lesson cue visible
-    expect(screen.getByText(GHOST_FINGER_CUE_COPY)).toBeInTheDocument()
+    expect(screen.getByTestId(GHOST_FINGER_CUE_TEST_ID)).toBeInTheDocument()
     expect(screen.getByRole("progressbar", { name: "Record 1 of 3, front to deeper" })).toBeInTheDocument()
   })
 
@@ -735,7 +735,7 @@ describe("CrateView", () => {
     renderCrateView("wide")
 
     // Wide tier never shows lesson content
-    expect(screen.queryByText(GHOST_FINGER_CUE_COPY)).not.toBeInTheDocument()
+    expect(screen.queryByTestId(GHOST_FINGER_CUE_TEST_ID)).not.toBeInTheDocument()
     expect(screen.getByRole("button", { name: RIFFLE_LANGUAGE.controls.deeper })).toBeInTheDocument()
   })
 
@@ -746,7 +746,7 @@ describe("CrateView", () => {
 
     renderCrateView("compact", { crates: emptyCrates, activeSlug: "empty" })
 
-    expect(screen.queryByText(GHOST_FINGER_CUE_COPY)).not.toBeInTheDocument()
+    expect(screen.queryByTestId(GHOST_FINGER_CUE_TEST_ID)).not.toBeInTheDocument()
   })
 
   it("edge status message for blocked vertical move is distinct from recovery coaching", async () => {
@@ -759,6 +759,6 @@ describe("CrateView", () => {
     // Edge status is rendered, not recovery message
     expect(screen.getByText(RIFFLE_LANGUAGE.edgeStatus.front)).toBeInTheDocument()
     // The lesson cue is still the ghost-finger cue, not an error style
-    expect(screen.getByText(GHOST_FINGER_CUE_COPY)).toBeInTheDocument()
+    expect(screen.getByTestId(GHOST_FINGER_CUE_TEST_ID)).toBeInTheDocument()
   })
 })
