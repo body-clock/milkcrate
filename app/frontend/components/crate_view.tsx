@@ -14,7 +14,7 @@ import { useViewport } from "@/hooks/use_viewport"
 import { usePileContext } from "@/contexts/pile_context"
 import { SCALE_PRESS, springPress, transitionCrate, reducedMotionTransition } from "@/lib/motion_tokens"
 import { useReducedMotionContext } from "./storefront_motion_config"
-import { isLessonEligible } from "../lib/first_swipe_lesson"
+import { isLessonEligible, markLessonLearned, isLessonLearned, classifyDragAttempt } from "../lib/first_swipe_lesson"
 import type { Crate, Listing } from "../types/inertia"
 
 interface Props {
@@ -199,8 +199,9 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
   const records = activeCrate?.records ?? []
   const total = records.length
   const [index, setIndex] = useState(startIndex)
-  const [showGestureHint, setShowGestureHint] = useState(true)
+  const [showGestureHint, setShowGestureHint] = useState(() => !isLessonLearned())
   const [edgeStatus, setEdgeStatus] = useState<string | null>(null)
+  const [horizontalRecoveryKey, setHorizontalRecoveryKey] = useState(0)
   const direction = useRef<RiffleDirection>("deeper")
   const indexRef = useRef(index)
   const prefersReducedMotion = useReducedMotionContext()
@@ -212,8 +213,10 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
 
   useEffect(() => {
     setIndex(startIndex)
-    setShowGestureHint(true)
+    // Only re-show the hint if the lesson hasn't been learned this session
+    setShowGestureHint(!isLessonLearned())
     setEdgeStatus(null)
+    setHorizontalRecoveryKey(0)
   }, [activeSlug, startIndex])
 
   const navigate = useCallback((riffleDirection: RiffleDirection) => {
@@ -233,7 +236,12 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
     setIndex(move.nextIndex)
     setShowGestureHint(false)
     setEdgeStatus(null)
-  }, [total])
+
+    // Mark the first-swipe lesson learned on successful vertical riffle
+    if (isCompact) {
+      markLessonLearned()
+    }
+  }, [total, isCompact])
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === "ArrowDown") navigate("deeper")
@@ -320,8 +328,22 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
       velocityY: info.velocity.y,
     })
 
-    if (riffleDirection) navigate(riffleDirection)
-  }, [navigate])
+    if (riffleDirection) {
+      navigate(riffleDirection)
+      return
+    }
+
+    // Check for horizontal-swipe recovery on unlearned compact view
+    if (isCompact && !isLessonLearned()) {
+      const attempt = classifyDragAttempt({
+        offsetX: info.offset.x,
+        offsetY: info.offset.y,
+      })
+      if (attempt === "horizontal-recovery") {
+        setHorizontalRecoveryKey((k) => k + 1)
+      }
+    }
+  }, [navigate, isCompact])
 
   if (!activeCrate || total === 0) {
     return (
@@ -539,16 +561,30 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
         </p>
       )}
 
-      {isCompact && showGestureHint && (() => {
+      {/* Gesture guidance — ghost-finger first-swipe lesson or legacy text hint */}
+      {isCompact && (() => {
+        const recoveryActive = horizontalRecoveryKey > 0
+        const visible = showGestureHint || recoveryActive
+        if (!visible) return null
+
         const eligible = isLessonEligible({ isCompact: true, isPopulated: true })
+
         if (eligible) {
-          return <GhostFingerCue reducedMotion={prefersReducedMotion} />
+          // Use a changing key to re-trigger entrance animation on horizontal-recovery replay
+          const replayKey = recoveryActive ? `recovery-${horizontalRecoveryKey}` : "hint"
+          return <GhostFingerCue reducedMotion={prefersReducedMotion} key={replayKey} />
         }
-        return (
-          <p className="text-center text-[11px] text-mc-text-dim mt-2 select-none" aria-live="polite">
-            {RIFFLE_LANGUAGE.guidance}
-          </p>
-        )
+
+        // Legacy text hint — only when lesson is not eligible and not a recovery replay
+        if (!recoveryActive) {
+          return (
+            <p className="text-center text-[11px] text-mc-text-dim mt-2 select-none" aria-live="polite">
+              {RIFFLE_LANGUAGE.guidance}
+            </p>
+          )
+        }
+
+        return null
       })()}
     </>
   )
