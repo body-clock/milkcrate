@@ -8,13 +8,19 @@ class Store < ApplicationRecord
     idle: "idle",
     syncing: "syncing",
     failed: "failed"
-  }, default: "idle"
+  }, default: "idle", prefix: "sync"
 
   enum :catalog_coverage, {
     unknown: "unknown",
     near_complete: "near_complete",
     partial: "partial"
   }, default: "unknown"
+
+  enum :enrichment_status, {
+    idle: "idle",
+    enriching: "enriching",
+    failed: "failed"
+  }, default: "idle", prefix: "enrichment"
 
   def stale?
     last_synced_at.nil? || last_synced_at < 23.hours.ago

@@ -74,7 +74,8 @@ RSpec.describe CratePresenter do
         name: store.name,
         discogs_username: store.discogs_username,
         description: store.description,
-        sync_status: store.sync_status
+        sync_status: store.sync_status,
+        enrichment_status: store.enrichment_status
       )
     end
   end
