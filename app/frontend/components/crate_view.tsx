@@ -44,7 +44,7 @@ const activeLayerStyle: React.CSSProperties = {
 // Rendered only for compact populated crates when the user has not
 // yet learned the vertical riffle gesture this browser session.
 
-const GHOST_FINGER_CUE_COPY = "Pull down to dig deeper"
+export const GHOST_FINGER_CUE_COPY = "Pull down to dig deeper"
 
 function GhostFingerCue({ reducedMotion }: { reducedMotion: boolean }) {
   return (
@@ -561,27 +561,18 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
         </p>
       )}
 
-      {/* Gesture guidance — ghost-finger first-swipe lesson or legacy text hint */}
+      {/* Gesture guidance — ghost-finger first-swipe lesson cue */}
       {isCompact && (() => {
         const recoveryActive = horizontalRecoveryKey > 0
         const visible = showGestureHint || recoveryActive
         if (!visible) return null
 
-        const eligible = isLessonEligible({ isCompact: true, isPopulated: true })
+        const eligible = isLessonEligible({ isCompact, isPopulated: total > 0 })
 
         if (eligible) {
           // Use a changing key to re-trigger entrance animation on horizontal-recovery replay
           const replayKey = recoveryActive ? `recovery-${horizontalRecoveryKey}` : "hint"
           return <GhostFingerCue reducedMotion={prefersReducedMotion} key={replayKey} />
-        }
-
-        // Legacy text hint — only when lesson is not eligible and not a recovery replay
-        if (!recoveryActive) {
-          return (
-            <p className="text-center text-[11px] text-mc-text-dim mt-2 select-none" aria-live="polite">
-              {RIFFLE_LANGUAGE.guidance}
-            </p>
-          )
         }
 
         return null
