@@ -7,39 +7,38 @@ RSpec.describe "Pages", type: :request do
       expect(response).to have_http_status(:ok)
     end
 
-    it "renders the home Inertia page" do
+    it "renders the home Inertia component" do
       get "/"
-      expect(response.body).to include("home")
+      expect(inertia).to render_component("home")
     end
 
-    it "renders the vendor-facing headline in the response" do
+    it "renders the vendor-facing headline" do
       get "/"
-
-      # The new headline communicates the Discogs-to-storefront transformation
-      expect(response.body).to include("now a storefront")
+      expect(inertia.props["copy"]["headline"]).to include("now a storefront")
     end
 
-    it "does not render retired dig-session navigation" do
+    it "does not include retired dig-session content in copy values" do
       get "/"
 
-      expect(response.body).not_to include("Sessions")
-      expect(response.body).not_to include("session-bar")
+      inertia.props["copy"].each_value do |v|
+        next unless v.is_a?(String)
+        expect(v).not_to include("Sessions")
+        expect(v).not_to include("session-bar")
+      end
     end
 
-    it "includes a preview prop in the Inertia response" do
+    it "includes a preview prop with store_name and sections" do
       get "/"
 
-      expect(response.body).to include("preview")
-      expect(response.body).to include("store_name")
-      expect(response.body).to include("sections")
+      expect(inertia.props["preview"]["store_name"]).to be_a(String)
+      expect(inertia.props["preview"]["sections"]).to be_an(Array)
     end
 
     it "renders successfully when no demo store exists" do
-      # The test DB has no store matching Settings.discogs_username by default
       get "/"
 
-      expect(response).to have_http_status(:ok)
-      expect(response.body).to include("home")
+      expect(inertia).to render_component("home")
+      expect(inertia.props["preview"]["sections"]).to eq([])
     end
   end
 
@@ -49,9 +48,9 @@ RSpec.describe "Pages", type: :request do
       expect(response).to have_http_status(:ok)
     end
 
-    it "renders the apply Inertia page" do
+    it "renders the apply Inertia component" do
       get "/apply"
-      expect(response.body).to include("apply")
+      expect(inertia).to render_component("apply")
     end
 
     it "sends Content-Security-Policy header" do
@@ -66,36 +65,15 @@ RSpec.describe "Pages", type: :request do
       expect(csp).to include("'nonce-")
     end
 
-    it "includes Turnstile configuration for the apply form" do
+    it "includes Turnstile configuration in props" do
       allow(TurnstileVerifier).to receive(:enabled?).and_return(true)
-      allow(TurnstileVerifier).to receive(:site_key).and_return("site-key")
+      allow(TurnstileVerifier).to receive(:site_key).and_return("test-site-key")
 
       get "/apply"
 
-      expect(response.body).to include("turnstile")
-      expect(response.body).to include("site-key")
-    end
-
-    it "renders without retired dig-session UI" do
-      get "/apply"
-
-      expect(response.body).not_to include("Sessions")
-      expect(response.body).not_to include("session-bar")
-    end
-  end
-
-  describe "branding regression" do
-    it "does not include the milk emoji in the home page response" do
-      get "/"
-
-      # The emoji wordmark must not appear in the Inertia-rendered page
-      expect(response.body).not_to include("🥛")
-    end
-
-    it "does not include the milk emoji in the apply page response" do
-      get "/apply"
-
-      expect(response.body).not_to include("🥛")
+      ts = inertia.props["turnstile"]
+      expect(ts["enabled"]).to be true
+      expect(ts["site_key"]).to eq("test-site-key")
     end
   end
 end

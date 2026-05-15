@@ -3,6 +3,7 @@ import { Link } from "@inertiajs/react"
 import { useTheme } from "@/hooks/use_theme"
 import BrandMark from "@/components/brand_mark"
 import MilkcrateShell from "@/layouts/milkcrate_shell"
+import StorefrontMotionConfig from "@/components/storefront_motion_config"
 import { ViewportProvider } from "@/contexts/viewport_context"
 
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {
@@ -45,10 +46,12 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
   )
 
   return (
-    <ViewportProvider>
-      <MilkcrateShell header={header} contentWidth="max-w-6xl">
-        {children}
-      </MilkcrateShell>
-    </ViewportProvider>
+    <StorefrontMotionConfig>
+      <ViewportProvider>
+        <MilkcrateShell header={header} contentWidth="max-w-6xl">
+          {children}
+        </MilkcrateShell>
+      </ViewportProvider>
+    </StorefrontMotionConfig>
   )
 }
