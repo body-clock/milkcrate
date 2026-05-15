@@ -14,6 +14,7 @@ import { useViewport } from "@/hooks/use_viewport"
 import { usePileContext } from "@/contexts/pile_context"
 import { SCALE_PRESS, springPress, transitionCrate, reducedMotionTransition } from "@/lib/motion_tokens"
 import { useReducedMotionContext } from "./storefront_motion_config"
+import { isLessonEligible } from "../lib/first_swipe_lesson"
 import type { Crate, Listing } from "../types/inertia"
 
 interface Props {
@@ -37,6 +38,38 @@ const activeLayerStyle: React.CSSProperties = {
   willChange: "transform, opacity",
   backfaceVisibility: "hidden",
   WebkitBackfaceVisibility: "hidden",
+}
+
+// ── Ghost-finger first-swipe lesson cue ─────────────────────
+// Rendered only for compact populated crates when the user has not
+// yet learned the vertical riffle gesture this browser session.
+
+const GHOST_FINGER_CUE_COPY = "Pull down to dig deeper"
+
+function GhostFingerCue({ reducedMotion }: { reducedMotion: boolean }) {
+  return (
+    <div
+      className="flex flex-col items-center gap-2 mt-2 select-none pointer-events-none"
+      aria-hidden="true"
+    >
+      {/* Animated down-direction arrow */}
+      <motion.div
+        className="text-lg leading-none opacity-60"
+        initial={{ opacity: 0, y: -4 }}
+        animate={reducedMotion ? { opacity: 0.6 } : { opacity: 0.6, y: [0, 6, 0] }}
+        transition={
+          reducedMotion
+            ? { duration: 0.2 }
+            : { repeat: Infinity, duration: 1.8, ease: "easeInOut" }
+        }
+      >
+        ↓
+      </motion.div>
+      <p className="text-[11px] text-mc-text-dim text-center leading-relaxed max-w-[220px]">
+        {GHOST_FINGER_CUE_COPY}
+      </p>
+    </div>
+  )
 }
 
 function RecordDetails({ listing, direction }: { listing: Listing; direction: RiffleDirection }) {
@@ -506,11 +539,17 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
         </p>
       )}
 
-      {isCompact && showGestureHint && (
-        <p className="text-center text-[11px] text-mc-text-dim mt-2 select-none" aria-live="polite">
-          {RIFFLE_LANGUAGE.guidance}
-        </p>
-      )}
+      {isCompact && showGestureHint && (() => {
+        const eligible = isLessonEligible({ isCompact: true, isPopulated: true })
+        if (eligible) {
+          return <GhostFingerCue reducedMotion={prefersReducedMotion} />
+        }
+        return (
+          <p className="text-center text-[11px] text-mc-text-dim mt-2 select-none" aria-live="polite">
+            {RIFFLE_LANGUAGE.guidance}
+          </p>
+        )
+      })()}
     </>
   )
 

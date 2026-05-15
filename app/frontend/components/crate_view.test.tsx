@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event"
 import CrateView from "./crate_view"
 import StorefrontMotionConfig from "./storefront_motion_config"
 import { RIFFLE_LANGUAGE } from "@/lib/riffle_navigation"
+const GHOST_FINGER_CUE_COPY = "Pull down to dig deeper"
 import { PileProvider } from "@/contexts/pile_context"
 import { renderWithTier } from "@/test/viewport-test-utils"
 import type { Crate, Listing } from "../types/inertia"
@@ -161,12 +162,14 @@ describe("CrateView", () => {
 
     renderCrateView("compact")
 
-    expect(screen.getByText(RIFFLE_LANGUAGE.guidance)).toBeInTheDocument()
+    // First-swipe lesson is eligible for compact populated unlearned users
+    expect(screen.getByText(GHOST_FINGER_CUE_COPY)).toBeInTheDocument()
 
     await user.click(screen.getByRole("button", { name: RIFFLE_LANGUAGE.controls.deeper }))
 
     expect(screen.getByRole("progressbar", { name: "Record 2 of 3, front to deeper" })).toBeInTheDocument()
-    expect(screen.queryByText(RIFFLE_LANGUAGE.guidance)).not.toBeInTheDocument()
+    // showGestureHint is set false after navigation, hiding the cue
+    expect(screen.queryByText(GHOST_FINGER_CUE_COPY)).not.toBeInTheDocument()
   })
 
   it("clicking the front control from record two returns to record one", async () => {
@@ -188,7 +191,8 @@ describe("CrateView", () => {
     await user.keyboard("{ArrowUp}")
 
     expect(screen.getByRole("progressbar", { name: "Record 1 of 3, front to deeper" })).toBeInTheDocument()
-    expect(screen.getByText(RIFFLE_LANGUAGE.guidance)).toBeInTheDocument()
+    // showGestureHint stays true because navigation was blocked
+    expect(screen.getByText(GHOST_FINGER_CUE_COPY)).toBeInTheDocument()
     expect(screen.getByText(RIFFLE_LANGUAGE.edgeStatus.front)).toBeInTheDocument()
   })
 
@@ -378,9 +382,10 @@ describe("CrateView", () => {
 
     // Dismiss the hint by navigating
     await user.click(screen.getByRole("button", { name: RIFFLE_LANGUAGE.controls.deeper }))
-    expect(screen.queryByText(RIFFLE_LANGUAGE.guidance)).not.toBeInTheDocument()
+    expect(screen.queryByText(GHOST_FINGER_CUE_COPY)).not.toBeInTheDocument()
 
-    // Rerender with a different activeSlug — hint should reappear
+    // Rerender with a different activeSlug — hint should reappear because
+    // showGestureHint resets and sessionStorage is still unlearned
     rerender(
       <StorefrontMotionConfig>
         <PileProvider>
@@ -389,7 +394,7 @@ describe("CrateView", () => {
       </StorefrontMotionConfig>
     )
 
-    expect(screen.getByText(RIFFLE_LANGUAGE.guidance)).toBeInTheDocument()
+    expect(screen.getByText(GHOST_FINGER_CUE_COPY)).toBeInTheDocument()
   })
 
   // ── CSS-driven hint card rendering (plain divs, no motion.div) ─────
@@ -569,5 +574,65 @@ describe("CrateView", () => {
     renderCrateView("compact")
 
     expect(screen.getByTestId("crate-drag-surface")).toBeInTheDocument()
+  })
+
+  // ── First-swipe lesson cue (U2) ────────────────────────────
+
+  it("shows the ghost-finger lesson cue on compact populated first render", () => {
+    renderCrateView("compact")
+
+    expect(screen.getByText(GHOST_FINGER_CUE_COPY)).toBeInTheDocument()
+    // Core controls still present
+    expect(screen.getByRole("button", { name: RIFFLE_LANGUAGE.controls.deeper })).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: RIFFLE_LANGUAGE.controls.front })).toBeInTheDocument()
+    expect(screen.getByRole("progressbar", { name: "Record 1 of 3, front to deeper" })).toBeInTheDocument()
+  })
+
+  it("does not show the first-swipe lesson cue on wide tier", () => {
+    renderCrateView("wide")
+
+    expect(screen.queryByText(GHOST_FINGER_CUE_COPY)).not.toBeInTheDocument()
+  })
+
+  it("does not show the first-swipe lesson cue on comfy tier", () => {
+    renderCrateView("comfy")
+
+    expect(screen.queryByText(GHOST_FINGER_CUE_COPY)).not.toBeInTheDocument()
+  })
+
+  it("does not show the first-swipe lesson cue on compact empty crate", () => {
+    const emptyCrates: Crate[] = [
+      { slug: "empty", name: "Empty Crate", count: 0, records: [] },
+    ]
+
+    renderCrateView("compact", { crates: emptyCrates, activeSlug: "empty" })
+
+    expect(screen.queryByText(GHOST_FINGER_CUE_COPY)).not.toBeInTheDocument()
+    expect(screen.queryByText("Pull down")).not.toBeInTheDocument()
+  })
+
+  it("shows the lesson cue on compact hideTabs when populated", () => {
+    renderCrateView("compact", { hideTabs: true })
+
+    expect(screen.getByText(GHOST_FINGER_CUE_COPY)).toBeInTheDocument()
+    expect(screen.queryByRole("tablist", { name: "Crates" })).not.toBeInTheDocument()
+  })
+
+  it("does not show the lesson cue on wide hideTabs", () => {
+    renderCrateView("wide", { hideTabs: true })
+
+    expect(screen.queryByText(GHOST_FINGER_CUE_COPY)).not.toBeInTheDocument()
+    expect(screen.queryByRole("tablist", { name: "Crates" })).not.toBeInTheDocument()
+  })
+
+  it("does not add interactive controls in the lesson cue area", () => {
+    renderCrateView("compact")
+
+    // The lesson cue should be decorative / status-like, not an interactive element
+    const cueEl = screen.getByText(GHOST_FINGER_CUE_COPY)
+    // Verify it's not a button, link, or input
+    expect(cueEl.tagName).toBe("P")
+    // The parent container is aria-hidden so screen readers skip it
+    expect(cueEl.parentElement).toHaveAttribute("aria-hidden", "true")
   })
 })
