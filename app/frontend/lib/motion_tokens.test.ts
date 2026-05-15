@@ -14,6 +14,7 @@ import {
   transitionHover,
   transitionDrawer,
   transitionFlip,
+  transitionCrate,
   reducedMotionTransition,
   REDUCED_MOTION_SCALE,
   REDUCED_MOTION_LIFT,
@@ -58,6 +59,13 @@ test("transition presets alias their corresponding springs", () => {
   assert.equal(transitionHover, springTactile)
   assert.equal(transitionDrawer, springDrawer)
   assert.equal(transitionFlip, springFlip)
+})
+
+test("transitionCrate is a spring-based crate-navigation preset", () => {
+  assert.equal(typeof transitionCrate, "object")
+  assert.equal(transitionCrate.type, "spring")
+  assert.ok(transitionCrate.stiffness > 0)
+  assert.ok(transitionCrate.damping > 0)
 })
 
 test("reducedMotionTransition is an instant transition", () => {

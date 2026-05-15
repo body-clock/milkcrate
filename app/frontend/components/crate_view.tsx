@@ -1,11 +1,19 @@
 import React, { useState, useCallback, useEffect, useMemo, useRef } from "react"
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import CrateTabs from "./crate_tabs"
 import RecordCard from "./record_card"
 import { buildCrateWindow } from "../lib/crate_window"
+import {
+  RIFFLE_LANGUAGE,
+  riffleActiveCardMotion,
+  resolveRiffleDrag,
+  resolveRiffleMove,
+  type RiffleDirection,
+} from "../lib/riffle_navigation"
 import { useViewport } from "@/hooks/use_viewport"
 import { usePileContext } from "@/contexts/pile_context"
-import { SCALE_PRESS, springPress } from "@/lib/motion_tokens"
+import { SCALE_PRESS, springPress, transitionCrate, reducedMotionTransition } from "@/lib/motion_tokens"
+import { useReducedMotionContext } from "./storefront_motion_config"
 import type { Crate, Listing } from "../types/inertia"
 
 interface Props {
@@ -17,10 +25,6 @@ interface Props {
   onBack?: () => void
 }
 
-const ease = { duration: 0.2, ease: "easeOut" as const }
-const reducedEase = { duration: 0.16, ease: "easeOut" as const }
-const reducedCardEase = { duration: 0.24, ease: "easeOut" as const }
-const DRAG_THRESHOLD = 72
 const ROTATION_FACTOR = 8 / 120 // maps 120px drag to 8deg rotation
 const WINDOW_RADIUS = 2
 const compositedLayerStyle: React.CSSProperties = {
@@ -35,10 +39,10 @@ const activeLayerStyle: React.CSSProperties = {
   WebkitBackfaceVisibility: "hidden",
 }
 
-function RecordDetails({ listing, direction }: { listing: Listing; direction: number }) {
+function RecordDetails({ listing, direction }: { listing: Listing; direction: RiffleDirection }) {
   const meta = [listing.format, listing.label, listing.year, listing.condition].filter(Boolean).join(" · ")
-  const enterY = direction >= 0 ? -16 : 16
-  const exitY = direction >= 0 ? 16 : -16
+  const enterY = direction === "deeper" ? -16 : 16
+  const exitY = direction === "deeper" ? 16 : -16
   const { inPile, addToPile, removeFromPile } = usePileContext()
 
   const currencySymbol = listing.currency === "GBP" ? "£" : listing.currency === "EUR" ? "€" : "$"
@@ -163,9 +167,10 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
   const total = records.length
   const [index, setIndex] = useState(startIndex)
   const [showGestureHint, setShowGestureHint] = useState(true)
-  const direction = useRef(0)
+  const [edgeStatus, setEdgeStatus] = useState<string | null>(null)
+  const direction = useRef<RiffleDirection>("deeper")
   const indexRef = useRef(index)
-  const prefersReducedMotion = useReducedMotion()
+  const prefersReducedMotion = useReducedMotionContext()
   const dragRotationRef = useRef<HTMLDivElement>(null)
 
   // Keep indexRef in sync so navigate callback reads the latest index
@@ -175,20 +180,31 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
   useEffect(() => {
     setIndex(startIndex)
     setShowGestureHint(true)
+    setEdgeStatus(null)
   }, [activeSlug, startIndex])
 
-  const navigate = useCallback((delta: number) => {
-    const next = indexRef.current + delta
-    if (next < 0 || next >= total) return
-    direction.current = delta
-    indexRef.current = next
-    setIndex(next)
+  const navigate = useCallback((riffleDirection: RiffleDirection) => {
+    const move = resolveRiffleMove({
+      currentIndex: indexRef.current,
+      total,
+      direction: riffleDirection,
+    })
+
+    if (!move.moved) {
+      setEdgeStatus(RIFFLE_LANGUAGE.edgeStatus[riffleDirection])
+      return
+    }
+
+    direction.current = riffleDirection
+    indexRef.current = move.nextIndex
+    setIndex(move.nextIndex)
     setShowGestureHint(false)
+    setEdgeStatus(null)
   }, [total])
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.key === "ArrowDown") navigate(1)
-    if (e.key === "ArrowUp") navigate(-1)
+    if (e.key === "ArrowDown") navigate("deeper")
+    if (e.key === "ArrowUp") navigate("front")
   }, [navigate])
 
   useEffect(() => {
@@ -262,13 +278,16 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
     [records, index],
   )
 
-  const handleDragEnd = useCallback((info: { offset: { x: number; y: number } }) => {
-    const dominantOffset = Math.abs(info.offset.x) > Math.abs(info.offset.y)
-      ? info.offset.x
-      : info.offset.y
+  const handleDragEnd = useCallback((
+    info: { offset: { x: number; y: number }; velocity: { x: number; y: number } }
+  ) => {
+    const riffleDirection = resolveRiffleDrag({
+      offsetX: info.offset.x,
+      offsetY: info.offset.y,
+      velocityY: info.velocity.y,
+    })
 
-    if (dominantOffset > DRAG_THRESHOLD) navigate(1)
-    else if (dominantOffset < -DRAG_THRESHOLD) navigate(-1)
+    if (riffleDirection) navigate(riffleDirection)
   }, [navigate])
 
   if (!activeCrate || total === 0) {
@@ -311,8 +330,9 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
 
             return (
               <div
-                key={`hint-${slot.offset}`}
+                key={`hint-${slot.record.id}`}
                 aria-hidden="true"
+                data-riffle-slot={slot.offset}
                 className="absolute inset-0 rounded-lg overflow-hidden border border-mc-border bg-mc-bg-raised shadow-lg pointer-events-none"
                 style={{
                   ...compositedLayerStyle,
@@ -349,32 +369,26 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
             {visibleRecords.filter((s) => s.isActive).map((slot) => (
               <motion.div
                 key={`active-${slot.record.id}`}
+                custom={direction.current}
                 variants={{
-                  initial: (d: number) => (
-                    prefersReducedMotion
-                      ? { opacity: 0, y: d >= 0 ? -42 : 42, scale: 0.98 }
-                      : d >= 0
-                        ? { opacity: 0, y: -78, rotate: -3 }
-                        : { opacity: 0, y: 78, rotate: 3 }
+                  initial: (d: RiffleDirection) => (
+                    riffleActiveCardMotion(d, prefersReducedMotion).initial
                   ),
                   animate: { opacity: 1, y: 0, rotate: 0, scale: 1 },
-                  exit: (d: number) => (
-                    prefersReducedMotion
-                      ? { opacity: 0, y: d >= 0 ? 54 : -54, scale: 0.96 }
-                      : d >= 0
-                        ? { opacity: 0, y: 66, rotate: 4 }
-                        : { opacity: 0, y: -66, rotate: -4 }
+                  exit: (d: RiffleDirection) => (
+                    riffleActiveCardMotion(d, prefersReducedMotion).exit
                   ),
                 }}
                 initial="initial"
                 animate="animate"
                 exit="exit"
-                transition={prefersReducedMotion ? reducedCardEase : ease}
+                transition={prefersReducedMotion ? reducedMotionTransition : transitionCrate}
                 className="absolute inset-0"
                 style={{ ...activeLayerStyle, zIndex: 30 }}
               >
                 <motion.div
                   ref={dragRotationRef}
+                  data-testid="crate-drag-surface"
                   className="w-full h-full"
                   style={{
                     touchAction: "none",
@@ -384,9 +398,10 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
                     rotate: 'var(--drag-rotate, 0deg)',
                   }}
                   drag
-                  dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+                  dragConstraints={{ left: 0, right: 0, top: -180, bottom: 180 }}
                   dragElastic={0.28}
                   dragMomentum={false}
+                  dragSnapToOrigin
                   whileDrag={prefersReducedMotion ? undefined : { scale: 0.985 }}
                   onDrag={(_, info) => {
                     dragRotationRef.current?.style.setProperty('--drag-rotate', `${info.offset.x * ROTATION_FACTOR}deg`)
@@ -430,21 +445,21 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
       {/* Progress bar */}
       <div className={`w-full max-w-xs sm:max-w-sm mx-auto ${isCompact ? "mt-1 mb-3" : "mb-4"}`}>
         <div className={`flex items-center justify-between text-[10px] uppercase tracking-[0.14em] text-mc-text-dim select-none ${isCompact ? "mb-1" : "mb-1.5"}`}>
-          <span>front of crate</span>
-          <span>back</span>
+          <span>{RIFFLE_LANGUAGE.progressStart}</span>
+          <span>{RIFFLE_LANGUAGE.progressEnd}</span>
         </div>
         <div
           role="progressbar"
           aria-valuenow={index + 1}
           aria-valuemin={1}
           aria-valuemax={total}
-          aria-label={`Record ${index + 1} of ${total}`}
+          aria-label={RIFFLE_LANGUAGE.progress(index + 1, total)}
           className="h-1.5 bg-mc-bg-raised rounded-full overflow-hidden"
         >
           <motion.div
             className="h-full bg-mc-accent rounded-full"
             animate={{ width: `${progress}%` }}
-            transition={prefersReducedMotion ? reducedEase : ease}
+            transition={prefersReducedMotion ? reducedMotionTransition : transitionCrate}
           />
         </div>
       </div>
@@ -453,36 +468,47 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
       <div className={`flex items-center justify-center ${isCompact ? "gap-3" : "gap-4 sm:gap-6"}`}>
         <motion.button
           type="button"
-          onClick={() => navigate(-1)}
+          onClick={() => navigate("front")}
           disabled={index <= 0}
           whileTap={{ scale: SCALE_PRESS }}
           transition={springPress}
           className={`flex items-center justify-center rounded-full bg-mc-bg-raised text-mc-text disabled:opacity-20 disabled:cursor-not-allowed hover:bg-mc-bg-card transition-colors select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg ${isCompact ? "h-12 w-12 text-lg" : "w-14 h-14 text-xl"}`}
-          aria-label="Previous record"
+          aria-label={RIFFLE_LANGUAGE.controls.front}
         >
           ↑
         </motion.button>
 
-        <span className={`${isCompact ? "w-16 text-xs" : "w-20 text-sm"} text-mc-text-dim tabular-nums text-center select-none`} aria-live="polite" aria-atomic="true">
-          {index + 1} of {total}
+        <span
+          className={`${isCompact ? "w-16 text-xs" : "w-20 text-sm"} text-mc-text-dim tabular-nums text-center select-none`}
+          aria-label={RIFFLE_LANGUAGE.progress(index + 1, total)}
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          {RIFFLE_LANGUAGE.count(index + 1, total)}
         </span>
 
         <motion.button
           type="button"
-          onClick={() => navigate(1)}
+          onClick={() => navigate("deeper")}
           disabled={index >= total - 1}
           whileTap={{ scale: SCALE_PRESS }}
           transition={springPress}
           className={`flex items-center justify-center rounded-full bg-mc-bg-raised text-mc-text disabled:opacity-20 disabled:cursor-not-allowed hover:bg-mc-bg-card transition-colors select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg ${isCompact ? "h-12 w-12 text-lg" : "w-14 h-14 text-xl"}`}
-          aria-label="Next record"
+          aria-label={RIFFLE_LANGUAGE.controls.deeper}
         >
           ↓
         </motion.button>
       </div>
 
+      {edgeStatus && (
+        <p className="mt-2 text-center text-[11px] text-mc-text-dim" aria-live="polite">
+          {edgeStatus}
+        </p>
+      )}
+
       {isCompact && showGestureHint && (
         <p className="text-center text-[11px] text-mc-text-dim mt-2 select-none" aria-live="polite">
-          Swipe or use arrows to browse · tap for details
+          {RIFFLE_LANGUAGE.guidance}
         </p>
       )}
     </>
