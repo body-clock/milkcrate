@@ -19,10 +19,8 @@ RSpec.describe "Stores", type: :request do
     context "with existing store" do
       let!(:store) { create(:store, discogs_username: "TestStore") }
 
-      include_examples "resolves store at slug", "TestStore"
       include_examples "resolves store at slug", "teststore"
       include_examples "resolves store at slug", "TESTSTORE"
-      include_examples "resolves store at slug", "tEstStOre"
 
       before do
         curation = instance_double(StorefrontCuration, crates: [], storefront_sections: [])

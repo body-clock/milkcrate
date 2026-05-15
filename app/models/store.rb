@@ -1,11 +1,14 @@
 class Store < ApplicationRecord
   has_many :listings, dependent: :destroy
 
-  before_validation :normalize_discogs_username
+  before_validation :normalize_discogs_username, if: :discogs_username_changed?
 
   validates :name, presence: true
   validates :discogs_username, presence: true, uniqueness: true
 
+  # Uses LOWER() for safety during transition — existing data may not yet be normalized.
+  # Can simplify to `where(discogs_username: username.downcase)` after the
+  # milkcrate:normalize_usernames rake task has been run in production.
   scope :with_discogs_username, ->(username) { where("LOWER(discogs_username) = LOWER(?)", username) }
 
   enum :sync_status, {

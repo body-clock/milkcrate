@@ -136,16 +136,14 @@ namespace :milkcrate do
 
   desc "Normalize existing discogs_username values to lowercase"
   task normalize_usernames: :environment do
-    count = Store.where("discogs_username != LOWER(discogs_username)").count
-    if count == 0
-      puts "All #{Store.count} store(s) already have lowercase discogs_username."
-      next
-    end
+    updated = Store.where("discogs_username != LOWER(discogs_username)")
+                   .update_all("discogs_username = LOWER(discogs_username)")
 
-    updated = Store.connection.exec_update(
-      "UPDATE stores SET discogs_username = LOWER(discogs_username) WHERE discogs_username != LOWER(discogs_username)"
-    )
-    puts "Normalized #{updated} store(s) discogs_username to lowercase."
+    if updated == 0
+      puts "All #{Store.count} store(s) already have lowercase discogs_username."
+    else
+      puts "Normalized #{updated} store(s) discogs_username to lowercase."
+    end
   end
 
   desc "Print curation and enrichment stats for the current store"

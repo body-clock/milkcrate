@@ -47,7 +47,7 @@ RSpec.describe Store, type: :model do
     end
 
     it "returns empty relation when no stores exist" do
-      Store.delete_all
+      store.destroy!
       expect(Store.with_discogs_username("anything").first).to be_nil
     end
   end
