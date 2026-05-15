@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect, useMemo, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import CrateTabs from "./crate_tabs"
+import GhostFingerCue from "./ghost_finger_cue"
 import RecordCard from "./record_card"
 import { buildCrateWindow } from "../lib/crate_window"
 import {
@@ -38,45 +39,6 @@ const activeLayerStyle: React.CSSProperties = {
   willChange: "transform, opacity",
   backfaceVisibility: "hidden",
   WebkitBackfaceVisibility: "hidden",
-}
-
-// ── Ghost-finger first-swipe lesson cue ─────────────────────
-// Rendered only for compact populated crates when the user has not
-// yet learned the vertical riffle gesture this browser session.
-
-export const GHOST_FINGER_CUE_TEST_ID = "ghost-finger-cue"
-
-function GhostFingerCue({ reducedMotion }: { reducedMotion: boolean }) {
-  return (
-    <motion.div
-      data-testid={GHOST_FINGER_CUE_TEST_ID}
-      className="absolute inset-0 z-40 flex items-center justify-center select-none pointer-events-none"
-      aria-hidden="true"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5, delay: 0.4 }}
-    >
-      <motion.span
-        className="text-6xl leading-none"
-        style={{
-          filter: "drop-shadow(0 2px 12px rgba(0,0,0,0.45))",
-        }}
-        initial={{ y: 0, opacity: 0.85 }}
-        animate={
-          reducedMotion
-            ? { y: 0, opacity: 0.85 }
-            : { y: [0, 28, 0], opacity: [0.85, 0.55, 0.85] }
-        }
-        transition={
-          reducedMotion
-            ? { duration: 0.2 }
-            : { repeat: Infinity, duration: 2.0, ease: "easeInOut", times: [0, 0.5, 1] }
-        }
-      >
-        👇
-      </motion.span>
-    </motion.div>
-  )
 }
 
 function RecordDetails({ listing, direction }: { listing: Listing; direction: RiffleDirection }) {
