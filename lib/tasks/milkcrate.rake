@@ -169,4 +169,146 @@ namespace :milkcrate do
     genres.first(15).each { |g, c| puts "  #{g.ljust(20)} #{c}" }
     puts "  … (#{genres.size} genres total)" if genres.size > 15
   end
+
+  namespace :leads do
+    desc "Run the full lead discovery pipeline — find sellers, sample inventory, score, check web presence"
+    task discover: :environment do
+      puts "Running lead discovery pipeline..."
+      LeadDiscoveryPipelineJob.perform_now
+      puts "Done. #{Lead.by_status(:pending).count} pending leads in the pipeline."
+    end
+
+    desc "Discover specific sellers by Discogs username — rake milkcrate:leads:discover_seed[username1,username2]"
+    task :discover_seed, [ :usernames ] => :environment do |_, args|
+      usernames = args[:usernames]&.split(",")&.map(&:strip)
+      raise "Usage: rake milkcrate:leads:discover_seed[username1,username2] — provide at least one username" if usernames.blank?
+
+      puts "Seeding discovery for: #{usernames.join(", ")}"
+      LeadDiscoveryPipelineJob.perform_now(seed_usernames: usernames)
+      puts "Done. #{Lead.by_status(:pending).count} pending leads in the pipeline."
+    end
+
+    desc "Score all pending leads (without re-discovering)"
+    task score: :environment do
+      scorer = LeadScorer.new
+      leads = Lead.by_status(:pending).where("scored_at IS NULL OR updated_at > scored_at")
+      count = 0
+
+      leads.find_each do |lead|
+        result = scorer.score(lead)
+        lead.update!(score: result[:score], score_breakdown: result[:dimensions], scored_at: Time.current)
+        count += 1
+      end
+
+      puts "Scored #{count} leads."
+    end
+
+    desc "Run web presence check on pending leads without one"
+    task web_check: :environment do
+      checker = LeadDiscovery::WebPresenceChecker.new
+      scorer = LeadScorer.new
+      leads = Lead.by_status(:pending).where(web_presence: nil).where("scored_at IS NOT NULL")
+      count = 0
+
+      leads.find_each do |lead|
+        checker.check_and_store!(lead)
+        result = scorer.score(lead)
+        lead.update!(score: result[:score], score_breakdown: result[:dimensions], scored_at: Time.current)
+        count += 1
+      end
+
+      puts "Web-checked and re-scored #{count} leads."
+    end
+
+    desc "List pending leads with scores — rake milkcrate:leads:list[threshold] (default threshold: 0)"
+    task :list, [ :min_score ] => :environment do |_, args|
+      threshold = (args[:min_score] || 0).to_f
+      leads = Lead.by_status(:pending).scored_above(threshold).by_score
+
+      if leads.empty?
+        puts "No pending leads scored above #{threshold}."
+      else
+        puts "#{leads.count} pending leads scored above #{threshold}:"
+        puts "#{'Username'.ljust(22)} #{'Score'.rjust(6)} #{'Inventory'.rjust(8)} #{'Vinyl%'.rjust(6)}  Genres"
+        puts "─" * 80
+        leads.each do |l|
+          genres = l.genres.first(3).join(", ")
+          puts "#{l.discogs_username.ljust(22)} #{l.score.to_s.rjust(6)} #{l.inventory_size.to_s.rjust(8)} #{l.vinyl_percentage.to_s.rjust(6)}  #{genres}"
+        end
+      end
+    end
+
+    desc "Show full details for a lead — rake milkcrate:leads:show[username]"
+    task :show, [ :username ] => :environment do |_, args|
+      username = args[:username]&.downcase
+      raise "Usage: rake milkcrate:leads:show[username]" if username.blank?
+
+      lead = Lead.with_discogs_username(username).first
+      raise "No lead found for '#{username}'" unless lead
+
+      puts "Discogs:       #{lead.discogs_username}"
+      puts "Store name:    #{lead.store_name || "—"}"
+      puts "Status:        #{lead.status}"
+      puts "Inventory:     #{lead.inventory_size} listings"
+      puts "Vinyl share:   #{lead.vinyl_percentage}% (#{lead.vinyl_count} of #{lead.inventory_size} sampled)"
+      puts "Genres:        #{lead.genres.join(", ")}"
+      puts "Styles:        #{lead.styles.join(", ")}" if lead.styles.any?
+      puts "Score:         #{lead.score}" if lead.score
+      puts
+
+      if lead.score_breakdown
+        puts "Score breakdown:"
+        lead.score_breakdown.each { |dim, val| puts "  #{dim.to_s.ljust(20)} #{val}" }
+        puts
+      end
+
+      if lead.web_presence
+        wp = lead.web_presence
+        puts "Web presence:  #{wp["classified_as"]&.humanize || "Unknown"}"
+        if wp["platforms"].present?
+          wp["platforms"].each { |platform, url| puts "  #{platform}: #{url || "not found"}" }
+        end
+        if wp["listed_urls"].present?
+          puts "  Public links: #{wp["listed_urls"].join(", ")}"
+        end
+      else
+        puts "Web presence:  Not yet checked"
+      end
+      puts
+      puts "Created:       #{lead.created_at}"
+      puts "Scored:        #{lead.scored_at}" if lead.scored_at
+      puts "Reviewed:      #{lead.reviewed_at}" if lead.reviewed_at
+      puts "Notes:         #{lead.notes}" if lead.notes.present?
+    end
+
+    desc "Dismiss a lead — rake milkcrate:leads:dismiss[username]"
+    task :dismiss, [ :username ] => :environment do |_, args|
+      username = args[:username]&.downcase
+      raise "Usage: rake milkcrate:leads:dismiss[username]" if username.blank?
+
+      lead = Lead.with_discogs_username(username).first
+      raise "No lead found for '#{username}'" unless lead
+
+      lead.update!(status: :dismissed, reviewed_at: Time.current)
+      puts "Dismissed #{lead.discogs_username}."
+    end
+
+    desc "Show pipeline stats — count of leads by status"
+    task stats: :environment do
+      totals = Lead.group(:status).count
+      total = totals.values.sum
+
+      puts "Leads: #{total} total"
+      Lead.statuses.each_key do |status|
+        count = totals[status] || 0
+        puts "  #{status}: #{count}"
+      end
+      puts
+
+      scored = Lead.where.not(score: nil).count
+      web_checked = Lead.where.not(web_presence: nil).count
+      puts "Scored:       #{scored}"
+      puts "Web-checked:  #{web_checked}"
+    end
+  end
 end
