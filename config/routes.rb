@@ -3,6 +3,10 @@ Rails.application.routes.draw do
 
   mount MissionControl::Jobs::Engine, at: "/jobs"
 
+  namespace :api do
+    get "discogs/lookup/:username", to: "discogs_lookup#show"
+  end
+
   get "/admin", to: "admin/waitlists#index"
 
   root "pages#home"
