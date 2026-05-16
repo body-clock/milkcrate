@@ -31,6 +31,7 @@ type Props = {
     enabled: boolean
     site_key: string | null
   }
+  initial_discogs_username?: string
   copy: {
     headline: string
     subhead: string
@@ -54,10 +55,10 @@ type Props = {
   }
 }
 
-export default function Apply({ submitted = false, errors = {}, turnstile, copy }: Props) {
+export default function Apply({ submitted = false, errors = {}, turnstile, copy, initial_discogs_username }: Props) {
   const { data, setData, post, processing } = useForm({
     name: "",
-    discogs_username: "",
+    discogs_username: initial_discogs_username || "",
     email: "",
     inventory_size: "",
     notes: "",

@@ -41,4 +41,33 @@ RSpec.describe Waitlist, type: :model do
       expect(dup.errors[:discogs_username]).to include("has already been taken")
     end
   end
+
+  describe "normalization" do
+    it "downcases discogs_username before validation" do
+      entry = build(:waitlist, discogs_username: "MyStore")
+      entry.valid?
+      expect(entry.discogs_username).to eq("mystore")
+    end
+
+    it "does not re-normalize on update if unchanged" do
+      entry = create(:waitlist, discogs_username: "recordstore")
+      expect(entry.discogs_username).to eq("recordstore")
+      # attempting to set to the same normalized value should not trigger the callback
+      entry.update(name: "New Name")
+      expect(entry.discogs_username).to eq("recordstore")
+    end
+  end
+
+  describe ".with_discogs_username" do
+    it "finds entries case-insensitively" do
+      create(:waitlist, discogs_username: "myrecordstore")
+      expect(Waitlist.with_discogs_username("MYRECORDSTORE")).to exist
+      expect(Waitlist.with_discogs_username("MyRecordStore")).to exist
+      expect(Waitlist.with_discogs_username("myrecordstore")).to exist
+    end
+
+    it "returns empty when no match" do
+      expect(Waitlist.with_discogs_username("nonexistent")).to be_empty
+    end
+  end
 end
