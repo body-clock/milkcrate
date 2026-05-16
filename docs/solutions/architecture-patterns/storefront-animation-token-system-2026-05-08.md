@@ -1,7 +1,7 @@
 ---
 title: Centralized Framer Motion design token system with progressive migration
 date: 2026-05-08
-category: docs/solutions/architecture-patterns/
+category: architecture-patterns
 module: storefront
 problem_type: architecture_pattern
 component: development_workflow

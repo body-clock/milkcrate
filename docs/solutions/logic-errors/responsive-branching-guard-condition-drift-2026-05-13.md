@@ -132,11 +132,7 @@ it("hides tabs in empty desktop state when hideTabs is true", () => {
   expect(screen.queryByRole("tablist")).not.toBeInTheDocument()
 })
 
-// NOTE (2026-05-14 refresh): As of the vendor-brand responsive surface system,
-// there is still no regression test for hideTabs on wide/desktop viewports.
-// The compact path is tested (hideTabs on compact), but the important case
-// — hideTabs on wide/desktop — remains untested. Adding this test remains
-// an open action item from this doc.
+
 
 // Guards against vestigial return types
 // (caught by code review, not tests — but if navigate were extracted as a hook,
