@@ -57,7 +57,8 @@ vi.mock("@/components/storefront_motion_config", () => ({
 import Home from "../../pages/home"
 import Apply from "../../pages/apply"
 import Featured from "../../pages/stores/featured"
-import type { FeaturedProps, HomepagePreview } from "../../types/inertia"
+import Dashboard from "../../pages/admin/dashboard"
+import type { AdminDashboardProps, FeaturedProps, HomepagePreview } from "../../types/inertia"
 
 // ── Shared test data ────────────────────────────────────────────
 
@@ -130,6 +131,44 @@ const featuredProps: FeaturedProps = {
   active_crate_slug: "picks",
 }
 
+const adminProps: AdminDashboardProps = {
+  active_stores: [
+    {
+      id: 1,
+      name: "Healthy Records",
+      discogs_username: "healthy-records",
+      total_listings: 300,
+      inventory_page_count: 3,
+      sync_status: "idle",
+      enrichment_status: "idle",
+      catalog_coverage: "near_complete",
+      last_synced_at: "2026-05-16T10:00:00Z",
+      last_enriched_at: "2026-05-16T11:00:00Z",
+      last_sync_error_at: null,
+      storefront_path: "/healthy-records",
+      health: {
+        key: "healthy",
+        label: "Healthy",
+        severity: "good",
+        reasons: ["Sync and enrichment are current"],
+        has_sync_error: false,
+        last_sync_error_summary: null,
+      },
+    },
+  ],
+  applicants: [
+    {
+      id: 10,
+      name: "Applicant Records",
+      email: "applicant@example.com",
+      discogs_username: "applicant-records",
+      inventory_size: "500_2000",
+      notes: null,
+      submitted_at: "2026-05-15T12:00:00Z",
+    },
+  ],
+}
+
 // ── Tier list shared across all surfaces ───────────────────────
 const tiers: ViewportTier[] = ["compact", "comfy", "wide"]
 
@@ -167,6 +206,16 @@ describe("responsive surface matrix", () => {
       expect(container).toBeTruthy()
       // The store page shows empty state when no crates exist
       expect(screen.getByText(/No vinyl found yet/)).toBeInTheDocument()
+    })
+
+    it("renders the admin dashboard without crashing", () => {
+      const { container } = renderWithTier(
+        tier,
+        <Dashboard {...adminProps} />
+      )
+      expect(container).toBeTruthy()
+      expect(screen.getByRole("heading", { name: "Store operations" })).toBeInTheDocument()
+      expect(screen.getByText("Applicant Records")).toBeInTheDocument()
     })
   })
 
