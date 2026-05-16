@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_15_221108) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_16_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -23,6 +23,31 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_15_221108) do
     t.index ["listing_ids"], name: "index_daily_selections_on_listing_ids", using: :gin
     t.index ["store_id", "selected_on"], name: "index_daily_selections_on_store_id_and_selected_on", unique: true
     t.index ["store_id"], name: "index_daily_selections_on_store_id"
+  end
+
+  create_table "leads", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.jsonb "discogs_profile"
+    t.string "discogs_username", null: false
+    t.string "genres", default: [], array: true
+    t.integer "inventory_size"
+    t.text "notes"
+    t.datetime "reviewed_at"
+    t.jsonb "sampled_listings"
+    t.decimal "score", precision: 8, scale: 2
+    t.jsonb "score_breakdown"
+    t.datetime "scored_at"
+    t.string "status", default: "pending", null: false
+    t.string "store_name"
+    t.string "styles", default: [], array: true
+    t.datetime "updated_at", null: false
+    t.integer "vinyl_count"
+    t.decimal "vinyl_percentage", precision: 5, scale: 2
+    t.jsonb "web_presence"
+    t.index ["discogs_username"], name: "index_leads_on_discogs_username", unique: true
+    t.index ["genres"], name: "index_leads_on_genres", using: :gin
+    t.index ["score"], name: "index_leads_on_score"
+    t.index ["status"], name: "index_leads_on_status"
   end
 
   create_table "listings", force: :cascade do |t|
