@@ -124,11 +124,8 @@ namespace :milkcrate do
     username = args[:discogs_username]
     raise "Usage: rake milkcrate:add_store[discogs_username]" if username.blank?
 
-    profile = DiscogsClient.new.seller_profile(username)
-    name    = profile["name"].presence || username
-
-    store = Store.create!(discogs_username: username, name:)
-    FullStoreSyncJob.perform_later(store.id)
+    result = StoreOnboarding.call(discogs_username: username)
+    store = result.store
 
     puts "Store created: #{store.name} (@#{store.discogs_username})"
     puts "Sync queued. Store will be live at: /#{store.discogs_username}"

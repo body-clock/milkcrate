@@ -1,11 +1,13 @@
 import React from "react"
 import { describe, expect, it, vi } from "vitest"
-import { render, screen } from "@testing-library/react"
+import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import Home from "../../pages/home"
 import Apply from "../../pages/apply"
 import Featured from "../../pages/stores/featured"
-import type { FeaturedProps } from "../../types/inertia"
+import Invitation from "../../pages/stores/invitation"
+import Dashboard from "../../pages/admin/dashboard"
+import type { AdminDashboardProps, FeaturedProps, InvitationProps } from "../../types/inertia"
 
 vi.mock("@inertiajs/react", () => ({
   Link: ({ children, href, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
@@ -97,6 +99,44 @@ const featuredProps: FeaturedProps = {
   active_crate_slug: "picks",
 }
 
+const adminProps: AdminDashboardProps = {
+  active_stores: [
+    {
+      id: 1,
+      name: "Healthy Records",
+      discogs_username: "healthy-records",
+      total_listings: 300,
+      inventory_page_count: 3,
+      sync_status: "idle",
+      enrichment_status: "idle",
+      catalog_coverage: "near_complete",
+      last_synced_at: "2026-05-16T10:00:00Z",
+      last_enriched_at: "2026-05-16T11:00:00Z",
+      last_sync_error_at: null,
+      storefront_path: "/healthy-records",
+      health: {
+        key: "healthy",
+        label: "Healthy",
+        severity: "good",
+        reasons: ["Sync and enrichment are current"],
+        has_sync_error: false,
+        last_sync_error_summary: null,
+      },
+    },
+  ],
+  applicants: [
+    {
+      id: 10,
+      name: "Applicant Records",
+      email: "applicant@example.com",
+      discogs_username: "applicant-records",
+      inventory_size: "500_2000",
+      notes: null,
+      submitted_at: "2026-05-15T12:00:00Z",
+    },
+  ],
+}
+
 describe("page smoke tests", () => {
   it("renders the home page", () => {
     render(<Home copy={homeCopy} preview={previewFallback} />)
@@ -134,6 +174,14 @@ describe("page smoke tests", () => {
     expect(screen.getByText(/No vinyl found yet/)).toBeInTheDocument()
   })
 
+  it("renders the admin dashboard", () => {
+    render(<Dashboard {...adminProps} />)
+
+    expect(screen.getByRole("heading", { name: "Store operations" })).toBeInTheDocument()
+    expect(screen.getByText("Healthy Records")).toBeInTheDocument()
+    expect(screen.getByText("Applicant Records")).toBeInTheDocument()
+  })
+
   it("store page footer does not render emoji branding", () => {
     render(<Featured {...featuredProps} />)
 
@@ -150,6 +198,7 @@ describe("page smoke tests", () => {
     ["home", () => render(<Home copy={homeCopy} preview={previewFallback} />)],
     ["apply", () => render(<Apply copy={applyCopy} turnstile={{ enabled: false, site_key: null }} />)],
     ["store", () => render(<Featured {...featuredProps} />)],
+    ["admin", () => render(<Dashboard {...adminProps} />)],
   ])("emoji regression: %s page", (_label, renderPage) => {
     it("does not render the milk emoji (🥛)", () => {
       renderPage()
@@ -241,5 +290,57 @@ describe("page smoke tests", () => {
 
     expect(screen.queryByText("Independent record store in South Philly.")).not.toBeInTheDocument()
     expect(screen.queryByText("120 vinyl listings")).not.toBeInTheDocument()
+  })
+
+  describe("invitation page", () => {
+    const inviteProps: InvitationProps = {
+      waitlist_present: false,
+      slug: "test-slug",
+      discogs_username: "test-slug",
+    }
+
+    it("renders the invitation page without crashing", async () => {
+      render(<Invitation {...inviteProps} />)
+      // Fetch fails in test env, so probe settles on error → generic invitation
+      await waitFor(() => {
+        expect(screen.getByRole("heading", { name: /This page is available/i })).toBeInTheDocument()
+      })
+    })
+
+    it("renders waitlist acknowledgment when waitlist_present is true", async () => {
+      render(<Invitation {...inviteProps} waitlist_present={true} />)
+      await waitFor(() => {
+        expect(screen.getByRole("heading", { name: /This URL has been claimed/i })).toBeInTheDocument()
+      })
+    })
+
+    it("handles fetch error gracefully for valid slugs", async () => {
+      render(<Invitation {...inviteProps} slug="valid-store" />)
+      // The fetch will fail in test (no server), so it should settle on generic invitation
+      await waitFor(() => {
+        expect(screen.getByRole("heading", { name: /This page is available/i })).toBeInTheDocument()
+      })
+    })
+
+    it("skips probe and shows generic invitation for short slugs", async () => {
+      render(<Invitation {...inviteProps} slug="ab" />)
+      await waitFor(() => {
+        expect(screen.getByRole("heading", { name: /This page is available/i })).toBeInTheDocument()
+      })
+    })
+
+    it("skips probe for reserved slugs", async () => {
+      render(<Invitation {...inviteProps} slug="admin" />)
+      await waitFor(() => {
+        expect(screen.getByRole("heading", { name: /This page is available/i })).toBeInTheDocument()
+      })
+    })
+
+    it("skips probe for slugs with invalid characters", async () => {
+      render(<Invitation {...inviteProps} slug="bad!slug" />)
+      await waitFor(() => {
+        expect(screen.getByRole("heading", { name: /This page is available/i })).toBeInTheDocument()
+      })
+    })
   })
 })

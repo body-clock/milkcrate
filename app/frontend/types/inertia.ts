@@ -62,3 +62,53 @@ export interface HomepagePreview {
   store_slug: string | null
   sections: StorefrontSection[]
 }
+
+export interface InvitationProps {
+  waitlist_present: boolean
+  slug: string
+  discogs_username: string
+}
+
+export type AdminHealthSeverity = "good" | "working" | "warning" | "danger" | "neutral"
+
+export interface AdminStoreHealth {
+  key: string
+  label: string
+  severity: AdminHealthSeverity
+  reasons: string[]
+  has_sync_error: boolean
+  last_sync_error_summary: string | null
+}
+
+export interface AdminStoreSummary {
+  id: number
+  name: string
+  discogs_username: string
+  total_listings: number | null
+  inventory_page_count: number
+  sync_status: string
+  enrichment_status: string
+  catalog_coverage: string
+  last_synced_at: string | null
+  last_enriched_at: string | null
+  last_sync_error_at: string | null
+  storefront_path: string
+  health: AdminStoreHealth
+}
+
+export interface AdminApplicantSummary {
+  id: number
+  name: string
+  email: string
+  discogs_username: string
+  inventory_size: string | null
+  notes: string | null
+  submitted_at: string
+}
+
+export interface AdminDashboardProps {
+  active_stores: AdminStoreSummary[]
+  applicants: AdminApplicantSummary[]
+  notice?: string
+  alert?: string
+}

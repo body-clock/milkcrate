@@ -3,7 +3,12 @@ Rails.application.routes.draw do
 
   mount MissionControl::Jobs::Engine, at: "/jobs"
 
-  get "/admin", to: "admin/waitlists#index"
+  namespace :api do
+    get "discogs/lookup/:username", to: "discogs_lookup#show"
+  end
+
+  get "/admin", to: "admin/dashboard#show"
+  post "/admin/waitlists/:waitlist_id/onboarding", to: "admin/onboardings#create", as: :admin_waitlist_onboarding
 
   root "pages#home"
 

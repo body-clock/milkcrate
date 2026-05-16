@@ -10,12 +10,22 @@ class StoresController < ApplicationController
 
   def show
     store = Store.with_discogs_username(params[:slug]).first
-    return render :no_stores unless store
+    return render_invitation unless store
 
     render_store(store)
   end
 
   private
+
+  def render_invitation
+    slug = params[:slug]
+    waitlist_present = Waitlist.with_discogs_username(slug).exists?
+
+    render inertia: "stores/invitation", props: {
+      waitlist_present: waitlist_present,
+      slug: slug
+    }
+  end
 
   def render_store(store)
     curation  = StorefrontCuration.new(store, filter_available: !Rails.env.development?)

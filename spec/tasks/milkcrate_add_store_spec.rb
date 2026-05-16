@@ -60,6 +60,6 @@ RSpec.describe "milkcrate:add_store" do
     Rake::Task["milkcrate:add_store"].reenable
     expect {
       Rake::Task["milkcrate:add_store"].invoke("existing")
-    }.to raise_error(ActiveRecord::RecordInvalid)
+    }.to raise_error(StoreOnboarding::Error, /already exists/)
   end
 end
