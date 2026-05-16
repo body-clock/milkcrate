@@ -66,5 +66,4 @@ export interface HomepagePreview {
 export interface InvitationProps {
   waitlist_present: boolean
   slug: string
-  discogs_username: string
 }

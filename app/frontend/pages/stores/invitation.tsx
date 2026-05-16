@@ -6,7 +6,14 @@ import BrandMark from "@/components/brand_mark"
 import { springTactile } from "@/lib/motion_tokens"
 import type { InvitationProps } from "@/types/inertia"
 
-export default function Invitation({ waitlist_present, slug, discogs_username }: InvitationProps) {
+interface LookupResponse {
+  found: boolean
+  seller_name?: string
+  avatar_url?: string
+  reason?: string
+}
+
+export default function Invitation({ waitlist_present, slug }: InvitationProps) {
   // Waitlist acknowledgment — no probe, static page
   if (waitlist_present) {
     return (
@@ -56,10 +63,10 @@ export default function Invitation({ waitlist_present, slug, discogs_username }:
   }
 
   // Invitation page — async Discogs probe
-  return <InvitationContent slug={slug} discogsUsername={discogs_username} />
+  return <InvitationContent slug={slug} />
 }
 
-function InvitationContent({ slug, discogsUsername }: { slug: string; discogsUsername: string }) {
+function InvitationContent({ slug }: { slug: string }) {
   const [probeState, setProbeState] = useState<"loading" | "found" | "not_found" | "error">("loading")
   const [sellerName, setSellerName] = useState<string | null>(null)
 
@@ -69,9 +76,10 @@ function InvitationContent({ slug, discogsUsername }: { slug: string; discogsUse
     if (!/^[a-zA-Z0-9][a-zA-Z0-9_-]*[a-zA-Z0-9]$/.test(slug)) return false
 
     const reserved = [
-      "admin", "apply", "jobs", "up", "assets",
+      "admin", "apply", "jobs", "up", "assets", "404", "500", "health",
       "login", "logout", "signup", "register",
       "api", "docs", "status", "help", "support",
+      "favicon", "manifest", "service-worker",
     ]
     if (reserved.includes(slug.toLowerCase())) return false
 
@@ -79,15 +87,20 @@ function InvitationContent({ slug, discogsUsername }: { slug: string; discogsUse
   }, [slug])
 
   useEffect(() => {
+    // Reset stale state from previous slug
+    setProbeState("loading")
+    setSellerName(null)
+
     if (!shouldProbe) {
       setProbeState("not_found")
       return
     }
 
     const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 10000)
 
     fetch(`/api/discogs/lookup/${encodeURIComponent(slug)}`, { signal: controller.signal })
-      .then((res) => res.json())
+      .then((res) => res.json() as Promise<LookupResponse>)
       .then((data) => {
         if (data.found) {
           setSellerName(data.seller_name || slug)
@@ -100,8 +113,12 @@ function InvitationContent({ slug, discogsUsername }: { slug: string; discogsUse
         if (err instanceof DOMException && err.name === "AbortError") return
         setProbeState("error")
       })
+      .finally(() => clearTimeout(timeoutId))
 
-    return () => controller.abort()
+    return () => {
+      controller.abort()
+      clearTimeout(timeoutId)
+    }
   }, [slug, shouldProbe])
 
   return (
@@ -155,7 +172,7 @@ function InvitationContent({ slug, discogsUsername }: { slug: string; discogsUse
               transition={{ delay: 0.3, duration: 0.3 }}
             >
               <Link
-                href={`/apply?discogs_username=${encodeURIComponent(discogsUsername)}`}
+                href={`/apply?discogs_username=${encodeURIComponent(slug)}`}
                 className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-mc-accent text-mc-on-accent font-semibold text-sm tracking-wide hover:opacity-90 transition-opacity"
               >
                 Claim this storefront

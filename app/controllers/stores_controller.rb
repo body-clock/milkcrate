@@ -23,8 +23,7 @@ class StoresController < ApplicationController
 
     render inertia: "stores/invitation", props: {
       waitlist_present: waitlist_present,
-      slug: slug,
-      discogs_username: slug
+      slug: slug
     }
   end
 

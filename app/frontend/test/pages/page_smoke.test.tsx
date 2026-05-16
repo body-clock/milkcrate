@@ -248,7 +248,6 @@ describe("page smoke tests", () => {
     const inviteProps: InvitationProps = {
       waitlist_present: false,
       slug: "test-slug",
-      discogs_username: "test-slug",
     }
 
     it("renders the invitation page without crashing", async () => {
@@ -267,7 +266,7 @@ describe("page smoke tests", () => {
     })
 
     it("handles fetch error gracefully for valid slugs", async () => {
-      render(<Invitation {...inviteProps} slug="valid-store" discogs_username="valid-store" />)
+      render(<Invitation {...inviteProps} slug="valid-store" />)
       // The fetch will fail in test (no server), so it should settle on generic invitation
       await waitFor(() => {
         expect(screen.getByRole("heading", { name: /This page is available/i })).toBeInTheDocument()
@@ -275,21 +274,21 @@ describe("page smoke tests", () => {
     })
 
     it("skips probe and shows generic invitation for short slugs", async () => {
-      render(<Invitation {...inviteProps} slug="ab" discogs_username="ab" />)
+      render(<Invitation {...inviteProps} slug="ab" />)
       await waitFor(() => {
         expect(screen.getByRole("heading", { name: /This page is available/i })).toBeInTheDocument()
       })
     })
 
     it("skips probe for reserved slugs", async () => {
-      render(<Invitation {...inviteProps} slug="admin" discogs_username="admin" />)
+      render(<Invitation {...inviteProps} slug="admin" />)
       await waitFor(() => {
         expect(screen.getByRole("heading", { name: /This page is available/i })).toBeInTheDocument()
       })
     })
 
     it("skips probe for slugs with invalid characters", async () => {
-      render(<Invitation {...inviteProps} slug="bad!slug" discogs_username="bad!slug" />)
+      render(<Invitation {...inviteProps} slug="bad!slug" />)
       await waitFor(() => {
         expect(screen.getByRole("heading", { name: /This page is available/i })).toBeInTheDocument()
       })

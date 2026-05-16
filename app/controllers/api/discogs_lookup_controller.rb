@@ -25,13 +25,17 @@ module Api
       end
 
       normalized = username.downcase
-      cached = Rails.cache.read(cache_key(normalized))
-      if cached
-        return render json: cached, status: :ok
-      end
 
-      result = lookup_discogs(normalized)
-      Rails.cache.write(cache_key(normalized), result, expires_in: result[:found] ? FOUND_TTL : NOT_FOUND_TTL)
+      result = Rails.cache.read(cache_key(normalized))
+
+      if result.nil?
+        result = lookup_discogs(normalized)
+        # Only cache non-error results
+        if result[:found] || result[:reason] != "api_error"
+          ttl = result[:found] ? FOUND_TTL : NOT_FOUND_TTL
+          Rails.cache.write(cache_key(normalized), result, expires_in: ttl)
+        end
+      end
 
       render json: result, status: :ok
     end
@@ -50,7 +54,7 @@ module Api
       client = DiscogsClient.new
       profile = client.seller_profile(username)
       { found: true, seller_name: profile["name"] || profile["username"], avatar_url: profile["avatar_url"] }
-    rescue DiscogsClient::RateLimitError, DiscogsClient::ApiError => e
+    rescue DiscogsClient::RateLimitError, DiscogsClient::ApiError, Faraday::Error => e
       { found: false, reason: "api_error" }
     end
 
