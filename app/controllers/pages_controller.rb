@@ -15,7 +15,8 @@ class PagesController < ApplicationController
       turnstile: {
         enabled: TurnstileVerifier.enabled?,
         site_key: TurnstileVerifier.site_key
-      }
+      },
+      initial_discogs_username: params[:discogs_username]
     }
   end
 end
