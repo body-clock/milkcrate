@@ -1,3 +1,21 @@
+# frozen_string_literal: true
+
+# Discovers Discogs sellers for lead generation.
+#
+# The Discogs API does not provide a cross-seller "browse marketplace by genre"
+# endpoint. Sellers must be discovered through specific usernames (seeds).
+#
+# ## Discovery strategies
+#
+# 1. **Seed usernames** (primary) — operators provide known Discogs sellers
+#    via rake tasks or the pipeline job's `seed_usernames:` parameter.
+# 2. **Internal curated list** — a small set of well-known sellers in target
+#    genres used as a bootstrap when no seeds are provided.
+#
+# Once a username is known, SellerFinder samples their inventory to estimate
+# vinyl share, genre depth, and overall fit — then returns a Candidate struct
+# for scoring and web-presence checking.
+#
 class LeadDiscovery::SellerFinder
   SAMPLE_PAGES = 3
   PER_PAGE = 100
@@ -6,12 +24,18 @@ class LeadDiscovery::SellerFinder
   RATE_LIMIT_LOW   = 5
   RATE_LIMIT_PAUSE = 10
 
-  DISCOVERY_QUIET_PAGES = 10  # how many pages to search before stopping
   INVENTORY_MIN = 1
   INVENTORY_MAX = 5_000
 
-  # Genres that align with MilkCrate's strengths for directed discovery.
-  TARGET_GENRES = %w[Jazz Soul Funk Electronic].freeze
+  # A small bootstrap list of Discogs sellers in target genres.
+  # Operators should expand this by passing seed_usernames to the pipeline.
+  CURATED_SEEDS = %w[
+    analog_attic
+    alpharecords
+    dustygroove
+    thirdmanrecords
+    easystreetrecords
+  ].freeze
 
   Candidate = Data.define(
     :discogs_username,
@@ -30,32 +54,29 @@ class LeadDiscovery::SellerFinder
   end
 
   # Returns an array of Candidate structs for sellers that passed filtering.
+  #
+  # When +seed_usernames+ is provided, only those sellers are evaluated
+  # (plus any from the curated bootstrap list). When empty, the curated
+  # list is used as a starting point.
   def find_candidates(seed_usernames: [])
-    discovered_usernames = Set.new
+    usernames_to_check = resolve_usernames(seed_usernames)
+    known = known_usernames
     candidates = []
 
-    # Phase 1: Discover sellers from genre-targeted marketplace search.
-    discover_from_marketplace(discovered_usernames)
-
-    # Phase 2: Include any seed usernames provided directly.
-    seed_usernames.each { |u| discovered_usernames << u.to_s.strip.downcase }
-
-    # Phase 3: Already-known usernames to skip.
-    known = known_usernames
-
-    # Phase 4: Sample each newly discovered seller.
-    discovered_usernames.each do |username|
+    usernames_to_check.each do |username|
       next if known.include?(username)
 
       begin
         candidate = sample_seller(username)
         candidates << candidate if candidate
       rescue DiscogsClient::RateLimitError
-        Rails.logger.warn "[LeadDiscovery::SellerFinder] Rate limited during discovery, pausing"
+        Rails.logger.warn "[LeadDiscovery::SellerFinder] Rate limited, pausing 15s"
         sleep(15)
         retry
       rescue DiscogsClient::ApiError => e
         Rails.logger.warn "[LeadDiscovery::SellerFinder] API error for #{username}: #{e.message}"
+      rescue Faraday::TimeoutError
+        Rails.logger.warn "[LeadDiscovery::SellerFinder] Timeout for #{username}, skipping"
       end
     end
 
@@ -66,62 +87,12 @@ class LeadDiscovery::SellerFinder
 
   attr_reader :client
 
-  # ── Marketplace Discovery ──────────────────────────────────────────────
+  # ── Username Resolution ────────────────────────────────────────────────
 
-  def discover_from_marketplace(discovered)
-    TARGET_GENRES.each do |genre|
-      Rails.logger.info "[LeadDiscovery::SellerFinder] Searching marketplace for genre: #{genre}"
-      search_listings(genre:) do |listing|
-        seller = listing.dig("seller", "username")
-        discovered << seller.downcase if seller
-      end
-    end
-  end
-
-  # Iterates over marketplace search pages for a genre and yields each listing.
-  def search_listings(genre:)
-    (1..DISCOVERY_QUIET_PAGES).each do |page|
-      data = fetch_search_page(genre, page)
-      listings = data["listings"] || data["results"] || []
-      break if listings.empty?
-
-      listings.each { |listing| yield listing }
-
-      total_pages = data.dig("pagination", "pages") || 1
-      break if page >= total_pages
-
-      rate_limit_sleep
-    end
-  end
-
-  def fetch_search_page(genre, page)
-    # Discogs /database/search with type=listing returns marketplace listings.
-    connection = Faraday.new(url: "https://api.discogs.com") do |f|
-      f.options.timeout = 10
-      f.options.open_timeout = 5
-      f.request :url_encoded
-      f.response :json
-      f.headers["Authorization"] = "Discogs token=#{discogs_token}"
-      f.headers["User-Agent"] = "Milkcrate/1.0 +https://milkcrate.fm"
-    end
-
-    response = connection.get("/database/search") do |req|
-      req.params["type"] = "listing"
-      req.params["genre"] = genre
-      req.params["page"] = page
-      req.params["per_page"] = PER_PAGE
-      req.params["sort"] = "listed"
-      req.params["sort_order"] = "desc"
-    end
-
-    case response.status
-    when 200
-      response.body
-    when 429
-      raise DiscogsClient::RateLimitError, "Discogs rate limit hit during search"
-    else
-      raise DiscogsClient::ApiError, "Discogs search error: #{response.status}"
-    end
+  def resolve_usernames(seed_usernames)
+    seeds = seed_usernames.map(&:to_s).map(&:strip).map(&:downcase).reject(&:empty?)
+    seeds = CURATED_SEEDS.dup if seeds.empty?
+    seeds.uniq
   end
 
   # ── Seller Sampling ────────────────────────────────────────────────────
@@ -131,24 +102,21 @@ class LeadDiscovery::SellerFinder
     total_pages = client.seller_inventory_pages(username)
     inventory_size = estimate_inventory_size(total_pages)
 
-    # Apply inventory size filter.
     return nil if inventory_size < INVENTORY_MIN || inventory_size > INVENTORY_MAX
 
-    # Fetch sample pages.
     listings = fetch_sample_listings(username)
     return nil if listings.empty?
 
-    # Compute metrics from sample.
     vinyl_count = count_vinyl(listings)
-    vinyl_pct = (listings.size > 0 ? (vinyl_count.to_f / listings.size * 100).round(2) : 0.0)
+    vinyl_pct = listings.size > 0 ? (vinyl_count.to_f / listings.size * 100).round(2) : 0.0
     genre_set, style_set = extract_genres_and_styles(listings)
 
     Candidate.new(
       discogs_username: username,
       store_name: profile["name"].presence || username,
-      inventory_size: inventory_size,
-      sampled_listings: listings.first(50),  # keep a representative subset
-      vinyl_count: vinyl_count,
+      inventory_size:,
+      sampled_listings: listings.first(50),
+      vinyl_count:,
       vinyl_percentage: vinyl_pct,
       genres: genre_set.to_a,
       styles: style_set.to_a,
@@ -160,7 +128,7 @@ class LeadDiscovery::SellerFinder
     all = []
 
     (1..SAMPLE_PAGES).each do |page|
-      data = client.seller_inventory(username, page: page)
+      data = client.seller_inventory(username, page:)
       listings = data["listings"] || []
       break if listings.empty?
 
@@ -192,8 +160,6 @@ class LeadDiscovery::SellerFinder
     styles = Set.new
 
     listings.each do |listing|
-      # Some listing responses include genre/style directly, others don't.
-      # Use whatever is available from the inventory listing response.
       listing_genres = listing.dig("release", "genre") || listing["genre"]
       listing_styles = listing.dig("release", "style") || listing["style"]
 
@@ -221,11 +187,5 @@ class LeadDiscovery::SellerFinder
 
   def rate_limit_sleep
     sleep(RATE_LIMIT_SLEEP)
-  end
-
-  # ── Discogs Token ──────────────────────────────────────────────────────
-
-  def discogs_token
-    @discogs_token ||= Rails.application.credentials.dig(:discogs, :token)
   end
 end
