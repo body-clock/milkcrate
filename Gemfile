@@ -18,6 +18,9 @@ gem "inertia_rails"
 # Vite asset pipeline for Inertia
 gem "vite_rails"
 
+# Pagination for list views
+gem "kaminari"
+
 # Settings — per-environment YAML config with env var overrides
 gem "config"
 
