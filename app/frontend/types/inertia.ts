@@ -62,3 +62,9 @@ export interface HomepagePreview {
   store_slug: string | null
   sections: StorefrontSection[]
 }
+
+export interface InvitationProps {
+  waitlist_present: boolean
+  slug: string
+  discogs_username: string
+}

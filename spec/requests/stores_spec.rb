@@ -47,9 +47,27 @@ RSpec.describe "Stores", type: :request do
     end
 
     context "with unknown slug" do
-      it "returns 200" do
+      it "returns 200 and renders invitation" do
         get "/unknownstore"
         expect(response).to have_http_status(:ok)
+        expect(inertia).to render_component("stores/invitation")
+      end
+
+      it "passes slug as discogs_username prop" do
+        get "/some-slug"
+        expect(inertia.props[:discogs_username]).to eq("some-slug")
+        expect(inertia.props[:slug]).to eq("some-slug")
+      end
+
+      it "passes waitlist_present as false when no waitlist entry exists" do
+        get "/slug-not-on-waitlist"
+        expect(inertia.props[:waitlist_present]).to be false
+      end
+
+      it "passes waitlist_present as true when waitlist entry exists" do
+        create(:waitlist, discogs_username: "applied-slug")
+        get "/applied-slug"
+        expect(inertia.props[:waitlist_present]).to be true
       end
     end
   end
