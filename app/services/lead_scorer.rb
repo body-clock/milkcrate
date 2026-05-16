@@ -36,7 +36,7 @@ class LeadScorer
 
     max_possible = 100.0 * positive_weight_sum
     normalized = (total / max_possible) * 100.0
-    normalized = [[normalized, 0.0].max, 100.0].min
+    normalized = [ [ normalized, 0.0 ].max, 100.0 ].min
 
     { score: normalized.round(2), dimensions: dimensions }
   end
