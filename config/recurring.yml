@@ -19,6 +19,11 @@ production:
     queue: default
     schedule: every day at 11pm
 
+  lead_discovery_pipeline:
+    class: LeadDiscoveryPipelineJob
+    queue: default
+    schedule: every day at 2am
+
   daily_curation:
     class: DailyCurationJob
     queue: default
