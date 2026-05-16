@@ -9,5 +9,6 @@ FactoryBot.define do
     inventory_page_count { 1 }
     total_listings { 0 }
     last_synced_at { 1.hour.ago }
+    last_enriched_at { 1.hour.ago }
   end
 end
