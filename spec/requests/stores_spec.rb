@@ -53,9 +53,8 @@ RSpec.describe "Stores", type: :request do
         expect(inertia).to render_component("stores/invitation")
       end
 
-      it "passes slug as discogs_username prop" do
+      it "passes slug as prop" do
         get "/some-slug"
-        expect(inertia.props[:discogs_username]).to eq("some-slug")
         expect(inertia.props[:slug]).to eq("some-slug")
       end
 
