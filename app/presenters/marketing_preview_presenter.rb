@@ -40,7 +40,7 @@ class MarketingPreviewPresenter
   def live_preview(store)
     curation  = StorefrontCuration.new(store, filter_available: !Rails.env.development?)
     presenter = CratePresenter.new(store)
-    sections  = presenter.build_storefront_sections(curation.storefront_sections)
+    sections  = presenter.build_storefront_sections(curation.storefront_groups)
 
     {
       store_name: store.name,

@@ -126,4 +126,21 @@ RSpec.describe RecordScorer do
       end
     end
   end
+
+  describe "daily selection signals" do
+    it "exposes good condition using the shared condition model" do
+      scorer = build(:record_scorer, genre_counts: { "Rock" => 10 }, today: Date.new(2026, 5, 5))
+
+      expect(scorer.good_condition?(listing(condition: "Near Mint"))).to be(true)
+      expect(scorer.good_condition?(listing(condition: "Generic"))).to be(false)
+    end
+
+    it "exposes desirability using the shared want/have model" do
+      scorer = build(:record_scorer, genre_counts: { "Jazz" => 10 }, today: Date.new(2026, 5, 5))
+
+      expect(scorer.desirable?(listing(want_count: 800, have_count: 300, genres: [ "Jazz" ]))).to be(true)
+      expect(scorer.desirable?(listing(want_count: 100, have_count: 500, genres: [ "Jazz" ]))).to be(false)
+      expect(scorer.desirable?(listing(want_count: 0, have_count: 0, genres: [ "Jazz" ]))).to be(false)
+    end
+  end
 end

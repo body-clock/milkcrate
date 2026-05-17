@@ -180,4 +180,33 @@ RSpec.describe CratePresenter do
       expect(genre_slugs).to be_empty
     end
   end
+
+  describe "#build_storefront_sections" do
+    let(:picks) { fake_curated_crate(slug: "picks", name: "Milkcrate Picks", listings: [ fake_listing(id: 1) ]) }
+    let(:featured) { fake_curated_crate(slug: "new-arrivals", name: "New Arrivals", listings: [ fake_listing(id: 2) ]) }
+    let(:genre) { fake_curated_crate(slug: "jazz", name: "Jazz", listings: [ fake_listing(id: 3) ]) }
+
+    it "assigns storefront section keys in display order" do
+      sections = described_class.new(fake_store).build_storefront_sections(
+        picks:,
+        featured: [ featured ],
+        genres: [ genre ]
+      )
+
+      expect(sections.map { |section| section[:key] }).to eq(%w[picks_wall featured_crates genre_grid])
+      expect(sections.first.dig(:crate, :slug)).to eq("picks")
+      expect(sections.second[:crates].map { |crate| crate[:slug] }).to eq([ "new-arrivals" ])
+      expect(sections.third[:crates].map { |crate| crate[:slug] }).to eq([ "jazz" ])
+    end
+
+    it "omits the featured section when no featured crates are present" do
+      sections = described_class.new(fake_store).build_storefront_sections(
+        picks:,
+        featured: [],
+        genres: [ genre ]
+      )
+
+      expect(sections.map { |section| section[:key] }).to eq(%w[picks_wall genre_grid])
+    end
+  end
 end

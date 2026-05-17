@@ -21,29 +21,27 @@ class StorefrontCuration
     ]
   end
 
-  def storefront_sections
-    picks_crate = CuratedCrate.new(slug: "picks", name: "Milkcrate Picks", listings: picks_strategy.select(eligible_listings, excluded_ids: Set.new, count: 12))
+  def storefront_groups
+    picks_crate = CuratedCrate.new(
+      slug: "picks",
+      name: "Milkcrate Picks",
+      listings: picks_strategy.select(eligible_listings, excluded_ids: Set.new, count: 12)
+    )
     seen_ids = picks_crate.listings.map(&:id).to_set
 
-    sections = [ { key: "picks_wall", crate: picks_crate } ]
-
     featured_crates = build_featured_crates(excluded_ids: seen_ids)
-    if featured_crates.present?
-      featured_crates.each { |crate| crate.listings.each { |listing| seen_ids.add(listing.id) } }
-      sections << { key: "featured_crates", crates: featured_crates }
-    end
+    featured_crates.each { |crate| crate.listings.each { |listing| seen_ids.add(listing.id) } }
 
-    sections << { key: "genre_grid", crates: build_genre_crates(excluded_ids: seen_ids) }
-    sections
+    {
+      picks: picks_crate,
+      featured: featured_crates,
+      genres: build_genre_crates(excluded_ids: seen_ids)
+    }
   end
 
   def surfaced_listings
-    storefront_sections.flat_map { |section|
-      crates = []
-      crates << section[:crate] if section[:crate]
-      crates.concat(section[:crates]) if section[:crates]
-      crates
-    }.flat_map(&:listings).uniq(&:id)
+    groups = storefront_groups
+    ([ groups[:picks] ] + groups[:featured] + groups[:genres]).flat_map(&:listings).uniq(&:id)
   end
 
   private

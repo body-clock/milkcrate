@@ -48,6 +48,18 @@ class Store < ApplicationRecord
     )
   end
 
+  def mark_enrichment_started!
+    update!(enrichment_status: "enriching")
+  end
+
+  def mark_enrichment_succeeded!(finished_at: Time.current)
+    update!(enrichment_status: "idle", last_enriched_at: finished_at)
+  end
+
+  def mark_enrichment_failed!
+    update!(enrichment_status: "failed")
+  end
+
   private
 
   def normalize_discogs_username
