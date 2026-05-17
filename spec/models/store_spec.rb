@@ -52,6 +52,55 @@ RSpec.describe Store, type: :model do
     end
   end
 
+  describe "storefront snapshots" do
+    let(:store) { create(:store) }
+    let(:generated_at) { Time.zone.parse("2026-05-17 09:00:00") }
+
+    def snapshot_attrs(overrides = {})
+      {
+        curation_date: Date.current,
+        status: "ready",
+        active: true,
+        props_schema_version: StorefrontSnapshot::CURRENT_PROPS_SCHEMA_VERSION,
+        crates: [
+          {
+            "slug" => "picks",
+            "name" => "Milkcrate Picks",
+            "count" => 1,
+            "records" => []
+          }
+        ],
+        storefront_sections: [
+          {
+            "key" => "picks_wall",
+            "crate" => {
+              "slug" => "picks",
+              "name" => "Milkcrate Picks",
+              "count" => 1,
+              "records" => []
+            }
+          }
+        ],
+        surfaced_listing_ids: [],
+        generated_at: generated_at,
+        metrics: {}
+      }.merge(overrides)
+    end
+
+    it "has many storefront snapshots" do
+      snapshot = store.storefront_snapshots.create!(snapshot_attrs)
+
+      expect(store.storefront_snapshots).to include(snapshot)
+    end
+
+    it "returns the active compatible storefront snapshot" do
+      current = store.storefront_snapshots.create!(snapshot_attrs)
+      store.storefront_snapshots.create!(snapshot_attrs(active: false, props_schema_version: StorefrontSnapshot::CURRENT_PROPS_SCHEMA_VERSION - 1))
+
+      expect(store.active_storefront_snapshot).to eq(current)
+    end
+  end
+
   describe "sync lifecycle" do
     it "marks sync success with supplied metadata" do
       store = create(:store, sync_status: "failed", last_sync_error: "boom", last_sync_error_at: 1.hour.ago)

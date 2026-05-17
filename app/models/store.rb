@@ -1,5 +1,6 @@
 class Store < ApplicationRecord
   has_many :listings, dependent: :destroy
+  has_many :storefront_snapshots, dependent: :destroy
 
   before_validation :normalize_discogs_username, if: :discogs_username_changed?
 
@@ -28,6 +29,10 @@ class Store < ApplicationRecord
 
   def stale?
     last_synced_at.nil? || last_synced_at < 23.hours.ago
+  end
+
+  def active_storefront_snapshot
+    storefront_snapshots.active_compatible.order(generated_at: :desc, id: :desc).first
   end
 
   def mark_sync_succeeded!(attributes = {})

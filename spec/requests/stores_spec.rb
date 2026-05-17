@@ -3,6 +3,16 @@ require "rails_helper"
 RSpec.describe "Stores", type: :request do
   include ActiveSupport::Testing::TimeHelpers
 
+  def snapshot_metrics(crates, storefront_sections)
+    {
+      crate_count: crates.size,
+      record_count: crates.sum { |crate| crate[:count] },
+      surfaced_count: crates.flat_map { |crate| crate[:records].map { |record| record[:id] } }.uniq.size,
+      payload_bytes: JSON.generate({ crates:, storefront_sections: }).bytesize,
+      duration_ms: 1
+    }
+  end
+
   describe "GET /:slug" do
     shared_examples "resolves store at slug" do |slug|
       it "returns 200 for /#{slug}" do
@@ -16,22 +26,214 @@ RSpec.describe "Stores", type: :request do
       end
     end
 
+    context "with an active compatible storefront snapshot" do
+      let!(:store) { create(:store, discogs_username: "TestStore") }
+      let!(:pick_listing) { create(:listing, store:, format: "LP", genres: [ "Jazz" ], styles: [ "Bop" ], last_seen_at: Time.current) }
+      let!(:genre_listing) { create(:listing, store:, format: "LP", genres: [ "Rock" ], styles: [ "Indie Rock" ], last_seen_at: Time.current) }
+      let(:picks_crate) { CuratedCrate.new(slug: "picks", name: "Milkcrate Picks", listings: [ pick_listing ]) }
+      let(:genre_crate) { CuratedCrate.new(slug: "jazz", name: "Jazz", listings: [ genre_listing ]) }
+      let(:groups) { { picks: picks_crate, featured: [], genres: [ genre_crate ] } }
+      let(:presenter) { CratePresenter.new(store) }
+      let(:snapshot_crates) { presenter.build_crates([ picks_crate, genre_crate ]) }
+      let(:snapshot_sections) { presenter.build_storefront_sections(groups) }
+      let!(:snapshot) do
+        create(
+          :storefront_snapshot,
+          store:,
+          active: true,
+          status: "ready",
+          props_schema_version: StorefrontSnapshot::CURRENT_PROPS_SCHEMA_VERSION,
+          crates: snapshot_crates,
+          storefront_sections: snapshot_sections,
+          surfaced_listing_ids: [ pick_listing.id, genre_listing.id ],
+          generated_at: Time.zone.parse("2026-05-17 09:00:00"),
+          metrics: snapshot_metrics(snapshot_crates, snapshot_sections)
+        )
+      end
+
+      before do
+        expect(StorefrontCuration).not_to receive(:new)
+      end
+
+      include_examples "resolves store at slug", "teststore"
+      include_examples "resolves store at slug", "TESTSTORE"
+
+      it "serves the snapshot payload and live store metadata" do
+        get "/teststore"
+
+        aggregate_failures do
+          expect(inertia.props["store"]).to include(
+            "id" => store.id,
+            "name" => store.name,
+            "discogs_username" => store.discogs_username,
+            "description" => store.description,
+            "sync_status" => store.sync_status,
+            "enrichment_status" => store.enrichment_status
+          )
+          expect(inertia.props["crates"]).to eq(snapshot_crates.map(&:deep_stringify_keys))
+          expect(inertia.props["storefront_sections"]).to eq(snapshot_sections.map(&:deep_stringify_keys))
+          expect(inertia.props["active_crate_slug"]).to eq("picks")
+        end
+      end
+
+      it "sends Content-Security-Policy header on the storefront page" do
+        get "/teststore"
+        expect(response.headers["Content-Security-Policy"]).to be_present
+      end
+
+      it "includes script-src with nonce in the storefront CSP" do
+        get "/teststore"
+        csp = response.headers["Content-Security-Policy"]
+        expect(csp).to include("script-src")
+        expect(csp).to include("'nonce-")
+      end
+    end
+
+    context "when the active snapshot schema is stale but a compatible snapshot exists" do
+      let!(:store) { create(:store, discogs_username: "TestStore") }
+      let!(:pick_listing) { create(:listing, store:, format: "LP", genres: [ "Jazz" ], styles: [ "Bop" ], last_seen_at: Time.current) }
+      let!(:genre_listing) { create(:listing, store:, format: "LP", genres: [ "Rock" ], styles: [ "Indie Rock" ], last_seen_at: Time.current) }
+      let(:picks_crate) { CuratedCrate.new(slug: "picks", name: "Milkcrate Picks", listings: [ pick_listing ]) }
+      let(:genre_crate) { CuratedCrate.new(slug: "jazz", name: "Jazz", listings: [ genre_listing ]) }
+      let(:groups) { { picks: picks_crate, featured: [], genres: [ genre_crate ] } }
+      let(:presenter) { CratePresenter.new(store) }
+      let(:latest_crates) { presenter.build_crates([ picks_crate, genre_crate ]) }
+      let(:latest_sections) { presenter.build_storefront_sections(groups) }
+      let!(:stale_snapshot) do
+        create(
+          :storefront_snapshot,
+          store:,
+          active: true,
+          status: "ready",
+          props_schema_version: StorefrontSnapshot::CURRENT_PROPS_SCHEMA_VERSION - 1,
+          crates: latest_crates,
+          storefront_sections: latest_sections,
+          surfaced_listing_ids: [ pick_listing.id, genre_listing.id ],
+          generated_at: 2.days.ago,
+          metrics: snapshot_metrics(latest_crates, latest_sections)
+        )
+      end
+      let!(:compatible_snapshot) do
+        create(
+          :storefront_snapshot,
+          store:,
+          active: false,
+          status: "ready",
+          props_schema_version: StorefrontSnapshot::CURRENT_PROPS_SCHEMA_VERSION,
+          crates: latest_crates,
+          storefront_sections: latest_sections,
+          surfaced_listing_ids: [ pick_listing.id, genre_listing.id ],
+          generated_at: Time.zone.parse("2026-05-17 09:00:00"),
+          metrics: snapshot_metrics(latest_crates, latest_sections)
+        )
+      end
+
+      before do
+        expect(StorefrontCuration).not_to receive(:new)
+      end
+
+      include_examples "resolves store at slug", "teststore"
+      include_examples "resolves store at slug", "TESTSTORE"
+
+      it "serves the latest compatible snapshot when the active snapshot schema is stale" do
+        get "/teststore"
+
+        expect(inertia.props["crates"]).to eq(latest_crates.map(&:deep_stringify_keys))
+        expect(inertia.props["storefront_sections"]).to eq(latest_sections.map(&:deep_stringify_keys))
+        expect(inertia.props["active_crate_slug"]).to eq("picks")
+        expect(stale_snapshot.reload.active).to be(true)
+      end
+    end
+
+    context "when a compatible snapshot is stale but still renderable" do
+      let!(:store) { create(:store, discogs_username: "TestStore") }
+      let!(:pick_listing) { create(:listing, store:, format: "LP", genres: [ "Jazz" ], styles: [ "Bop" ], last_seen_at: Time.current) }
+      let!(:genre_listing) { create(:listing, store:, format: "LP", genres: [ "Rock" ], styles: [ "Indie Rock" ], last_seen_at: Time.current) }
+      let(:picks_crate) { CuratedCrate.new(slug: "picks", name: "Milkcrate Picks", listings: [ pick_listing ]) }
+      let(:genre_crate) { CuratedCrate.new(slug: "jazz", name: "Jazz", listings: [ genre_listing ]) }
+      let(:groups) { { picks: picks_crate, featured: [], genres: [ genre_crate ] } }
+      let(:presenter) { CratePresenter.new(store) }
+      let(:stale_crates) { presenter.build_crates([ picks_crate, genre_crate ]) }
+      let(:stale_sections) { presenter.build_storefront_sections(groups) }
+      let(:logged_messages) { [] }
+      let!(:snapshot) do
+        create(
+          :storefront_snapshot,
+          store:,
+          active: true,
+          status: "ready",
+          props_schema_version: StorefrontSnapshot::CURRENT_PROPS_SCHEMA_VERSION,
+          curation_date: Date.current - 1,
+          crates: stale_crates,
+          storefront_sections: stale_sections,
+          surfaced_listing_ids: [ pick_listing.id, genre_listing.id ],
+          generated_at: 1.day.ago,
+          metrics: snapshot_metrics(stale_crates, stale_sections)
+        )
+      end
+
+      before do
+        expect(StorefrontCuration).not_to receive(:new)
+        allow(Rails.logger).to receive(:info) do |*args|
+          message = args.first
+          logged_messages << message if message.is_a?(String)
+        end
+      end
+
+      it "serves the stale snapshot and logs the stale hit" do
+        get "/teststore"
+
+        expect(inertia.props["crates"]).to eq(stale_crates.map(&:deep_stringify_keys))
+        expect(inertia.props["storefront_sections"]).to eq(stale_sections.map(&:deep_stringify_keys))
+        expect(logged_messages.any? { |message| message.include?("stale_snapshot=true") && message.include?("snapshot_id=#{snapshot.id}") }).to be(true)
+      end
+    end
+
+    context "when the active snapshot payload is malformed" do
+      let!(:store) { create(:store, discogs_username: "badstore") }
+      let!(:pick_listing) { create(:listing, store:, format: "LP", genres: [ "Jazz" ], styles: [ "Bop" ], last_seen_at: Time.current) }
+      let(:picks_crate) { CuratedCrate.new(slug: "picks", name: "Milkcrate Picks", listings: [ pick_listing ]) }
+      let(:groups) { { picks: picks_crate, featured: [], genres: [] } }
+      let(:presenter) { CratePresenter.new(store) }
+      let(:live_crates) { presenter.build_crates([ picks_crate ]) }
+      let(:live_sections) { presenter.build_storefront_sections(groups) }
+      let!(:snapshot) do
+        create(
+          :storefront_snapshot,
+          store:,
+          active: true,
+          status: "ready",
+          props_schema_version: StorefrontSnapshot::CURRENT_PROPS_SCHEMA_VERSION,
+          crates: live_crates,
+          storefront_sections: live_sections,
+          surfaced_listing_ids: [ pick_listing.id ],
+          generated_at: Time.zone.parse("2026-05-17 09:00:00"),
+          metrics: snapshot_metrics(live_crates, live_sections)
+        )
+      end
+
+      before do
+        snapshot.update_columns(crates: {}, storefront_sections: {})
+
+        curation = instance_double(StorefrontCuration)
+        allow(StorefrontCuration).to receive(:new).with(store, filter_available: true).and_return(curation)
+        allow(curation).to receive(:crates).and_return([ picks_crate ])
+        allow(curation).to receive(:storefront_groups).and_return(groups)
+      end
+
+      it "falls back to live curation instead of serving malformed JSON" do
+        get "/badstore"
+
+        expect(inertia.props["crates"]).to eq(live_crates.map(&:deep_stringify_keys))
+        expect(inertia.props["storefront_sections"]).to eq(live_sections.map(&:deep_stringify_keys))
+      end
+    end
+
     context "with existing store" do
       let!(:store) { create(:store, discogs_username: "TestStore") }
 
       include_examples "resolves store at slug", "teststore"
       include_examples "resolves store at slug", "TESTSTORE"
-
-      before do
-        curation = instance_double(StorefrontCuration, crates: [], storefront_groups: { picks: CuratedCrate.new(slug: "picks", name: "Milkcrate Picks", listings: []), featured: [], genres: [] })
-        presenter_double = instance_double(CratePresenter,
-          store_props: { id: store.id, name: store.name },
-          build_crates: [],
-          build_storefront_sections: []
-        )
-        allow(StorefrontCuration).to receive(:new).and_return(curation)
-        allow(CratePresenter).to receive(:new).and_return(presenter_double)
-      end
 
       it "sends Content-Security-Policy header on the storefront page" do
         get "/teststore"

@@ -2,7 +2,9 @@ InertiaRails.configure do |config|
   config.layout = "inertia_application"
 
   # Cache busting — ensures users get fresh JS after deployments
-  config.version = -> { ViteRuby.digest }
+  # Compute once at boot — avoids thread-unsafe Dir.chdir in Ruby 3.4+
+  # Vite HMR handles development cache busting dynamically.
+  config.version = ViteRuby.digest
 
   # Flash keys are automatically shared as top-level props by Inertia Rails
   # Default: %i[notice alert] — accessible as page.props.notice, page.props.alert
