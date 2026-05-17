@@ -31,11 +31,12 @@ class StoresController < ApplicationController
     curation  = StorefrontCuration.new(store, filter_available: !Rails.env.development?)
     presenter = CratePresenter.new(store)
     curated_crates = curation.crates
+    storefront_groups = curation.storefront_groups
 
     render inertia: "stores/featured", props: {
       store: presenter.store_props,
       crates: presenter.build_crates(curated_crates),
-      storefront_sections: presenter.build_storefront_sections(curation.storefront_sections),
+      storefront_sections: presenter.build_storefront_sections(storefront_groups),
       active_crate_slug: "picks"
     }
   end

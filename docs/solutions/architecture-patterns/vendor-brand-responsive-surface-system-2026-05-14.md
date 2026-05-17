@@ -1,7 +1,7 @@
 ---
 title: "Vendor brand and responsive surface system — shared brand, shell, and primitives"
 date: 2026-05-14
-category: docs/solutions/architecture-patterns/
+category: architecture-patterns
 module: storefront
 problem_type: architecture_pattern
 component: frontend

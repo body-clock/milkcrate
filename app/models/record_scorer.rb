@@ -52,6 +52,17 @@ class RecordScorer
     }
   end
 
+  def good_condition?(listing)
+    condition_points(listing).positive?
+  end
+
+  def desirable?(listing)
+    have = listing.have_count.to_i
+    return false if have < WANT_HAVE_MIN_HAVE
+
+    listing.want_count.to_i.to_f / have >= WANT_HAVE_RATIO_HIGH
+  end
+
   private
 
   def vintage_points(listing)

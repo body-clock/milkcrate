@@ -51,4 +51,61 @@ RSpec.describe Store, type: :model do
       expect(Store.with_discogs_username("anything").first).to be_nil
     end
   end
+
+  describe "sync lifecycle" do
+    it "marks sync success with supplied metadata" do
+      store = create(:store, sync_status: "failed", last_sync_error: "boom", last_sync_error_at: 1.hour.ago)
+      synced_at = Time.zone.parse("2026-05-05 12:00:00")
+
+      store.mark_sync_succeeded!(last_synced_at: synced_at, catalog_coverage: "partial", inventory_page_count: 101)
+
+      expect(store.reload).to have_attributes(
+        sync_status: "idle",
+        last_sync_error: nil,
+        last_sync_error_at: nil,
+        last_synced_at: synced_at,
+        catalog_coverage: "partial",
+        inventory_page_count: 101
+      )
+    end
+
+    it "marks sync failure with summarized error details" do
+      store = create(:store)
+      error = RuntimeError.new("discogs timeout")
+
+      store.mark_sync_failed!(error)
+
+      expect(store.reload.sync_status).to eq("failed")
+      expect(store.last_sync_error).to include("RuntimeError: discogs timeout")
+      expect(store.last_sync_error_at).to be_present
+    end
+  end
+
+  describe "enrichment lifecycle" do
+    it "marks enrichment as started" do
+      store = create(:store)
+
+      store.mark_enrichment_started!
+
+      expect(store.reload.enrichment_status).to eq("enriching")
+    end
+
+    it "marks enrichment as succeeded" do
+      store = create(:store, enrichment_status: "enriching", last_enriched_at: nil)
+      finished_at = Time.zone.parse("2026-05-05 12:00:00")
+
+      store.mark_enrichment_succeeded!(finished_at:)
+
+      expect(store.reload.enrichment_status).to eq("idle")
+      expect(store.last_enriched_at).to eq(finished_at)
+    end
+
+    it "marks enrichment as failed" do
+      store = create(:store, enrichment_status: "enriching")
+
+      store.mark_enrichment_failed!
+
+      expect(store.reload.enrichment_status).to eq("failed")
+    end
+  end
 end

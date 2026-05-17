@@ -100,6 +100,10 @@ const featuredProps: FeaturedProps = {
 }
 
 const adminProps: AdminDashboardProps = {
+  discogs_onboarding: {
+    lookup_path: "/admin/discogs_lookup",
+    create_path: "/admin/onboarding",
+  },
   active_stores: [
     {
       id: 1,

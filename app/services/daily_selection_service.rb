@@ -23,9 +23,6 @@ class DailySelectionService
   # Ensures long-tail catalog gets surfaced over time.
   UNSEEN_BOOST = 4
 
-  GOOD_CONDITIONS   = RecordScorer::GOOD_CONDITIONS
-  CONDITION_ALIASES = RecordScorer::CONDITION_ALIASES
-
   # ─────────────────────────────────────────────────────────────────────────
 
   def initialize(store)
@@ -48,13 +45,13 @@ class DailySelectionService
     return [] unless yesterday&.listing_ids&.any?
 
     carry_count = (SELECTION_SIZE * OVERLAP_FRACTION).to_i
-    scored = score_listings(@store.listings.where(id: yesterday.listing_ids))
+    scored = score_listings(@store.listings.where(id: yesterday.listing_ids), date:)
     scored.max_by(carry_count) { |_, s| s }.map { |l, _| l.id }
   end
 
   def compute_fresh(date, exclude_ids:)
     fresh_count = SELECTION_SIZE - exclude_ids.size
-    candidates = score_listings(@store.listings.where.not(id: exclude_ids))
+    candidates = score_listings(@store.listings.where.not(id: exclude_ids), date:)
 
     # Efraimidis-Spirakis weighted reservoir sampling:
     # Each listing gets rand^(1/weight) — higher weight = higher probability.
@@ -65,31 +62,22 @@ class DailySelectionService
       .map { |l, _| l.id }
   end
 
-  def score_listings(scope)
-    recent_ids = recent_selection_ids
+  def score_listings(scope, date:)
+    recent_ids = recent_selection_ids(date)
+    scorer = record_scorer(date)
 
     scope.map do |listing|
       weight = 1 # base weight — every record has a chance
 
       # Recency: how recently was it listed in the store
       if listing.listed_at
-        days_ago = (Date.current - listing.listed_at.to_date).to_i
+        days_ago = (date - listing.listed_at.to_date).to_i
         weight += RECENCY_WEIGHT if days_ago < 30
         weight += (RECENCY_WEIGHT - 1) if days_ago.between?(30, 90)
       end
 
-      # Condition quality
-      good_condition = GOOD_CONDITIONS.include?(listing.condition&.strip) ||
-                       CONDITION_ALIASES.include?(listing.condition&.strip&.downcase)
-      weight += QUALITY_WEIGHT if good_condition
-
-      # Desirability: want/have ratio signals market demand
-      have = listing.have_count.to_i
-      want = listing.want_count.to_i
-      if have >= RecordScorer::WANT_HAVE_MIN_HAVE
-        ratio = want.to_f / have
-        weight += DESIRABILITY_WEIGHT if ratio >= RecordScorer::WANT_HAVE_RATIO_HIGH
-      end
+      weight += QUALITY_WEIGHT if scorer.good_condition?(listing)
+      weight += DESIRABILITY_WEIGHT if scorer.desirable?(listing)
 
       # Unseen boost — hasn't appeared in recent selections
       weight += UNSEEN_BOOST unless recent_ids.include?(listing.id)
@@ -98,11 +86,24 @@ class DailySelectionService
     end
   end
 
-  def recent_selection_ids
-    @recent_selection_ids ||= DailySelection
+  def recent_selection_ids(date)
+    @recent_selection_ids_by_date ||= {}
+    @recent_selection_ids_by_date[date] ||= DailySelection
       .where(store: @store)
-      .where(selected_on: (Date.current - 7)..Date.current)
+      .where(selected_on: (date - 7)..date)
       .flat_map(&:listing_ids)
       .to_set
+  end
+
+  def record_scorer(date)
+    @record_scorers_by_date ||= {}
+    @record_scorers_by_date[date] ||= RecordScorer.new(
+      genre_counts: genre_counts,
+      today: date
+    )
+  end
+
+  def genre_counts
+    @genre_counts ||= @store.listings.pluck(:genres).flatten.compact.tally
   end
 end

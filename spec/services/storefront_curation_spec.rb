@@ -88,8 +88,8 @@ RSpec.describe StorefrontCuration do
     end
   end
 
-  describe "#storefront_sections" do
-    it "returns explicit sections in storefront order" do
+  describe "#storefront_groups" do
+    it "returns grouped crates without storefront section keys" do
       travel_to(Time.zone.parse("2026-05-05 12:00:00")) do
         store = create(:store)
         picks = lp_listings(store, count: 1, genres: [ "Jazz" ], styles: [ "Bop" ], listed_at: 10.days.ago)
@@ -110,18 +110,18 @@ RSpec.describe StorefrontCuration do
           featured: [ na_crate, tm_crate ]
         )
 
-        sections = curation.storefront_sections
+        groups = curation.storefront_groups
 
-        expect(sections.map { |section| section[:key] }).to eq(%w[picks_wall featured_crates genre_grid])
-        expect(section_crate(sections[0]).slug).to eq("picks")
-        expect(section_crates(sections[1]).map(&:slug)).to eq(%w[new-arrivals thematic])
-        expect(section_crates(sections[1]).first.listings).to eq(fresh)
-        expect(section_crates(sections[2]).map(&:slug)).to eq([ "rock" ])
-        expect(section_crates(sections[2]).first.listings).to eq(genre_only)
+        expect(groups.keys).to eq(%i[picks featured genres])
+        expect(groups[:picks].slug).to eq("picks")
+        expect(groups[:featured].map(&:slug)).to eq(%w[new-arrivals thematic])
+        expect(groups[:featured].first.listings).to eq(fresh)
+        expect(groups[:genres].map(&:slug)).to eq([ "rock" ])
+        expect(groups[:genres].first.listings).to eq(genre_only)
       end
     end
 
-    it "dedupes top down across picks featured and genre sections" do
+    it "dedupes top down across picks featured and genre groups" do
       travel_to(Time.zone.parse("2026-05-05 12:00:00")) do
         store = create(:store)
         pick = lp_listings(store, count: 1, genres: [ "Jazz" ], styles: [ "Bop" ], listed_at: 10.days.ago)
@@ -142,9 +142,9 @@ RSpec.describe StorefrontCuration do
           featured: [ na_crate, tm_crate ]
         )
 
-        sections = curation.storefront_sections
-        featured_records = section_crates(sections[1]).flat_map(&:listings)
-        genre_records = section_crates(sections[2]).flat_map(&:listings)
+        groups = curation.storefront_groups
+        featured_records = groups[:featured].flat_map(&:listings)
+        genre_records = groups[:genres].flat_map(&:listings)
 
         expect(featured_records).not_to include(pick)
         expect(genre_records).not_to include(*pick, *fresh, *themed)
@@ -152,7 +152,7 @@ RSpec.describe StorefrontCuration do
       end
     end
 
-    it "omits featured row when a featured crate underfills" do
+    it "returns an empty featured group when a featured crate underfills" do
       travel_to(Time.zone.parse("2026-05-05 12:00:00")) do
         store = create(:store)
         pick = lp_listings(store, count: 1, genres: [ "Jazz" ], styles: [ "Bop" ])
@@ -170,10 +170,10 @@ RSpec.describe StorefrontCuration do
           featured: [] # underfilled — featured row omitted
         )
 
-        sections = curation.storefront_sections
+        groups = curation.storefront_groups
 
-        expect(sections.map { |section| section[:key] }).to eq(%w[picks_wall genre_grid])
-        expect(section_crates(sections.last).flat_map(&:listings)).to include(fresh.first, themed.first, genre.first)
+        expect(groups[:featured]).to eq([])
+        expect(groups[:genres].flat_map(&:listings)).to include(fresh.first, themed.first, genre.first)
       end
     end
 
@@ -188,11 +188,11 @@ RSpec.describe StorefrontCuration do
         curation_a = described_class.new(store)
         curation_b = described_class.new(store)
 
-        sections_a = curation_a.storefront_sections.find { |section| section[:key] == "featured_crates" }
-        sections_b = curation_b.storefront_sections.find { |section| section[:key] == "featured_crates" }
+        groups_a = curation_a.storefront_groups
+        groups_b = curation_b.storefront_groups
 
-        thematic_a = section_crates(sections_a).last if sections_a
-        thematic_b = section_crates(sections_b).last if sections_b
+        thematic_a = groups_a[:featured].last
+        thematic_b = groups_b[:featured].last
 
         if thematic_a && thematic_b
           expect(thematic_a.name).to eq(thematic_b.name)
