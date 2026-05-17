@@ -8,6 +8,7 @@ Rails.application.routes.draw do
   end
 
   get "/admin", to: "admin/dashboard#show"
+  get "/admin/discogs_lookup", to: "admin/discogs_lookups#show", as: :admin_discogs_lookup
   post "/admin/waitlists/:waitlist_id/onboarding", to: "admin/onboardings#create", as: :admin_waitlist_onboarding
 
   root "pages#home"
