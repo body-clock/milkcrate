@@ -23,7 +23,7 @@ RSpec.describe "Stores", type: :request do
       include_examples "resolves store at slug", "TESTSTORE"
 
       before do
-        curation = instance_double(StorefrontCuration, crates: [], storefront_sections: [])
+        curation = instance_double(StorefrontCuration, crates: [], storefront_groups: { picks: CuratedCrate.new(slug: "picks", name: "Milkcrate Picks", listings: []), featured: [], genres: [] })
         presenter_double = instance_double(CratePresenter,
           store_props: { id: store.id, name: store.name },
           build_crates: [],

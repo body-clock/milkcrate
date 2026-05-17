@@ -9,6 +9,16 @@ class EnrichmentService
     @musicbrainz = MusicBrainzClient.new
   end
 
+  def enrich_store(store, listing_ids: nil)
+    store.mark_enrichment_started!
+    enrich_releases(store, listing_ids:)
+    enrich_music_brainz_images(store)
+    store.mark_enrichment_succeeded!
+  rescue StandardError
+    store.mark_enrichment_failed!
+    raise
+  end
+
   # ── Discogs Release Enrichment ──────────────────────────────────────────
 
   def enrich_releases(store, listing_ids: nil)

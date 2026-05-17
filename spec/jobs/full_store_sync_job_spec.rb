@@ -18,7 +18,12 @@ RSpec.describe FullStoreSyncJob do
     allow(StoreSyncService).to receive(:new).with(store).and_return(sync_service)
     # Simulate service managing sync status internally.
     allow(sync_service).to receive(:sync) do |**|
-      store.update!(sync_status: "idle", last_synced_at: Time.current)
+      store.mark_sync_succeeded!(
+        last_synced_at: Time.current,
+        total_listings: store.listings.count,
+        catalog_coverage: sync_result.catalog_coverage,
+        inventory_page_count: sync_result.inventory_page_count
+      )
       sync_result
     end
   end
@@ -70,6 +75,12 @@ RSpec.describe FullStoreSyncJob do
       travel_to(Time.zone.parse("2026-05-05 12:00:00")) do
         allow(sync_service).to receive(:sync) do
           create(:listing, store:, format: "LP", last_seen_at: 2.seconds.from_now)
+          store.mark_sync_succeeded!(
+            last_synced_at: Time.current,
+            total_listings: store.listings.count,
+            catalog_coverage: sync_result.catalog_coverage,
+            inventory_page_count: sync_result.inventory_page_count
+          )
           travel 5.seconds
           sync_result
         end
@@ -80,6 +91,15 @@ RSpec.describe FullStoreSyncJob do
         expect(store.last_synced_at).to eq(Time.zone.parse("2026-05-05 12:00:00"))
         expect(store.listings.available.count).to eq(1)
       end
+    end
+
+    it "leaves sync metadata ownership with StoreSyncService" do
+      described_class.new.perform(store.id)
+
+      store.reload
+      expect(store.catalog_coverage).to eq("partial")
+      expect(store.inventory_page_count).to eq(101)
+      expect(store.total_listings).to eq(0)
     end
   end
 end

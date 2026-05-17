@@ -23,20 +23,20 @@ class CratePresenter
     end
   end
 
-  def build_storefront_sections(sections)
-    sections.map do |section|
-      if section[:crate]
-        {
-          key: section[:key],
-          crate: crate_props(section[:crate].slug, section[:crate].name, section[:crate].listings)
-        }
-      else
-        {
-          key: section[:key],
-          crates: build_crates(section[:crates])
-        }
-      end
+  def build_storefront_sections(groups)
+    sections = [
+      {
+        key: "picks_wall",
+        crate: crate_props(groups[:picks].slug, groups[:picks].name, groups[:picks].listings)
+      }
+    ]
+
+    if groups[:featured].present?
+      sections << { key: "featured_crates", crates: build_crates(groups[:featured]) }
     end
+
+    sections << { key: "genre_grid", crates: build_crates(groups[:genres]) }
+    sections
   end
 
   private

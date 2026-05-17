@@ -11,6 +11,44 @@ RSpec.describe EnrichmentService do
     allow(MusicBrainzClient).to receive(:new).and_return(musicbrainz)
   end
 
+  describe "#enrich_store" do
+    it "sets enrichment lifecycle state around both enrichment phases" do
+      allow(service).to receive(:enrich_releases)
+      allow(service).to receive(:enrich_music_brainz_images)
+
+      service.enrich_store(store, listing_ids: [ 1, 2 ])
+
+      expect(service).to have_received(:enrich_releases).with(store, listing_ids: [ 1, 2 ])
+      expect(service).to have_received(:enrich_music_brainz_images).with(store)
+      expect(store.reload.enrichment_status).to eq("idle")
+      expect(store.last_enriched_at).to be_within(1.second).of(Time.current)
+    end
+
+    it "marks enrichment failed and re-raises on hard failure" do
+      allow(service).to receive(:enrich_releases).and_raise(StandardError.new("boom"))
+      allow(service).to receive(:enrich_music_brainz_images)
+
+      expect {
+        service.enrich_store(store)
+      }.to raise_error(StandardError, "boom")
+
+      expect(store.reload.enrichment_status).to eq("failed")
+      expect(service).not_to have_received(:enrich_music_brainz_images)
+    end
+
+    it "finishes idle when individual API errors are handled inside enrichment phases" do
+      listing = create(:listing, store:, discogs_release_id: "123", format: "Vinyl")
+      Release.create!(discogs_release_id: "123", enriched_at: 8.days.ago, want_count: 0, have_count: 0)
+      allow(discogs).to receive(:release).with("123").and_raise(DiscogsClient::ApiError, "Not found")
+      allow(musicbrainz).to receive(:search_release)
+      expect(Rails.logger).to receive(:warn).with(/API error/)
+
+      service.enrich_store(store, listing_ids: [ listing.id ])
+
+      expect(store.reload.enrichment_status).to eq("idle")
+    end
+  end
+
   describe "#enrich_releases" do
     let!(:listing) do
       create(:listing, store:, discogs_release_id: "123", format: "Vinyl")
