@@ -106,9 +106,15 @@ export interface AdminApplicantSummary {
   submitted_at: string
 }
 
+export interface AdminDiscogsOnboardingConfig {
+  lookup_path: string
+  create_path: string
+}
+
 export interface AdminDashboardProps {
   active_stores: AdminStoreSummary[]
   applicants: AdminApplicantSummary[]
+  discogs_onboarding: AdminDiscogsOnboardingConfig
   notice?: string
   alert?: string
 }

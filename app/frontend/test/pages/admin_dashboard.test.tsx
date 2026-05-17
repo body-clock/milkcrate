@@ -1,11 +1,16 @@
 import React from "react"
-import { describe, expect, it } from "vitest"
-import { render, screen } from "@testing-library/react"
+import { afterEach, describe, expect, it, vi } from "vitest"
+import { render, screen, waitFor } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import { renderWithTier } from "@/test/viewport-test-utils"
 import Dashboard from "@/pages/admin/dashboard"
 import type { AdminDashboardProps } from "@/types/inertia"
 
 const props: AdminDashboardProps = {
+  discogs_onboarding: {
+    lookup_path: "/admin/discogs_lookup",
+    create_path: "/admin/onboarding",
+  },
   active_stores: [
     {
       id: 1,
@@ -88,6 +93,10 @@ const props: AdminDashboardProps = {
 }
 
 describe("Admin dashboard", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
   it("renders active stores before applicants", () => {
     render(<Dashboard {...props} />)
 
@@ -116,22 +125,193 @@ describe("Admin dashboard", () => {
     expect(screen.getByText("applicant@example.com")).toBeInTheDocument()
     expect(screen.getByText("@applicant-records")).toBeInTheDocument()
     expect(screen.getByText("Strong jazz inventory and used LPs.")).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: "Onboard store" })).toBeInTheDocument()
-    expect(document.querySelector("form")?.getAttribute("action")).toBe("/admin/waitlists/10/onboarding")
+    const onboardButton = screen.getByRole("button", { name: "Onboard store" })
+    expect(onboardButton).toBeInTheDocument()
+    expect(onboardButton.closest("form")).toHaveAttribute("action", "/admin/waitlists/10/onboarding")
   })
 
   it("renders useful empty states", () => {
-    render(<Dashboard active_stores={[]} applicants={[]} />)
+    render(<Dashboard {...props} active_stores={[]} applicants={[]} />)
 
     expect(screen.getByText("No stores online yet.")).toBeInTheDocument()
     expect(screen.getByText("No applicants waiting.")).toBeInTheDocument()
   })
 
   it("renders admin flash notices and alerts", () => {
-    render(<Dashboard active_stores={[]} applicants={[]} notice="Onboarding queued" alert="Store already exists" />)
+    render(<Dashboard {...props} active_stores={[]} applicants={[]} notice="Onboarding queued" alert="Store already exists" />)
 
     expect(screen.getByText("Onboarding queued")).toBeInTheDocument()
     expect(screen.getByText("Store already exists")).toBeInTheDocument()
+  })
+
+  it("renders the admin-created storefront lookup panel", () => {
+    render(<Dashboard {...props} />)
+
+    expect(screen.getByRole("heading", { name: "Add Discogs storefront" })).toBeInTheDocument()
+    expect(screen.getByLabelText("Discogs username")).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Lookup" })).toBeInTheDocument()
+  })
+
+  it("renders a creatable lookup preview with a separate confirmation form", async () => {
+    const user = userEvent.setup()
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        status: "creatable",
+        creatable: true,
+        username: "realseller",
+        seller_name: "Real Seller",
+        avatar_url: "https://example.com/avatar.jpg",
+      }),
+    })
+    vi.stubGlobal("fetch", fetchMock)
+
+    const { container } = render(<Dashboard {...props} />)
+
+    await user.type(screen.getByLabelText("Discogs username"), "RealSeller")
+    await user.click(screen.getByRole("button", { name: "Lookup" }))
+
+    expect(await screen.findByText("Real Seller")).toBeInTheDocument()
+    expect(screen.getByText("@realseller")).toBeInTheDocument()
+    expect(container.querySelector("img")).toHaveAttribute("src", "https://example.com/avatar.jpg")
+
+    const confirmButton = screen.getByRole("button", { name: "Onboard storefront" })
+    const confirmForm = confirmButton.closest("form")
+    expect(confirmForm).toHaveAttribute("action", "/admin/onboarding")
+    expect(confirmForm?.querySelector("input[name='discogs_username']")).toHaveAttribute("value", "realseller")
+    expect(fetchMock).toHaveBeenCalledWith("http://localhost:3000/admin/discogs_lookup?username=RealSeller", {
+      headers: { Accept: "application/json" },
+    })
+  })
+
+  it("does not render confirmation for invalid lookup state", async () => {
+    const user = userEvent.setup()
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ status: "invalid", creatable: false, reason: "invalid_slug" }),
+    }))
+
+    render(<Dashboard {...props} />)
+
+    await user.type(screen.getByLabelText("Discogs username"), "ab")
+    await user.click(screen.getByRole("button", { name: "Lookup" }))
+
+    expect(await screen.findByText("Enter a valid Discogs username before creating a storefront.")).toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Onboard storefront" })).not.toBeInTheDocument()
+  })
+
+  it("does not render confirmation for lookup errors", async () => {
+    const user = userEvent.setup()
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ status: "lookup_error", creatable: false, reason: "api_error" }),
+    }))
+
+    render(<Dashboard {...props} />)
+
+    await user.type(screen.getByLabelText("Discogs username"), "broken-store")
+    await user.click(screen.getByRole("button", { name: "Lookup" }))
+
+    expect(await screen.findByText("Discogs could not verify this seller right now. No storefront can be created from this lookup.")).toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Onboard storefront" })).not.toBeInTheDocument()
+  })
+
+  it("blocks confirmation when lookup finds an active store", async () => {
+    const user = userEvent.setup()
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        status: "already_active",
+        creatable: false,
+        username: "healthy-records",
+        store: { id: 1, name: "Healthy Records", discogs_username: "healthy-records" },
+      }),
+    }))
+
+    render(<Dashboard {...props} />)
+
+    await user.type(screen.getByLabelText("Discogs username"), "healthy-records")
+    await user.click(screen.getByRole("button", { name: "Lookup" }))
+
+    expect(await screen.findByText("Healthy Records is already active as @healthy-records.")).toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Onboard storefront" })).not.toBeInTheDocument()
+  })
+
+  it("blocks confirmation when lookup finds an applicant", async () => {
+    const user = userEvent.setup()
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        status: "existing_applicant",
+        creatable: false,
+        username: "applicant-records",
+        applicant: { id: 10, name: "Applicant Records", discogs_username: "applicant-records" },
+      }),
+    }))
+
+    render(<Dashboard {...props} />)
+
+    await user.type(screen.getByLabelText("Discogs username"), "applicant-records")
+    await user.click(screen.getByRole("button", { name: "Lookup" }))
+
+    expect(await screen.findByText("Applicant Records already applied as @applicant-records. Use the applicant onboarding path.")).toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Onboard storefront" })).not.toBeInTheDocument()
+  })
+
+  it("clears stale preview when the username changes", async () => {
+    const user = userEvent.setup()
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        status: "creatable",
+        creatable: true,
+        username: "realseller",
+        seller_name: "Real Seller",
+      }),
+    }))
+
+    render(<Dashboard {...props} />)
+
+    await user.type(screen.getByLabelText("Discogs username"), "realseller")
+    await user.click(screen.getByRole("button", { name: "Lookup" }))
+    expect(await screen.findByText("Real Seller")).toBeInTheDocument()
+
+    await user.type(screen.getByLabelText("Discogs username"), "-changed")
+
+    await waitFor(() => {
+      expect(screen.queryByText("Real Seller")).not.toBeInTheDocument()
+    })
+    expect(screen.queryByRole("button", { name: "Onboard storefront" })).not.toBeInTheDocument()
+  })
+
+  it("ignores stale lookup responses after the username changes", async () => {
+    const user = userEvent.setup()
+    let resolveLookup: (value: { ok: boolean; json: () => Promise<unknown> }) => void = () => {}
+    const pendingLookup = new Promise<{ ok: boolean; json: () => Promise<unknown> }>((resolve) => {
+      resolveLookup = resolve
+    })
+    vi.stubGlobal("fetch", vi.fn().mockReturnValue(pendingLookup))
+
+    render(<Dashboard {...props} />)
+
+    await user.type(screen.getByLabelText("Discogs username"), "realseller")
+    await user.click(screen.getByRole("button", { name: "Lookup" }))
+    await user.type(screen.getByLabelText("Discogs username"), "-changed")
+
+    resolveLookup({
+      ok: true,
+      json: async () => ({
+        status: "creatable",
+        creatable: true,
+        username: "realseller",
+        seller_name: "Real Seller",
+      }),
+    })
+
+    await waitFor(() => {
+      expect(screen.queryByText("Real Seller")).not.toBeInTheDocument()
+    })
+    expect(screen.queryByRole("button", { name: "Onboard storefront" })).not.toBeInTheDocument()
   })
 
   it("renders the same operational content on compact and wide tiers", () => {
@@ -139,6 +319,7 @@ describe("Admin dashboard", () => {
       const { unmount } = renderWithTier(tier, <Dashboard {...props} />)
 
       expect(screen.getByText("Healthy Records")).toBeInTheDocument()
+      expect(screen.getByRole("heading", { name: "Add Discogs storefront" })).toBeInTheDocument()
       expect(screen.getByText("Applicant Records")).toBeInTheDocument()
       expect(screen.getByRole("button", { name: "Onboard store" })).toBeInTheDocument()
 
