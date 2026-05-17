@@ -3,11 +3,19 @@ module Admin
     def props
       {
         active_stores: active_stores,
-        applicants: applicants
+        applicants: applicants,
+        discogs_onboarding: discogs_onboarding
       }
     end
 
     private
+
+    def discogs_onboarding
+      {
+        lookup_path: "/admin/discogs_lookup",
+        create_path: "/admin/onboarding"
+      }
+    end
 
     def active_stores
       Store.order(created_at: :desc).map { |store| StoreHealthPresenter.new(store).props }

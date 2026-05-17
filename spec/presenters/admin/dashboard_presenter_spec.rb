@@ -54,4 +54,13 @@ RSpec.describe Admin::DashboardPresenter do
     )
     expect(applicant[:submitted_at]).to be_present
   end
+
+  it "includes Discogs onboarding action paths" do
+    props = described_class.new.props
+
+    expect(props[:discogs_onboarding]).to eq(
+      lookup_path: "/admin/discogs_lookup",
+      create_path: "/admin/onboarding"
+    )
+  end
 end
