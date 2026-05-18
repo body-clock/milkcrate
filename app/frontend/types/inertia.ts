@@ -49,7 +49,7 @@ export interface StorefrontSectionWithCrates {
 
 export type StorefrontSection = StorefrontSectionWithCrate | StorefrontSectionWithCrates
 
-export interface FeaturedProps {
+export interface StoreShowProps {
   store: Store
   crates: Crate[]
   storefront_sections?: StorefrontSection[]

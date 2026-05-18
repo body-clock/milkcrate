@@ -4,10 +4,10 @@ import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import Home from "../../pages/home"
 import Apply from "../../pages/apply"
-import Featured from "../../pages/stores/featured"
+import StoreShow from "../../pages/stores/show"
 import Invitation from "../../pages/stores/invitation"
 import Dashboard from "../../pages/admin/dashboard"
-import type { AdminDashboardProps, FeaturedProps, InvitationProps } from "../../types/inertia"
+import type { AdminDashboardProps, StoreShowProps, InvitationProps } from "../../types/inertia"
 
 vi.mock("@inertiajs/react", () => ({
   Link: ({ children, href, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
@@ -86,7 +86,7 @@ const applyCopy = {
   },
 }
 
-const featuredProps: FeaturedProps = {
+const storeShowProps: StoreShowProps = {
   store: {
     id: 1,
     name: "Philadelphia Music",
@@ -94,6 +94,9 @@ const featuredProps: FeaturedProps = {
     description: "Independent record store in South Philly.",
     total_listings: 120,
     sync_status: "idle",
+    last_sync_error_at: null,
+    enrichment_status: "idle",
+    last_enriched_at: null,
   },
   crates: [],
   active_crate_slug: "picks",
@@ -173,7 +176,7 @@ describe("page smoke tests", () => {
   })
 
   it("renders the store page", () => {
-    render(<Featured {...featuredProps} />)
+    render(<StoreShow {...storeShowProps} />)
 
     expect(screen.getByText(/No vinyl found yet/)).toBeInTheDocument()
   })
@@ -187,7 +190,7 @@ describe("page smoke tests", () => {
   })
 
   it("store page footer does not render emoji branding", () => {
-    render(<Featured {...featuredProps} />)
+    render(<StoreShow {...storeShowProps} />)
 
     // The footer "Powered by Milkcrate" should be plain text — no emoji.
     const footer = document.querySelector("footer")
@@ -201,7 +204,7 @@ describe("page smoke tests", () => {
   describe.each([
     ["home", () => render(<Home copy={homeCopy} preview={previewFallback} />)],
     ["apply", () => render(<Apply copy={applyCopy} turnstile={{ enabled: false, site_key: null }} />)],
-    ["store", () => render(<Featured {...featuredProps} />)],
+    ["store", () => render(<StoreShow {...storeShowProps} />)],
     ["admin", () => render(<Dashboard {...adminProps} />)],
   ])("emoji regression: %s page", (_label, renderPage) => {
     it("does not render the milk emoji (🥛)", () => {
@@ -225,8 +228,8 @@ describe("page smoke tests", () => {
 
   it("hides store description after entering a crate", async () => {
     const user = userEvent.setup()
-    const props: FeaturedProps = {
-      ...featuredProps,
+    const props: StoreShowProps = {
+      ...storeShowProps,
       crates: [
         {
           slug: "picks",
@@ -286,7 +289,7 @@ describe("page smoke tests", () => {
       ],
     }
 
-    render(<Featured {...props} />)
+    render(<StoreShow {...props} />)
 
     expect(screen.getByText("Independent record store in South Philly.")).toBeInTheDocument()
 

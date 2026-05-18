@@ -56,9 +56,9 @@ vi.mock("@/components/storefront_motion_config", () => ({
 // ── Page imports (after mocks so Vitest hoists correctly) ──────
 import Home from "../../pages/home"
 import Apply from "../../pages/apply"
-import Featured from "../../pages/stores/featured"
+import StoreShow from "../../pages/stores/show"
 import Dashboard from "../../pages/admin/dashboard"
-import type { AdminDashboardProps, FeaturedProps, HomepagePreview } from "../../types/inertia"
+import type { AdminDashboardProps, StoreShowProps, HomepagePreview } from "../../types/inertia"
 
 // ── Shared test data ────────────────────────────────────────────
 
@@ -118,7 +118,7 @@ const applyCopy = {
   },
 }
 
-const featuredProps: FeaturedProps = {
+const storeShowProps: StoreShowProps = {
   store: {
     id: 1,
     name: "Philadelphia Music",
@@ -126,6 +126,9 @@ const featuredProps: FeaturedProps = {
     description: "Independent record store in South Philly.",
     total_listings: 120,
     sync_status: "idle",
+    last_sync_error_at: null,
+    enrichment_status: "idle",
+    last_enriched_at: null,
   },
   crates: [],
   active_crate_slug: "picks",
@@ -205,7 +208,7 @@ describe("responsive surface matrix", () => {
     it("renders the store page without crashing", () => {
       const { container } = renderWithTier(
         tier,
-        <Featured {...featuredProps} />
+        <StoreShow {...storeShowProps} />
       )
       expect(container).toBeTruthy()
       // The store page shows empty state when no crates exist
@@ -300,8 +303,8 @@ describe("responsive surface matrix", () => {
   })
 
   it("store page does not crash with populated crates", () => {
-    const propsWithCrates: FeaturedProps = {
-      ...featuredProps,
+    const propsWithCrates: StoreShowProps = {
+      ...storeShowProps,
       crates: [
         {
           slug: "picks",
@@ -362,7 +365,7 @@ describe("responsive surface matrix", () => {
     }
 
     const { container } = renderWithTier("wide", (
-      <Featured {...propsWithCrates} />
+      <StoreShow {...propsWithCrates} />
     ))
     expect(container).toBeTruthy()
     // Store floor should render when crates exist
@@ -372,8 +375,8 @@ describe("responsive surface matrix", () => {
   // ── U4: Regression coverage for Picks surface and CrateView header ───
 
   it("populated store page renders Picks surface at all viewport tiers", () => {
-    const propsWithSections: FeaturedProps = {
-      ...featuredProps,
+    const propsWithSections: StoreShowProps = {
+      ...storeShowProps,
       crates: [
         {
           slug: "picks",
@@ -470,7 +473,7 @@ describe("responsive surface matrix", () => {
       ],
     }
 
-    renderWithTier("compact", <Featured {...propsWithSections} />)
+    renderWithTier("compact", <StoreShow {...propsWithSections} />)
     expect(screen.getByText("Milkcrate Picks")).toBeInTheDocument()
   })
 })

@@ -26,7 +26,7 @@ RSpec.describe SellerMailer, type: :mailer do
     let(:mail) { described_class.admin_notification(waitlist) }
 
     it "sends to the configured admin email" do
-      expect(mail.to).to eq([ Settings.admin_email ])
+      expect(mail.to).to eq([ Settings.mail.admin_email ])
     end
 
     it "includes the store name in the subject" do

@@ -1,15 +1,21 @@
 # Milkcrate settings — override per environment or via env vars.
-# Access in code with: Settings.store_name, Settings.discogs_username, etc.
 
-store_name: Philadelphia Music
-discogs_username: philadelphiamusic
-store_description: 
-mail_from: patrick@milkcrate.fm
-mail_host: milkcrate.fm
-admin_email: patrick@milkcrate.fm
+demo_store:
+  name: Philadelphia Music
+  discogs_username: philadelphiamusic
+  description:
 
-# Plausible Analytics — domain for the Plausible script data-domain attribute
-# Override via PLAUSIBLE_DOMAIN env var at deploy time
-plausible_domain: milkcrate.fm
+discogs:
+  username_pattern: "[a-zA-Z0-9][a-zA-Z0-9_-]*[a-zA-Z0-9]"
 
-honeybadger_api_key: <%= Rails.application.credentials.honeybadger_api_key %>
+mail:
+  from: patrick@milkcrate.fm
+  host: milkcrate.fm
+  admin_email: patrick@milkcrate.fm
+
+analytics:
+  # Plausible Analytics domain for the script data-domain attribute.
+  plausible_domain: milkcrate.fm
+
+honeybadger:
+  api_key: <%= Rails.application.credentials.honeybadger_api_key %>

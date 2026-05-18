@@ -3,9 +3,9 @@ import { motion } from "framer-motion"
 import AppLayout from "@/layouts/app_layout"
 import CrateView from "@/components/crate_view"
 import StoreFloor from "@/components/store_floor"
-import type { FeaturedProps } from "@/types/inertia"
+import type { StoreShowProps } from "@/types/inertia"
 
-export default function Featured({ store, crates, storefront_sections }: FeaturedProps) {
+export default function StoreShow({ store, crates, storefront_sections }: StoreShowProps) {
   const [activeSlug, setActiveSlug] = useState<string | null>(null)
   const [startIndex, setStartIndex] = useState(0)
 

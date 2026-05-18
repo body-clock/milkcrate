@@ -1,5 +1,6 @@
 class DiscogsSellerLookup
-  VALID_USERNAME_REGEX = /\A[a-zA-Z0-9][a-zA-Z0-9_-]*[a-zA-Z0-9]\z/
+  ROUTE_USERNAME_REGEX = /#{Settings.discogs.username_pattern}/
+  VALID_USERNAME_REGEX = /\A#{Settings.discogs.username_pattern}\z/
   MIN_LENGTH = 3
   MAX_LENGTH = 40
 

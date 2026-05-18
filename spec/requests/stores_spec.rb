@@ -10,9 +10,9 @@ RSpec.describe "Stores", type: :request do
         expect(response).to have_http_status(:ok)
       end
 
-      it "renders the stores/featured Inertia component for /#{slug}" do
+      it "renders the stores/show Inertia component for /#{slug}" do
         get "/#{slug}"
-        expect(inertia).to render_component("stores/featured")
+        expect(inertia).to render_component("stores/show")
       end
     end
 
