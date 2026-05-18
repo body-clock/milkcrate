@@ -2,7 +2,7 @@ import React from "react"
 import { motion } from "framer-motion"
 import RecordTile from "./record_tile"
 import { useTactileHover } from "@/hooks/use_tactile_hover"
-import { springTactile, SCALE_HOVER, SCALE_INNER_HOVER } from "@/lib/motion_tokens"
+import { springTactile, SCALE_INNER_HOVER } from "@/lib/motion_tokens"
 import type { Crate } from "../types/inertia"
 
 export interface CrateShelfProps {
@@ -46,7 +46,7 @@ export default function CrateShelf({
   openLabel,
   className = "",
 }: CrateShelfProps) {
-  const { isHovered, isPressed, handlers } = useTactileHover()
+  const { isHovered } = useTactileHover()
 
   const headerContent = (
     <div className="flex items-center justify-between gap-2 border-b border-mc-border pb-1">

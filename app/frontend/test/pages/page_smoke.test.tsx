@@ -99,7 +99,6 @@ const storeShowProps: StoreShowProps = {
     last_enriched_at: null,
   },
   crates: [],
-  active_crate_slug: "picks",
 }
 
 const adminProps: AdminDashboardProps = {
@@ -303,7 +302,6 @@ describe("page smoke tests", () => {
     const inviteProps: InvitationProps = {
       waitlist_present: false,
       slug: "test-slug",
-      discogs_username: "test-slug",
     }
 
     it("renders the invitation page without crashing", async () => {

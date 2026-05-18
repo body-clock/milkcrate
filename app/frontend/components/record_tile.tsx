@@ -1,4 +1,3 @@
-import React from "react"
 import type { Listing } from "../types/inertia"
 
 export interface RecordTileProps {
