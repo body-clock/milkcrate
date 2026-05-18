@@ -1,183 +1,183 @@
 ---
 date: 2026-05-14
-topic: crate-view-mobile-performance
-focus: Crate view card-flipping performance on mobile — choppy animations when browsing records
+updated: 2026-05-17
+topic: store-page-performance-static-curation
+focus: Stores pages are slow because storefront curation runs during public page requests; curation should run once daily and render static results quickly.
 mode: repo-grounded
 ---
 
-# Ideation: Crate View Mobile Performance
+# Ideation: Store Page Performance and Static Curation
 
 ## Grounding Context
 
 ### Codebase Context
-Milkcrate is Rails 8 + Inertia React 19 + TypeScript + Vite 8 + Framer Motion 12.38. No code splitting (all JS in one bundle via eager glob).
 
-**CrateView architecture:** 5 visible card slots via `buildCrateWindow(records, index, radius=2)`, all rendered as AnimatePresence children. On every navigation, all 5 key-prefixed cards exit and 5 new ones enter simultaneously — 10 concurrent AnimatePresence animations.
+Milkcrate is a Rails 8.1 + Inertia React app for browsing Discogs seller inventory as curated storefront crates. The relevant request path is:
 
-Active card (z-index 30) is draggable with:
-- `useMotionValue(dragX)` — tracks drag position
-- `useTransform(dragX, [-120,0,120], [-8,0,8])` — maps drag to rotation
-- `DRAG_THRESHOLD = 72px`
-- Drag constraints `{left:0, right:0, top:0, bottom:0}`
+- `StoresController#render_store` builds `StorefrontCuration.new(store, filter_available: !Rails.env.development?)`
+- It then calls both `curation.crates` and `curation.storefront_groups`
+- `CratePresenter` serializes the full crate-browser payload and the storefront floor sections into Inertia props
+- `Featured` renders the floor immediately, but also receives all crate records up front so opening a crate is instant
 
-Non-active "hint" cards (z-index 10-12) render with offset x/y/rotate/scale.
+The current curation service loads all eligible LP listings into Ruby and scores/sorts them through strategy objects:
 
-**Image loading:** Active card `loading="eager"`, hint cards `loading="eager"`. `usePreload` hook preloads `records[index ± 3]` via `new Image()` with `decoding="async"`. Current code uses `cover_image_url ?? thumbnail_url` (mutually exclusive) despite Listing carrying both independently. No progressive loading, blur-up placeholders, low-res previews, or `img.decode()` gates.
+- `eligible_listings` calls `@store.listings.available.lp_only.to_a`
+- picks, new arrivals, thematic, hidden gems, and genre crates score/filter from that in-memory pool
+- `crates` and `storefront_groups` duplicate most of the same work in the same request
+- `DailyCurationJob` is already scheduled in `config/recurring.yml` at `1am`, but `DailyCurationService` only stamps `last_surfaced_at` and increments `surface_count`; it does not persist the selected storefront result
 
-**GPU compositing:**
-- Hint cards: `willChange: "transform, opacity"`, `backfaceVisibility: "hidden"`, `contain: "layout paint style"`
-- Active card: `willChange: "transform, opacity"`, `backfaceVisibility: "hidden"` (no `contain`)
-- Active card has TWO nested `motion.div` elements, each with `willChange`
-- `touchAction: "none"` on stack container; `overscrollBehavior: "contain"`
+Local measurement on the development database:
 
-**Motion tokens:** Four-layer architecture (tokens → provider → hook → wrappers). Springs: tactile 300/26, press 400/28, flip 260/24, drawer 300/32. Reduced motion collapses to identity via `MotionConfig reducedMotion="user"`.
+- store: `philadelphiamusic`
+- listings: `31,049`
+- controller-equivalent curation (`crates` + `storefront_groups`): `3,831.2ms`
+- presenter serialization: `10.1ms`
+- Inertia JSON payload: `1,308,947` bytes
+- computing grouped curation once still costs `2,516.6ms` and serializes `654,639` bytes for the floor-only payload
 
-**Touch interaction:**
-- Touch devices skip hover entirely — press state only via `setProximity(0)` on pointer enter
-- rAF-throttled cursor proximity with cancel-before-schedule
-- Nested button hydration errors fixed: `div[role=button]` for clickable wrappers
+### Past Learnings
 
-**Past performance learnings:**
-- `RecordTile` as lightweight vs `RecordCard` (flip/pile/hover) — performance-conscious split for non-interactive surfaces
-- Guard-condition drift bug: `hideTabs` guard was dropped from desktop path during `isCompact` refactor, causing unnecessary CrateTabs render in empty-crate state
-- `renderWithTier` test utility available for testing mobile code paths
-- Lint scanner (`scripts/lint-motion-tokens.ts`) flags inline animation values
-
-### Topic Axes
-- **Image load and decode** — cover image fetching, caching, decoding cost on mobile, placeholder strategies
-- **Animation compositing** — AnimatePresence exit/enter cycles for 5-6 simultaneous cards, will-change/backface-visibility effectiveness on mobile GPUs, spring vs tween tradeoffs
-- **Drag gesture & transform** — useTransform reactively computing rotation during drag, pointer event overhead with touchAction:none, coordinate math per frame
-- **React render churn** — state updates on navigate (index, showGestureHint), AnimatePresence key churn, useMemo/useCallback boundaries
+- `docs/solutions/architecture-patterns/crate-strategies-pattern-2026-05-07.md` says strategy objects should stay pure and share `RecordScorer`; callers wrap/cap strategy output. Static curation should preserve that boundary rather than bury persistence inside strategies.
+- The follow-up layered refactor plan already moved final section-key assembly into `CratePresenter` and kept `StorefrontCuration#storefront_groups` as the domain grouping API. Persisting static results should build on that split.
+- `MarketingPreviewPresenter` already demonstrates bounded storefront payloads for public surfaces. That is the right pattern for fast first paint.
+- The older mobile crate-view ideas remain valid for after first paint, but they do not address the observed multi-second server-side delay.
 
 ### External Context
-Web research unavailable (no WebSearch tool in environment). Grounding derived from codebase analysis and institutional learnings only.
+
+- Rails' caching guide recommends low-level `Rails.cache` for serializable values and explicitly warns against caching Active Record instances; cache IDs or primitive data instead. Rails 8 enables Solid Cache by default, making persistent cache storage available without Redis. Sources: [Rails caching guide](https://guides.rubyonrails.org/caching_with_rails.html), [rails/solid_cache](https://github.com/rails/solid_cache).
+- PostgreSQL materialized views persist query results and can be refreshed, including `CONCURRENTLY` when a qualifying unique index exists, but refresh still replaces view contents and is not a natural fit for Ruby strategy selection logic. Source: [PostgreSQL REFRESH MATERIALIZED VIEW](https://www.postgresql.org/docs/current/sql-refreshmaterializedview.html).
+
+## Topic Axes
+
+- **Request-time compute** - eliminate expensive Ruby curation/scoring from public store requests.
+- **Static daily artifact** - persist the once-daily result with freshness metadata, not just surface counters.
+- **Payload shape** - avoid shipping a full crate-browser payload before the user chooses a crate.
+- **Freshness and failure behavior** - decide what renders when curation is missing, stale, or failed.
+- **Observability** - make curation cost and payload size measurable so regressions are visible.
 
 ## Ranked Ideas
 
-### 1. CSS-Driven Hint Card Positioning
+### 1. Persist a Daily Storefront Snapshot
 
-**Description:** Convert the four hint (non-active) cards from Framer Motion AnimatePresence children to plain `div` elements animated with CSS transitions on `transform`/`opacity`. Remove them from AnimatePresence entirely — only the active card enters/exits via Framer Motion. Hint cards snap to new layout positions via GPU-composited CSS transitions on the compositor thread, zero main-thread cost for their motion.
+**Description:** Add a durable `storefront_snapshots` table that stores the rendered storefront artifact for each store and date. `DailyCurationJob` computes `StorefrontCuration#storefront_groups`, serializes it through `CratePresenter`, writes JSONB payload columns, records surfaced listing IDs, and atomically marks the snapshot active for that store. `StoresController#render_store` reads the active snapshot and renders props without running `StorefrontCuration`.
 
-**Axis:** Animation compositing
+**Axis:** Static daily artifact
 
-**Basis:** `direct:` `crate_view.tsx:263-295` renders all 5 cards as AnimatePresence children. Each hint card animates only compositor-thread properties: opacity (0→0.38), x (offset×16px), y (depth×12px), rotate (offset×-4°), scale (1-depth×0.045). Hint cards already carry `compositedLayerStyle` with `willChange: "transform, opacity"`, `backfaceVisibility: "hidden"`, and `contain: "layout paint style"`. Removing them from AnimatePresence eliminates 4 Framer Motion animation controllers per navigation (~40-60% of per-frame JS animation budget).
+**Basis:** `direct:` `config/recurring.yml` already schedules `DailyCurationJob` every day at `1am`, while `DailyCurationService` currently only stamps `last_surfaced_at` and `surface_count`. `StoresController#render_store` recomputes curation on every request. Local measurement shows `3,831.2ms` request-time curation for `31,049` listings.
 
-**Rationale:** Single highest-leverage change. Hint cards don't need Framer Motion's JS-driven animation — they just need to be in the right position with a smooth visual transition. CSS transitions on the compositor thread handle this perfectly. Compounds across three axes: animation compositing (moves to GPU), React render churn (4 fewer key changes), and drag gesture (more main-thread budget for drag handler).
+**Rationale:** This matches the product truth: curation is daily, not per-request. It turns public store rendering into a single store lookup plus one snapshot lookup and JSON prop return. It also gives the app an audit trail: what was shown today, when it was generated, how many records were surfaced, and whether generation succeeded.
 
-**Downsides:** CSS transition timing must match the active card's spring entry so the stack doesn't look disconnected. Need to handle the transition when a hint card becomes active (spring entry starts as CSS transition ends).
+**Downsides:** Requires a migration, model, service boundary, backfill/bootstrap path, and tests for stale/missing snapshots. JSONB snapshots duplicate some listing data and need an invalidation/versioning story when prop shape changes.
 
-**Confidence:** 85%
-**Complexity:** Low
-
----
-
-### 2. Persistent 3-Node DOM Carousel
-
-**Description:** Replace the 5-card AnimatePresence window with 3 persistent DOM nodes (prev/active/next) recycled via container `translateX`. Instead of 5 cards with individual absolute positioning, keep 3 nodes mounted and translate the container on each navigation. Eliminates all AnimatePresence mounting/unmounting overhead. Only 1-2 images need to load per navigation instead of 5-6.
-
-**Axis:** React render churn
-
-**Basis:** `external:` Virtual scrollers (react-window, TanStack Virtual) and swipeable carousels (Apple Photos, Instagram Stories) keep 2-3 DOM nodes and translate the container — proven production mobile pattern. `reasoned:` Our crate stack is a linear list with fixed card dimensions; container translateX eliminates all per-node lifecycle overhead (10 lifecycle hooks per nav → 0).
-
-**Rationale:** More thorough than #1 alone — eliminates DOM node churn entirely. The crate view is fundamentally a linear browse through fixed-size cards; this maps directly to the virtual carousel pattern.
-
-**Downsides:** More complex than #1 — requires restructuring the CrateView rendering model. May conflict with existing drag gesture implementation (which expects absolute-positioned cards). Container translate requires careful edge handling at bounds (first/last record).
-
-**Confidence:** 72%
-**Complexity:** Medium-High
-
----
-
-### 3. Thumbnail-as-Placeholder Progressive Image Pipeline
-
-**Description:** Always render `thumbnail_url` as an immediate card backdrop (blurred via CSS `filter: blur(8px)`). Layer `cover_image_url` on top with a decode-gated cross-fade using `img.decode()`. Cards never show blank. Non-active cards display thumbnail only; full-res loads only when card becomes active.
-
-**Axis:** Image load and decode
-
-**Basis:** `direct:` `crate_view.tsx:267` and `record_card.tsx:25` use `cover_image_url ?? thumbnail_url` — treating both as mutually exclusive despite Listing carrying both independently. Thumbnails (typical 150×150) decode in 2-8ms on mobile vs 16-80ms for full-res (600×600). `direct:` `usePreload` (crate_view.tsx:108-118) fires `new Image()` with `decoding: "async"` but never calls `.decode()` — the browser may stall the composite frame if decode isn't complete by paint time. Using `img.decode()` gates the full-res reveal so it never blocks a frame.
-
-**Rationale:** Directly eliminates blank-card pop-in — the most visually jarring source of "choppy" perception. Even if frames don't drop, a blank card that suddenly fills looks like jank. Thumbnails for hint cards also reduces GPU texture memory pressure during transitions.
-
-**Downsides:** CSS blur on thumbnail adds compositing cost. Need to handle the case where `thumbnail_url` is also null. Decode-gated fade-in adds a brief wait before full-res appears (0-80ms). Two image layers per card doubles GPU texture memory for images.
-
-**Confidence:** 80%
+**Confidence:** 92%
 **Complexity:** Medium
+**Status:** Unexplored
 
----
+### 2. Split Store Floor Payload from Crate Detail Payload
 
-### 4. CSS Custom Property Drag Rotation
+**Description:** Make the initial store page render only the static storefront floor: store props, picks preview, featured crates, and genre grid previews. Fetch full crate detail lazily when the user opens a crate, either through a focused Inertia partial reload or a small JSON endpoint keyed by `snapshot_id` and `crate_slug`.
 
-**Description:** Replace `useMotionValue(dragX)` + `useTransform(...)` reactive pipeline for drag rotation with a CSS custom property (`--drag-rotate`) set via `element.style.setProperty()` inside a `requestAnimationFrame`-throttled handler in `onDrag`. Rotation becomes `transform: rotate(var(--drag-rotate))`, updated at most once per animation frame, bypassing Framer Motion's dependency graph traversal entirely.
+**Axis:** Payload shape
 
-**Axis:** Drag gesture & transform
+**Basis:** `direct:` `Featured` receives both `crates` and `storefront_sections`. For `philadelphiamusic`, controller-equivalent props serialize to `1,308,947` bytes, while the grouped floor-only path is roughly `654,639` bytes. `StoreFloor` only needs `storefront_sections`; `CrateView` only needs full `crates` after `activeSlug` is set.
 
-**Basis:** `direct:` `crate_view.tsx:46-47`: `const dragX = useMotionValue(0)`, `const activeRotate = useTransform(dragX, [-120,0,120], [-8,0,8])`. `onDrag` calls `dragX.set(info.offset.x)` on every pointer move (60-120Hz on mobile). Each `.set()` cascades through useTransform's internal dependency graph, triggering a style update inside Framer Motion's JS animation loop — even though the transform is a trivial linear map (offsetX × 0.0667). A CSS custom property achieves identical visual result without any reactive plumbing, RAF compositing, or dependency graph traversal.
+**Rationale:** Static curation removes TTFB compute; this removes unnecessary first-load bytes and hydration work. Users should see the store floor fast. Full 50-record crate payloads can be delivered only for the crate they choose, preserving instant browsing after the explicit action.
 
-**Rationale:** Drag is the most frame-sensitive mobile interaction. Every ms of JS overhead during drag directly translates to perceived stutter. Frees per-frame budget for the drag handler.
+**Downsides:** Crate opening becomes a networked interaction unless full crate data is prefetched after first paint. Needs loading/error states in `CrateView` and careful history behavior so back/forward still feels native.
 
-**Downsides:** CSS custom properties set via JS still trigger a style recalculation, but it's cheaper than Framer Motion's dependency graph + RAF scheduling. May need to handle concurrent gesture states (drag + tap-to-flip).
+**Confidence:** 84%
+**Complexity:** Medium
+**Status:** Unexplored
 
-**Confidence:** 78%
+### 3. Introduce a Single Curation Result Object as the Interim Fix
+
+**Description:** Before full snapshot persistence, change `StorefrontCuration` to compute one grouped result per instance and derive both `#crates` and `#storefront_groups` from it. `StoresController` should call one method, not two independent curation paths.
+
+**Axis:** Request-time compute
+
+**Basis:** `direct:` `StorefrontCuration#crates` and `#storefront_groups` both call picks, featured, thematic, and genre crate builders separately. Local measurement shows grouped curation once is `2,516.6ms`, while the controller-equivalent double path is `3,831.2ms`.
+
+**Rationale:** This does not solve the static daily requirement, but it is a low-risk bridge and good preparation. A single immutable result object is exactly what the snapshot writer should persist. It also eliminates the risk that `crates` and `storefront_sections` diverge inside one request.
+
+**Downsides:** Still leaves multi-second curation in the request path. It should be treated as a stepping stone, not the final remediation.
+
+**Confidence:** 88%
 **Complexity:** Low
+**Status:** Unexplored
 
----
+### 4. Add Snapshot Freshness Lifecycle and Fallback Rules
 
-### 5. Merge Active Card's Two-Layer Framer Motion Nesting
+**Description:** Add explicit store-level or snapshot-level states: `ready`, `generating`, `stale`, and `failed`. Public requests render the latest successful snapshot when present, show the existing syncing/enriching spinner only during first setup, and enqueue regeneration when the active snapshot is stale or missing after inventory changes.
 
-**Description:** The active card currently wraps two nested `motion.div` elements: the outer handles AnimatePresence variant entry/exit (opacity, y, rotate, scale), the inner handles drag rotation via `useTransform`. Merge these into a single `motion.div` by composing both the variant transform and the drag rotation into one `style` or `animate` prop, eliminating the second composited layer and the nested animation clock.
+**Axis:** Freshness and failure behavior
 
-**Axis:** Animation compositing
+**Basis:** `direct:` `Store` already has `sync_status`, `enrichment_status`, `last_synced_at`, and `last_enriched_at`. The frontend already gates rendering while sync/enrichment runs. The missing state is "curation artifact exists and is fresh enough to render."
 
-**Basis:** `direct:` `crate_view.tsx:275-314` defines the outer `<motion.div>` with AnimatePresence entry/exit variants; `crate_view.tsx:315-333` defines the inner `<motion.div>` with drag + `rotate: activeRotate`. Both carry `willChange: "transform"` and `backfaceVisibility: "hidden"` — each creates a separate GPU compositor layer. On mobile GPUs with limited layer budgets (Safari: ~128 layers per page, older Android: ~64), each excess layer risks GPU memory pressure and layer squashing (falling back to CPU rasterization). The two layers run on separate Framer Motion animation clocks, which can cause micro-stutter when both update in the same frame.
+**Rationale:** Static artifacts need operational semantics. Without them, the first failed daily job can either hide the store or silently show unknown data. The best user experience is stale-while-good: keep serving yesterday's snapshot and make regeneration observable.
 
-**Rationale:** Small but safe fix. Eliminates one composited layer without changing any behavior. Makes it straightforward to fully migrate active card to CSS animation later.
+**Downsides:** Adds state transitions that must stay in sync with full-store sync, enrichment, and daily curation. Admin health should surface failures so stale snapshots do not become invisible.
 
-**Downsides:** If the variant animation and drag rotation animate on different timing, composing them into one transform value requires careful merge logic. Must verify no regression in entry/exit animation feel.
+**Confidence:** 82%
+**Complexity:** Medium
+**Status:** Unexplored
 
-**Confidence:** 74%
-**Complexity:** Low
+### 5. Cache Serialized Snapshot Props, Not Active Record Objects
 
----
+**Description:** Once durable snapshots exist, optionally layer `Rails.cache.fetch` around the serialized active snapshot props keyed by `store_id`, `snapshot_id`, and prop schema version. Cache primitive hashes/JSON only, never `Listing` or `CuratedCrate` instances.
 
-### 6. Frame Budget Prioritization — Defer Hint Animation During Active Drag
+**Axis:** Request-time compute
 
-**Description:** While the user is dragging the active card, suspend all hint card animation updates. Hint cards hold their current opacity/position statically during drag. On drag end, animate to new positions with a slight stagger using `transition-delay`. Reserves the entire 16ms JS frame budget for the drag interaction — the one the user is physically touching.
+**Basis:** `external:` Rails' caching guide recommends low-level caching for serializable values and warns against caching Active Record instances because records may change or disappear. This app already has `solid_cache_entries` in the schema and Rails 8/Solid Cache available.
 
-**Axis:** Drag gesture & transform
+**Rationale:** The DB snapshot removes expensive selection. A serialized-props cache removes repeated JSONB decode/shape work and gives a very small hot path for popular stores. Keeping the DB snapshot as source of truth avoids making cache correctness the core system.
 
-**Basis:** `reasoned:` The critical path on mobile drag: pointer event → `onDrag` → `dragX.set` → `useTransform` recompute → React re-render → commit → composite. Every millisecond over 16ms drops a frame. Hint card exit/enter animations via AnimatePresence currently compete for the same frame budget during drag. With #1 (CSS hint cards), this becomes trivial: set `transition-duration: 0s` on hint cards during drag, restore on drag end. `direct:` The `onDrag`/`onDragEnd` pattern already exists at `crate_view.tsx:228-240` — adding an `isDragging` boolean state is minimal.
-
-**Rationale:** The user is touching the active card — their attention is on its response. Deferring background animations during interaction is standard UX practice. Establishes animation priority tiers (interaction-first, secondary-deferred) for the whole app.
-
-**Downsides:** Adds conditional rendering logic. Without #1 (CSS hint cards), this is harder to implement cleanly. The "slight stagger" on drag-end needs visual tuning.
-
-**Confidence:** 70%
-**Complexity:** Low (with #1), Medium (without #1)
-
----
-
-### 7. Priority-Ordered Preload Queue with Decode Tracking
-
-**Description:** Replace the flat ±3 preload loop with a priority-ordered queue. Adjacent slot (±1) gets both thumbnail and full-res loaded and decoded first. Edge slots (±2, ±3) get thumbnail-only preload at idle priority (`requestIdleCallback`). Track which images have completed `.decode()`, not just load. Full-res for edge slots fetched only if user lingers.
-
-**Axis:** Image load and decode
-
-**Basis:** `direct:` `usePreload` (`crate_view.tsx:108-118`) loops `for (let offset = -3; offset <= 3; offset++)` and unconditionally creates `new Image()` with `cover_image_url` for every record in the ±3 range. Up to 6 full-res images begin downloading simultaneously on each navigation. On mobile with limited bandwidth and connection concurrency, this competes with the active card's own image load. Adjacent (±1) records are most likely navigated to next; edge (±2, ±3) records are less urgent. `reasoned:` A priority queue ensures the most-likely-next images are ready first without saturating the connection with unlikely-next fetches.
-
-**Rationale:** The flat loop is naive — it treats all preloads as equal. A priority queue respects the user's actual navigation pattern and avoids self-inflicted network contention. Compounds with #3 (thumbnail pipeline): edge slots never need full-res preload, reducing the queue from 6 fetches to at most 2.
-
-**Downsides:** Adds complexity to the preloading hook. Must handle rapid navigation (user tapping ↑/↓ quickly). The "idle priority" strategy via `requestIdleCallback` may not fire on busy devices. Must not drop preloads for fast-browsing users.
+**Downsides:** Adds a second layer of invalidation. This should follow, not precede, durable snapshots; cache-only would be too easy to lose on expiry and would not provide daily auditability.
 
 **Confidence:** 76%
-**Complexity:** Medium
+**Complexity:** Low-Medium
+**Status:** Unexplored
+
+### 6. Instrument Curation Duration, Snapshot Size, and Request Payload Size
+
+**Description:** Add structured logs or `ActiveSupport::Notifications` around curation generation and store render payload assembly. Track store ID, listing count, eligible listing count, crate count, surfaced record count, curation duration, serialization duration, payload bytes, snapshot age, and whether the request hit static data or recomputed.
+
+**Axis:** Observability
+
+**Basis:** `direct:` The current logger line in `DailyCurationService` only emits store name, surfaced count, and picks count. The performance issue required manual `rails runner` measurement to quantify.
+
+**Rationale:** Static curation is a performance feature. It needs a regression tripwire. With instrumentation, future changes to `RecordScorer`, crate counts, or payload shape can be evaluated against real numbers instead of subjective page-load reports.
+
+**Downsides:** Logs can get noisy across many stores unless sampled or shaped carefully. Payload byte measurement should avoid forcing extra serialization in production.
+
+**Confidence:** 86%
+**Complexity:** Low
+**Status:** Unexplored
+
+### 7. Consider Materialized SQL Helpers Only for Ranking Primitives
+
+**Description:** Do not try to materialize the entire storefront in PostgreSQL. If curation remains expensive after snapshots, consider SQL-side helper tables or materialized views for primitive rankings such as eligible LP IDs, genre counts, and base record scores, then keep Ruby strategy orchestration intact.
+
+**Axis:** Request-time compute
+
+**Basis:** `external:` PostgreSQL materialized views persist query results and can be refreshed, but refresh replaces the contents and concurrent refresh has unique-index constraints. `direct:` Milkcrate curation uses Ruby strategies, `RecordScorer`, `PickPolicy`, and seeded thematic selection, not one declarative SQL query.
+
+**Rationale:** SQL materialization may help if the daily job itself becomes too slow, but it is the wrong first move for request performance. Persisting final snapshots removes request-time work without distorting the curation architecture.
+
+**Downsides:** Adds database-specific complexity and can pull domain scoring rules into SQL. Treat as a later optimization only if daily generation becomes a bottleneck.
+
+**Confidence:** 68%
+**Complexity:** High
+**Status:** Unexplored
 
 ## Rejection Summary
 
 | # | Idea | Reason Rejected |
 |---|------|-----------------|
-| 1 | useTransform drag re-renders (pain/friction framing) | Absorbed into #4 — the fix for drag re-renders is the CSS custom property approach itself |
-| 2 | AnimatePresence mass-swap (pain/friction framing) | Absorbed into #1 — removing hint cards from AnimatePresence fixes the mass-swap |
-| 3 | DOM-persist all 5 slots | Overlaps #2; 3-node carousel is a stronger, proven-pattern approach |
-| 4 | Non-active slots don't need AnimatePresence | Merged into #1 — same fix, #1 better specified with CSS transition strategy |
-| 5 | Borrow card recycling from virtual scrollers | Merged into #2 — same concept, #2 is more concretely specified |
-| 6 | Full-res only on active card | Merged into #3 — #3 includes decode gate + progressive layering |
+| 1 | Cache `StorefrontCuration` objects directly | Rails docs advise against caching Active Record instances; cache primitive IDs or serialized hashes instead. |
+| 2 | Cache-only daily curation with `Rails.cache` | Too volatile for the user's "static daily result" requirement; no audit trail and cache expiry could reintroduce request-time curation. |
+| 3 | Build-time static pre-render | Inventory sync and daily curation are runtime data, not deploy-time assets. |
+| 4 | PostgreSQL materialized view for the whole storefront | Curation is Ruby strategy orchestration, seeded theme choice, and presenter serialization; a materialized view would fight the existing architecture. |
+| 5 | Keep full crate payload on initial page forever | Preserves instant crate entry but makes first paint carry about 1.3MB for the measured store; split payload is a stronger tradeoff. |
+| 6 | Service worker stale-while-revalidate | Interesting for offline/perceived performance, but it does not remove server-side curation from first uncached requests. |
+| 7 | Inertia hover prefetch as the main fix | Helps demo navigation but still causes the server to do expensive work; useful only after static snapshots make the prefetched page cheap. |
+| 8 | Old mobile CSS/Framer Motion hint-card optimizations | Still valuable for crate browsing smoothness, but not relevant to the multi-second stores-page load root cause. |
