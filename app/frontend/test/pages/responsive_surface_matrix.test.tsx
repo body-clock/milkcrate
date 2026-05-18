@@ -47,7 +47,7 @@ vi.mock("@/layouts/app_layout", () => ({
 }))
 
 // ── Mock StorefrontMotionConfig — AppLayout mock strips the real provider,  ─
-// so we supply a no-op context so TactileCard (used by StoreFloor) doesn't throw.
+// so we supply a no-op motion context for StoreFloor's animated children.
 vi.mock("@/components/storefront_motion_config", () => ({
   default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   useReducedMotionContext: () => false,
@@ -131,7 +131,6 @@ const storeShowProps: StoreShowProps = {
     last_enriched_at: null,
   },
   crates: [],
-  active_crate_slug: "picks",
 }
 
 const adminProps: AdminDashboardProps = {
@@ -227,7 +226,7 @@ describe("responsive surface matrix", () => {
   })
 
   it("home page does not crash with live preview data", () => {
-    // Test with a populated preview — exercises StorefrontPreview rendering path.
+    // Test with a populated preview through the active home-page rendering path.
     const livePreview: HomepagePreview = {
       store_name: "Philadelphia Music",
       store_slug: "philadelphiamusic",

@@ -53,7 +53,6 @@ export interface StoreShowProps {
   store: Store
   crates: Crate[]
   storefront_sections?: StorefrontSection[]
-  active_crate_slug: string
 }
 
 /** Bounded homepage preview payload — sourced from the demo store when available. */
@@ -66,7 +65,6 @@ export interface HomepagePreview {
 export interface InvitationProps {
   waitlist_present: boolean
   slug: string
-  discogs_username: string
 }
 
 export type AdminHealthSeverity = "good" | "working" | "warning" | "danger" | "neutral"

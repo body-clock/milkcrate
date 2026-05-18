@@ -1,6 +1,6 @@
-import React from "react"
 import { Link } from "@inertiajs/react"
 import { motion } from "framer-motion"
+import type { Variants } from "framer-motion"
 import MarketingLayout from "@/layouts/marketing_layout"
 import CrateView from "@/components/crate_view"
 import { PileProvider } from "@/contexts/pile_context"
@@ -29,20 +29,22 @@ interface Props {
   preview: HomepagePreview
 }
 
-const fadeUp = {
+const easeOut = [0.25, 0.46, 0.45, 0.94] as const
+
+const fadeUp: Variants = {
   hidden: { opacity: 0, y: 12 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] },
+    transition: { duration: 0.5, ease: easeOut },
   },
 }
 
-const fadeIn = {
+const fadeIn: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] },
+    transition: { duration: 0.4, ease: easeOut },
   },
 }
 
@@ -52,8 +54,7 @@ const ctaBase =
 export default function Home({ copy, preview }: Props) {
   const hasPreview = preview.sections.length > 0
   const picksSection = preview.sections.find((section) => section.key === "picks_wall")
-  const picksCrate = picksSection?.key === "picks_wall" ? picksSection.crate : null
-  const hasPicksPreview = Boolean(picksCrate && picksCrate.records.length > 0)
+  const picksCrate = picksSection?.key === "picks_wall" ? picksSection.crate : undefined
 
   return (
     <MarketingLayout>
@@ -128,7 +129,7 @@ export default function Home({ copy, preview }: Props) {
           </span>
         </div>
 
-        {hasPicksPreview ? (
+        {picksCrate && picksCrate.records.length > 0 ? (
           <>
             <div className="max-w-4xl mx-auto">
               <PileProvider>

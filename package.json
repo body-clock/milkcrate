@@ -3,6 +3,7 @@
   "type": "module",
   "scripts": {
     "test:frontend": "node --experimental-webstorage --test --import tsx app/frontend/lib/*.test.ts",
+    "typecheck": "tsc --noEmit",
     "test:components": "vitest run",
     "test:components:watch": "vitest"
   },

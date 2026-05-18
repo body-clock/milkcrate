@@ -9,16 +9,8 @@ import {
   SCALE_HOVER,
   LIFT_HOVER,
   TILT_HOVER,
-  DURATION_HOVER,
-  DURATION_PRESS,
-  transitionHover,
-  transitionDrawer,
-  transitionFlip,
   transitionCrate,
   reducedMotionTransition,
-  REDUCED_MOTION_SCALE,
-  REDUCED_MOTION_LIFT,
-  REDUCED_MOTION_TILT,
 } from "./motion_tokens"
 
 test("springTactile is a spring config with the documented values", () => {
@@ -50,17 +42,6 @@ test("lift and tilt magnitudes are positive numbers", () => {
   assert.equal(TILT_HOVER, 1.5)
 })
 
-test("duration tokens are positive numbers", () => {
-  assert.ok(DURATION_HOVER > 0)
-  assert.ok(DURATION_PRESS > 0)
-})
-
-test("transition presets alias their corresponding springs", () => {
-  assert.equal(transitionHover, springTactile)
-  assert.equal(transitionDrawer, springDrawer)
-  assert.equal(transitionFlip, springFlip)
-})
-
 test("transitionCrate is a spring-based crate-navigation preset", () => {
   assert.equal(typeof transitionCrate, "object")
   assert.equal(transitionCrate.type, "spring")
@@ -70,10 +51,4 @@ test("transitionCrate is a spring-based crate-navigation preset", () => {
 
 test("reducedMotionTransition is an instant transition", () => {
   assert.deepEqual(reducedMotionTransition, { duration: 0 })
-})
-
-test("reduced-motion constants collapse to identity", () => {
-  assert.equal(REDUCED_MOTION_SCALE, 1)
-  assert.equal(REDUCED_MOTION_LIFT, 0)
-  assert.equal(REDUCED_MOTION_TILT, 0)
 })
