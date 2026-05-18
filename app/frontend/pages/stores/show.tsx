@@ -6,8 +6,14 @@ import StoreFloor from "@/components/store_floor"
 import type { StoreShowProps } from "@/types/inertia"
 
 export default function StoreShow({ store, crates, storefront_sections }: StoreShowProps) {
-  const [activeSlug, setActiveSlug] = useState<string | null>(null)
-  const [startIndex, setStartIndex] = useState(0)
+  const [activeSlug, setActiveSlug] = useState<string | null>(() => {
+    const raw = history.state?.crateSlug
+    return typeof raw === "string" && raw.length > 0 ? raw : null
+  })
+  const [startIndex, setStartIndex] = useState(() => {
+    const raw = history.state?.startIndex
+    return Number.isFinite(raw) && (raw as number) >= 0 ? raw as number : 0
+  })
 
   const allCrates = useMemo(() => {
     if (crates.length > 0) return crates

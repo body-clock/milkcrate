@@ -1,7 +1,7 @@
 import { motion } from "framer-motion"
 import { useTactileHover } from "@/hooks/use_tactile_hover"
 import { springTactile, springPress, SCALE_HOVER, SCALE_PRESS } from "@/lib/motion_tokens"
-import RecordTile from "./record_tile"
+import CrateShelf from "./crate_shelf"
 import type { Crate } from "../types/inertia"
 
 interface Props {
@@ -10,40 +10,16 @@ interface Props {
   onSelectCrate: (slug: string, startIndex?: number) => void
 }
 
+/**
+ * A tactile crate card — wraps CrateShelf in a Framer Motion container
+ * that applies cursor-proximity hover animations (scale, lift, tilt,
+ * border glow).
+ */
 export default function CrateCard({ crate, variant, onSelectCrate }: Props) {
-  const isFeatured = variant === "featured"
-  const nameClass = isFeatured ? "text-base font-semibold" : "text-sm font-semibold"
   const { isHovered, isPressed, handlers } = useTactileHover()
-  const innerHoverScale = 1 + (SCALE_HOVER - 1) / 2
-
-  if (crate.records.length === 0) {
-    return (
-      <div className="flex flex-col w-full rounded-lg bg-mc-bg-card border border-mc-border overflow-hidden text-left">
-        <div className="px-3 pt-3 pb-2">
-          <div className="mc-section-header">
-            <span className={`mc-section-name ${nameClass}`}>{crate.name}</span>
-          </div>
-        </div>
-        <div className="aspect-square flex items-center justify-center mc-dim text-xs px-3 pb-3">
-          No records yet
-        </div>
-      </div>
-    )
-  }
 
   return (
     <motion.div
-      role="button"
-      tabIndex={0}
-      onClick={() => onSelectCrate(crate.slug)}
-      onKeyDown={(e) => {
-        if ((e.target as HTMLElement).closest("button, a")) return
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault()
-          onSelectCrate(crate.slug)
-        }
-      }}
-      className="flex flex-col w-full rounded-lg bg-mc-bg-card border border-mc-border overflow-hidden cursor-pointer text-left"
       animate={{
         borderColor: isHovered ? "var(--mc-accent)" : "var(--mc-border)",
         scale: isPressed ? SCALE_PRESS : isHovered ? SCALE_HOVER : 1,
@@ -51,53 +27,16 @@ export default function CrateCard({ crate, variant, onSelectCrate }: Props) {
         rotate: isHovered ? 0 : -0.5,
       }}
       transition={isPressed ? springPress : springTactile}
-      aria-label={`Open ${crate.name}`}
       {...handlers}
     >
-      {/* Header row — lid lift on hover */}
-      <motion.div
-        className="px-3 pt-3 pb-1.5"
-        style={{ transformOrigin: "top" }}
-        animate={{ y: isHovered ? -2 : 0 }}
-        transition={springTactile}
-      >
-        <div className="flex items-center justify-between gap-2 border-b border-mc-border pb-1">
-          <span className={`mc-section-name ${nameClass} truncate flex-1`}>{crate.name}</span>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            {/* DIG → label — slides in on hover */}
-            <motion.span
-              className="text-[10px] text-mc-accent font-bold uppercase tracking-widest"
-              animate={{ opacity: isHovered ? 1 : 0, x: isHovered ? 0 : -4 }}
-              transition={springTactile}
-            >
-              DIG →
-            </motion.span>
-            <span className="mc-section-count text-xs">{crate.count}</span>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Thumbnail grid — scale together as a group */}
-      <motion.div
-        className="grid grid-cols-2 gap-1.5 px-3 pb-3 pt-1.5"
-        animate={{ scale: isHovered ? innerHoverScale : 1 }}
-        transition={springTactile}
-      >
-        {crate.records.slice(0, 4).map((record, i) => (
-            <button
-              key={record.id}
-              type="button"
-              className="cursor-pointer rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-1 focus-visible:ring-offset-mc-bg-card"
-              onClick={(e) => {
-                e.stopPropagation()
-                onSelectCrate(crate.slug, i)
-              }}
-              aria-label={`Open ${crate.name} at ${record.title ?? "record"}`}
-            >
-              <RecordTile listing={record} imageLoading="lazy" />
-            </button>
-          ))}
-      </motion.div>
+      <CrateShelf
+        crate={crate}
+        interactive
+        onSelectCrate={onSelectCrate}
+        previewCount={4}
+        openLabel="DIG →"
+        headerSize={variant}
+      />
     </motion.div>
   )
 }

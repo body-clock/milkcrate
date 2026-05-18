@@ -17,6 +17,8 @@ export interface CrateShelfProps {
   meta?: string
   /** Optional explicit open-action label for touch-friendly affordance. */
   openLabel?: string
+  /** Header text size: "featured" (text-base) or "genre" (text-sm, default). */
+  headerSize?: "featured" | "genre"
   /** Additional CSS class names. */
   className?: string
 }
@@ -44,14 +46,16 @@ export default function CrateShelf({
   previewCount = 4,
   meta,
   openLabel,
+  headerSize = "genre",
   className = "",
 }: CrateShelfProps) {
   const { isHovered } = useTactileHover()
   const innerHoverScale = 1 + (SCALE_HOVER - 1) / 2
+  const nameClass = headerSize === "featured" ? "text-base font-semibold" : "text-sm font-semibold"
 
   const headerContent = (
     <div className="flex items-center justify-between gap-2 border-b border-mc-border pb-1">
-      <span className="mc-section-name text-sm font-semibold truncate flex-1">
+      <span className={`mc-section-name ${nameClass} truncate flex-1`}>
         {crate.name}
       </span>
       <div className="flex items-center gap-2 flex-shrink-0">

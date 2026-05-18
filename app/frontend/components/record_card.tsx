@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react"
 import { motion } from "framer-motion"
 import { usePileContext } from "../contexts/pile_context"
 import { springFlip } from "@/lib/motion_tokens"
+import { formatPrice } from "@/lib/format_price"
 import type { Listing } from "../types/inertia"
 
 interface Props {
@@ -139,7 +140,7 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
               </div>
             )}
             <div className="text-sm font-medium mt-auto">
-              {listing.price ? `$${parseFloat(listing.price).toFixed(2)}` : "—"}
+              {formatPrice(listing)}
             </div>
             <div className="flex gap-1 mt-1" onClick={(e) => e.stopPropagation()}>
               {inPile(listing.id) ? (
@@ -151,7 +152,7 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
                   + Pile
                 </button>
               )}
-              <a href={listing.discogs_url} target="_blank" rel="noopener" className="mc-btn text-xs">
+              <a href={listing.discogs_url} target="_blank" rel="noopener noreferrer" className="mc-btn text-xs">
                 Discogs ↗
               </a>
             </div>

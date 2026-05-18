@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { usePileContext } from "../contexts/pile_context"
 import { useViewport } from "@/hooks/use_viewport"
 import { springDrawer } from "@/lib/motion_tokens"
+import { formatPriceValue } from "@/lib/format_price"
 
 interface Props {
   open: boolean
@@ -133,7 +134,7 @@ export default function PileSheet({ open, onClose }: Props) {
                         <a
                           href={listing.discogs_url}
                           target="_blank"
-                          rel="noopener"
+                          rel="noopener noreferrer"
                           className="flex items-center gap-3 flex-1 min-w-0 group"
                         >
                           <div className="w-12 h-12 flex-shrink-0 rounded bg-mc-bg-raised overflow-hidden border border-mc-border">
@@ -148,7 +149,7 @@ export default function PileSheet({ open, onClose }: Props) {
                             <div className="text-xs text-mc-text-dim truncate">{listing.artist}</div>
                           </div>
                           <span className="text-xs font-medium flex-shrink-0">
-                            {listing.price ? `$${parseFloat(listing.price).toFixed(2)}` : "—"}
+                            {formatPriceValue(listing.price, listing.currency)}
                           </span>
                         </a>
                         <button
@@ -170,7 +171,7 @@ export default function PileSheet({ open, onClose }: Props) {
               <div className="flex-shrink-0 px-4 py-4 border-t border-mc-border flex flex-col gap-3">
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-mc-text-dim uppercase tracking-wider">Total</span>
-                  <span className="text-sm font-semibold">${total.toFixed(2)}</span>
+                  <span className="text-sm font-semibold">{formatPriceValue(total.toFixed(2), pile[0]?.currency)}</span>
                 </div>
                 <button
                   disabled
