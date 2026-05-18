@@ -1,6 +1,6 @@
 import { motion } from "framer-motion"
 import { useTactileHover } from "@/hooks/use_tactile_hover"
-import { springTactile, springPress, SCALE_HOVER, SCALE_PRESS, SCALE_INNER_HOVER } from "@/lib/motion_tokens"
+import { springTactile, springPress, SCALE_HOVER, SCALE_PRESS } from "@/lib/motion_tokens"
 import RecordTile from "./record_tile"
 import type { Crate } from "../types/inertia"
 
@@ -14,6 +14,7 @@ export default function CrateCard({ crate, variant, onSelectCrate }: Props) {
   const isFeatured = variant === "featured"
   const nameClass = isFeatured ? "text-base font-semibold" : "text-sm font-semibold"
   const { isHovered, isPressed, handlers } = useTactileHover()
+  const innerHoverScale = 1 + (SCALE_HOVER - 1) / 2
 
   if (crate.records.length === 0) {
     return (
@@ -79,7 +80,7 @@ export default function CrateCard({ crate, variant, onSelectCrate }: Props) {
       {/* Thumbnail grid — scale together as a group */}
       <motion.div
         className="grid grid-cols-2 gap-1.5 px-3 pb-3 pt-1.5"
-        animate={{ scale: isHovered ? SCALE_INNER_HOVER : 1 }}
+        animate={{ scale: isHovered ? innerHoverScale : 1 }}
         transition={springTactile}
       >
         {crate.records.slice(0, 4).map((record, i) => (

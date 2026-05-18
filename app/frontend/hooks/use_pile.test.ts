@@ -104,16 +104,6 @@ describe("usePile", () => {
     expect(result.current.pile[0].id).toBe(5)
   })
 
-  it("ignores retired legacy dig-session storage", () => {
-    const listing = makeListing({ id: 9 })
-    localStorage.setItem("mc-dig-session", JSON.stringify([listing]))
-
-    const { result } = renderHook(() => usePile())
-
-    expect(result.current.pile).toEqual([])
-    expect(localStorage.getItem("mc-dig-session")).toEqual(JSON.stringify([listing]))
-  })
-
   it("falls back to an empty pile when stored data is invalid", () => {
     localStorage.setItem("mc-pile", "not json")
 

@@ -35,7 +35,6 @@ export const springDrawer = {
 
 export const SCALE_PRESS = 0.97
 export const SCALE_HOVER = 1.05
-export const SCALE_INNER_HOVER = 1.03
 
 // ── Lift / tilt magnitudes ────────────────────────────────────
 

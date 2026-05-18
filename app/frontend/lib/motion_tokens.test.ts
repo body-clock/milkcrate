@@ -7,7 +7,6 @@ import {
   springDrawer,
   SCALE_PRESS,
   SCALE_HOVER,
-  SCALE_INNER_HOVER,
   LIFT_HOVER,
   TILT_HOVER,
   transitionCrate,
@@ -36,10 +35,6 @@ test("SCALE_PRESS matches the documented press-down scale", () => {
 
 test("SCALE_HOVER matches the documented hover scale", () => {
   assert.equal(SCALE_HOVER, 1.05)
-})
-
-test("SCALE_INNER_HOVER matches the documented inner hover scale", () => {
-  assert.equal(SCALE_INNER_HOVER, 1.03)
 })
 
 test("lift and tilt magnitudes are positive numbers", () => {
