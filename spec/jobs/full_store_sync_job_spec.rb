@@ -18,7 +18,7 @@ RSpec.describe FullStoreSyncJob do
     allow(StoreSyncService).to receive(:new).with(store).and_return(sync_service)
     # Simulate service managing sync status internally.
     allow(sync_service).to receive(:sync) do |**|
-      store.mark_sync_succeeded!(
+      StoreSync::StatusManager.new(store).mark_succeeded!(
         last_synced_at: Time.current,
         total_listings: store.listings.count,
         catalog_coverage: sync_result.catalog_coverage,
@@ -75,7 +75,7 @@ RSpec.describe FullStoreSyncJob do
       travel_to(Time.zone.parse("2026-05-05 12:00:00")) do
         allow(sync_service).to receive(:sync) do
           create(:listing, store:, format: "LP", last_seen_at: 2.seconds.from_now)
-          store.mark_sync_succeeded!(
+          StoreSync::StatusManager.new(store).mark_succeeded!(
             last_synced_at: Time.current,
             total_listings: store.listings.count,
             catalog_coverage: sync_result.catalog_coverage,

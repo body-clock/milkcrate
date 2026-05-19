@@ -16,7 +16,7 @@ class FullStoreSyncJob < ApplicationJob
     Rails.logger.error(
       "[FullStoreSyncJob] store=#{store&.discogs_username || store_id} job_id=#{job_id} failed\n#{error.full_message(highlight: false, order: :top)}"
     )
-    store&.mark_sync_failed!(error)
+    StoreSync::StatusManager.new(store).mark_failed!(error) if store
     raise
   end
 end
