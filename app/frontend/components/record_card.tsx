@@ -16,15 +16,14 @@ interface Props {
   disableParallax?: boolean
 }
 
-const PARALLAX_MAX_ANGLE = 6 // degrees
-const isBrowser = typeof window !== "undefined"
+const PARALLAX_MAX_ANGLE = 8 // degrees
 
 export default function RecordCard({ listing, resetKey, className = "", imageLoading = "lazy", disableFlip = false, framed = false, disableParallax = false }: Props) {
   const [flipped, setFlipped] = useState(false)
-  const [tilt, setTilt] = useState({ x: 0, y: 0 })
   const pointerDown = useRef<{ x: number; y: number } | null>(null)
   const cardRef = useRef<HTMLDivElement>(null)
   const rafRef = useRef<number | null>(null)
+  const tiltRef = useRef({ x: 0, y: 0 })
   const { inPile, addToPile, removeFromPile } = usePileContext()
   const reducedMotion = useReducedMotionContext()
   const canFlip = !disableFlip
@@ -32,36 +31,23 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
 
   useEffect(() => {
     setFlipped(false)
-    setTilt({ x: 0, y: 0 })
+    if (cardRef.current) {
+      cardRef.current.style.transform = ""
+    }
   }, [resetKey])
 
-  // ── Parallax tilt ────────────────────────────────────────
+  // ── Apply tilt transform directly to DOM via ref ──────────
 
-  const updateTilt = useCallback((e: React.PointerEvent) => {
+  const applyTilt = useCallback(() => {
     const el = cardRef.current
     if (!el) return
+    const t = tiltRef.current
+    if (canTilt && !flipped) {
+      el.style.transform = `perspective(800px) rotateX(${t.y}deg) rotateY(${t.x}deg)`
+    }
+  }, [canTilt, flipped])
 
-    const rect = el.getBoundingClientRect()
-    const cx = rect.left + rect.width / 2
-    const cy = rect.top + rect.height / 2
-    const dx = e.clientX - cx
-    const dy = e.clientY - cy
-
-    // Normalize to -1..1, invert Y so cursor moves card toward itself
-    const nx = (dx / (rect.width / 2))
-    const ny = -(dy / (rect.height / 2))
-
-    setTilt({
-      x: nx * PARALLAX_MAX_ANGLE,
-      y: ny * PARALLAX_MAX_ANGLE,
-    })
-  }, [])
-
-  const handlePointerEnter = useCallback((e: React.PointerEvent) => {
-    if (!canTilt) return
-    if (e.pointerType !== "mouse") return
-    updateTilt(e)
-  }, [canTilt, updateTilt])
+  // ── Parallax pointer handlers ───────────────────────────
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     if (!canTilt || e.pointerType !== "mouse") return
@@ -72,16 +58,38 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
 
     rafRef.current = requestAnimationFrame(() => {
       rafRef.current = null
-      updateTilt(e)
+      const el = cardRef.current
+      if (!el) return
+
+      const rect = el.getBoundingClientRect()
+      const cx = rect.left + rect.width / 2
+      const cy = rect.top + rect.height / 2
+      const dx = e.clientX - cx
+      const dy = e.clientY - cy
+
+      tiltRef.current = {
+        x: (dx / (rect.width / 2)) * PARALLAX_MAX_ANGLE,
+        y: -(dy / (rect.height / 2)) * PARALLAX_MAX_ANGLE,
+      }
+
+      el.style.transform = `perspective(800px) rotateX(${tiltRef.current.y}deg) rotateY(${tiltRef.current.x}deg)`
     })
-  }, [canTilt, updateTilt])
+  }, [canTilt])
+
+  const handlePointerEnter = useCallback((e: React.PointerEvent) => {
+    if (!canTilt || e.pointerType !== "mouse") return
+    handlePointerMove(e)
+  }, [canTilt, handlePointerMove])
 
   const handlePointerLeave = useCallback(() => {
     if (rafRef.current !== null) {
       cancelAnimationFrame(rafRef.current)
       rafRef.current = null
     }
-    setTilt({ x: 0, y: 0 })
+    tiltRef.current = { x: 0, y: 0 }
+    if (cardRef.current) {
+      cardRef.current.style.transform = `perspective(800px) rotateX(0deg) rotateY(0deg)`
+    }
   }, [])
 
   // Cleanup rAF on unmount
@@ -126,29 +134,16 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
 
   const meta = [listing.label, listing.year, listing.condition].filter(Boolean).join(" · ")
 
-  // Tilt angles: 0 when flipped or tilt disabled
-  const tiltX = canTilt && !flipped ? tilt.x : 0
-  const tiltY = canTilt && !flipped ? tilt.y : 0
-
   return (
-    <motion.div
+    <div
       ref={cardRef}
       className={`w-full h-full flex-shrink-0 cursor-pointer ${className}`}
       style={{
         touchAction: "none",
         transformStyle: "preserve-3d",
-      }}
-      transformTemplate={(_, generated) =>
-        `perspective(800px) ${generated}`
-      }
-      animate={{
-        rotateX: tiltY,
-        rotateY: tiltX,
-      }}
-      transition={{
-        type: "spring",
-        stiffness: 400,
-        damping: 28,
+        transform: "perspective(800px) rotateX(0deg) rotateY(0deg)",
+        transition: "transform 0.1s ease-out",
+        willChange: "transform",
       }}
       role={canFlip ? "button" : undefined}
       tabIndex={canFlip ? 0 : undefined}
@@ -253,6 +248,6 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
           </div>
         </div>
       </motion.div>
-    </motion.div>
+    </div>
   )
 }
