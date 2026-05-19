@@ -5,12 +5,6 @@ class DiscogsRateLimitMiddleware < Faraday::Middleware
   MAX_RETRIES = 3   # max 429 retry attempts per request
   BACKOFF_BASE = 2  # exponential backoff base (2^attempt seconds)
 
-  def initialize(app)
-    super(app)
-    @last_request_time = nil
-    @last_remaining = nil
-  end
-
   def call(env)
     sleep_if_needed
     response = request_with_retry(env)
@@ -34,8 +28,8 @@ class DiscogsRateLimitMiddleware < Faraday::Middleware
   end
 
   def pause_if_quota_low(response)
-    @last_remaining = response.headers["x-discogs-ratelimit-remaining"]&.to_i
-    return unless @last_remaining && @last_remaining <= LOW
+    remaining = response.headers["x-discogs-ratelimit-remaining"]&.to_i
+    return unless remaining && remaining <= LOW
     sleep(PAUSE)
   end
 

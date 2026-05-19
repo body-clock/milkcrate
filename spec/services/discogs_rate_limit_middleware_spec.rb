@@ -110,4 +110,38 @@ RSpec.describe DiscogsRateLimitMiddleware do
       expect { middleware.call(env) }.not_to raise_error
     end
   end
+
+  describe "integration with DiscogsClient connection stack" do
+    it "retries 429 transparently when wired into a DiscogsClient connection" do
+      stubs = Faraday::Adapter::Test::Stubs.new
+      conn = Faraday.new do |f|
+        f.request :url_encoded
+        f.response :json
+        f.use DiscogsRateLimitMiddleware
+        f.request :retry, max: 3, interval: 2.0, retry_statuses: [ 503 ]
+        f.headers["Authorization"] = "Discogs token=test"
+        f.headers["User-Agent"] = "Milkcrate/1.0 +https://milkcrate.fm"
+        f.adapter :test, stubs
+      end
+
+      client = DiscogsClient.new
+      client.instance_variable_set(:@connection, conn)
+
+      call_count = 0
+      stubs.get("/users/testuser/inventory") do
+        call_count += 1
+        if call_count == 1
+          [ 429, {}, "rate limited" ]
+        else
+          [ 200, { "Content-Type" => "application/json", "x-discogs-ratelimit-remaining" => "50" }, '{"listings":[]}' ]
+        end
+      end
+
+      allow(Kernel).to receive(:sleep)
+      result = client.seller_inventory("testuser")
+
+      expect(result["listings"]).to eq([])
+      expect(call_count).to eq(2)
+    end
+  end
 end
