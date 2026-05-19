@@ -1,4 +1,5 @@
 class FullStoreSyncJob < ApplicationJob
+  limits_concurrency to: 1, key: -> { "discogs_api" }
   queue_as :default
 
   def perform(store_id, max_pages: nil)

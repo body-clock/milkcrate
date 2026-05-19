@@ -45,9 +45,10 @@ class DiscogsClient
     Faraday.new(url: BASE_URL) do |f|
       f.options.timeout = 10
       f.options.open_timeout = 5
-      f.request :retry, max: 3, interval: 2.0, retry_statuses: [ 503 ]
       f.request :url_encoded
       f.response :json
+      f.use DiscogsRateLimitMiddleware
+      f.request :retry, max: 3, interval: 2.0, retry_statuses: [ 503 ]
       f.headers["Authorization"] = "Discogs token=#{@token}"
       f.headers["User-Agent"] = "Milkcrate/1.0 +https://milkcrate.fm"
     end
