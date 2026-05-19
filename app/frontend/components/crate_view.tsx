@@ -446,6 +446,7 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
                     className="relative z-10 rounded-lg"
                     imageLoading="eager"
                     disableFlip={!isCompact}
+                    disableParallax={isCompact}
                     framed
                   />
                 </motion.div>

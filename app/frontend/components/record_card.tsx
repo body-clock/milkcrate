@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, useState } from "react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
 import { motion } from "framer-motion"
 import { usePileContext } from "../contexts/pile_context"
+import { useReducedMotionContext } from "@/components/storefront_motion_config"
 import { springFlip } from "@/lib/motion_tokens"
 import type { Listing } from "../types/inertia"
 
@@ -11,17 +12,88 @@ interface Props {
   imageLoading?: "eager" | "lazy"
   disableFlip?: boolean
   framed?: boolean
+  /** When true, suppresses the cursor-parallax tilt effect (used on compact viewports). */
+  disableParallax?: boolean
 }
 
-export default function RecordCard({ listing, resetKey, className = "", imageLoading = "lazy", disableFlip = false, framed = false }: Props) {
+const PARALLAX_MAX_ANGLE = 4 // degrees
+const isBrowser = typeof window !== "undefined"
+
+export default function RecordCard({ listing, resetKey, className = "", imageLoading = "lazy", disableFlip = false, framed = false, disableParallax = false }: Props) {
   const [flipped, setFlipped] = useState(false)
+  const [tilt, setTilt] = useState({ x: 0, y: 0 })
   const pointerDown = useRef<{ x: number; y: number } | null>(null)
+  const cardRef = useRef<HTMLDivElement>(null)
+  const rafRef = useRef<number | null>(null)
   const { inPile, addToPile, removeFromPile } = usePileContext()
+  const reducedMotion = useReducedMotionContext()
   const canFlip = !disableFlip
+  const canTilt = !disableParallax && !reducedMotion
 
   useEffect(() => {
     setFlipped(false)
+    setTilt({ x: 0, y: 0 })
   }, [resetKey])
+
+  // ── Parallax tilt ────────────────────────────────────────
+
+  const updateTilt = useCallback((e: React.PointerEvent) => {
+    const el = cardRef.current
+    if (!el) return
+
+    const rect = el.getBoundingClientRect()
+    const cx = rect.left + rect.width / 2
+    const cy = rect.top + rect.height / 2
+    const dx = e.clientX - cx
+    const dy = e.clientY - cy
+
+    // Normalize to -1..1, invert Y so cursor moves card toward itself
+    const nx = (dx / (rect.width / 2))
+    const ny = -(dy / (rect.height / 2))
+
+    setTilt({
+      x: nx * PARALLAX_MAX_ANGLE,
+      y: ny * PARALLAX_MAX_ANGLE,
+    })
+  }, [])
+
+  const handlePointerEnter = useCallback((e: React.PointerEvent) => {
+    if (!canTilt) return
+    if (e.pointerType !== "mouse") return
+    updateTilt(e)
+  }, [canTilt, updateTilt])
+
+  const handlePointerMove = useCallback((e: React.PointerEvent) => {
+    if (!canTilt || e.pointerType !== "mouse") return
+
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current)
+    }
+
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null
+      updateTilt(e)
+    })
+  }, [canTilt, updateTilt])
+
+  const handlePointerLeave = useCallback(() => {
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current)
+      rafRef.current = null
+    }
+    setTilt({ x: 0, y: 0 })
+  }, [])
+
+  // Cleanup rAF on unmount
+  useEffect(() => {
+    return () => {
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current)
+      }
+    }
+  }, [])
+
+  // ── Flip handlers ────────────────────────────────────────
 
   const handlePointerDown = (e: React.PointerEvent) => {
     pointerDown.current = { x: e.clientX, y: e.clientY }
@@ -54,15 +126,29 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
 
   const meta = [listing.label, listing.year, listing.condition].filter(Boolean).join(" · ")
 
+  // When flipped, suppress tilt to avoid disorienting 3D effect
+  const tiltTransform = (!canTilt || flipped)
+    ? undefined
+    : `perspective(800px) rotateX(${tilt.y}deg) rotateY(${tilt.x}deg)`
+
   return (
     <div
-      className={`w-full h-full flex-shrink-0 cursor-pointer ${className}`}
-      style={{ perspective: 800, touchAction: "none" }}
+      ref={cardRef}
+      className={`w-full h-full flex-shrink-0 ${className}`}
+      style={{
+        perspective: 800,
+        touchAction: "none",
+        transform: tiltTransform,
+        willChange: canTilt ? "transform" : undefined,
+      }}
       role={canFlip ? "button" : undefined}
       tabIndex={canFlip ? 0 : undefined}
       aria-label={canFlip ? `${flipped ? "Show cover for" : "Show details for"} ${listing.title ?? "record"}` : undefined}
       aria-pressed={canFlip ? flipped : undefined}
       onPointerDown={handlePointerDown}
+      onPointerEnter={handlePointerEnter}
+      onPointerMove={handlePointerMove}
+      onPointerLeave={handlePointerLeave}
       onDragStart={(e) => e.preventDefault()}
       onClick={handleFlip}
       onKeyDown={handleKeyDown}
