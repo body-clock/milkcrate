@@ -135,7 +135,7 @@ export default function CrateShelf({
                   animate={{ scale: isHovered ? SCALE_INNER_HOVER : 1 }}
                   transition={springTactile}
                 >
-                  <RecordTile listing={record} imageLoading="lazy" />
+                  <RecordTile listing={record} imageLoading="lazy" tactileHover />
                 </motion.div>
               </button>
             ) : (

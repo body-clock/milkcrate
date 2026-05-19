@@ -2,6 +2,7 @@ import React from "react"
 import { describe, expect, it } from "vitest"
 import { render, screen } from "@testing-library/react"
 import RecordTile from "./record_tile"
+import StorefrontMotionConfig from "./storefront_motion_config"
 import type { Listing } from "../types/inertia"
 
 const makeListing = (overrides: Partial<Listing> = {}): Listing => ({
@@ -24,6 +25,14 @@ const makeListing = (overrides: Partial<Listing> = {}): Listing => ({
   ...overrides,
 })
 
+function renderTile(props: Partial<React.ComponentProps<typeof RecordTile>> = {}) {
+  return render(
+    <StorefrontMotionConfig>
+      <RecordTile listing={makeListing()} {...props} />
+    </StorefrontMotionConfig>,
+  )
+}
+
 describe("RecordTile", () => {
   describe("happy path", () => {
     it("renders cover image when cover_image_url exists", () => {
@@ -31,7 +40,7 @@ describe("RecordTile", () => {
         cover_image_url: "https://example.com/cover.jpg",
       })
 
-      render(<RecordTile listing={listing} />)
+      renderTile({ listing })
 
       const img = screen.getByRole("img", { name: "Test Record" })
       expect(img).toBeInTheDocument()
@@ -41,7 +50,7 @@ describe("RecordTile", () => {
     it("renders fallback placeholder when no cover image exists", () => {
       const listing = makeListing({ cover_image_url: null })
 
-      render(<RecordTile listing={listing} />)
+      renderTile({ listing })
 
       // Should have fallback — no img tag
       expect(screen.queryByRole("img")).not.toBeInTheDocument()
@@ -57,10 +66,8 @@ describe("RecordTile", () => {
         thumbnail_url: "https://example.com/thumb.jpg",
       })
 
-      render(<RecordTile listing={listing} />)
+      renderTile({ listing })
 
-      // CrateCard pattern uses cover_image_url ?? thumbnail_url
-      // RecordTile should follow the same pattern
       const img = screen.getByRole("img")
       expect(img).toHaveAttribute("src", "https://example.com/thumb.jpg")
     })
@@ -71,7 +78,7 @@ describe("RecordTile", () => {
         thumbnail_url: "https://example.com/thumb.jpg",
       })
 
-      render(<RecordTile listing={listing} />)
+      renderTile({ listing })
 
       const img = screen.getByRole("img")
       expect(img).toHaveAttribute("src", "https://example.com/cover.jpg")
@@ -85,10 +92,8 @@ describe("RecordTile", () => {
         cover_image_url: "https://example.com/cover.jpg",
       })
 
-      render(<RecordTile listing={listing} />)
+      renderTile({ listing })
 
-      // alt="" removes the img from the accessibility tree,
-      // so query the DOM directly instead of getByRole.
       const img = document.querySelector("img")
       expect(img).toBeInTheDocument()
       expect(img).toHaveAttribute("alt", "")
@@ -101,8 +106,7 @@ describe("RecordTile", () => {
         cover_image_url: null,
       })
 
-      // Should not throw
-      render(<RecordTile listing={listing} />)
+      renderTile({ listing })
 
       const tile = document.querySelector(".bg-mc-bg-raised")
       expect(tile).toBeInTheDocument()
@@ -114,7 +118,7 @@ describe("RecordTile", () => {
         thumbnail_url: null,
       })
 
-      render(<RecordTile listing={listing} />)
+      renderTile({ listing })
 
       expect(screen.queryByRole("img")).not.toBeInTheDocument()
       const tile = document.querySelector(".bg-mc-bg-raised")
@@ -124,19 +128,16 @@ describe("RecordTile", () => {
     it("renders with responsive aspect-square container", () => {
       const listing = makeListing({ cover_image_url: "https://example.com/cover.jpg" })
 
-      render(<RecordTile listing={listing} />)
+      renderTile({ listing })
 
       const img = screen.getByRole("img")
-      // The element should have aspect-square via its parent
       expect(img).toHaveClass("object-cover")
     })
   })
 
   describe("props", () => {
     it("applies className to the wrapper", () => {
-      const listing = makeListing()
-
-      render(<RecordTile listing={listing} className="custom-tile" />)
+      renderTile({ className: "custom-tile" })
 
       const tile = document.querySelector(".custom-tile")
       expect(tile).toBeInTheDocument()
@@ -147,7 +148,7 @@ describe("RecordTile", () => {
         cover_image_url: "https://example.com/cover.jpg",
       })
 
-      render(<RecordTile listing={listing} imageLoading="eager" />)
+      renderTile({ listing, imageLoading: "eager" })
 
       const img = screen.getByRole("img")
       expect(img).toHaveAttribute("loading", "eager")
@@ -158,10 +159,36 @@ describe("RecordTile", () => {
         cover_image_url: "https://example.com/cover.jpg",
       })
 
-      render(<RecordTile listing={listing} />)
+      renderTile({ listing })
 
       const img = screen.getByRole("img")
       expect(img).toHaveAttribute("loading", "lazy")
+    })
+  })
+
+  describe("tactileHover", () => {
+    it("adds hover scale CSS class when tactileHover is true", () => {
+      renderTile({ tactileHover: true })
+
+      const tile = document.querySelector(".aspect-square")
+      expect(tile).toBeInTheDocument()
+      expect(tile?.className).toContain("hover:scale-[1.04]")
+    })
+
+    it("does not add hover scale class when tactileHover is false", () => {
+      renderTile({ tactileHover: false })
+
+      const tile = document.querySelector(".aspect-square")
+      expect(tile).toBeInTheDocument()
+      expect(tile?.className).not.toContain("hover:scale")
+    })
+
+    it("does not add hover scale class by default", () => {
+      renderTile()
+
+      const tile = document.querySelector(".aspect-square")
+      expect(tile).toBeInTheDocument()
+      expect(tile?.className).not.toContain("hover:scale")
     })
   })
 
@@ -172,7 +199,7 @@ describe("RecordTile", () => {
         cover_image_url: "https://example.com/cover.jpg",
       })
 
-      render(<RecordTile listing={listing} />)
+      renderTile({ listing })
 
       const img = screen.getByRole("img", { name: "Dark Side of the Moon" })
       expect(img).toBeInTheDocument()
@@ -183,7 +210,7 @@ describe("RecordTile", () => {
         cover_image_url: "https://example.com/cover.jpg",
       })
 
-      render(<RecordTile listing={listing} />)
+      renderTile({ listing })
 
       const img = screen.getByRole("img")
       expect(img).toHaveAttribute("draggable", "false")
