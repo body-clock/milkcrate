@@ -35,7 +35,7 @@ const makeListing = (overrides: Partial<Listing> = {}): Listing => ({
 })
 
 const renderWithPile = (ui: React.ReactElement) => (
-  render(<ViewportProvider><PileProvider>{ui}</PileProvider></ViewportProvider>)
+  render(<StorefrontMotionConfig><ViewportProvider><PileProvider>{ui}</PileProvider></ViewportProvider></StorefrontMotionConfig>)
 )
 
 function makeCrate(overrides: Partial<Crate> = {}): Crate {

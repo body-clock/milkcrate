@@ -33,12 +33,13 @@ export const springDrawer = {
 
 // ── Scale constants ───────────────────────────────────────────
 
-export const SCALE_PRESS = 0.97
-export const SCALE_HOVER = 1.05
+export const SCALE_PRESS = 0.985
+export const SCALE_HOVER = 1.025
+export const SCALE_INNER_HOVER = 1.015
 
 // ── Lift / tilt magnitudes ────────────────────────────────────
 
-export const LIFT_HOVER = 3 // px
+export const LIFT_HOVER = 2 // px
 export const TILT_HOVER = 1.5 // deg
 
 // ── Transition presets ────────────────────────────────────────
@@ -49,6 +50,13 @@ export const transitionCrate = {
   type: "spring" as const,
   stiffness: 350,
   damping: 30,
+}
+
+/** Bouncier crate transition for desktop — slight overshoot feels organic. */
+export const transitionCrateDesktop = {
+  type: "spring" as const,
+  stiffness: 280,
+  damping: 22,
 }
 
 // ── Reduced-motion overrides ──────────────────────────────────

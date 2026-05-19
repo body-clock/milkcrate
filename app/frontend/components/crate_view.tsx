@@ -13,7 +13,7 @@ import {
   type RiffleDirection,
 } from "../lib/riffle_navigation"
 import { useViewport } from "@/hooks/use_viewport"
-import { SCALE_PRESS, springPress, transitionCrate, reducedMotionTransition } from "@/lib/motion_tokens"
+import { SCALE_PRESS, springPress, springTactile, transitionCrate, transitionCrateDesktop, reducedMotionTransition } from "@/lib/motion_tokens"
 import { useReducedMotionContext } from "./storefront_motion_config"
 import { isLessonEligible, markLessonLearned, isLessonLearned } from "../lib/first_swipe_lesson"
 import { usePreload } from "@/hooks/use_preload"
@@ -283,7 +283,7 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
                 initial="initial"
                 animate="animate"
                 exit="exit"
-                transition={prefersReducedMotion ? reducedMotionTransition : transitionCrate}
+                transition={prefersReducedMotion ? reducedMotionTransition : (isCompact ? transitionCrate : transitionCrateDesktop)}
                 className="absolute inset-0"
                 style={{ ...activeLayerStyle, zIndex: 30 }}
               >
@@ -428,7 +428,7 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
         {/* Desktop details panel */}
         {activeRecord && (
           <div className="hidden md:flex md:flex-col md:pt-7">
-            <RecordDetails listing={activeRecord} direction={direction.current} />
+            <RecordDetails listing={activeRecord} direction={direction.current} isCompact={isCompact} />
           </div>
         )}
       </div>

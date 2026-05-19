@@ -1,9 +1,13 @@
+import React from "react"
+import { useReducedMotionContext } from "@/components/storefront_motion_config"
 import type { Listing } from "../types/inertia"
 
 export interface RecordTileProps {
   listing: Listing
   className?: string
   imageLoading?: "eager" | "lazy"
+  /** When true, adds a gentle hover scale animation on desktop. */
+  tactileHover?: boolean
 }
 
 /**
@@ -15,17 +19,25 @@ export interface RecordTileProps {
  *
  * No flip animation, pile buttons, Discogs links, or click handlers.
  * Use RecordCard for full interactive record display.
+ *
+ * When `tactileHover` is true, adds a CSS-only hover scale animation.
  */
 export default function RecordTile({
   listing,
   className = "",
   imageLoading = "lazy",
+  tactileHover = false,
 }: RecordTileProps) {
+  const reducedMotion = useReducedMotionContext()
   const src = listing.cover_image_url ?? listing.thumbnail_url
+
+  const hoverClass = tactileHover && !reducedMotion
+    ? "hover:scale-[1.015] transition-transform duration-150 ease-out"
+    : ""
 
   return (
     <div
-      className={`aspect-square w-full h-full rounded-sm overflow-hidden border border-mc-border/50 ${className}`}
+      className={`aspect-square w-full h-full rounded-sm overflow-hidden border border-mc-border/50 ${hoverClass} ${className}`}
     >
       {src ? (
         <img
