@@ -15,32 +15,7 @@ class Listing < ApplicationRecord
 
   # Listings absent from latest sync are assumed sold. Never-synced stores fall
   # back to recent activity until first successful inventory snapshot lands.
-  scope :available, lambda {
-    joins(:store).where(
-      <<~SQL.squish,
-        (
-          COALESCE(stores.catalog_coverage, 'unknown') = 'partial'
-          AND listings.last_seen_at > ?
-        )
-        OR
-        (
-          COALESCE(stores.catalog_coverage, 'unknown') != 'partial'
-          AND (
-            (
-              stores.last_synced_at IS NOT NULL
-              AND listings.last_seen_at >= stores.last_synced_at
-            )
-            OR (
-              stores.last_synced_at IS NULL
-              AND listings.last_seen_at > ?
-            )
-          )
-        )
-      SQL
-      3.days.ago,
-      3.days.ago
-    )
-  }
+  scope :available, -> { Listings::AvailableQuery.new.call }
 
   def primary_genre
     genres.first
