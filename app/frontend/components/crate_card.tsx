@@ -13,13 +13,16 @@ interface Props {
 /**
  * A tactile crate card — wraps CrateShelf in a Framer Motion container
  * that applies cursor-proximity hover animations (scale, lift, tilt,
- * border glow).
+ * border glow). The outer motion.div owns the border (so borderColor
+ * animation is visible) and passes hover state into CrateShelf for
+ * inner animations (open label, thumbnail scale).
  */
 export default function CrateCard({ crate, variant, onSelectCrate }: Props) {
   const { isHovered, isPressed, handlers } = useTactileHover()
 
   return (
     <motion.div
+      className="w-full rounded-lg border overflow-hidden"
       animate={{
         borderColor: isHovered ? "var(--mc-accent)" : "var(--mc-border)",
         scale: isPressed ? SCALE_PRESS : isHovered ? SCALE_HOVER : 1,
@@ -36,6 +39,8 @@ export default function CrateCard({ crate, variant, onSelectCrate }: Props) {
         previewCount={4}
         openLabel="DIG →"
         headerSize={variant}
+        isHovered={isHovered}
+        className="border-0 rounded-none"
       />
     </motion.div>
   )
