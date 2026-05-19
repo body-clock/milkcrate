@@ -6,7 +6,7 @@ The public-facing app has:
 
 - a marketing homepage at `/`
 - a store application / waitlist form at `/apply`
-- store crate pages at `/:discogs_username`, for example `/philadelphiamusic`
+- store crate pages at `/:slug` (a Discogs-style username), for example `/philadelphiamusic`
 - a development-only jobs dashboard at `/jobs`
 
 ## Current Shape
@@ -21,6 +21,8 @@ The catalog flow:
 4. Enrich releases with Discogs release metadata — genres, styles, images, tracklists, want counts, and have counts.
 5. Run curation to build crates and stamp surfacing fields.
 6. Render the storefront in the React frontend.
+
+The domain models are `Store`, `Listing`, `Release`, `CuratedCrate`, `RecordScorer`, `DailySelection` (daily curated picks), `StorefrontTheme` (per-store visual theming), and `Waitlist` (store applications).
 
 The storefront shows a layered browsing experience:
 
@@ -102,6 +104,7 @@ Required variables:
 - `TURNSTILE_ENABLED` — set to `true` to require Cloudflare Turnstile on waitlist submissions.
 - `TURNSTILE_SITE_KEY` — Cloudflare Turnstile public site key.
 - `TURNSTILE_SECRET_KEY` — Cloudflare Turnstile secret key.
+- `PLAUSIBLE_DOMAIN` — domain for the Plausible analytics script.
 
 Development and test environments do not prompt for HTTP basic auth. Production uses a temporary basic auth gate until real app auth replaces it.
 
@@ -167,7 +170,9 @@ Useful local routes:
 |-------|-------------|
 | `/` | Marketing homepage |
 | `/apply` | Store application / waitlist form |
-| `/philadelphiamusic` | Default demo store, once that store exists locally |
+| `/:slug` | Any store by Discogs username, e.g. `/philadelphiamusic` |
+| `/admin` | Admin dashboard — store onboarding, Discogs lookup |
+| `/admin/discogs_lookup` | Discogs username lookup for store onboarding |
 | `/jobs` | Mission Control jobs dashboard (development only) |
 
 ## Store Data
@@ -194,19 +199,24 @@ end
 
 The main jobs:
 
+- **`SyncAllStoresJob`** — runs a full sync for every store in the database (used by the production recurring schedule).
 - **`FullStoreSyncJob`** — imports a seller's Discogs inventory, then queues enrichment and curation.
-- **`EnrichReleasesJob`** — fetches Discogs release data and updates matching listings.
+- **`EnrichmentJob`** — fetches Discogs release metadata and MusicBrainz images for imageless releases.
 - **`DailyCurationJob`** — builds picks, featured crates, and genre crates, then stamps surfacing fields.
 
 Useful rake tasks:
 
 ```bash
-bin/rails milkcrate:sync        # Full inventory sync, queue enrichment and curation
-bin/rails milkcrate:sync:quick  # Sync first Discogs page, enrich synchronously, curate
-bin/rails milkcrate:setup       # Bootstrap: full sync + synchronous enrichment + curation
-bin/rails milkcrate:curate      # Run curation for the configured store
-bin/rails milkcrate:stats       # Print inventory, LP, surfacing, and genre counts
-bin/rails milkcrate:score[ID]   # Print a score breakdown for one listing
+bin/rails milkcrate:sync                    # Full inventory sync, queue enrichment and curation
+bin/rails milkcrate:sync:quick              # Sync first Discogs page, enrich synchronously, curate
+bin/rails milkcrate:setup                   # Bootstrap: full sync + synchronous enrichment + curation
+bin/rails milkcrate:curate                  # Run daily curation for the configured store
+bin/rails milkcrate:enrich                  # Enrich releases: Discogs metadata + MusicBrainz images
+bin/rails milkcrate:add_store[username]     # Onboard a new store (create Store + full sync)
+bin/rails milkcrate:normalize_usernames     # Normalize existing discogs_username values to lowercase
+bin/rails milkcrate:reset_surfacing         # Reset surfacing data (dev/testing only)
+bin/rails milkcrate:stats                   # Print curation and enrichment stats for the current store
+bin/rails milkcrate:score[ID]               # Print a score breakdown for one listing
 ```
 
 Production recurring jobs are configured in `config/recurring.yml`.
@@ -220,6 +230,8 @@ Key pages:
 - `app/frontend/pages/home.tsx` — marketing homepage
 - `app/frontend/pages/apply.tsx` — waitlist form
 - `app/frontend/pages/stores/show.tsx` — store page, switches between `StoreFloor` (home) and `CrateView` (crate browser)
+- `app/frontend/pages/stores/invitation.tsx` — store invitation page (shown pre-sync)
+- `app/frontend/pages/admin/dashboard.tsx` — admin dashboard for store management
 
 Key components:
 
@@ -230,9 +242,20 @@ Key components:
 | `GenreGrid` | 4-wide grid of genre crate cards |
 | `CrateCard` | Preview card — shows 4 cover images, crate name, and record count |
 | `CrateView` | Full crate browser — card stack with up/down navigation, desktop details panel |
-| `CrateTabs` | Tab bar for switching between crates |
+| `CrateTabs` | Tab bar for switching between crates (picks, featured, genres) |
+| `CrateShelf` | Full-width shelf layout for horizontal crate card rows |
 | `RecordCard` | Single record display with cover art and flip-to-details on mobile |
+| `RecordTile` | Compact grid tile for records inside a crate |
+| `RecordDetails` | Mobile details panel with tracklist and metadata |
 | `PileSheet` | Client-side pile drawer, stored in `localStorage` under `mc-pile` |
+| `BrandMark` | Milkcrate logo component |
+| `GhostFingerCue` | Animated tutorial cue for first-time visitors |
+| `StorefrontMotionConfig` | Shared Framer Motion configuration for store animations |
+| `ui/Badge` | Reusable badge component |
+| `ui/Button` | Reusable button component |
+| `ui/Card` | Reusable card component |
+| `ui/SectionHeader` | Section header with optional description |
+| `ui/StatusDot` | Status indicator dot |
 
 Run frontend tests:
 
@@ -247,6 +270,7 @@ npm run test:components     # Vitest + React Testing Library
 bundle exec rspec           # Rails test suite (RSpec + FactoryBot + Capybara)
 npm run test:frontend       # Frontend Node tests
 npm run test:components     # Frontend component tests (Vitest)
+npm run typecheck           # TypeScript type checking (tsc --noEmit)
 bundle exec rubocop         # Ruby style checks
 bundle exec brakeman --no-pager  # Security analysis
 bundle exec bundler-audit   # Dependency vulnerability scan
