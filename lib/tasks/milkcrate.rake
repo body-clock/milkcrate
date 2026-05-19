@@ -112,8 +112,21 @@ namespace :milkcrate do
     puts "  vintage:     #{breakdown[:vintage]}"
     puts "  condition:   #{breakdown[:condition]}#{breakdown[:condition] == 0 ? " (condition=#{listing.condition.inspect} not matched)" : ""}"
     puts "  desirability: #{breakdown[:desirability].round(3)}"
-    puts "    log10(#{total}).clamp(0,#{RecordScorer::DESIRABILITY_LOG_CAP}): #{total > 0 ? Math.log10(total).clamp(0, RecordScorer::DESIRABILITY_LOG_CAP).round(3) : 0}"
-    puts "    ratio bonus/penalty: #{have >= RecordScorer::WANT_HAVE_MIN_HAVE ? (want.to_f / have >= RecordScorer::WANT_HAVE_RATIO_HIGH ? "+#{RecordScorer::WANT_HAVE_HIGH_BONUS}" : (want.to_f / have <= RecordScorer::WANT_HAVE_RATIO_LOW ? "#{RecordScorer::WANT_HAVE_LOW_PENALTY}" : "none")) : "n/a (have < #{RecordScorer::WANT_HAVE_MIN_HAVE})"}"
+    whr      = WantHaveRatio.new(want, have)
+    log_line = "    log10(#{total}).clamp(0,#{WantHaveRatio::LOG_CAP}): #{
+      total > 0 ? Math.log10(total).clamp(0, WantHaveRatio::LOG_CAP).round(3) : 0
+    }"
+    bonus_line = if whr.high?
+      "    ratio bonus/penalty: +#{ScoreStrategies::DesirabilityStrategy::HIGH_BONUS}"
+    elsif whr.low?
+      "    ratio bonus/penalty: #{ScoreStrategies::DesirabilityStrategy::LOW_PENALTY}"
+    elsif have < WantHaveRatio::MIN_HAVE
+      "    ratio bonus/penalty: n/a (have < #{WantHaveRatio::MIN_HAVE})"
+    else
+      "    ratio bonus/penalty: none"
+    end
+    puts log_line
+    puts bonus_line
     puts "  metadata:    #{breakdown[:metadata]}"
     puts "  freshness:   #{breakdown[:freshness]}"
     puts "  noise:       #{breakdown[:noise].round(3)}"

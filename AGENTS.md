@@ -44,6 +44,9 @@ unstructured and must be synthesized into the final report (same treatment as
 |-------|---------------------------|
 | `ce-dhh-rails-reviewer` | Rails architecture, service objects, session/auth choices, Hotwire-vs-SPA boundaries, abstractions that fight Rails conventions |
 | `ce-kieran-rails-reviewer` | Rails controllers, models, views, jobs, components, routes, or other application-layer Ruby code where clarity and conventions matter |
+| `ce-sandi-metz-reviewer` | Ruby/Rails classes, methods, parameters, object composition, dependency injection patterns, or any OO design choices |
+
+For on-demand Sandi Metz review (outside the code review pipeline), use the `/ce-sandi-metz-review` skill — dispatches the same reviewer to analyze a specific file, directory, or the current diff.
 
 These Rails reviewers complement the standard persona catalog. They are opinionated lenses
 on Rails-specific patterns — dispatch them in addition to (not instead of) the standard

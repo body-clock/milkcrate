@@ -10,8 +10,9 @@ RSpec.describe RecordScorer do
       scorer = build(:record_scorer, genre_counts: { "Rock" => 10 }, today: Date.new(2026, 5, 5))
 
       %w[NM VG+ Near\ Mint M-].each do |condition|
-        good    = listing(genres: [ "Rock" ], styles: [ "Classic Rock" ], condition:)
-        generic = listing(genres: [ "Rock" ], styles: [ "Classic Rock" ], condition: "Generic")
+        listing_id = rand(1..10_000)
+        good    = listing(id: listing_id, genres: [ "Rock" ], styles: [ "Classic Rock" ], condition:)
+        generic = listing(id: listing_id, genres: [ "Rock" ], styles: [ "Classic Rock" ], condition: "Generic")
 
         expect(scorer.score(good)).to be > scorer.score(generic)
       end
@@ -19,16 +20,16 @@ RSpec.describe RecordScorer do
 
     it "penalizes records with no styles and no year" do
       scorer = build(:record_scorer, genre_counts: { "Rock" => 10 }, today: Date.new(2026, 5, 5))
-      weak   = listing(genres: [ "Rock" ], styles: [], year: nil, condition: "Generic")
-      strong = listing(genres: [ "Rock" ], styles: [ "Classic Rock" ], year: 1975, condition: "VG+")
+      weak   = listing(id: 1, genres: [ "Rock" ], styles: [], year: nil, condition: "Generic")
+      strong = listing(id: 1, genres: [ "Rock" ], styles: [ "Classic Rock" ], year: 1975, condition: "VG+")
 
       expect(scorer.score(strong)).to be > scorer.score(weak)
     end
 
     it "boosts vintage records" do
       scorer  = build(:record_scorer, genre_counts: { "Jazz" => 10 }, today: Date.new(2026, 5, 5))
-      vintage = listing(genres: [ "Jazz" ], year: 1972)
-      recent  = listing(genres: [ "Jazz" ], year: 1985)
+      vintage = listing(id: 1, genres: [ "Jazz" ], year: 1972)
+      recent  = listing(id: 1, genres: [ "Jazz" ], year: 1985)
 
       expect(scorer.score(vintage)).to be > scorer.score(recent)
     end
@@ -44,16 +45,16 @@ RSpec.describe RecordScorer do
 
     it "boosts records with high want/have ratio above minimum have threshold" do
       scorer  = build(:record_scorer, genre_counts: { "Jazz" => 5 }, today: Date.new(2026, 5, 5))
-      coveted = listing(want_count: 800, have_count: 300, genres: [ "Jazz" ])
-      common  = listing(want_count: 100, have_count: 500, genres: [ "Jazz" ])
+      coveted = listing(id: 1, want_count: 800, have_count: 300, genres: [ "Jazz" ])
+      common  = listing(id: 1, want_count: 100, have_count: 500, genres: [ "Jazz" ])
 
       expect(scorer.score(coveted)).to be > scorer.score(common)
     end
 
     it "boosts records with higher market depth at the same ratio" do
       scorer = build(:record_scorer, genre_counts: { "Jazz" => 5 }, today: Date.new(2026, 5, 5))
-      deep   = listing(want_count: 500, have_count: 500, genres: [ "Jazz" ])
-      thin   = listing(want_count: 1, have_count: 1, genres: [ "Jazz" ])
+      deep   = listing(id: 1, want_count: 500, have_count: 500, genres: [ "Jazz" ])
+      thin   = listing(id: 1, want_count: 1, have_count: 1, genres: [ "Jazz" ])
 
       expect(scorer.score(deep)).to be > scorer.score(thin)
     end
@@ -67,8 +68,8 @@ RSpec.describe RecordScorer do
 
     it "penalizes records surfaced in the last 3 days" do
       scorer           = build(:record_scorer, genre_counts: { "Jazz" => 5 }, today: Date.new(2026, 5, 5))
-      never_surfaced   = listing(genres: [ "Jazz" ], last_surfaced_at: nil)
-      recently_surfaced = listing(genres: [ "Jazz" ], last_surfaced_at: Date.new(2026, 5, 4))
+      never_surfaced   = listing(id: 1, genres: [ "Jazz" ], last_surfaced_at: nil)
+      recently_surfaced = listing(id: 1, genres: [ "Jazz" ], last_surfaced_at: Date.new(2026, 5, 4))
 
       expect(scorer.score(never_surfaced)).to be > scorer.score(recently_surfaced)
     end
@@ -83,8 +84,8 @@ RSpec.describe RecordScorer do
 
     it "gives the highest freshness bonus to never-surfaced records" do
       scorer = build(:record_scorer, genre_counts: { "Jazz" => 5 }, today: Date.new(2026, 5, 5))
-      never  = listing(genres: [ "Jazz" ], last_surfaced_at: nil)
-      old    = listing(genres: [ "Jazz" ], last_surfaced_at: Date.new(2026, 4, 15))
+      never  = listing(id: 1, genres: [ "Jazz" ], last_surfaced_at: nil)
+      old    = listing(id: 1, genres: [ "Jazz" ], last_surfaced_at: Date.new(2026, 4, 15))
 
       expect(scorer.score(never)).to be > scorer.score(old)
     end

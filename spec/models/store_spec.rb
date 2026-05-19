@@ -52,12 +52,14 @@ RSpec.describe Store, type: :model do
     end
   end
 
-  describe "sync lifecycle" do
+  describe "StoreSync::StatusManager" do
     it "marks sync success with supplied metadata" do
       store = create(:store, sync_status: "failed", last_sync_error: "boom", last_sync_error_at: 1.hour.ago)
       synced_at = Time.zone.parse("2026-05-05 12:00:00")
 
-      store.mark_sync_succeeded!(last_synced_at: synced_at, catalog_coverage: "partial", inventory_page_count: 101)
+      StoreSync::StatusManager.new(store).mark_succeeded!(
+        last_synced_at: synced_at, catalog_coverage: "partial", inventory_page_count: 101
+      )
 
       expect(store.reload).to have_attributes(
         sync_status: "idle",
@@ -73,19 +75,34 @@ RSpec.describe Store, type: :model do
       store = create(:store)
       error = RuntimeError.new("discogs timeout")
 
-      store.mark_sync_failed!(error)
+      StoreSync::StatusManager.new(store).mark_failed!(error)
 
       expect(store.reload.sync_status).to eq("failed")
       expect(store.last_sync_error).to include("RuntimeError: discogs timeout")
       expect(store.last_sync_error_at).to be_present
     end
+
+    it "is stale when never synced" do
+      store = create(:store, last_synced_at: nil)
+      expect(StoreSync::StatusManager.new(store).stale?).to be(true)
+    end
+
+    it "is stale when last synced beyond threshold" do
+      store = create(:store, last_synced_at: 24.hours.ago)
+      expect(StoreSync::StatusManager.new(store).stale?).to be(true)
+    end
+
+    it "is not stale when recently synced" do
+      store = create(:store, last_synced_at: 1.hour.ago)
+      expect(StoreSync::StatusManager.new(store).stale?).to be(false)
+    end
   end
 
-  describe "enrichment lifecycle" do
+  describe "StoreEnrichment::StatusManager" do
     it "marks enrichment as started" do
       store = create(:store)
 
-      store.mark_enrichment_started!
+      StoreEnrichment::StatusManager.new(store).mark_started!
 
       expect(store.reload.enrichment_status).to eq("enriching")
     end
@@ -94,7 +111,7 @@ RSpec.describe Store, type: :model do
       store = create(:store, enrichment_status: "enriching", last_enriched_at: nil)
       finished_at = Time.zone.parse("2026-05-05 12:00:00")
 
-      store.mark_enrichment_succeeded!(finished_at:)
+      StoreEnrichment::StatusManager.new(store).mark_succeeded!(finished_at:)
 
       expect(store.reload.enrichment_status).to eq("idle")
       expect(store.last_enriched_at).to eq(finished_at)
@@ -103,7 +120,7 @@ RSpec.describe Store, type: :model do
     it "marks enrichment as failed" do
       store = create(:store, enrichment_status: "enriching")
 
-      store.mark_enrichment_failed!
+      StoreEnrichment::StatusManager.new(store).mark_failed!
 
       expect(store.reload.enrichment_status).to eq("failed")
     end
