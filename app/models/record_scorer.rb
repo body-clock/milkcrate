@@ -12,12 +12,8 @@ class RecordScorer
     "mint-" => "M"
   }.freeze
 
-  WANT_HAVE_RATIO_HIGH = 2.0
-  WANT_HAVE_RATIO_LOW  = 0.5
-  WANT_HAVE_MIN_HAVE   = 10
   WANT_HAVE_HIGH_BONUS = 5.0
   WANT_HAVE_LOW_PENALTY = -2.0
-  DESIRABILITY_LOG_CAP = 4.0
 
   STALENESS_CURVE = [
     [ 3,  -5 ],
@@ -57,10 +53,7 @@ class RecordScorer
   end
 
   def desirable?(listing)
-    have = listing.have_count.to_i
-    return false if have < WANT_HAVE_MIN_HAVE
-
-    listing.want_count.to_i.to_f / have >= WANT_HAVE_RATIO_HIGH
+    WantHaveRatio.new(listing.want_count, listing.have_count).high?
   end
 
   private
@@ -81,20 +74,13 @@ class RecordScorer
   end
 
   def desirability_points(listing)
-    have  = listing.have_count.to_i
-    want  = listing.want_count.to_i
-    total = want + have
-    points = 0.0
+    whr = WantHaveRatio.new(listing.want_count, listing.have_count)
+    points = whr.log_base_score
 
-    points += Math.log10(total).clamp(0, DESIRABILITY_LOG_CAP) if total > 0
-
-    if have >= WANT_HAVE_MIN_HAVE
-      ratio = want.to_f / have
-      if ratio >= WANT_HAVE_RATIO_HIGH
-        points += WANT_HAVE_HIGH_BONUS
-      elsif ratio <= WANT_HAVE_RATIO_LOW
-        points += WANT_HAVE_LOW_PENALTY
-      end
+    if whr.high?
+      points += WANT_HAVE_HIGH_BONUS
+    elsif whr.low?
+      points += WANT_HAVE_LOW_PENALTY
     end
 
     points
