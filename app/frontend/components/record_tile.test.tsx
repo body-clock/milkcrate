@@ -172,7 +172,7 @@ describe("RecordTile", () => {
 
       const tile = document.querySelector(".aspect-square")
       expect(tile).toBeInTheDocument()
-      expect(tile?.className).toContain("hover:scale-[1.04]")
+      expect(tile?.className).toContain("hover:scale-[1.015]")
     })
 
     it("does not add hover scale class when tactileHover is false", () => {

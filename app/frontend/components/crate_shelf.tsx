@@ -93,7 +93,7 @@ export default function CrateShelf({
     <motion.div
       className={`flex flex-col w-full rounded-lg bg-mc-bg-card border border-mc-border overflow-hidden text-left ${className}`}
       animate={{
-        scale: isPressed ? 0.985 : isHovered ? 1.015 : 1,
+        scale: isPressed ? 0.99 : isHovered ? 1.008 : 1,
       }}
       transition={isPressed ? springPress : springTactile}
       {...handlers}

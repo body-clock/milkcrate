@@ -16,7 +16,7 @@ interface Props {
   disableParallax?: boolean
 }
 
-const PARALLAX_MAX_ANGLE = 4 // degrees
+const PARALLAX_MAX_ANGLE = 6 // degrees
 const isBrowser = typeof window !== "undefined"
 
 export default function RecordCard({ listing, resetKey, className = "", imageLoading = "lazy", disableFlip = false, framed = false, disableParallax = false }: Props) {
@@ -134,12 +134,13 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
   return (
     <div
       ref={cardRef}
-      className={`w-full h-full flex-shrink-0 ${className}`}
+      className={`w-full h-full flex-shrink-0 cursor-pointer ${className}`}
       style={{
         perspective: 800,
         touchAction: "none",
         transform: tiltTransform,
         willChange: canTilt ? "transform" : undefined,
+        transition: canTilt ? "transform 0.15s ease-out" : undefined,
       }}
       role={canFlip ? "button" : undefined}
       tabIndex={canFlip ? 0 : undefined}

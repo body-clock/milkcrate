@@ -38,15 +38,15 @@ test("springDrawer is a damped spring for panel slides", () => {
 })
 
 test("SCALE_PRESS matches the documented press-down scale", () => {
-  assert.equal(SCALE_PRESS, 0.97)
+  assert.equal(SCALE_PRESS, 0.985)
 })
 
 test("SCALE_HOVER matches the documented hover scale", () => {
-  assert.equal(SCALE_HOVER, 1.05)
+  assert.equal(SCALE_HOVER, 1.025)
 })
 
 test("lift and tilt magnitudes are positive numbers", () => {
-  assert.equal(LIFT_HOVER, 3)
+  assert.equal(LIFT_HOVER, 2)
   assert.equal(TILT_HOVER, 1.5)
 })
 

@@ -33,13 +33,13 @@ export const springDrawer = {
 
 // ── Scale constants ───────────────────────────────────────────
 
-export const SCALE_PRESS = 0.97
-export const SCALE_HOVER = 1.05
-export const SCALE_INNER_HOVER = 1.03
+export const SCALE_PRESS = 0.985
+export const SCALE_HOVER = 1.025
+export const SCALE_INNER_HOVER = 1.015
 
 // ── Lift / tilt magnitudes ────────────────────────────────────
 
-export const LIFT_HOVER = 3 // px
+export const LIFT_HOVER = 2 // px
 export const TILT_HOVER = 1.5 // deg
 
 // ── Duration tokens ───────────────────────────────────────────

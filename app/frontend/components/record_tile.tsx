@@ -32,7 +32,7 @@ export default function RecordTile({
   const src = listing.cover_image_url ?? listing.thumbnail_url
 
   const hoverClass = tactileHover && !reducedMotion
-    ? "hover:scale-[1.04] transition-transform duration-150 ease-out"
+    ? "hover:scale-[1.015] transition-transform duration-150 ease-out"
     : ""
 
   return (
