@@ -99,7 +99,6 @@ RSpec.describe EnrichmentService do
 
       service.enrich_releases(store, listing_ids: [ listing.id ])
     end
-
   end
 
   describe "#enrich_music_brainz_images" do

@@ -1,5 +1,16 @@
 project_tracker: github
 
+# ce-work Branching
+
+This project uses `development` as its integration branch (not `main`). When
+`ce-work` detects that the current branch is `development`, it should create a
+new feature branch from `development` (pulling `origin/development` first), not
+from the remote HEAD default.
+
+In Phase 1 Step 2 of ce-work, treat `development` as if it were the default
+branch for branching decisions. Feature branches should be named e.g.
+`feat/my-feature` or `fix/my-fix` and target `development`.
+
 # Documented Solutions
 
 `docs/solutions/` — documented solutions to past problems (bugs, best practices,

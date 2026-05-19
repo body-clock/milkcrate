@@ -21,7 +21,7 @@ class DiscogsRateLimitMiddleware < Faraday::Middleware
 
       if response.status == 429 && retries < MAX_RETRIES
         retries += 1
-        backoff = [(BACKOFF_BASE**retries), 60].min
+        backoff = [ (BACKOFF_BASE**retries), 60 ].min
         sleep(backoff)
         @last_request_time = nil
       else
