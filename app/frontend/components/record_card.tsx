@@ -126,21 +126,27 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
 
   const meta = [listing.label, listing.year, listing.condition].filter(Boolean).join(" · ")
 
-  // When flipped, suppress tilt to avoid disorienting 3D effect
-  const tiltTransform = (!canTilt || flipped)
-    ? undefined
-    : `perspective(800px) rotateX(${tilt.y}deg) rotateY(${tilt.x}deg)`
+  // Tilt angles: 0 when flipped or tilt disabled
+  const tiltX = canTilt && !flipped ? tilt.x : 0
+  const tiltY = canTilt && !flipped ? tilt.y : 0
 
   return (
-    <div
+    <motion.div
       ref={cardRef}
       className={`w-full h-full flex-shrink-0 cursor-pointer ${className}`}
       style={{
         perspective: 800,
         touchAction: "none",
-        transform: tiltTransform,
-        willChange: canTilt ? "transform" : undefined,
-        transition: canTilt ? "transform 0.15s ease-out" : undefined,
+        transformStyle: "preserve-3d",
+      }}
+      animate={{
+        rotateX: tiltY,
+        rotateY: tiltX,
+      }}
+      transition={{
+        type: "spring",
+        stiffness: 400,
+        damping: 28,
       }}
       role={canFlip ? "button" : undefined}
       tabIndex={canFlip ? 0 : undefined}
@@ -245,6 +251,6 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
           </div>
         </div>
       </motion.div>
-    </div>
+    </motion.div>
   )
 }
