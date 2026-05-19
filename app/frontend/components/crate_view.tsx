@@ -13,7 +13,7 @@ import {
 } from "../lib/riffle_navigation"
 import { useViewport } from "@/hooks/use_viewport"
 import { usePileContext } from "@/contexts/pile_context"
-import { SCALE_PRESS, springPress, transitionCrate, reducedMotionTransition } from "@/lib/motion_tokens"
+import { SCALE_PRESS, springPress, springTactile, transitionCrate, transitionCrateDesktop, reducedMotionTransition } from "@/lib/motion_tokens"
 import { useReducedMotionContext } from "./storefront_motion_config"
 import { isLessonEligible, markLessonLearned, isLessonLearned } from "../lib/first_swipe_lesson"
 import type { Crate, Listing } from "../types/inertia"
@@ -41,7 +41,10 @@ const activeLayerStyle: React.CSSProperties = {
   WebkitBackfaceVisibility: "hidden",
 }
 
-function RecordDetails({ listing, direction }: { listing: Listing; direction: RiffleDirection }) {
+function RecordDetails({ listing, direction, isCompact }: { listing: Listing; direction: RiffleDirection; isCompact: boolean }) {
+  const detailTransition = isCompact
+    ? { duration: 0.18, ease: "easeOut" as const }
+    : springTactile
   const meta = [listing.format, listing.label, listing.year, listing.condition].filter(Boolean).join(" · ")
   const enterY = direction === "deeper" ? -16 : 16
   const exitY = direction === "deeper" ? 16 : -16
@@ -62,7 +65,7 @@ function RecordDetails({ listing, direction }: { listing: Listing; direction: Ri
         initial={{ opacity: 0, y: enterY }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: exitY }}
-        transition={{ duration: 0.18, ease: "easeOut" }}
+        transition={detailTransition}
         className="flex flex-col gap-4"
       >
         {/* Header: info + price/actions in two-column row */}
@@ -395,7 +398,7 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
                 initial="initial"
                 animate="animate"
                 exit="exit"
-                transition={prefersReducedMotion ? reducedMotionTransition : transitionCrate}
+                transition={prefersReducedMotion ? reducedMotionTransition : (isCompact ? transitionCrate : transitionCrateDesktop)}
                 className="absolute inset-0"
                 style={{ ...activeLayerStyle, zIndex: 30 }}
               >
@@ -541,7 +544,7 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
         {/* Desktop details panel */}
         {activeRecord && (
           <div className="hidden md:flex md:flex-col md:pt-7">
-            <RecordDetails listing={activeRecord} direction={direction.current} />
+            <RecordDetails listing={activeRecord} direction={direction.current} isCompact={isCompact} />
           </div>
         )}
       </div>

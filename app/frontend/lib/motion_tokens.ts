@@ -60,6 +60,13 @@ export const transitionCrate = {
   damping: 30,
 }
 
+/** Bouncier crate transition for desktop — slight overshoot feels organic. */
+export const transitionCrateDesktop = {
+  type: "spring" as const,
+  stiffness: 280,
+  damping: 22,
+}
+
 // ── Reduced-motion overrides ──────────────────────────────────
 // When prefers-reduced-motion is active, transitions collapse to
 // instant and scales collapse to identity.
