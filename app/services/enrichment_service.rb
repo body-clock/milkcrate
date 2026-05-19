@@ -1,8 +1,6 @@
 class EnrichmentService
   BATCH_SIZE = 50
-  RATE_LIMIT_SLEEP = 1.1   # safe floor — Discogs allows 60 req/min authenticated
-  RATE_LIMIT_LOW   = 5     # remaining threshold to pause briefly
-  RATE_LIMIT_PAUSE = 10    # seconds to wait when nearly exhausted
+  MUSICBRAINZ_SLEEP = 1.1  # MusicBrainz has its own rate limits
 
   def initialize
     @discogs = DiscogsClient.new
@@ -44,17 +42,7 @@ class EnrichmentService
 
     enrich_ids.each_slice(BATCH_SIZE) do |batch|
       batch.each do |release_id|
-        remaining = enrich_release(release_id, store)
-        if remaining <= RATE_LIMIT_LOW
-          Rails.logger.info "[EnrichmentService] Rate limit low (#{remaining} remaining), pausing #{RATE_LIMIT_PAUSE}s"
-          sleep(RATE_LIMIT_PAUSE)
-        else
-          sleep(RATE_LIMIT_SLEEP)
-        end
-      rescue DiscogsClient::RateLimitError
-        Rails.logger.warn "[EnrichmentService] Rate limited on release #{release_id}, sleeping 15s"
-        sleep(15)
-        retry
+        enrich_release(release_id, store)
       rescue DiscogsClient::ApiError => e
         Rails.logger.warn "[EnrichmentService] API error for release #{release_id}: #{e.message}"
       end
@@ -80,7 +68,7 @@ class EnrichmentService
 
       if mbid.nil?
         Release.where(discogs_release_id: discogs_release_id).update_all(musicbrainz_id: "")
-        sleep(RATE_LIMIT_SLEEP)
+        sleep(MUSICBRAINZ_SLEEP)
         next
       end
 
@@ -94,7 +82,7 @@ class EnrichmentService
           .update_all(cover_image_url: cover_url)
       end
 
-      sleep(RATE_LIMIT_SLEEP)
+      sleep(MUSICBRAINZ_SLEEP)
     rescue MusicBrainzClient::ApiError => e
       Rails.logger.warn "[EnrichmentService] API error for #{discogs_release_id}: #{e.message}"
     end
@@ -103,7 +91,7 @@ class EnrichmentService
   private
 
   def enrich_release(discogs_release_id, store)
-    data, remaining = @discogs.release(discogs_release_id)
+    data, = @discogs.release(discogs_release_id)
 
     want    = data.dig("community", "want").to_i
     have    = data.dig("community", "have").to_i
@@ -132,8 +120,6 @@ class EnrichmentService
     store.listings
       .where(discogs_release_id: discogs_release_id)
       .update_all(listing_updates)
-
-    remaining
   end
 
   def extract_primary_image(data)
