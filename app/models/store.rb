@@ -26,6 +26,10 @@ class Store < ApplicationRecord
     failed: "failed"
   }, default: "idle", prefix: "enrichment"
 
+  def listings_for_selection(listing_ids)
+    listings.where(id: listing_ids)
+  end
+
   private
 
   def normalize_discogs_username

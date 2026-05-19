@@ -8,6 +8,6 @@ class DailySelection < ApplicationRecord
   end
 
   def listings
-    store.listings.where(id: listing_ids)
+    store.listings_for_selection(listing_ids)
   end
 end

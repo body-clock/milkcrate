@@ -21,6 +21,14 @@ class Listing < ApplicationRecord
     genres.first
   end
 
+  def sort_key
+    want_count = self.want_count || 0
+    have_count = self.have_count || 0
+    timestamp = listed_at&.to_i || last_seen_at&.to_i || 0
+
+    [ -want_count, -have_count, -timestamp ]
+  end
+
   def self.vinyl
     where(format_matches_any(VINYL_FORMATS))
   end
