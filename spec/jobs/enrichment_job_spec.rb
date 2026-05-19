@@ -13,13 +13,13 @@ RSpec.describe EnrichmentJob do
     it "calls the enrichment orchestration entry point" do
       expect(service).to receive(:enrich_store).with(store, listing_ids: [ 1, 2 ])
 
-      described_class.new.perform(store.id, listing_ids: [ 1, 2 ])
+      described_class.perform_now(store.id, listing_ids: [ 1, 2 ])
     end
 
     it "passes listing_ids as nil when not provided" do
       expect(service).to receive(:enrich_store).with(store, listing_ids: nil)
 
-      described_class.new.perform(store.id)
+      described_class.perform_now(store.id)
     end
   end
 end
