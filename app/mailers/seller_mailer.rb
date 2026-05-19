@@ -6,6 +6,6 @@ class SellerMailer < ApplicationMailer
 
   def admin_notification(waitlist)
     @waitlist = waitlist
-    mail to: Settings.admin_email, subject: "New Milkcrate application: #{waitlist.name}"
+    mail to: Settings.mail.admin_email, subject: "New Milkcrate application: #{waitlist.name}"
   end
 end

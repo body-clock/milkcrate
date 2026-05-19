@@ -1,13 +1,13 @@
 namespace :milkcrate do
-  def default_store
-    store = Store.find_by(discogs_username: Settings.discogs_username)
-    raise "No store found for username '#{Settings.discogs_username}'. Create one via the Rails console." unless store
+  def demo_store
+    store = Store.find_by(discogs_username: Settings.demo_store.discogs_username)
+    raise "No store found for username '#{Settings.demo_store.discogs_username}'. Create one via the Rails console." unless store
     store
   end
 
   desc "Full inventory sync from Discogs (two passes), then enrich and curate"
   task sync: :environment do
-    store = default_store
+    store = demo_store
     service = StoreSyncService.new(store)
     puts "Syncing #{store.name} (@#{store.discogs_username}) — two passes..."
     result = service.sync
@@ -19,7 +19,7 @@ namespace :milkcrate do
 
   desc "Quick sync (1 page each pass / ~200 records) — useful for dev"
   task "sync:quick": :environment do
-    store = default_store
+    store = demo_store
     service = StoreSyncService.new(store)
     puts "Quick-syncing #{store.name} (1 page per pass)..."
     result = service.sync(max_pages: 1)
@@ -37,7 +37,7 @@ namespace :milkcrate do
 
   desc "Enrich releases: Discogs metadata + MusicBrainz images for imageless releases"
   task enrich: :environment do
-    store = default_store
+    store = demo_store
     puts "Enriching Discogs metadata for #{store.name}..."
     EnrichReleasesJob.perform_now(store.id)
     puts "Discogs enrichment complete."
@@ -48,7 +48,7 @@ namespace :milkcrate do
 
   desc "Run daily curation (stamp last_surfaced_at, compute picks rotation)"
   task curate: :environment do
-    store = default_store
+    store = demo_store
     puts "Running curation for #{store.name}..."
     DailyCurationJob.perform_now(store.id)
     puts "Done."
@@ -56,7 +56,7 @@ namespace :milkcrate do
 
   desc "Bootstrap a fresh install — two-pass sync, enrich, curate (all synchronous)"
   task setup: :environment do
-    store = default_store
+    store = demo_store
     service = StoreSyncService.new(store)
     puts "Syncing #{store.name} (@#{store.discogs_username}) — two passes..."
     result = service.sync
@@ -76,7 +76,7 @@ namespace :milkcrate do
 
   desc "Reset surfacing data (last_surfaced_at, surface_count) — dev/testing only"
   task reset_surfacing: :environment do
-    store = default_store
+    store = demo_store
     count = store.listings.update_all(last_surfaced_at: nil, surface_count: 0)
     puts "Reset surfacing data for #{count} listings in #{store.name}."
   end
@@ -85,7 +85,7 @@ namespace :milkcrate do
   task :score, [ :id ] => :environment do |_, args|
     raise "Usage: rake milkcrate:score[LISTING_ID]" unless args[:id]
 
-    store    = default_store
+    store    = demo_store
     listing  = store.listings.find(args[:id])
     genre_counts = store.listings.available.lp_only.pluck(:genres).map(&:first).compact.tally
     scorer = RecordScorer.new(genre_counts:, today: Date.today)
@@ -145,7 +145,7 @@ namespace :milkcrate do
 
   desc "Print curation and enrichment stats for the current store"
   task stats: :environment do
-    store = default_store
+    store = demo_store
     total      = store.listings.count
     available  = store.listings.available.count
     lp         = store.listings.available.lp_only.count

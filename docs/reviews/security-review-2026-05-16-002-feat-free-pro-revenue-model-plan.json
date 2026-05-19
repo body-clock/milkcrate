@@ -1,0 +1,139 @@
+{
+  "review_metadata": {
+    "document_reviewed": "docs/plans/2026-05-16-002-feat-free-pro-revenue-model-plan.md",
+    "document_type": "plan",
+    "origin": "docs/ideation/2026-05-16-revenue-model-premium-tier-ideation.md",
+    "reviewer_lens": "security",
+    "round": 1
+  },
+  "findings": [
+    {
+      "id": "SEC-001",
+      "title": "Event capture endpoint (POST /store/events) is an unauthenticated, unratelimited data ingress with no input validation",
+      "severity": "high",
+      "confidence": 100,
+      "category": "attack_surface",
+      "description": "U7 creates a public POST endpoint for client-side event capture (Discogs clicks, pile adds, crate opens) that has no authentication, no rate limiting, no CSRF protection, and minimal input validation. The plan explicitly says events should 'silently fail' on error, which means abuse will not be visible to operators. An attacker can flood this endpoint with millions of arbitrary events per day — polluting store analytics, bloating the store_events table, degrading dashboard query performance, and misleading store owners with fabricated metrics. The plan states 'No PII in events' but does not address the abuse vector at all. Since store visitors fire these events, the endpoint is intentionally open — but no mitigation (rate limiting by IP, per-store write caps, Turnstile CAPTCHA, or Write-Ahead-Limit) is proposed.",
+      "evidence": "U7 test scenarios: 'Event POST fails due to network error → silently fail (no user-visible error for tracking)' — U7 approach: 'Lightweight client-side event dispatch: intercept Discogs link clicks, pile adds, crate opens → POST to /store/events (Fire-and-forget, no blocking UI)' — Risks section: 'Event capture volume could grow' mitigation is only 'If volume exceeds a few thousand events/day/store, batch ingestion or rollup aggregation can be added' — no access control, rate limiting, or abuse detection discussed.",
+      "affected_units": ["U7. Pro Features: Conversion Proof Dashboard"],
+      "recommendation": "At minimum: add per-IP rate limiting (e.g., 100 req/min/IP) and per-store write caps. Consider requiring a lightweight proof-of-work token (e.g., Turnstile already in the codebase) for the event endpoint. Add server-side validation that event_type matches a known enum and source length is bounded. Add monitoring/alerting for event volume anomalies. Document that this endpoint's abuse surface is accepted and mitigated."
+    },
+    {
+      "id": "SEC-002",
+      "title": "Login endpoint has no rate limiting for v1 — brute-force password guessing is unmitigated",
+      "severity": "medium",
+      "confidence": 100,
+      "category": "attack_surface",
+      "description": "U1 creates a sessions controller with email/password login but explicitly defers rate limiting to a future iteration. Without rate limiting, an attacker can brute-force passwords for known store owner email addresses. While has_secure_password + bcrypt provides computational cost, it does not prevent online brute-force attacks (low-slow attacks that stay under hypothetical future thresholds). The plan has good anti-enumeration measures (generic error for non-existent email), which is positive, but lacks the complementary rate limiting.",
+      "evidence": "U1 test scenarios: 'User exceeds max login attempts (n/a for v1, note for future rate limiting)' — U1 approach: 'Sessions controller: new (login form), create (authenticate + set session), destroy (logout)' — no mention of rate limiting middleware, Rack::Attack, or lockout policy.",
+      "affected_units": ["U1. User Model and Authentication"],
+      "recommendation": "Add rate limiting to the sessions#create action before shipping v1. Options: Rack::Attack gem, Devise's lockable module (not used but pattern can be replicated), or solid_queue-based backoff. At minimum limit to 5 attempts per email per minute with incremental backoff."
+    },
+    {
+      "id": "SEC-003",
+      "title": "Stripe webhook signature verification — plan relies on Pay gem defaults without confirming enforcement",
+      "severity": "high",
+      "confidence": 75,
+      "category": "third_party",
+      "description": "The plan routes all Stripe lifecycle events through Pay's automatic webhook endpoint at /pay/webhooks/stripe and mentions Pay's built-in deduplication, but does not explicitly confirm that Stripe webhook signature verification is configured and enforced. The Pay gem does verify webhooks by default when the Stripe signing secret is provided in the Pay initializer, but the plan's 'Files' list for U4 only registers webhook subscribers and does not include any Pay initializer config for the signing secret. If the signing secret is missing or misconfigured, an attacker could POST forged customer.subscription.updated events to impersonate Stripe and grant themselves Pro features without payment, or downgrade other stores. This is the highest-impact attack on the billing system.",
+      "evidence": "U3 'Approach' section: 'Configure Pay initializer with Stripe API keys from credentials' — but no mention of webhook signing secret configuration. U4 'Approach': 'Register Pay webhook subscribers in config/initializers/pay.rb' — no mention of Stripe::Webhook.construct_event or signature verification. U4 verification: 'Webhook event received → Store plan updated in database' — no verification step for 'forged webhook events rejected.' CSP section lists hooks.stripe.com as a CSP domain (a conceptual confusion); see SEC-005.",
+      "affected_units": ["U3. Stripe Billing with Pay Gem", "U4. Subscription Lifecycle Management"],
+      "recommendation": "Explicitly document in the implementation approach that the Pay initializer MUST configure the Stripe signing secret (Pay.api_keys or Stripe.api_key + webhook signing secret) and that webhook signature verification is non-optional. Add a test that sends a forged webhook payload (wrong signature) and asserts 401/400 rejection. Add monitoring for failed webhook signature verifications."
+    },
+    {
+      "id": "SEC-004",
+      "title": "CSP configuration plan includes hooks.stripe.com (unnecessary) and defers nonce-Stripe.js interaction to post-deployment",
+      "severity": "medium",
+      "confidence": 100,
+      "category": "csp",
+      "description": "The plan lists hooks.stripe.com as a domain that needs CSP entries. This domain is used by Stripe to SEND webhooks TO the application (inbound HTTP POST), not for resource loading by the browser. Adding it to script-src, connect-src, or frame-src is unnecessary and signals confusion about the CSP trust model. Separately, the existing CSP uses nonce-based script-src (config.content_security_policy_nonce_directives = %w[script-src]) and Stripe.js dynamically injects scripts/iframes at runtime. The plan defers CSP nonce interaction to 'verify in browser after deployment' — if CSP blocks Stripe's injected scripts, the checkout flow silently breaks with no clear error, users see a persistent 'Redirecting to Stripe...' loading state, and the failure mode is indistinguishable from a Stripe API issue. This creates a production incident waiting to happen.",
+      "evidence": "U3 CSP updates section: 'add Stripe.js domains (js.stripe.com, api.stripe.com, m.stripe.network, checkout.stripe.com, hooks.stripe.com) to script-src, connect-src, frame-src' — hooks.stripe.com is a webhook delivery origin, not a browser-resource origin. 'Deferred to Implementation' section: 'CSP nonce interaction with Stripe.js — verify in browser after deployment.' Existing CSP in config/initializers/content_security_policy.rb uses nonces: config.content_security_policy_nonce_directives = %w[script-src].",
+      "affected_units": ["U3. Stripe Billing with Pay Gem"],
+      "recommendation": "Remove hooks.stripe.com from CSP directives (it is not needed). Before production deployment, run a full CSP + Stripe.js integration test in staging: verify Stripe.js loads, Checkout iframe renders, and the return redirect works. Use the CSP report-uri/report-to directive during rollout to catch blocked resources without breaking the flow. Consider adding m.stripe.network to img-src for Stripe tracking pixels."
+    },
+    {
+      "id": "SEC-005",
+      "title": "No data retention, archival, or access control policy for the store_events table",
+      "severity": "medium",
+      "confidence": 75,
+      "category": "data_exposure",
+      "description": "U7 creates a store_events table that will accumulate click, pile-add, and crate-open events over time. The plan discusses event volume growth ('If volume exceeds a few thousand events/day/store, batch ingestion or rollup aggregation can be added') but does not address: (a) data retention — how long are raw events retained before aggregation/deletion? (b) access control — can store events be queried through any API other than the dashboard presenter? (c) privacy — while the plan states 'no PII in events,' the source field (crate_name) and recorded_at timestamp are store-identifiable behavioral data that could reveal store browsing patterns if exposed via another endpoint. No deletion mechanism is described for when a store owner leaves the platform or requests data removal.",
+      "evidence": "U7 Approach: 'store_events table: store_id (FK), event_type (string: click_discogs, add_to_pile, open_crate), source (string: crate_name), recorded_at (timestamp)' — Risks section: 'Event capture volume could grow' mitigation discusses batch ingestion but not retention. No mention of data deletion, archival, or access controls beyond the dashboard presenter.",
+      "affected_units": ["U7. Pro Features: Conversion Proof Dashboard"],
+      "recommendation": "Define and document a data retention policy for raw events (e.g., 90 days raw retention, then rollup to daily aggregates and delete raw). Add a background job for pruning old events. Ensure the events table is only accessible through the authorized dashboard presenter, not through any API endpoint. Add a deletion mechanism tied to store deactivation/account deletion requests."
+    },
+    {
+      "id": "SEC-006",
+      "title": "No credential rotation or least-privilege strategy for Stripe API keys and webhook signing secrets",
+      "severity": "medium",
+      "confidence": 75,
+      "category": "secrets",
+      "description": "The plan references Stripe API keys stored in Rails encrypted credentials, which is a reasonable storage mechanism, but does not define any strategy for credential rotation, least-privilege key scoping, or environment separation. Stripe supports restricted API keys with granular permissions (e.g., a key that can only create Checkout Sessions but not read customers). The plan does not specify whether the keys used are full-access or restricted. Without a rotation process, compromised keys could go undetected and unrotated indefinitely. The TurnstileVerifier in the existing codebase reads secrets from ENV directly (not credentials), so the plan's choice of credentials is good — but credentials themselves need rotation procedures.",
+      "evidence": "U3 Approach: 'Configure Pay initializer with Stripe API keys from credentials' — no mention of restricted keys, key rotation, or audit. Operational notes: 'Stripe setup: Create two products in Stripe Dashboard... Record Price IDs in config/settings.yml' — talks about product setup but not API key security. The existing Settings file (config/settings.yml) uses credentials for honeybadger_api_key but no Stripe key entries exist yet.",
+      "affected_units": ["U3. Stripe Billing with Pay Gem", "U4. Subscription Lifecycle Management"],
+      "recommendation": "Document the specific Stripe API key restrictions needed (e.g., minimal scope: checkout session creation, customer read, subscription read, webhook endpoint read). Use separate restricted keys per environment (dev/staging/prod) with the minimum permissions each environment needs. Add a credential rotation procedure — at minimum document that keys are in Rails credentials and should be rotated every 90 days or on engineer departure. Add key-age monitoring."
+    },
+    {
+      "id": "SEC-007",
+      "title": "Store owner controllers lack explicit authorization scope checks — no cross-store isolation verification",
+      "severity": "medium",
+      "confidence": 75,
+      "category": "auth_authz",
+      "description": "U6-U8 create controllers for Pro feature management (/store/identity, /store/curation, /store/dashboard) behind an authentication gate, but the plan does not specify that these controllers verify current_user's ownership of the targeted store. The data model defines User belongs_to Store (one-to-one), which provides implicit database-level scoping — but the plan also mentions 'Multiple stores owned by same User' as a test scenario in U4, which would require a has_many relationship and explicit authorization checks. If the one-to-one relationship holds, cross-store access is structurally prevented, but the plan does not document this invariant as an authorization control. If the relationship is later changed to one-to-many without adding explicit scope checks, a user could modify another store's identity or curation settings. The existing codebase has no authorization library (e.g., Pundit, CanCanCan) and the plan does not propose one.",
+      "evidence": "U2 Approach: 'User belongs_to Store (one-to-one) — add store_id FK (nullable, set after claim)' — U4 test scenarios: 'Multiple stores owned by same User — subscription applies to all of User's stores' — U6-U8 controllers: identity_controller, curation_controller, dashboard_controller — none mentioned with authorization scope checks like current_user.store == @store or current_user.stores.include?(@store). Plan also says 'No Store routes are gated by auth — only Store Owner routes (/store/*, /subscribe/*) are auth-gated' — but doesn't say 'and scoped to the authenticated user's own store.'",
+      "affected_units": ["U2. Store Owner Onboarding and Store Claiming", "U6. Pro Features: Identity Controls", "U7. Pro Features: Conversion Proof Dashboard", "U8. Pro Features: Crate Ordering and Pinning"],
+      "recommendation": "Add an explicit authorization concern or before_action that verifies the current_user's ownership/proprietorship of the targeted store. Even in a one-to-one model, verify that current_user.store is present and matches the store context. Document the invariant explicitly. If multi-store ownership is added later (as U4 test scenarios suggest), require has_many + scope checks in every store-owner controller. Consider adding Pundit or a simple policy object from the start since the pattern will be used across all Pro controllers."
+    },
+    {
+      "id": "SEC-008",
+      "title": "Magic link tokens could leak via email/analytics/logs leading to store takeover",
+      "severity": "low",
+      "confidence": 50,
+      "category": "attack_surface",
+      "description": "U2's store-claiming flow uses Rails' generates_token_for :magic_link sent via email with 24h expiry. The plan includes good protections: single-use after first claim, digest-based tokens (tamper-resistant), and 24h timeout. However, the plan does not address: (a) whether magic link URLs are scrubbed from application logs (filter_parameter_logging.rb currently filters :passw, :email, :secret, :token — the magic link token appears in URL query params and Rails logs route params, which should be scrubbed); (b) whether email delivery uses TLS and whether the token-claim endpoint enforces HTTPS; (c) whether analytics/tracking pixels in emails could leak the token through referrer headers. These are defense-in-depth concerns rather than a gap in the plan's explicit token protections.",
+      "evidence": "U2 Approach: 'Use Rails 8's generates_token_for :magic_link with 24h expiry' — U2 test scenarios: 'Claim link clicked twice — first click claims, second returns already claimed' — U2 test scenarios: 'Magic link token tampered — invalid token, show error page.' Existing filter_parameter_logging.rb filters :token (the magic link token would be a URL param).",
+      "affected_units": ["U2. Store Owner Onboarding and Store Claiming"],
+      "recommendation": "Confirm that the magic link token will be in a URL parameter name that is already covered by the existing :token filter in filter_parameter_logging.rb. Ensure the claim endpoint enforces HTTPS (HSTS). Consider using a one-time code entry flow as an alternative to URL-embedded tokens for higher-security contexts. Audit mailer templates to ensure tracking pixels are not added to claim emails."
+    },
+    {
+      "id": "SEC-009",
+      "title": "Exposure of billing/plan state in Inertia shared props to every page visitor",
+      "severity": "low",
+      "confidence": 50,
+      "category": "data_exposure",
+      "description": "The plan shares billing state globally via Inertia shared props (page.props.billing) so that the PlanProvider and Gate components can enforce feature visibility on the frontend. This means that every visitor to any page — including public storefront pages — receives the store's plan status (free or pro) in the page payload. While this is by design (the Gate component needs this data), it means that plan status is visible in page source/network responses to anyone, including competitors or crawlers. This is not a confidentiality breach (plan status is already inferable from visible features), and the plan correctly prioritizes server-side enforcement as the primary control (presenter caps, controller gates). However, it is an exposure that should be explicitly acknowledged as accepted risk.",
+      "evidence": "U3 Approach: 'Modify: app/controllers/application_controller.rb (share billing state globally)' — U5 Approach: 'Provider reads page.props.billing on every navigation (Inertia shared props)' — System-Wide Impact: 'All entitlement checks should use local database state, not Stripe API.'",
+      "affected_units": ["U3. Stripe Billing with Pay Gem", "U5. Feature Entitlement System"],
+      "recommendation": "Explicitly document in the security posture that plan status is exposed client-side and that server-side enforcement (presenter caps, controller authorization) is the authoritative control. Consider whether billing state needs to be in every page response or only on authenticated/store-owner pages — if it's only used in Gate components on store-owner routes, scope shared props accordingly."
+    }
+  ],
+  "plan_level_threat_model": {
+    "description": "Top 3 exploits most likely to succeed if the plan is implemented exactly as described without additional security thinking.",
+    "exploits": [
+      {
+        "rank": 1,
+        "title": "Event endpoint abuse to pollute analytics and degrade database",
+        "likelihood": "most_likely",
+        "description": "The unauthenticated POST /store/events endpoint accepts arbitrary event data from any visitor. An attacker writes a script that sends 1M fake events across multiple store IDs. The store_events table grows unboundedly, dashboard queries slow to a crawl (or time out on the unindexed recorded_at range scan), and store owners see inflated click/pile counts that erode trust in the conversion data. The 'silently fail' design means operators receive no alert while the damage accumulates.",
+        "mitigation": "Add per-IP rate limiting (e.g., Rack::Attack at 100 req/min/IP), per-store daily write caps (configurable), event_type enum validation server-side, and anomaly-detection monitoring that alerts on >3σ event volume spikes per store.",
+        "confidence": 100
+      },
+      {
+        "rank": 2,
+        "title": "Stripe webhook forgery to activate Pro features without payment",
+        "likelihood": "highest_impact",
+        "description": "If the Pay gem's Stripe webhook signing secret is not configured (misconfigured credentials, env mismatch, or omitted in an environment), or if Stripe::Webhook.construct_event raises an exception that is caught and treated as soft failure, an attacker can POST to /pay/webhooks/stripe with a forged customer.subscription.updated payload containing status=active. The subscription_activated_handler sets Store#plan='pro' and pro_features_enabled=true. The attacker now has full Pro features for any store without paying. This exploit is silent — no audit log entry is generated unless specifically coded.",
+        "mitigation": "Explicitly test in U3/U4 verification steps that forged webhook payloads (no signature, wrong signature, expired signature) return 401 and do NOT change Store plan state. Add an audit log entry for every plan state change from a webhook. Monitor webhook signature verification failures via Honeybadger.",
+        "confidence": 75
+      },
+      {
+        "rank": 3,
+        "title": "CSP nonce conflict silently breaks Stripe Checkout in production",
+        "likelihood": "most_subtle",
+        "description": "The existing CSP uses nonce-based script-src (config.content_security_policy_nonce_directives = %w[script-src]). Stripe.js loads via <script src> without a nonce from js.stripe.com, which may be blocked depending on browser CSP behavior with nonce+host-source combinations. The plan defers CSP testing to post-deployment. In practice, the checkout flow appears to work (Stripe.js loads in dev where CSP may be bypassed), but in production a subset of browsers (Safari, older Chrome) silently block Stripe's injected elements. Users click 'Subscribe,' see a persistent 'Redirecting to Stripe...' spinner, and the transaction never completes. No error surfaces to the user or operator — this looks like a Stripe API outage but is actually a CSP misconfiguration.",
+        "mitigation": "Before production deployment, run a CSP + Stripe.js integration test in staging with actual CSP enforcement. Use the Content-Security-Policy-Report-Only header during initial rollout to catch violations without breaking the user flow. Verify Stripe.js loads under the nonce-based CSP with the added Stripe domains. Consider whether 'strict-dynamic' is needed for Stripe's dynamic script injection, or whether the nonce must be passed to Stripe via stripe.stripeAccount or similar.",
+        "confidence": 100
+      }
+    ]
+  }
+}

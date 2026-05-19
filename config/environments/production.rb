@@ -56,7 +56,7 @@ Rails.application.configure do
   config.action_mailer.raise_delivery_errors = true
 
   # Set host to be used by links generated in mailer templates.
-  config.action_mailer.default_url_options = { host: Settings.mail_host }
+  config.action_mailer.default_url_options = { host: Settings.mail.host }
 
   # Outgoing SMTP. Credentials live in Rails.application.credentials under :smtp.
   # Set via: bin/rails credentials:edit
@@ -64,7 +64,7 @@ Rails.application.configure do
   config.action_mailer.smtp_settings = {
     address:              Rails.application.credentials.dig(:smtp, :address),
     port:                 Rails.application.credentials.dig(:smtp, :port) || 587,
-    domain:               Settings.mail_host,
+    domain:               Settings.mail.host,
     user_name:            Rails.application.credentials.dig(:smtp, :user_name),
     password:             Rails.application.credentials.dig(:smtp, :password),
     authentication:       :plain,

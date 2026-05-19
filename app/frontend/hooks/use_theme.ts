@@ -5,7 +5,8 @@ type Theme = "dark" | "light"
 export function useTheme() {
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window === "undefined") return "dark"
-    return (localStorage.getItem("mc-theme") as Theme) ?? "dark"
+    const stored = localStorage.getItem("mc-theme")
+    return stored === "light" ? "light" : "dark"
   })
 
   useEffect(() => {

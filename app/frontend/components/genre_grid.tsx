@@ -8,7 +8,7 @@ interface Props {
 }
 
 export default function GenreGrid({ crates, onSelectCrate }: Props) {
-  const { isCompact, isComfy, isWide } = useViewport()
+  const { isCompact, isComfy } = useViewport()
   if (crates.length === 0) return null
 
   // Responsive columns: compact=2, comfy=3, wide=4

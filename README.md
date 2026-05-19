@@ -172,15 +172,16 @@ Useful local routes:
 
 ## Store Data
 
-The default store is configured in `config/settings.yml`:
+The demo store used by local previews and demo-oriented maintenance tasks is configured in `config/settings.yml`:
 
 ```yml
-store_name: Philadelphia Music
-discogs_username: philadelphiamusic
-store_description:
+demo_store:
+  name: Philadelphia Music
+  discogs_username: philadelphiamusic
+  description:
 ```
 
-Most operational rake tasks use `Settings.discogs_username` to find the store. `db/seeds.rb` is currently empty — create the local store from the Rails console if it does not exist:
+Demo-oriented rake tasks use `Settings.demo_store.discogs_username` to find that store. `db/seeds.rb` is currently empty — create the local demo store from the Rails console if it does not exist:
 
 ```ruby
 Store.find_or_create_by!(discogs_username: "philadelphiamusic") do |store|
@@ -218,7 +219,7 @@ Key pages:
 
 - `app/frontend/pages/home.tsx` — marketing homepage
 - `app/frontend/pages/apply.tsx` — waitlist form
-- `app/frontend/pages/stores/featured.tsx` — store page, switches between `StoreFloor` (home) and `CrateView` (crate browser)
+- `app/frontend/pages/stores/show.tsx` — store page, switches between `StoreFloor` (home) and `CrateView` (crate browser)
 
 Key components:
 
