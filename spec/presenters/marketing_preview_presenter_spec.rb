@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe MarketingPreviewPresenter do
-  let(:discogs_username) { Settings.discogs_username }
+  let(:discogs_username) { Settings.demo_store.discogs_username }
 
   describe "#preview_data" do
     context "when the demo store exists with eligible listings" do
@@ -96,7 +96,7 @@ RSpec.describe MarketingPreviewPresenter do
 
     context "when no demo store exists" do
       it "returns fallback preview data without raising" do
-        # The test DB has no store matching Settings.discogs_username
+        # The test DB has no store matching Settings.demo_store.discogs_username
         result = described_class.new.preview_data
 
         expect(result).to be_a(Hash)

@@ -1,15 +1,21 @@
 import { createInertiaApp, router } from "@inertiajs/react"
 import { createRoot } from "react-dom/client"
-import React from "react"
+import type { ComponentType } from "react"
+
+declare global {
+  interface Window {
+    plausible?: (eventName: string) => void
+  }
+}
 
 createInertiaApp({
   resolve: (name) => {
-    const pages = import.meta.glob<{ default: React.ComponentType<any> }>("../pages/**/*.tsx")
+    const pages = import.meta.glob<{ default: ComponentType<any> }>("../pages/**/*.tsx")
     const page = pages[`../pages/${name}.tsx`]
     if (!page) {
       throw new Error(`Page not found: ${name}`)
     }
-    return page()
+    return page().then((module) => module.default)
   },
   setup({ el, App, props }) {
     createRoot(el).render(<App {...props} />)

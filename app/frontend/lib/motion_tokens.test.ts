@@ -9,16 +9,8 @@ import {
   SCALE_HOVER,
   LIFT_HOVER,
   TILT_HOVER,
-  DURATION_HOVER,
-  DURATION_PRESS,
-  transitionHover,
-  transitionDrawer,
-  transitionFlip,
   transitionCrate,
   reducedMotionTransition,
-  REDUCED_MOTION_SCALE,
-  REDUCED_MOTION_LIFT,
-  REDUCED_MOTION_TILT,
 } from "./motion_tokens"
 
 test("springTactile is a spring config with the documented values", () => {
@@ -38,27 +30,16 @@ test("springDrawer is a damped spring for panel slides", () => {
 })
 
 test("SCALE_PRESS matches the documented press-down scale", () => {
-  assert.equal(SCALE_PRESS, 0.97)
+  assert.equal(SCALE_PRESS, 0.985)
 })
 
 test("SCALE_HOVER matches the documented hover scale", () => {
-  assert.equal(SCALE_HOVER, 1.05)
+  assert.equal(SCALE_HOVER, 1.025)
 })
 
 test("lift and tilt magnitudes are positive numbers", () => {
-  assert.equal(LIFT_HOVER, 3)
+  assert.equal(LIFT_HOVER, 2)
   assert.equal(TILT_HOVER, 1.5)
-})
-
-test("duration tokens are positive numbers", () => {
-  assert.ok(DURATION_HOVER > 0)
-  assert.ok(DURATION_PRESS > 0)
-})
-
-test("transition presets alias their corresponding springs", () => {
-  assert.equal(transitionHover, springTactile)
-  assert.equal(transitionDrawer, springDrawer)
-  assert.equal(transitionFlip, springFlip)
 })
 
 test("transitionCrate is a spring-based crate-navigation preset", () => {
@@ -70,10 +51,4 @@ test("transitionCrate is a spring-based crate-navigation preset", () => {
 
 test("reducedMotionTransition is an instant transition", () => {
   assert.deepEqual(reducedMotionTransition, { duration: 0 })
-})
-
-test("reduced-motion constants collapse to identity", () => {
-  assert.equal(REDUCED_MOTION_SCALE, 1)
-  assert.equal(REDUCED_MOTION_LIFT, 0)
-  assert.equal(REDUCED_MOTION_TILT, 0)
 })

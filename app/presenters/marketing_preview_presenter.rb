@@ -8,7 +8,7 @@ class MarketingPreviewPresenter
   # Returns a bounded homepage preview shape:
   #   { store_name:, store_slug:, sections: [...] }
   #
-  # Uses the demo store (from Settings.discogs_username) when it exists
+  # Uses the demo store (from Settings.demo_store.discogs_username) when it exists
   # with viable data. Returns typed fallback data otherwise — the homepage
   # must render even without a synced local demo store.
   #
@@ -32,7 +32,7 @@ class MarketingPreviewPresenter
   # ── Demo store lookup ────────────────────────────────────────
 
   def demo_store
-    Store.find_by(discogs_username: Settings.discogs_username)
+    Store.find_by(discogs_username: Settings.demo_store.discogs_username)
   end
 
   # ── Live preview path ────────────────────────────────────────
@@ -86,7 +86,7 @@ class MarketingPreviewPresenter
 
   def fallback_preview
     {
-      store_name: Settings.store_name || "Philadelphia Music",
+      store_name: Settings.demo_store.name || "Philadelphia Music",
       store_slug: nil,
       sections: []
     }

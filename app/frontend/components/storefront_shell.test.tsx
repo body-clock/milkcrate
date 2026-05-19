@@ -92,7 +92,7 @@ describe("storefront shell (StoreFloor with sections)", () => {
     expect(onSelectCrate).toHaveBeenCalledWith("picks")
   })
 
-  it("renders desktop wall cards via TactileCard when viewport is comfy", async () => {
+  it("renders desktop wall cards when viewport is comfy", async () => {
     const onSelectCrate = vi.fn()
     const sections: StorefrontSection[] = [
       {
@@ -118,8 +118,7 @@ describe("storefront shell (StoreFloor with sections)", () => {
       </StorefrontMotionConfig>
     ))
 
-    // TactileCard renders children inside a motion.div — the RecordTile
-    // content should be reachable via the accessible name on the wrapper
+    // RecordTile content should be reachable via the accessible name on the wrapper.
     expect(screen.getByRole("button", { name: "Open Milkcrate Picks at Record 1" })).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Open Milkcrate Picks at Record 2" })).toBeInTheDocument()
   })

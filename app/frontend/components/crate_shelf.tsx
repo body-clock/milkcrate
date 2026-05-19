@@ -2,7 +2,7 @@ import React from "react"
 import { motion } from "framer-motion"
 import RecordTile from "./record_tile"
 import { useTactileHover } from "@/hooks/use_tactile_hover"
-import { springTactile, SCALE_HOVER, SCALE_INNER_HOVER } from "@/lib/motion_tokens"
+import { springTactile, springPress, SCALE_HOVER } from "@/lib/motion_tokens"
 import type { Crate } from "../types/inertia"
 
 export interface CrateShelfProps {
@@ -17,6 +17,12 @@ export interface CrateShelfProps {
   meta?: string
   /** Optional explicit open-action label for touch-friendly affordance. */
   openLabel?: string
+  /** Header text size: "featured" (text-base) or "genre" (text-sm, default). */
+  headerSize?: "featured" | "genre"
+  /** Override internal hover state (for CrateCard wrapping CrateShelf). */
+  isHovered?: boolean
+  /** When true, enables thumbnail hover scale on non-compact viewports. */
+  tactileThumbnails?: boolean
   /** Additional CSS class names. */
   className?: string
 }
@@ -44,13 +50,20 @@ export default function CrateShelf({
   previewCount = 4,
   meta,
   openLabel,
+  headerSize = "genre",
+  isHovered: isHoveredOverride,
+  tactileThumbnails = false,
   className = "",
 }: CrateShelfProps) {
-  const { isHovered, isPressed, handlers } = useTactileHover()
+  const hasTactileRoot = interactive || isHoveredOverride !== undefined
+  const { isHovered: internalHovered, isPressed, handlers } = useTactileHover()
+  const isHovered = isHoveredOverride ?? internalHovered
+  const innerHoverScale = 1 + (SCALE_HOVER - 1) / 2
+  const nameClass = headerSize === "featured" ? "text-base font-semibold" : "text-sm font-semibold"
 
   const headerContent = (
     <div className="flex items-center justify-between gap-2 border-b border-mc-border pb-1">
-      <span className="mc-section-name text-sm font-semibold truncate flex-1">
+      <span className={`mc-section-name ${nameClass} truncate flex-1`}>
         {crate.name}
       </span>
       <div className="flex items-center gap-2 flex-shrink-0">
@@ -89,10 +102,8 @@ export default function CrateShelf({
   // up to auto-fill for larger counts
   const gridCols = previewCount <= 4 ? 2 : previewCount <= 6 ? 3 : 4
 
-  return (
-    <div
-      className={`flex flex-col w-full rounded-lg bg-mc-bg-card border border-mc-border overflow-hidden text-left ${className}`}
-    >
+  const shelfContent = (
+    <>
       {/* Header */}
       <div className="px-3 pt-3 pb-1.5">
         {interactive ? (
@@ -127,10 +138,10 @@ export default function CrateShelf({
                 aria-label={`Open ${crate.name} at ${record.title ?? "record"}`}
               >
                 <motion.div
-                  animate={{ scale: isHovered ? SCALE_INNER_HOVER : 1 }}
+                  animate={{ scale: isHovered ? innerHoverScale : 1 }}
                   transition={springTactile}
                 >
-                  <RecordTile listing={record} imageLoading="lazy" />
+                  <RecordTile listing={record} imageLoading="lazy" tactileHover={tactileThumbnails} />
                 </motion.div>
               </button>
             ) : (
@@ -147,6 +158,29 @@ export default function CrateShelf({
           No records yet
         </div>
       )}
-    </div>
+    </>
+  )
+
+  if (!hasTactileRoot) {
+    return (
+      <div
+        className={`flex flex-col w-full rounded-lg bg-mc-bg-card border border-mc-border overflow-hidden text-left ${className}`}
+      >
+        {shelfContent}
+      </div>
+    )
+  }
+
+  return (
+    <motion.div
+      className={`flex flex-col w-full rounded-lg bg-mc-bg-card border border-mc-border overflow-hidden text-left ${className}`}
+      animate={{
+        scale: isPressed ? 0.99 : isHovered ? 1.008 : 1,
+      }}
+      transition={isPressed ? springPress : springTactile}
+      {...handlers}
+    >
+      {shelfContent}
+    </motion.div>
   )
 }

@@ -17,5 +17,9 @@ Rails.application.routes.draw do
   get  "/apply",   to: "pages#apply"
   post "/apply", to: "waitlists#create"
 
-  get "/:slug", to: "stores#show", as: :store
+  get "/:slug",
+    to: "stores#show",
+    as: :store,
+    constraints: { slug: DiscogsSellerLookup::ROUTE_USERNAME_REGEX },
+    format: false
 end

@@ -1,4 +1,3 @@
-import React from "react"
 import { cn } from "./class_names"
 
 type StatusVariant = "good" | "working" | "warning" | "danger" | "neutral"

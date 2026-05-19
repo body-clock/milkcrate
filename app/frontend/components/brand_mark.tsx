@@ -1,5 +1,3 @@
-import React from "react"
-
 export interface BrandMarkProps {
   /** Visual size tier: small for tight spaces, large for hero areas. */
   size?: "small" | "large"

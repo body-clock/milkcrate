@@ -19,7 +19,7 @@
     <% if Rails.env.production? %>
       <script nonce="<%= request.content_security_policy_nonce %>">addEventListener("load", () => navigator.serviceWorker?.register("/sw.js"))</script>
     <% end %>
-    <% analytics_domain = Settings.plausible_domain.presence || ENV["PLAUSIBLE_DOMAIN"] %>
+    <% analytics_domain = Settings.analytics.plausible_domain.presence || ENV["PLAUSIBLE_DOMAIN"] %>
     <% if analytics_domain.present? %>
       <script defer data-domain="<%= analytics_domain %>" src="https://plausible.io/js/script.outbound-links.js" nonce="<%= request.content_security_policy_nonce %>"></script>
       <script nonce="<%= request.content_security_policy_nonce %>">

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import CrateTabs from "./crate_tabs"
 import GhostFingerCue from "./ghost_finger_cue"
 import RecordCard from "./record_card"
+import RecordDetails from "./record_details"
 import { buildCrateWindow } from "../lib/crate_window"
 import {
   RIFFLE_LANGUAGE,
@@ -12,11 +13,11 @@ import {
   type RiffleDirection,
 } from "../lib/riffle_navigation"
 import { useViewport } from "@/hooks/use_viewport"
-import { usePileContext } from "@/contexts/pile_context"
-import { SCALE_PRESS, springPress, transitionCrate, reducedMotionTransition } from "@/lib/motion_tokens"
+import { SCALE_PRESS, springPress, springTactile, transitionCrate, transitionCrateDesktop, reducedMotionTransition } from "@/lib/motion_tokens"
 import { useReducedMotionContext } from "./storefront_motion_config"
 import { isLessonEligible, markLessonLearned, isLessonLearned } from "../lib/first_swipe_lesson"
-import type { Crate, Listing } from "../types/inertia"
+import { usePreload } from "@/hooks/use_preload"
+import type { Crate } from "../types/inertia"
 
 interface Props {
   crates: Crate[]
@@ -39,127 +40,6 @@ const activeLayerStyle: React.CSSProperties = {
   willChange: "transform, opacity",
   backfaceVisibility: "hidden",
   WebkitBackfaceVisibility: "hidden",
-}
-
-function RecordDetails({ listing, direction }: { listing: Listing; direction: RiffleDirection }) {
-  const meta = [listing.format, listing.label, listing.year, listing.condition].filter(Boolean).join(" · ")
-  const enterY = direction === "deeper" ? -16 : 16
-  const exitY = direction === "deeper" ? 16 : -16
-  const { inPile, addToPile, removeFromPile } = usePileContext()
-
-  const currencySymbol = listing.currency === "GBP" ? "£" : listing.currency === "EUR" ? "€" : "$"
-
-  const allTags = [
-    ...listing.genres.slice(0, 4).map((g) => ({ label: g, dim: false })),
-    ...listing.styles.slice(0, 4).map((s) => ({ label: s, dim: true })),
-  ]
-
-  return (
-    <AnimatePresence mode="wait" custom={direction}>
-      <motion.div
-        key={listing.id}
-        custom={direction}
-        initial={{ opacity: 0, y: enterY }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: exitY }}
-        transition={{ duration: 0.18, ease: "easeOut" }}
-        className="flex flex-col gap-4"
-      >
-        {/* Header: info + price/actions in two-column row */}
-        <div className="grid grid-cols-[1fr_auto] gap-x-6 items-start">
-          <div>
-            <div className="text-xl font-semibold leading-tight">{listing.title}</div>
-            <div className="text-sm text-mc-text-dim mt-1">{listing.artist}</div>
-            {meta && <div className="text-xs text-mc-text-dim mt-2">{meta}</div>}
-          </div>
-          <div className="flex flex-col items-end gap-2">
-            <span className="text-2xl font-medium whitespace-nowrap">
-              {listing.display_price ?? (listing.price ? `${currencySymbol}${parseFloat(listing.price).toFixed(2)}` : "—")}
-            </span>
-            <div className="flex gap-2">
-              {inPile(listing.id) ? (
-                <button onClick={() => removeFromPile(listing.id)} className="mc-btn">✓ In pile</button>
-              ) : (
-                <button onClick={() => addToPile(listing)} className="mc-btn mc-btn-primary">+ Pile</button>
-              )}
-              <a href={listing.discogs_url} target="_blank" rel="noopener" className="mc-btn">Discogs ↗</a>
-            </div>
-          </div>
-        </div>
-
-        {/* Combined genre + style pills */}
-        {allTags.length > 0 && (
-          <div className="flex gap-1.5 flex-wrap">
-            {allTags.map((tag) => (
-              <span
-                key={tag.label}
-                className={`text-[11px] px-2 py-0.5 rounded bg-mc-bg-raised ${
-                  tag.dim ? "text-mc-text-dim/70" : "text-mc-text-dim"
-                }`}
-              >
-                {tag.label}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {listing.notes && (
-          <p className="text-xs text-mc-text-dim leading-relaxed line-clamp-4">{listing.notes}</p>
-        )}
-      </motion.div>
-    </AnimatePresence>
-  )
-}
-
-
-function preloadImage(url: string, priority: "high" | "low" = "high", signal?: AbortSignal) {
-  if (priority === "high") {
-    const img = new Image()
-    img.decoding = "async"
-    img.src = url
-  } else {
-    // Idle priority — use requestIdleCallback with setTimeout(0) fallback
-    const schedule = typeof requestIdleCallback === "function"
-      ? requestIdleCallback
-      : (cb: IdleRequestCallback) => setTimeout(cb, 0)
-    const deferred = () => {
-      if (signal?.aborted) return
-      const img = new Image()
-      img.decoding = "async"
-      img.src = url
-    }
-    schedule(deferred, { timeout: 2000 })
-  }
-}
-
-function usePreload(records: { id: number; cover_image_url?: string | null; thumbnail_url?: string | null }[], index: number) {
-  useEffect(() => {
-    const abort = new AbortController()
-
-    for (let offset = -3; offset <= 3; offset++) {
-      if (offset === 0) continue
-
-      const r = records[index + offset]
-      if (!r) continue
-
-      const absOffset = Math.abs(offset)
-
-      if (absOffset <= 1) {
-        // Adjacent slots: preload full-res cover (cache-warming for the decode gate)
-        if (r.cover_image_url) preloadImage(r.cover_image_url, "high")
-      } else {
-        // Edge slots: preload thumbnail only (full-res at idle priority)
-        if (r.thumbnail_url) {
-          preloadImage(r.thumbnail_url, "high")
-        }
-        if (r.cover_image_url) {
-          preloadImage(r.cover_image_url, "low", abort.signal)
-        }
-      }
-    }
-
-    return () => abort.abort()
-  }, [records, index])
 }
 
 export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs = false, onSelectCrate, onBack }: Props) {
@@ -212,6 +92,14 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
   }, [total, isCompact])
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    const target = e.target as HTMLElement
+    if (
+      target instanceof HTMLInputElement ||
+      target instanceof HTMLTextAreaElement ||
+      target instanceof HTMLSelectElement ||
+      target.isContentEditable
+    ) return
+    if (document.querySelector('[role="dialog"][aria-modal="true"]')) return
     if (e.key === "ArrowDown") navigate("deeper")
     if (e.key === "ArrowUp") navigate("front")
   }, [navigate])
@@ -395,7 +283,7 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
                 initial="initial"
                 animate="animate"
                 exit="exit"
-                transition={prefersReducedMotion ? reducedMotionTransition : transitionCrate}
+                transition={prefersReducedMotion ? reducedMotionTransition : (isCompact ? transitionCrate : transitionCrateDesktop)}
                 className="absolute inset-0"
                 style={{ ...activeLayerStyle, zIndex: 30 }}
               >
@@ -540,7 +428,7 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
         {/* Desktop details panel */}
         {activeRecord && (
           <div className="hidden md:flex md:flex-col md:pt-7">
-            <RecordDetails listing={activeRecord} direction={direction.current} />
+            <RecordDetails listing={activeRecord} direction={direction.current} isCompact={isCompact} />
           </div>
         )}
       </div>

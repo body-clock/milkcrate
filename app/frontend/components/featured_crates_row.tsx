@@ -8,7 +8,7 @@ interface Props {
 }
 
 export default function FeaturedCratesRow({ crates, onSelectCrate }: Props) {
-  const { isCompact, isComfy, isWide } = useViewport()
+  const { isCompact, isComfy } = useViewport()
   if (crates.length === 0) return null
 
   // Responsive columns: compact stays 1, comfy gets more, wide fills
