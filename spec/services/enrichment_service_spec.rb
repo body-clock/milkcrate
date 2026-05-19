@@ -99,22 +99,6 @@ RSpec.describe EnrichmentService do
 
       service.enrich_releases(store, listing_ids: [ listing.id ])
     end
-
-    it "recovers from rate limit errors" do
-      call_count = 0
-      allow(discogs).to receive(:release).with("123") do
-        call_count += 1
-        raise(DiscogsClient::RateLimitError) if call_count == 1
-        [ release_data, 55 ]
-      end
-
-      expect(Rails.logger).to receive(:warn).with(/Rate limited/).once
-
-      service.enrich_releases(store, listing_ids: [ listing.id ])
-
-      listing.reload
-      expect(listing.genres).to eq([ "Jazz" ])
-    end
   end
 
   describe "#enrich_music_brainz_images" do

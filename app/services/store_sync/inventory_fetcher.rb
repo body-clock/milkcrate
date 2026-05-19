@@ -1,7 +1,6 @@
 class StoreSync::InventoryFetcher
   Result = Data.define(:listings, :pages_fetched, :total_pages)
 
-  RATE_LIMIT_DELAY = 0.5
   DISCOGS_PAGE_LIMIT_ERROR = "Pagination above 100"
 
   def initialize(store, client: nil)
@@ -35,8 +34,6 @@ class StoreSync::InventoryFetcher
       yield data, @pages_fetched
 
       break if last_page?(data, max_pages)
-
-      sleep(RATE_LIMIT_DELAY)
     end
   end
 
