@@ -39,6 +39,7 @@ function PicksShelf({
       previewCount={picksPreviewCount}
       meta={today}
       openLabel="DIG →"
+      tactileThumbnails={!isCompact}
     />
   )
 
