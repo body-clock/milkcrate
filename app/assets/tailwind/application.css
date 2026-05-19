@@ -56,14 +56,11 @@
 
 .mc-body        { background: var(--mc-bg); color: var(--mc-text); font-family: ui-serif, Georgia, serif; transition: background 0.2s, color 0.2s; }
 .mc-header      { background: var(--mc-bg-raised); }
-.mc-session-bar { background: var(--mc-bg-raised); color: var(--mc-text-dim); }
 .mc-border      { border-color: var(--mc-border); }
 .mc-wordmark    { color: var(--mc-text); font-family: ui-sans-serif, system-ui, sans-serif; letter-spacing: 0.15em; }
 .mc-brand-title { color: var(--mc-text); font-family: ui-sans-serif, system-ui, sans-serif; letter-spacing: 0.08em; text-transform: uppercase; }
 .mc-nav-link    { color: var(--mc-text-dim); text-decoration: none; transition: color 0.15s; cursor: pointer; background: none; border: none; font: inherit; }
 .mc-nav-link:hover { color: var(--mc-text); }
-.mc-accent-link { color: var(--mc-accent); text-decoration: none; }
-.mc-accent-link:hover { text-decoration: underline; }
 .mc-input {
   width: 100%;
   padding: 0.5rem 0.75rem;
@@ -81,8 +78,6 @@
 .mc-notice      { background: var(--mc-notice); color: var(--mc-text); }
 
 /* ─── Section Dividers ───────────────────────────────────────────────────── */
-
-.mc-sections    { display: flex; flex-direction: column; gap: 3rem; }
 
 .mc-section-header {
   display: flex;
@@ -105,126 +100,7 @@
   font-size: 0.65rem;
   color: var(--mc-text-dim);
 }
-.mc-section-browse {
-  font-family: ui-sans-serif, system-ui, sans-serif;
-  font-size: 0.7rem;
-  color: var(--mc-text-dim);
-  text-decoration: none;
-  margin-left: auto;
-}
-.mc-section-browse:hover { color: var(--mc-accent); }
 
-/* Scrollable crate row */
-.mc-crate-row {
-  display: flex;
-  gap: 2.5rem;
-  overflow-x: auto;
-  padding: 1rem 0 1.5rem;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-}
-.mc-crate-row::-webkit-scrollbar { display: none; }
-.mc-crate-row > * { scroll-snap-align: start; }
-
-/* ─── Record Card ────────────────────────────────────────────────────────── */
-
-.mc-record-card {
-  position: relative;
-  width: 220px;
-  height: 220px;
-  flex-shrink: 0;
-  cursor: pointer;
-  perspective: 800px;
-}
-
-.mc-record-card-inner {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  transform-style: preserve-3d;
-  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.mc-record-card.flipped .mc-record-card-inner {
-  transform: rotateY(180deg);
-}
-
-.mc-record-front,
-.mc-record-back {
-  position: absolute;
-  inset: 0;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  border-radius: 2px;
-  overflow: hidden;
-  border: 1px solid var(--mc-border);
-}
-
-.mc-record-front {
-  background: var(--mc-bg-card);
-}
-
-.mc-record-back {
-  background: var(--mc-bg-raised);
-  transform: rotateY(180deg);
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  font-family: ui-sans-serif, system-ui, sans-serif;
-}
-
-.mc-record-front img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-.mc-record-front .mc-record-no-image {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 3rem;
-  color: var(--mc-text-dim);
-  background: var(--mc-bg-card);
-}
-
-.mc-record-back-title {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--mc-text);
-  line-height: 1.3;
-}
-.mc-record-back-artist {
-  font-size: 0.7rem;
-  color: var(--mc-text-dim);
-}
-.mc-record-back-meta {
-  font-size: 0.65rem;
-  color: var(--mc-text-dim);
-  margin-top: auto;
-}
-.mc-record-back-price {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--mc-accent);
-}
-.mc-record-back-tracklist {
-  font-size: 0.6rem;
-  color: var(--mc-text-dim);
-  overflow: hidden;
-  flex: 1;
-  line-height: 1.6;
-}
-.mc-record-back-actions {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-}
 .mc-btn {
   font-size: 0.65rem;
   padding: 0.25rem 0.5rem;
@@ -258,130 +134,3 @@
 }
 .mc-input:focus { outline: none; border-color: var(--mc-accent); }
 .mc-submit { align-self: flex-start; }
-
-/* ─── Dig Session ────────────────────────────────────────────────────────── */
-
-.mc-pile-list { display: flex; flex-direction: column; gap: 0; }
-.mc-pile-item {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.85rem 0;
-  border-bottom: 1px solid var(--mc-border);
-}
-.mc-pile-thumb {
-  width: 48px;
-  height: 48px;
-  object-fit: cover;
-  border-radius: 1px;
-  flex-shrink: 0;
-  background: var(--mc-bg-card);
-}
-.mc-pile-info { flex: 1; min-width: 0; font-family: ui-sans-serif, system-ui, sans-serif; }
-.mc-pile-title { font-size: 0.8rem; font-weight: 600; color: var(--mc-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.mc-pile-artist { font-size: 0.7rem; color: var(--mc-text-dim); }
-.mc-pile-price { font-size: 0.8rem; font-weight: 700; color: var(--mc-accent); flex-shrink: 0; }
-
-/* ─── Dig View (immersive crate experience) ──────────────────────────────── */
-
-.mc-dig-view {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2rem;
-  padding: 1.5rem 0 3rem;
-  min-height: 80vh;
-}
-
-/* The stack container — sized to the card + depth offset */
-.mc-dig-stack {
-  position: relative;
-  width: calc(300px + 24px); /* card + max offset */
-  height: calc(300px + 24px);
-}
-
-/* Each card slot in the stack */
-.mc-dig-slot {
-  position: absolute;
-  top: 0;
-  left: 0;
-  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-              opacity 0.35s ease,
-              z-index 0s;
-}
-
-.mc-dig-slot[data-stack-pos="0"] {
-  transform: translate(0, 0);
-  opacity: 1;
-  z-index: 10;
-}
-
-.mc-dig-slot[data-stack-pos="1"] {
-  transform: translate(10px, 10px);
-  opacity: 0.55;
-  z-index: 9;
-  pointer-events: none;
-}
-
-.mc-dig-slot[data-stack-pos="2"] {
-  transform: translate(20px, 20px);
-  opacity: 0.25;
-  z-index: 8;
-  pointer-events: none;
-}
-
-/* Override card size in dig view */
-.mc-dig-stack .mc-record-card {
-  width: 300px;
-  height: 300px;
-}
-
-/* Navigation row */
-.mc-dig-nav {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-}
-
-.mc-dig-nav-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 1px solid var(--mc-border);
-  background: var(--mc-bg-raised);
-  color: var(--mc-text);
-  font-size: 1.1rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: border-color 0.15s, opacity 0.15s;
-}
-
-.mc-dig-nav-btn:hover:not(:disabled) { border-color: var(--mc-accent); color: var(--mc-accent); }
-.mc-dig-nav-btn:disabled { opacity: 0.2; cursor: default; }
-
-.mc-dig-counter {
-  font-family: ui-sans-serif, system-ui, sans-serif;
-  font-size: 0.75rem;
-  color: var(--mc-text-dim);
-  min-width: 5rem;
-  text-align: center;
-}
-
-.mc-dig-hint {
-  font-family: ui-sans-serif, system-ui, sans-serif;
-  font-size: 0.65rem;
-  color: var(--mc-text-dim);
-  text-align: center;
-  opacity: 0.6;
-}
-
-/* ─── Responsive ─────────────────────────────────────────────────────────── */
-
-@media (min-width: 768px) {
-  .mc-record-card { width: 240px; height: 240px; }
-
-  .mc-dig-stack { width: calc(380px + 24px); height: calc(380px + 24px); }
-  .mc-dig-stack .mc-record-card { width: 380px; height: 380px; }
-}

@@ -10,11 +10,10 @@ import BrandMark from "@/components/brand_mark"
 import MilkcrateShell from "@/layouts/milkcrate_shell"
 
 function AppLayoutInner({ children }: { children: React.ReactNode }) {
-  const page = usePage()
-  const props = page.props as any
-  const notice = props.notice as string | undefined
-  const storeName = props.store?.name as string | undefined
-  const discogsUsername = props.store?.discogs_username as string | undefined
+  const page = usePage<{ notice?: string; store?: { name?: string; discogs_username?: string } }>()
+  const notice = page.props.notice
+  const storeName = page.props.store?.name
+  const discogsUsername = page.props.store?.discogs_username
   const { theme, toggle } = useTheme()
   const { isCompact } = useViewport()
   const { pile } = usePileContext()

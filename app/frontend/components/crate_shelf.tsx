@@ -17,6 +17,10 @@ export interface CrateShelfProps {
   meta?: string
   /** Optional explicit open-action label for touch-friendly affordance. */
   openLabel?: string
+  /** Header text size: "featured" (text-base) or "genre" (text-sm, default). */
+  headerSize?: "featured" | "genre"
+  /** Override internal hover state (for CrateCard wrapping CrateShelf). */
+  isHovered?: boolean
   /** Additional CSS class names. */
   className?: string
 }
@@ -44,14 +48,18 @@ export default function CrateShelf({
   previewCount = 4,
   meta,
   openLabel,
+  headerSize = "genre",
+  isHovered: isHoveredOverride,
   className = "",
 }: CrateShelfProps) {
-  const { isHovered } = useTactileHover()
+  const { isHovered: internalHovered, handlers } = useTactileHover()
+  const isHovered = isHoveredOverride ?? internalHovered
   const innerHoverScale = 1 + (SCALE_HOVER - 1) / 2
+  const nameClass = headerSize === "featured" ? "text-base font-semibold" : "text-sm font-semibold"
 
   const headerContent = (
     <div className="flex items-center justify-between gap-2 border-b border-mc-border pb-1">
-      <span className="mc-section-name text-sm font-semibold truncate flex-1">
+      <span className={`mc-section-name ${nameClass} truncate flex-1`}>
         {crate.name}
       </span>
       <div className="flex items-center gap-2 flex-shrink-0">
@@ -93,6 +101,7 @@ export default function CrateShelf({
   return (
     <div
       className={`flex flex-col w-full rounded-lg bg-mc-bg-card border border-mc-border overflow-hidden text-left ${className}`}
+      {...handlers}
     >
       {/* Header */}
       <div className="px-3 pt-3 pb-1.5">

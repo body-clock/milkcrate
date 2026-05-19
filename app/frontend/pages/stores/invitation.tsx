@@ -100,8 +100,15 @@ function InvitationContent({ slug }: { slug: string }) {
     const timeoutId = setTimeout(() => controller.abort(), 10000)
 
     fetch(`/api/discogs/lookup/${encodeURIComponent(slug)}`, { signal: controller.signal })
-      .then((res) => res.json() as Promise<LookupResponse>)
+      .then((res) => {
+        if (!res.ok) {
+          setProbeState("error")
+          return
+        }
+        return res.json() as Promise<LookupResponse>
+      })
       .then((data) => {
+        if (!data) return
         if (data.found) {
           setSellerName(data.seller_name || slug)
           setProbeState("found")
