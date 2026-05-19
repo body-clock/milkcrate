@@ -2,7 +2,7 @@ import React from "react"
 import { motion } from "framer-motion"
 import RecordTile from "./record_tile"
 import { useTactileHover } from "@/hooks/use_tactile_hover"
-import { springTactile, SCALE_HOVER, SCALE_INNER_HOVER } from "@/lib/motion_tokens"
+import { springTactile, springPress, SCALE_HOVER, SCALE_INNER_HOVER } from "@/lib/motion_tokens"
 import type { Crate } from "../types/inertia"
 
 export interface CrateShelfProps {
@@ -90,8 +90,13 @@ export default function CrateShelf({
   const gridCols = previewCount <= 4 ? 2 : previewCount <= 6 ? 3 : 4
 
   return (
-    <div
+    <motion.div
       className={`flex flex-col w-full rounded-lg bg-mc-bg-card border border-mc-border overflow-hidden text-left ${className}`}
+      animate={{
+        scale: isPressed ? 0.985 : isHovered ? 1.015 : 1,
+      }}
+      transition={isPressed ? springPress : springTactile}
+      {...handlers}
     >
       {/* Header */}
       <div className="px-3 pt-3 pb-1.5">
@@ -147,6 +152,6 @@ export default function CrateShelf({
           No records yet
         </div>
       )}
-    </div>
+    </motion.div>
   )
 }
