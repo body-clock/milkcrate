@@ -30,17 +30,17 @@ RSpec.describe FullStoreSyncJob do
 
   describe "#perform" do
     it "runs the public sync flow" do
-      described_class.new.perform(store.id)
+      described_class.perform_now(store.id)
       expect(sync_service).to have_received(:sync)
     end
 
     it "passes max_pages when provided" do
-      described_class.new.perform(store.id, max_pages: 1)
+      described_class.perform_now(store.id, max_pages: 1)
       expect(sync_service).to have_received(:sync).with(max_pages: 1)
     end
 
     it "sets sync_status to syncing then idle" do
-      described_class.new.perform(store.id)
+      described_class.perform_now(store.id)
       store.reload
       expect(store.sync_status).to eq("idle")
       expect(store.last_sync_error).to be_nil
@@ -48,13 +48,13 @@ RSpec.describe FullStoreSyncJob do
 
     it "enqueues EnrichmentJob after sync" do
       expect {
-        described_class.new.perform(store.id)
+        described_class.perform_now(store.id)
       }.to have_enqueued_job(EnrichmentJob).with(store.id, listing_ids: [ 11, 12 ])
     end
 
     it "enqueues DailyCurationJob after sync" do
       expect {
-        described_class.new.perform(store.id)
+        described_class.perform_now(store.id)
       }.to have_enqueued_job(DailyCurationJob).with(store.id)
     end
 
@@ -62,7 +62,7 @@ RSpec.describe FullStoreSyncJob do
       allow(sync_service).to receive(:sync).and_raise(RuntimeError, "discogs timeout")
 
       expect {
-        described_class.new.perform(store.id)
+        described_class.perform_now(store.id)
       }.to raise_error(RuntimeError, "discogs timeout")
 
       store.reload
@@ -85,7 +85,7 @@ RSpec.describe FullStoreSyncJob do
           sync_result
         end
 
-        described_class.new.perform(store.id)
+        described_class.perform_now(store.id)
 
         store.reload
         expect(store.last_synced_at).to eq(Time.zone.parse("2026-05-05 12:00:00"))
@@ -94,12 +94,18 @@ RSpec.describe FullStoreSyncJob do
     end
 
     it "leaves sync metadata ownership with StoreSyncService" do
-      described_class.new.perform(store.id)
+      described_class.perform_now(store.id)
 
       store.reload
       expect(store.catalog_coverage).to eq("partial")
       expect(store.inventory_page_count).to eq(101)
       expect(store.total_listings).to eq(0)
+    end
+
+    it "has a concurrency key lambda that accepts the job's positional arguments" do
+      key = described_class.concurrency_key
+      expect { key.call }.not_to raise_error
+      expect { key.call(1) }.not_to raise_error
     end
   end
 end

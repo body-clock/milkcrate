@@ -1,5 +1,5 @@
 class EnrichmentJob < ApplicationJob
-  limits_concurrency to: 1, key: -> { "discogs_api" }
+  limits_concurrency to: 1, key: ->(*) { "discogs_api" }
   queue_as :default
 
   def perform(store_id, listing_ids: nil)
