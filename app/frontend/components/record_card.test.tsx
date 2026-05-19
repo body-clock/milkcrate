@@ -141,11 +141,9 @@ describe("RecordCard", () => {
     it("adds pointer handlers when parallax is enabled", () => {
       renderCard({ disableParallax: false })
 
+      // Perspective is applied via transformTemplate
       const card = document.querySelector("[style*='perspective']")
       expect(card).toBeInTheDocument()
-
-      // Should have pointer event handlers
-      expect(card?.getAttribute("style")).toContain("perspective: 800")
     })
 
     it("supports disableParallax prop without crashing", () => {
@@ -176,14 +174,13 @@ describe("RecordCard", () => {
       expect(screen.getByText("+ Pile")).toBeInTheDocument()
     })
 
-    it("applies perspective style to the card container", () => {
+    it("applies perspective to the card transform", () => {
       renderCard()
 
       const el = document.querySelector("[style*='perspective']")
       expect(el).toBeInTheDocument()
-      // The style may be set via inline style or framer-motion — the
-      // presence of the element is the reliable assertion in jsdom
-      expect(el!.innerHTML).toBeTruthy()
+      // Perspective is applied via transformTemplate — look for it in the transform
+      expect(el?.getAttribute("style")).toContain("perspective(800px)")
     })
   })
 

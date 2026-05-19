@@ -135,10 +135,12 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
       ref={cardRef}
       className={`w-full h-full flex-shrink-0 cursor-pointer ${className}`}
       style={{
-        perspective: 800,
         touchAction: "none",
         transformStyle: "preserve-3d",
       }}
+      transformTemplate={(_, generated) =>
+        `perspective(800px) ${generated}`
+      }
       animate={{
         rotateX: tiltY,
         rotateY: tiltX,
