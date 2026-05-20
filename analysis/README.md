@@ -13,39 +13,26 @@ End-to-end pipeline run:
 rake milkcrate:sync
 
 # 2. Generate a stratified seed crate (~40 records across hot/warm/cold/lukewarm bands)
-rake experiment:generate[crate-001]
+#    This also copies the labeling page into the crate directory automatically.
+bin/rake 'experiment:generate[crate-001]'
 
-# 3. Copy the labeling page into the crate directory
-cp analysis/label.html experiments/crate-001/
+# 3. Start the labeling server
+bin/rake 'experiment:serve[crate-001]'
+#    → Open http://localhost:8000/label.html?round=1
 
-# 4. Open the labeling page — Round 1 (blinded: cover + artist + title only)
-open experiments/crate-001/label.html?round=1
-
-# 5. Label all 40 records (~15 min), then click "Download Results"
+# 4. Label all 40 records (~15 min), then click "Download Results"
 #    Save the file as round1-results.json inside experiments/crate-001/
 
-# 6. Next day: Round 2 (full metadata)
-open experiments/crate-001/label.html?round=2
+# 5. Next day: Round 2
+bin/rake 'experiment:serve[crate-001]'
+#    → Open http://localhost:8000/label.html?round=2
 
-# 7. Re-label all 40 records (~10 min), download as round2-results.json
-#    If your label changes from Round 1, a "What changed your mind?" field appears
+# 6. Re-label all 40 records (~10 min), download as round2-results.json
 
-# 8. Merge seed + labels into analysis CSV
-ruby analysis/merge.rb experiments/crate-001/
+# 7. Run merge + all analysis scripts + evaluation in one shot
+bin/rake 'experiment:analyze[crate-001]'
 
-# 9. Run analysis scripts
-ruby analysis/seams.rb experiments/crate-001/results.csv
-ruby analysis/logistic_regression.rb experiments/crate-001/results.csv
-ruby analysis/anti_scorer.rb experiments/crate-001/results.csv
-ruby analysis/absence_profile.rb experiments/crate-001/results.csv
-
-# 10. Ablation requires Rails (run from project root)
-ruby -I app analysis/ablation.rb experiments/crate-001/results.csv
-
-# 11. Register the baseline score
-ruby analysis/evaluate.rb experiments/crate-001/results.csv baseline
-
-# 12. Populate the holdout fixture
+# 8. Populate the holdout fixture
 # Copy labeled records into spec/fixtures/crate-001-labels.yml
 ```
 
@@ -78,12 +65,9 @@ spec/fixtures/
 
 ## Labeling Page
 
-The labeling page (`label.html`) is a standalone HTML file — no server needed.
-Open it directly from `file://` or serve with:
-
-```bash
-python3 -m http.server -d experiments/crate-001/
-```
+The labeling page (`label.html`) is a standalone HTML file — no server needed
+when served locally (the `experiment:serve` task runs `python3 -m http.server`
+in the crate directory).
 
 **Round 1** (`?round=1` — default): Cover image, artist, title. Buttons disabled
 for 2 seconds (prevents reflexive clicking). Keyboard shortcuts: **J** = Junk,
@@ -98,9 +82,10 @@ Results auto-save to `localStorage`. The "Download Results" button exports JSON.
 ## Running Another Crate
 
 ```bash
-rake experiment:generate[crate-002]
-cp analysis/label.html experiments/crate-002/
-# ... label, merge, analyze ...
+bin/rake 'experiment:generate[crate-002]'
+bin/rake 'experiment:serve[crate-002]'
+# ... label, download results ...
+bin/rake 'experiment:analyze[crate-002]'
 ```
 
 Each crate is independent. The score registry accumulates results across crates,

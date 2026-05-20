@@ -2,7 +2,7 @@ require "rails_helper"
 require "rake"
 
 RSpec.describe "experiment:generate" do
-  let!(:store) { create(:store, discogs_username: "philadelphiamusic", catalog_coverage: "partial", last_synced_at: 1.hour.ago) }
+  let!(:store) { create(:store, discogs_username: "freebirdrecords", catalog_coverage: "partial", last_synced_at: 1.hour.ago) }
 
   before(:all) do
     Rake.application = Rake::Application.new
