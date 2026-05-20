@@ -1,8 +1,8 @@
 # Milkcrate settings — override per environment or via env vars.
 
 demo_store:
-  name: Philadelphia Music
-  discogs_username: philadelphiamusic
+  name: Freebird Records
+  discogs_username: freebirdrecords
   description:
 
 discogs:
