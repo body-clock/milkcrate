@@ -165,7 +165,7 @@ module Experiments
         score = entry[:score]
         seed_entry = build_seed_entry(listing:, position:, score:)
 
-        if flat_entries_set.include?(entry)
+        if flat_entries_set.include?(listing)
           seed_entry[:is_duplicate_of] = nil
         else
           original = flat_entries.find { |e| e[:listing].discogs_release_id == listing.discogs_release_id }

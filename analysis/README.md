@@ -16,7 +16,7 @@ rake milkcrate:sync
 rake experiment:generate[crate-001]
 
 # 3. Copy the labeling page into the crate directory
-cp experiments/crate-001/label.html experiments/crate-001/  # already there after generate
+cp analysis/label.html experiments/crate-001/
 
 # 4. Open the labeling page — Round 1 (blinded: cover + artist + title only)
 open experiments/crate-001/label.html?round=1
@@ -61,8 +61,9 @@ experiments/                        ← per-session artifacts (gitignored)
     ├── round2-results.json         ← downloaded after Round 2
     └── results.csv                 ← produced by merge.rb
 
-analysis/                           ← analysis scripts (committed)
+analysis/                           ← analysis scripts + labeling template (committed)
 ├── README.md                       ← you are here
+├── label.html                      ← labeling page template (copy into crate dirs)
 ├── merge.rb
 ├── logistic_regression.rb
 ├── ablation.rb
@@ -98,7 +99,7 @@ Results auto-save to `localStorage`. The "Download Results" button exports JSON.
 
 ```bash
 rake experiment:generate[crate-002]
-cp experiments/crate-001/label.html experiments/crate-002/
+cp analysis/label.html experiments/crate-002/
 # ... label, merge, analyze ...
 ```
 
