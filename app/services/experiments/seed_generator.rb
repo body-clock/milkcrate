@@ -37,15 +37,14 @@ module Experiments
     def fetch_listings
       store = Store.find(store_id)
       # The `available` scope starts from Listing.all rather than chaining
-      # the current relation. Scoping by store_id explicitly ensures we only
-      # get this store's listings.
-      store.listings.available.lp_only.where(store_id: store.id).to_a
+      # the current relation, so `store.listings.available` returns all stores'
+      # listings. Pass the store-scoped relation directly to AvailableQuery.
+      Listings::AvailableQuery.new(relation: store.listings).call.lp_only.to_a
     end
 
     def score_listings(listings)
       store = Store.find(store_id)
-      genre_counts = store.listings.available.lp_only
-                          .where(store_id: store.id)
+      genre_counts = Listings::AvailableQuery.new(relation: store.listings).call.lp_only
                           .pluck(:genres).map(&:first).compact.tally
       scorer = RecordScorer.new(genre_counts:, today: Date.today)
 
@@ -186,8 +185,7 @@ module Experiments
     def scorer
       @scorer ||= begin
         store = Store.find(store_id)
-        genre_counts = store.listings.available.lp_only
-                            .where(store_id: store.id)
+        genre_counts = Listings::AvailableQuery.new(relation: store.listings).call.lp_only
                             .pluck(:genres).map(&:first).compact.tally
         RecordScorer.new(genre_counts:, today: Date.today)
       end
