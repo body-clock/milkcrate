@@ -124,6 +124,161 @@ future `RecordScorer` changes don't regress on known labels.
 
 ---
 
+## From Analysis to Algorithm Update
+
+The pipeline produces a baseline, then you iterate: run analysis → interpret →
+adjust weights → re-evaluate against the holdout. Here's how to read each script's
+output and what to change.
+
+### 1. Establish the baseline
+
+```bash
+ruby analysis/evaluate.rb experiments/crate-001/results.csv baseline
+```
+
+This writes the first entry to `experiments/score-registry.yml`. Every future
+evaluation appends a row, so you can track whether a change improved accuracy
+or just shuffled errors around.
+
+### 2. Check discrimination quality
+
+```bash
+ruby analysis/anti_scorer.rb experiments/crate-001/results.csv
+```
+
+Look at the **Discrimination Assessment** section. It prints the mean algorithm
+score for each label category:
+
+```
+cool         n=12  mean=6.82  min=3.14  max=12.94
+indifferent  n=18  mean=1.43  min=-0.52  max=4.87
+junk         n=10  mean=-1.21  min=-4.10  max=0.93
+```
+
+**What to look for:** The mean scores should descend cool → indifferent → junk.
+If they don't (e.g. junk mean > indifferent mean), the algorithm isn't separating
+the categories well. The "Mean separation (cool − junk)" line quantifies this —
+positive is good, negative means the scorer is inverted.
+
+### 3. Find which strategies matter
+
+```bash
+ruby -I app analysis/ablation.rb experiments/crate-001/results.csv
+```
+
+This runs `RecordScorer` 8 times, each omitting one strategy, and measures
+agreement against your labels:
+
+```
+Strategy Removed         Agreement   Δ from Baseline
+------------------------------------------------
+− vintage                   62.5%        +3.1%
+− condition                 58.3%        -1.0%
+− section                   55.0%        -4.3%
+− desirability              57.8%        -1.5%
+...
+```
+
+**What to look for:**
+- **Positive Δ** (↑) — removing the strategy _improves_ agreement. The strategy
+  may be harmful or miscalibrated. Consider reducing its weight or removing it.
+- **Negative Δ** (↓) — removing the strategy _hurts_ agreement. It's pulling
+  useful signal. Keep it, or even increase its weight.
+- **Near-zero Δ** — the strategy has no measurable effect. Candidate for removal
+  or simplification.
+
+### 4. Understand what predicts "cool"
+
+```bash
+ruby analysis/logistic_regression.rb experiments/crate-001/results.csv
+```
+
+The **Suggested Weight Recalibration** table shows how the logistic regression
+model would distribute weight across strategies to best predict "cool" labels.
+Compare this against the current weights in `RecordScorer`'s strategies:
+
+- Strategies with coefficients _near zero_ may be dead weight
+- Strategies with _large_ positive coefficients are your strongest cool-predictors
+- If the model allocates 0% to a strategy you're currently boosting, that strategy
+  isn't helping
+
+**How to adjust:** Open `app/services/score_strategies/*.rb` and adjust the
+magnitude constants (e.g., `SMALL_GENRE_BOOST`, `HIGH_BONUS`, `COVER_BOOST`).
+Re-run the pipeline to measure the effect.
+
+### 5. Inspect the errors
+
+```bash
+ruby analysis/seams.rb experiments/crate-001/results.csv
+```
+
+The confusion matrix shows the big picture. More importantly, the **False Positives**
+and **False Negatives** sections list specific records the scorer gets wrong. Read
+through them and ask:
+
+- **False positives** (algo says cool, human disagrees): What do these records
+  have in common? Are they all from one genre? All missing cover images? A
+  pattern here points to an over-weighted strategy.
+- **False negatives** (algo misses a cool record): Why did the scorer undervalue
+  these? Do they share a trait the algorithm ignores?
+
+The **Per-Error Counterfactuals** section shows how much each record's score
+would need to change to flip the classification. A small gap (e.g. +0.15 to
+reach threshold) suggests a calibration tweak in one strategy could fix it.
+
+### 6. Check metadata gaps
+
+```bash
+ruby analysis/absence_profile.rb experiments/crate-001/results.csv
+```
+
+The **ΔP(junk)** column shows whether a missing field correlates with junk labels:
+
+```
+Field                Absent  P(junk|A)  ...  ΔP(junk)
+------------------------------------------------------
+cover                     8      62.5%  ...   +42.1%
+year                      3      33.3%  ...   +12.0%
+styles                    6      16.7%  ...    -3.2%
+```
+
+**What to look for:**
+- Large positive Δ → absence of this field correlates with junk. The algorithm
+  should penalize missing data in this dimension more heavily.
+- Large negative Δ → absence correlates with _non-junk_. The current penalty for
+  missing this field may be too harsh.
+- Δ near zero → this field doesn't matter for label prediction. Current penalties
+  or boosts for this dimension may be noise.
+
+The **Cumulative Sparsity Model** shows whether records missing multiple fields
+are systematically rated higher or lower than they should be.
+
+### 7. Make the change and measure
+
+After adjusting strategy weights:
+
+```bash
+# Re-evaluate against the same holdout
+ruby analysis/evaluate.rb experiments/crate-001/results.csv v2-recalibrated
+
+# The score registry now shows:
+#   baseline:  62.5%
+#   v2:        68.3%  Δ +5.8% ↑
+```
+
+If the Δ is positive, commit the change. If negative, revert and try a different
+adjustment. The registry gives you a permanent audit trail of what worked.
+
+### Typical iteration loop
+
+```
+label crate → analyze → identify weakest strategy → adjust weight → re-evaluate
+     ↑                                                                    ↓
+     └────────────── if Δ is flat or negative, try something else ←──────┘
+```
+
+---
+
 ## Analysis Scripts
 
 Plain Ruby scripts that read a merged `results.csv` and output findings to stdout.
@@ -133,11 +288,11 @@ Plain Ruby scripts that read a merged `results.csv` and output findings to stdou
 | Script | What it tells you | Requires Rails? |
 |--------|-------------------|----------------|
 | `merge.rb` | Merge seed JSON + labeling results → `results.csv` | No |
+| `anti_scorer.rb` | Discrimination: do scores separate cool/indifferent/junk? | No |
+| `ablation.rb` | Which strategies help or hurt agreement? | Yes |
+| `logistic_regression.rb` | Which strategy scores predict "cool" labels? | No |
 | `seams.rb` | Confusion matrix + which records the scorer gets wrong | No |
-| `logistic_regression.rb` | Which strategy scores actually predict "cool" labels | No |
-| `anti_scorer.rb` | Same regression inverted — what predicts "junk" | No |
 | `absence_profile.rb` | Does missing metadata correlate with junk labels? | No |
-| `ablation.rb` | What happens to agreement when you remove each strategy? | Yes |
 | `evaluate.rb` | Accuracy/precision/recall/F1 + append to score registry | No |
 
 ### Usage
