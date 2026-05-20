@@ -47,9 +47,8 @@ def build_scorer(store_id, omit_strategy: nil)
   RecordScorer.new(strategies:, genre_counts:, today: Date.today)
 end
 
-# ── Get the demo store ────────────────────────────────────
-store = Store.find_by(discogs_username: "philadelphiamusic") ||
-        Store.find_by(discogs_username: "freebirdrecords") ||
+# ── Get the configured demo store ─────────────────────────
+store = Store.find_by(discogs_username: Settings.demo_store.discogs_username) ||
         Store.first
 abort "No store found" unless store
 

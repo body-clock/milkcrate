@@ -20,7 +20,7 @@ module Experiments
       scored = score_listings(listings)
       binned = bin_by_band(scored)
       sampled = sample_from_bins(binned)
-      seed_data = build_seed_data(listings, sampled)
+      seed_data = build_seed_data(all_listings: listings, sampled:, scored:)
 
       Result.new(
         seed_data:,
@@ -34,8 +34,24 @@ module Experiments
 
     attr_reader :store_id, :crate_name
 
+    # ── Memoized collaborators ──────────────────────────
+
+    def store
+      @store ||= Store.find(store_id)
+    end
+
+    def genre_counts
+      @genre_counts ||= Listings::AvailableQuery.new(relation: store.listings)
+        .call.lp_only.pluck(:genres).map(&:first).compact.tally
+    end
+
+    def scorer
+      @scorer ||= RecordScorer.new(genre_counts:, today: Date.today)
+    end
+
+    # ── Pipeline steps ──────────────────────────────────
+
     def fetch_listings
-      store = Store.find(store_id)
       # The `available` scope starts from Listing.all rather than chaining
       # the current relation, so `store.listings.available` returns all stores'
       # listings. Pass the store-scoped relation directly to AvailableQuery.
@@ -43,11 +59,6 @@ module Experiments
     end
 
     def score_listings(listings)
-      store = Store.find(store_id)
-      genre_counts = Listings::AvailableQuery.new(relation: store.listings).call.lp_only
-                          .pluck(:genres).map(&:first).compact.tally
-      scorer = RecordScorer.new(genre_counts:, today: Date.today)
-
       listings.map do |listing|
         { listing:, score: scorer.score(listing) }
       end
@@ -56,7 +67,7 @@ module Experiments
     def bin_by_band(scored)
       bands = Settings.experiments.bands
       scored.each_with_object(Hash.new { |h, k| h[k] = [] }) do |entry, bins|
-        bins[band_for(entry[:score], bands)] << entry[:listing]
+        bins[band_for(entry[:score], bands)] << entry
       end
     end
 
@@ -74,8 +85,7 @@ module Experiments
 
     def sample_from_bins(binned)
       samples_per = Settings.experiments.samples_per_band
-      max_genre_pct = 0.4
-      single_genre_pct = 0.6
+      max_genre_pct = 0.4  # no single genre > 40% of any band's sample
 
       %i[hot warm cold lukewarm].each_with_object({}) do |band, sampled|
         pool = binned[band]
@@ -85,9 +95,7 @@ module Experiments
           next
         end
 
-        max_genre = pool.size < samples_per ? single_genre_pct : max_genre_pct
-
-        sampled[band] = balanced_sample(pool, samples_per, max_genre)
+        sampled[band] = balanced_sample(pool, samples_per, max_genre_pct)
       end
     end
 
@@ -97,41 +105,45 @@ module Experiments
         return pool.shuffle
       end
 
-      sorted = pool.sort_by { |l| l.primary_genre.to_s }
-      genres = sorted.group_by { |l| l.primary_genre.to_s }
+      sorted = pool.sort_by { |e| e[:listing].primary_genre.to_s }
+      genres = sorted.group_by { |e| e[:listing].primary_genre.to_s }
 
       limit = (count * max_genre_pct).ceil
       sampled = []
       genre_indices = Hash.new(0)
 
       count.times do
-        available = genres.keys.select { |g| genre_indices[g] < [ genres[g].size, limit ].min && genres[g].any? }
+        available = genres.keys.select { |g|
+          genre_indices[g] < [ genres[g].size, limit ].min && genres[g].any?
+        }
         if available.empty?
-          # Relax the constraint
           available = genres.keys.select { |g| genres[g].any? }
         end
 
         genre = available.sample
-        listing = genres[genre].shift
+        entry = genres[genre].shift
         genre_indices[genre] += 1
-        sampled << listing
+        sampled << entry
       end
 
       sampled.shuffle
     end
 
-    def build_seed_data(all_listings, sampled)
-      flat = sampled.values.flatten
+    def build_seed_data(all_listings:, sampled:, scored:)
+      # Build a lookup from listing → {listing, score} for fast score access
+      scored_by_listing = scored.each_with_object({}) { |e, h| h[e[:listing]] = e }
+      flat_entries = sampled.values.flatten
+
       dup_count = Settings.experiments.duplicate_count
 
       # Gather duplicate candidates: listings whose discogs_release_id
       # matches one already in the sampled set but is a different listing.
       duplicates = if dup_count > 0
-                     release_ids = flat.map(&:discogs_release_id).compact
+                     release_ids = flat_entries.map { |e| e[:listing].discogs_release_id }.compact
                      candidates = all_listings.select { |l|
                        l.discogs_release_id.present? &&
                          release_ids.include?(l.discogs_release_id) &&
-                         !flat.include?(l)
+                         !flat_entries.any? { |e| e[:listing] == l }
                      }
                      if candidates.size < dup_count
                        Rails.logger.warn("[SeedGenerator] Found only #{candidates.size} duplicates (wanted #{dup_count})")
@@ -141,25 +153,29 @@ module Experiments
                      []
                    end
 
-      # Build the ordered list: sampled items first, then duplicates.
-      ordered = flat + duplicates
-      flat_indices = flat.each_with_index.to_h { |listing, i| [ listing, i ] }
+      # Add scored entries for duplicates
+      dup_entries = duplicates.map { |l| scored_by_listing[l] || { listing: l, score: scorer.score(l) } }
 
-      ordered.each_with_index.map do |listing, position|
-        entry = seed_entry(listing, position)
-        if flat_indices.key?(listing)
-          entry[:is_duplicate_of] = nil
+      # Build the ordered list: sampled items first, then duplicates.
+      ordered = flat_entries + dup_entries
+      flat_entries_set = flat_entries.to_set { |e| e[:listing] }
+
+      ordered.each_with_index.map do |entry, position|
+        listing = entry[:listing]
+        score = entry[:score]
+        seed_entry = build_seed_entry(listing:, position:, score:)
+
+        if flat_entries_set.include?(entry)
+          seed_entry[:is_duplicate_of] = nil
         else
-          # This is a duplicate — find the original's position in the ordered list.
-          original = flat.find { |l| l.discogs_release_id == listing.discogs_release_id }
-          entry[:is_duplicate_of] = original ? flat_indices[original] : nil
+          original = flat_entries.find { |e| e[:listing].discogs_release_id == listing.discogs_release_id }
+          seed_entry[:is_duplicate_of] = original ? flat_entries.index(original) : nil
         end
-        entry
+        seed_entry
       end
     end
 
-    def seed_entry(listing, position)
-      score = scorer.score(listing)
+    def build_seed_entry(listing:, position:, score:)
       {
         position:,
         discogs_release_id: listing.discogs_release_id,
@@ -180,15 +196,6 @@ module Experiments
         algorithm_score: score,
         is_duplicate_of: nil
       }
-    end
-
-    def scorer
-      @scorer ||= begin
-        store = Store.find(store_id)
-        genre_counts = Listings::AvailableQuery.new(relation: store.listings).call.lp_only
-                            .pluck(:genres).map(&:first).compact.tally
-        RecordScorer.new(genre_counts:, today: Date.today)
-      end
     end
   end
 end

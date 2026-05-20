@@ -18,6 +18,11 @@ dir = ARGV[0]
 abort "Usage: ruby analysis/merge.rb <crate-dir>" unless dir
 abort "Directory not found: #{dir}" unless Dir.exist?(dir)
 
+# Restrict writes to the experiments/ directory
+experiments_root = File.expand_path("experiments", Dir.pwd)
+target = File.expand_path(dir)
+abort "Directory must be under experiments/" unless target.start_with?(experiments_root)
+
 seed_path    = File.join(dir, "seed.json")
 round1_path  = File.join(dir, "round1-results.json")
 round2_path  = File.join(dir, "round2-results.json")

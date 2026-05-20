@@ -41,6 +41,7 @@ end
 def fit_lr(xs, ys, epochs: 2000, lr: 0.1)
   x_mean = mean(xs)
   x_std  = stdev(xs)
+  x_std  = 1.0 if x_std.zero?
   x_norm = xs.map { |x| (x - x_mean) / x_std }
 
   w0, w1 = 0.0, 0.0
@@ -69,9 +70,10 @@ cool_intercept, cool_coeff = fit_lr(scores, labels_cool)
 junk_intercept, junk_coeff = fit_lr(scores, labels_junk)
 
 # ── Discrimination assessment ─────────────────────────────
+WARM_THRESHOLD = 1.0
 # Compare agreement rates
-cool_agreement = scores.zip(labels_cool).count { |s, l| (s >= 2.0) == (l == 1) }.to_f / scores.size
-junk_agreement = scores.zip(labels_junk).count { |s, l| (s < 1.0) == (l == 1) }.to_f / scores.size
+cool_agreement = scores.zip(labels_cool).count { |s, l| (s >= WARM_THRESHOLD) == (l == 1) }.to_f / scores.size
+junk_agreement = scores.zip(labels_junk).count { |s, l| (s < WARM_THRESHOLD) == (l == 1) }.to_f / scores.size
 
 puts "=== Anti-Scorer Analysis ==="
 puts

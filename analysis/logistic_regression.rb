@@ -89,7 +89,7 @@ def logistic_regression(x, y, lr: 0.01, epochs: 5000, tol: 1e-6)
   theta = Array.new(m, 0.0)
   prev_loss = Float::INFINITY
 
-  epochs.times do
+  epochs.times do |epoch|
     # Gradient computation
     grad = Array.new(m, 0.0)
     n.times do |i|
@@ -103,7 +103,7 @@ def logistic_regression(x, y, lr: 0.01, epochs: 5000, tol: 1e-6)
     m.times { |j| theta[j] -= lr * grad[j] }
 
     # Convergence check (every 100 epochs)
-    if epochs % 100 == 0
+    if epoch % 100 == 0
       loss = log_loss(x, y, theta)
       break if (prev_loss - loss).abs < tol
       prev_loss = loss

@@ -86,7 +86,7 @@ entry = {
   "fn"               => fn
 }
 
-if previous
+if previous && previous["accuracy"]
   entry["delta_accuracy"] = (accuracy - previous["accuracy"]).round(4)
 end
 

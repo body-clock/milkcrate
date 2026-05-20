@@ -11,12 +11,15 @@ namespace :experiment do
   task :generate, [ :crate_name ] => :environment do |_, args|
     raise "Usage: rake experiment:generate[crate-001]" unless args[:crate_name]
 
+    safe_name = File.basename(args[:crate_name])
+    raise "Invalid crate name: #{safe_name}" unless safe_name.match?(/\A[a-z][a-z0-9-]{0,30}\z/)
+
     store = demo_store
-    puts "Generating seed crate '#{args[:crate_name]}' for #{store.name}..."
+    puts "Generating seed crate '#{safe_name}' for #{store.name}..."
 
-    result = Experiments::SeedGenerator.call(store_id: store.id, crate_name: args[:crate_name])
+    result = Experiments::SeedGenerator.call(store_id: store.id, crate_name: safe_name)
 
-    dir = Rails.root.join("experiments", args[:crate_name])
+    dir = Rails.root.join("experiments", safe_name)
     FileUtils.mkdir_p(dir)
     path = dir.join("seed.json")
     File.write(path, JSON.pretty_generate(result.seed_data))
