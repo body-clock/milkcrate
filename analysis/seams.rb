@@ -116,7 +116,7 @@ all_errors.first(10).each do |r|
   score = r["algorithm_score"].to_f
   if r["human_label"] == "cool"
     # False negative: need to increase score to reach THRESHOLD
-    gap = [THRESHOLD - score, 0].max
+    gap = [ THRESHOLD - score, 0 ].max
     puts "  #{r["artist"]} — #{r["title"]}"
     puts "    Score #{score.round(2)} → needs +#{gap.round(2)} to reach threshold #{THRESHOLD}"
   else

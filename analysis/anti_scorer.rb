@@ -26,7 +26,7 @@ def stdev(arr)
   Math.sqrt(arr.map { |x| (x - m) ** 2 }.sum / (arr.size - 1))
 end
 def sigmoid(z)
-  z = [[z, -50].max, 50].min
+  z = [ [ z, -50 ].max, 50 ].min
   1.0 / (1.0 + Math.exp(-z))
 end
 def pearson(xs, ys)
@@ -62,7 +62,7 @@ def fit_lr(xs, ys, epochs: 2000, lr: 0.1)
   # Convert back to original scale
   intercept = w0 - w1 * x_mean / x_std
   coeff = w1 / x_std
-  [intercept, coeff]
+  [ intercept, coeff ]
 end
 
 # ── Fit both models ───────────────────────────────────────

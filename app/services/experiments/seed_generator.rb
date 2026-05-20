@@ -149,9 +149,9 @@ module Experiments
                        Rails.logger.warn("[SeedGenerator] Found only #{candidates.size} duplicates (wanted #{dup_count})")
                      end
                      candidates.first(dup_count)
-                   else
+      else
                      []
-                   end
+      end
 
       # Add scored entries for duplicates
       dup_entries = duplicates.map { |l| scored_by_listing[l] || { listing: l, score: scorer.score(l) } }
