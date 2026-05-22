@@ -81,9 +81,16 @@ RSpec.describe CratePresenter do
   end
 
   describe "#listing_props" do
-    subject(:props) { described_class.new(fake_store).send(:listing_props, fake_listing) }
+    def listing_props(store, listing)
+      crate = described_class.new(store).build_crates([
+        fake_curated_crate(slug: "test", name: "Test", listings: [ listing ])
+      ])
+      crate.first[:records].first
+    end
 
     it "returns all expected fields" do
+      props = listing_props(fake_store, fake_listing)
+
       expect(props.keys).to match_array(%i[
         id discogs_listing_id artist title label year format
         genres styles condition price currency cover_image_url
@@ -92,36 +99,31 @@ RSpec.describe CratePresenter do
     end
 
     it "coerces price to string" do
-      listing = fake_listing(price: BigDecimal("14.99"))
-      props = described_class.new(fake_store).send(:listing_props, listing)
+      props = listing_props(fake_store, fake_listing(price: BigDecimal("14.99")))
 
       expect(props[:price]).to be_a(String)
     end
 
     it "formats display_price" do
-      listing = fake_listing(price: BigDecimal("12.50"))
-      props = described_class.new(fake_store).send(:listing_props, listing)
+      props = listing_props(fake_store, fake_listing(price: BigDecimal("12.50")))
 
       expect(props[:display_price]).to eq("$12.50")
     end
 
     it "handles nil price in display_price" do
-      listing = fake_listing(price: nil)
-      props = described_class.new(fake_store).send(:listing_props, listing)
+      props = listing_props(fake_store, fake_listing(price: nil))
 
       expect(props[:display_price]).to eq("—")
     end
 
     it "constructs discogs_url from discogs_listing_id" do
-      listing = fake_listing(discogs_listing_id: "abc123")
-      props = described_class.new(fake_store).send(:listing_props, listing)
+      props = listing_props(fake_store, fake_listing(discogs_listing_id: "abc123"))
 
       expect(props[:discogs_url]).to eq("https://www.discogs.com/sell/item/abc123")
     end
 
     it "preserves nil cover_image_url" do
-      listing = fake_listing(cover_image_url: nil)
-      props = described_class.new(fake_store).send(:listing_props, listing)
+      props = listing_props(fake_store, fake_listing(cover_image_url: nil))
 
       expect(props[:cover_image_url]).to be_nil
     end
