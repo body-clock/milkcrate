@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react"
-import { Link } from "@inertiajs/react"
+import { Link, router } from "@inertiajs/react"
 import { motion } from "framer-motion"
 import MarketingLayout from "@/layouts/marketing_layout"
 import BrandMark from "@/components/brand_mark"
@@ -13,7 +13,7 @@ interface LookupResponse {
   reason?: string
 }
 
-export default function Invitation({ waitlist_present, slug }: InvitationProps) {
+export default function Invitation({ waitlist_present, slug, oauth_available }: InvitationProps) {
   // Waitlist acknowledgment — no probe, static page
   if (waitlist_present) {
     return (
@@ -63,10 +63,10 @@ export default function Invitation({ waitlist_present, slug }: InvitationProps) 
   }
 
   // Invitation page — async Discogs probe
-  return <InvitationContent slug={slug} />
+  return <InvitationContent slug={slug} oauth_available={oauth_available} />
 }
 
-function InvitationContent({ slug }: { slug: string }) {
+function InvitationContent({ slug, oauth_available }: { slug: string; oauth_available?: boolean }) {
   const [probeState, setProbeState] = useState<"loading" | "found" | "not_found" | "error">("loading")
   const [sellerName, setSellerName] = useState<string | null>(null)
 
@@ -177,13 +177,31 @@ function InvitationContent({ slug }: { slug: string }) {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.3 }}
+              className="space-y-3"
             >
-              <Link
-                href={`/apply?discogs_username=${encodeURIComponent(slug)}`}
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-mc-accent text-mc-on-accent font-semibold text-sm tracking-wide hover:opacity-90 transition-opacity"
-              >
-                Claim this storefront
-              </Link>
+              {oauth_available ? (
+                <button
+                  onClick={() => router.post(`/${slug}/authorize`)}
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-mc-accent text-mc-on-accent font-semibold text-sm tracking-wide hover:opacity-90 transition-opacity"
+                >
+                  Claim with Discogs
+                </button>
+              ) : (
+                <Link
+                  href={`/apply?discogs_username=${encodeURIComponent(slug)}`}
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-mc-accent text-mc-on-accent font-semibold text-sm tracking-wide hover:opacity-90 transition-opacity"
+                >
+                  Claim this storefront
+                </Link>
+              )}
+              <div>
+                <Link
+                  href={`/apply?discogs_username=${encodeURIComponent(slug)}`}
+                  className="text-xs text-mc-text-dim hover:text-mc-accent transition-colors"
+                >
+                  Or apply via waitlist
+                </Link>
+              </div>
             </motion.div>
           </motion.div>
         )}

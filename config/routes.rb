@@ -17,6 +17,15 @@ Rails.application.routes.draw do
   get  "/apply",   to: "pages#apply"
   post "/apply", to: "waitlists#create"
 
+  # OAuth flow — must be before the catch-all /:slug route
+  post "/:slug/authorize",
+    to: "stores#authorize",
+    as: :store_authorize,
+    constraints: { slug: DiscogsSellerLookup::ROUTE_USERNAME_REGEX },
+    format: false
+
+  get "/auth/discogs/callback", to: "auth#callback", as: :discogs_oauth_callback
+
   get "/:slug",
     to: "stores#show",
     as: :store,

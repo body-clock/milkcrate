@@ -8,6 +8,7 @@ export interface Store {
   last_sync_error_at: string | null
   enrichment_status: string
   last_enriched_at: string | null
+  oauth_authorized?: boolean
 }
 
 export interface Listing {
@@ -66,6 +67,7 @@ export interface HomepagePreview {
 export interface InvitationProps {
   waitlist_present: boolean
   slug: string
+  oauth_available?: boolean
 }
 
 export type AdminHealthSeverity = "good" | "working" | "warning" | "danger" | "neutral"

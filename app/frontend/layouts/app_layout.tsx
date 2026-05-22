@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import { Link, usePage } from "@inertiajs/react"
+import { Link, router, usePage } from "@inertiajs/react"
 import { useTheme } from "@/hooks/use_theme"
 import { PileProvider, usePileContext } from "@/contexts/pile_context"
 import PileSheet from "@/components/pile_sheet"
@@ -10,10 +10,11 @@ import BrandMark from "@/components/brand_mark"
 import MilkcrateShell from "@/layouts/milkcrate_shell"
 
 function AppLayoutInner({ children }: { children: React.ReactNode }) {
-  const page = usePage<{ notice?: string; store?: { name?: string; discogs_username?: string } }>()
+  const page = usePage<{ notice?: string; store?: { name?: string; discogs_username?: string; oauth_authorized?: boolean } }>()
   const notice = page.props.notice
   const storeName = page.props.store?.name
   const discogsUsername = page.props.store?.discogs_username
+  const oauthAuthorized = page.props.store?.oauth_authorized
   const { theme, toggle } = useTheme()
   const { isCompact } = useViewport()
   const { pile } = usePileContext()
@@ -37,6 +38,15 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
         )}
       </Link>
       <div className="flex items-center gap-2.5 sm:gap-3 flex-shrink-0">
+        {discogsUsername && !oauthAuthorized && (
+          <button
+            type="button"
+            onClick={() => router.post(`/${discogsUsername}/authorize`)}
+            className="text-xs text-mc-accent hover:opacity-80 transition-opacity select-none rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
+          >
+            Is this your store?
+          </button>
+        )}
         {discogsUsername && (
           <a
             href={`https://www.discogs.com/seller/${discogsUsername}/profile`}
