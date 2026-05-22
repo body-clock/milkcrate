@@ -197,3 +197,4 @@ end
 - `app/services/crate_strategies.rb` — strategy module
 - `app/models/curated_crate.rb` — container with `CRATE_SIZE`
 - `app/models/record_scorer.rb` — shared scoring engine
+- [Experiment pipeline simplification and scoring recalibration](../workflow-issues/experiment-pipeline-simplification-2026-05-21.md) — human-in-the-loop validation and strategy calibration
