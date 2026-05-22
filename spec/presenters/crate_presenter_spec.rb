@@ -94,7 +94,7 @@ RSpec.describe CratePresenter do
       expect(props.keys).to match_array(%i[
         id discogs_listing_id artist title label year format
         genres styles condition price currency cover_image_url
-        thumbnail_url notes discogs_url display_price
+        thumbnail_url notes discogs_url display_price score_breakdown
       ])
     end
 

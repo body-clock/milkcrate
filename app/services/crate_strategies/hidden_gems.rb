@@ -5,7 +5,8 @@ module CrateStrategies
     MAX_ENGAGEMENT  = 100
     MIN_WANTS       = 10
 
-    def initialize(genre_counts:)
+    def initialize(genre_counts:, today: Date.today)
+      @scorer       = RecordScorer.new(genre_counts:, today:)
       @genre_counts = genre_counts
     end
 
@@ -20,8 +21,15 @@ module CrateStrategies
       }
       return [] if obscure.size < MIN_RECORDS
 
-      ranked = obscure.sort_by { |listing| -WantHaveRatio.new(listing.want_count.to_i, listing.have_count.to_i).ratio }
-      apply_genre_cap(ranked)
+      # Rank by pure RecordScorer score. The strategy selects candidates
+      # (low engagement, wants > haves, has image), then the scorer determines
+      # ordering just like every other crate strategy.
+      scored = obscure
+        .map { |listing| [ listing, @scorer.score(listing) ] }
+        .sort_by { |_, s| -s }
+        .map(&:first)
+
+      apply_genre_cap(scored)
     end
 
     private

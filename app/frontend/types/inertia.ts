@@ -28,6 +28,7 @@ export interface Listing {
   thumbnail_url: string | null
   notes: string | null
   discogs_url: string
+  score_breakdown?: Record<string, number> | null
 }
 
 export interface Crate {
