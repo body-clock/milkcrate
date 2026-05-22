@@ -13,26 +13,18 @@ module CrateStrategies
       candidates = pool.reject { |listing| excluded_ids.include?(listing.id) }
       return [] if candidates.empty?
 
-      desirable = candidates.select { |listing|
-        want = listing.want_count.to_i
-        have = listing.have_count.to_i
-        has_image = listing.cover_image_url.present? || listing.thumbnail_url.present?
-        has_image && want >= MIN_WANTS && want + have <= MAX_ENGAGEMENT && want > have
+      obscure = candidates.select { |listing|
+        whr = WantHaveRatio.new(listing.want_count.to_i, listing.have_count.to_i)
+        next false unless listing.cover_image_url.present? || listing.thumbnail_url.present?
+        whr.want >= MIN_WANTS && whr.total <= MAX_ENGAGEMENT && whr.want > whr.have
       }
-      return [] if desirable.size < MIN_RECORDS
+      return [] if obscure.size < MIN_RECORDS
 
-      ranked = desirable.sort_by { |listing| -want_have_ratio(listing) }
+      ranked = obscure.sort_by { |listing| -WantHaveRatio.new(listing.want_count.to_i, listing.have_count.to_i).ratio }
       apply_genre_cap(ranked)
     end
 
     private
-
-    def want_have_ratio(listing)
-      want = listing.want_count.to_i
-      have = listing.have_count.to_i
-      return want.to_f if have.zero?
-      want.to_f / have
-    end
 
     def apply_genre_cap(ranked)
       genre_seen = Hash.new(0)
