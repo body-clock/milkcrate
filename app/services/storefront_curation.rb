@@ -3,13 +3,13 @@ require "set"
 class StorefrontCuration
   CURATION_CACHE_TTL = 36.hours
   CURATION_CACHE_RACE_TTL = 30.seconds
-  CURATION_CACHE_KEY = "storefront/curation/v1/%<store_id>s/%<date>s"
+  CURATION_CACHE_KEY = "storefront/curation/v1/%<store_id>s/%<date>s/%<scope>s"
 
   # Returns { sections: [...], crates: [...] } — plain hashes, cache-safe.
   # On cache miss, runs curation + presentation, writes to cache, returns payload.
   # On cache hit, returns cached payload without instantiating curation or presenter.
   def self.cached_curation(store, filter_available: true, cache: Rails.cache)
-    key = CURATION_CACHE_KEY % { store_id: store.id, date: Date.current.iso8601 }
+    key = curation_cache_key(store, filter_available:)
     cache.fetch(key, expires_in: CURATION_CACHE_TTL, race_condition_ttl: CURATION_CACHE_RACE_TTL) do
       curation  = new(store, filter_available:)
       presenter = CratePresenter.new(store)
@@ -22,10 +22,20 @@ class StorefrontCuration
 
   # Writes the fully-serialized curation payload to cache.
   # Used by DailyCurationService for pre-warming.
-  def self.write_curation_cache(store, curation_payload, cache: Rails.cache)
-    key = CURATION_CACHE_KEY % { store_id: store.id, date: Date.current.iso8601 }
+  def self.write_curation_cache(store, curation_payload, filter_available: true, cache: Rails.cache)
+    key = curation_cache_key(store, filter_available:)
     cache.write(key, curation_payload, expires_in: CURATION_CACHE_TTL)
   end
+
+  # Builds the cache key incorporating store, date, and listing scope.
+  # When filter_available is true the scope is "available"; when false it's "all".
+  # This prevents scope collisions — e.g. DailyCurationService pre-warms with
+  # filter_available: true while development storefronts use filter_available: false.
+  def self.curation_cache_key(store, filter_available: true)
+    scope = filter_available ? "available" : "all"
+    CURATION_CACHE_KEY % { store_id: store.id, date: Date.current.iso8601, scope: }
+  end
+  private_class_method :curation_cache_key
 
   def initialize(store, filter_available: true)
     @store = store

@@ -261,10 +261,11 @@ RSpec.describe StorefrontCuration do
       expect(result[:crates]).to be_present
     end
 
-    it "cache key includes store id and current date" do
+    it "cache key includes store id, current date, and scope" do
       key = described_class::CURATION_CACHE_KEY % {
         store_id: store.id,
-        date: Date.current.iso8601
+        date: Date.current.iso8601,
+        scope: "available"
       }
 
       described_class.cached_curation(store, cache: cache)
@@ -273,9 +274,31 @@ RSpec.describe StorefrontCuration do
       # Different date should result in a different (empty) cache
       other_key = described_class::CURATION_CACHE_KEY % {
         store_id: store.id,
-        date: (Date.current + 1.day).iso8601
+        date: (Date.current + 1.day).iso8601,
+        scope: "available"
       }
       expect(cache.exist?(other_key)).to be false
+    end
+
+    it "uses different cache keys for different filter_available scopes" do
+      available_key = described_class::CURATION_CACHE_KEY % {
+        store_id: store.id,
+        date: Date.current.iso8601,
+        scope: "available"
+      }
+      all_key = described_class::CURATION_CACHE_KEY % {
+        store_id: store.id,
+        date: Date.current.iso8601,
+        scope: "all"
+      }
+
+      described_class.cached_curation(store, cache: cache)
+      expect(cache.exist?(available_key)).to be true
+      expect(cache.exist?(all_key)).to be false
+
+      described_class.cached_curation(store, filter_available: false, cache: cache)
+      expect(cache.exist?(all_key)).to be true
+      expect(cache.exist?(available_key)).to be true  # still present from first call
     end
 
     it "returns sections and crates with matching data" do
@@ -301,16 +324,36 @@ RSpec.describe StorefrontCuration do
     let(:store) { create(:store) }
     let(:cache) { ActiveSupport::Cache::MemoryStore.new }
 
-    it "writes the payload to cache with the correct key" do
+    it "writes the payload to cache with the correct key including scope" do
       payload = { sections: [], crates: [] }
       key = described_class::CURATION_CACHE_KEY % {
         store_id: store.id,
-        date: Date.current.iso8601
+        date: Date.current.iso8601,
+        scope: "available"
       }
 
       described_class.write_curation_cache(store, payload, cache: cache)
 
       expect(cache.read(key)).to eq(payload)
+    end
+
+    it "writes to a different key when filter_available is false" do
+      payload = { sections: [], crates: [] }
+      available_key = described_class::CURATION_CACHE_KEY % {
+        store_id: store.id,
+        date: Date.current.iso8601,
+        scope: "available"
+      }
+      all_key = described_class::CURATION_CACHE_KEY % {
+        store_id: store.id,
+        date: Date.current.iso8601,
+        scope: "all"
+      }
+
+      described_class.write_curation_cache(store, payload, filter_available: false, cache: cache)
+
+      expect(cache.read(all_key)).to eq(payload)
+      expect(cache.exist?(available_key)).to be false
     end
 
     it "does not raise with an empty payload" do
