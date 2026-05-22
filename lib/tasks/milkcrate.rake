@@ -12,7 +12,7 @@ namespace :milkcrate do
     puts "Syncing #{store.name} (@#{store.discogs_username}) — two passes..."
     result = service.sync
     puts "Synced #{store.listings.count} listings (coverage: #{result.catalog_coverage})."
-    EnrichReleasesJob.perform_later(store.id, listing_ids: result.listing_ids_for_enrichment) if result.listing_ids_for_enrichment.any?
+    EnrichmentJob.perform_later(store.id, listing_ids: result.listing_ids_for_enrichment) if result.listing_ids_for_enrichment.any?
     DailyCurationJob.perform_later(store.id)
     puts "Enrichment and curation queued (background)."
   end
@@ -26,7 +26,7 @@ namespace :milkcrate do
     puts "Synced #{store.listings.count} listings (coverage: #{result.catalog_coverage})."
     if result.listing_ids_for_enrichment.any?
       puts "Enriching #{result.listing_ids_for_enrichment.size} releases (synchronous)..."
-      EnrichReleasesJob.perform_now(store.id, listing_ids: result.listing_ids_for_enrichment)
+      EnrichmentJob.perform_now(store.id, listing_ids: result.listing_ids_for_enrichment)
       puts "Enrichment complete."
     else
       puts "No releases required enrichment."
@@ -38,12 +38,9 @@ namespace :milkcrate do
   desc "Enrich releases: Discogs metadata + MusicBrainz images for imageless releases"
   task enrich: :environment do
     store = demo_store
-    puts "Enriching Discogs metadata for #{store.name}..."
-    EnrichReleasesJob.perform_now(store.id)
-    puts "Discogs enrichment complete."
-    puts "Enriching images via MusicBrainz..."
-    EnrichMusicBrainzImagesJob.perform_now(store.id)
-    puts "MusicBrainz enrichment complete."
+    puts "Enriching metadata and images for #{store.name}..."
+    EnrichmentJob.perform_now(store.id)
+    puts "Enrichment complete."
   end
 
   desc "Run daily curation (stamp last_surfaced_at, compute picks rotation)"
@@ -63,13 +60,11 @@ namespace :milkcrate do
     puts "Synced #{store.listings.count} listings (coverage: #{result.catalog_coverage})."
     if result.listing_ids_for_enrichment.any?
       puts "Enriching #{result.listing_ids_for_enrichment.size} releases (synchronous)..."
-      EnrichReleasesJob.perform_now(store.id, listing_ids: result.listing_ids_for_enrichment)
-      puts "Discogs enrichment complete."
+      EnrichmentJob.perform_now(store.id, listing_ids: result.listing_ids_for_enrichment)
+      puts "Enrichment complete."
     else
-      puts "No releases required Discogs enrichment."
+      puts "No releases required enrichment."
     end
-    EnrichMusicBrainzImagesJob.perform_now(store.id)
-    puts "MusicBrainz enrichment complete."
     DailyCurationJob.perform_now(store.id)
     puts "Setup complete."
   end

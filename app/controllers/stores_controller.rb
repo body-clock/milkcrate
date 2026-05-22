@@ -82,5 +82,4 @@ class StoresController < ApplicationController
       oauth_authorized: store.oauth_authorized?
     }
   end
-
 end
