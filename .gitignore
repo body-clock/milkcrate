@@ -44,6 +44,11 @@
 # Ignore git worktree directories.
 /.worktrees/
 
+# Experiment pipeline artifacts (per-session seed data, labels, results)
+/experiments/*
+!/experiments/.gitkeep
+!/experiments/score-registry.yml
+
 # Vite Ruby
 /public/vite*
 node_modules

@@ -58,5 +58,6 @@ The canonical list is in `compound-engineering.local.md` (see palkan/skills inte
 docs). This file is the configuration source of truth; the instructions above are the
 implementation wiring.
 
-
 Use Context7 for all developer documentation.
+
+When I ask a question or propose an implementation, ensure that you're not just confirming what I said. I want realy critial analysis of my proposition, not just automatically going in that direction because I proposed it.

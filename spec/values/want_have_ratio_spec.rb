@@ -76,8 +76,8 @@ RSpec.describe WantHaveRatio do
   end
 
   describe "#log_base_score" do
-    it "returns log10 of total, clamped to 4.0" do
-      expect(described_class.new(1000, 9000).log_base_score).to eq(4.0)
+    it "returns log10 of total, clamped to 2.0" do
+      expect(described_class.new(1000, 9000).log_base_score).to eq(2.0)
     end
 
     it "returns 0.0 when total is zero" do

@@ -7,9 +7,9 @@
 #      market engagement. A record with 500 wants and 500 haves scores higher
 #      than one with 1 of each at the same ratio — the market has spoken more
 #      definitively about the first.
-#   2. High-ratio bonus (+5): when wants significantly outstrip haves
+#   2. High-ratio bonus (+3): when wants significantly outstrip haves
 #      (ratio >= 2.0 with at least 10 haves), the record is genuinely scarce.
-#      This is the strongest single boost in the system.
+#      Reduced from +5 during experiment calibration.
 #   3. Low-ratio penalty (-2): when haves comfortably exceed wants
 #      (ratio <= 0.5 with at least 10 haves), the record is common and
 #      unlikely to excite a buyer.
@@ -17,8 +17,8 @@
 # The MIN_HAVE floor (10) prevents thin data from driving decisions —
 # a record with 2 wants and 1 have isn't desirable, it's just unknown.
 class ScoreStrategies::DesirabilityStrategy
-  HIGH_BONUS = 5.0
-  LOW_PENALTY = -2.0
+  HIGH_BONUS = 1.0
+  LOW_PENALTY = -1.0
 
   def score(listing)
     whr = WantHaveRatio.new(listing.want_count, listing.have_count)

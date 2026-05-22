@@ -23,7 +23,6 @@ class RecordScorer
     {
       vintage: ScoreStrategies::VintageStrategy.new,
       condition: ScoreStrategies::ConditionStrategy.new,
-      section: ScoreStrategies::SectionStrategy.new(genre_counts:),
       desirability: ScoreStrategies::DesirabilityStrategy.new,
       metadata: ScoreStrategies::MetadataStrategy.new,
       cover_quality: ScoreStrategies::CoverQualityStrategy.new,
