@@ -4,6 +4,13 @@ module StoreSync
     NON_VINYL = %w[CD Cassette DVD VHS].freeze
 
     def call(raw, store_id:)
+      normalize(raw, store_id:)
+    rescue StandardError => e
+      Rails.logger.error("[StoreSync::ListingNormalizer] Error normalizing listing #{raw['id']}: #{e.message}")
+      nil
+    end
+
+    def normalize(raw, store_id:)
       return unless vinyl?(raw)
 
       info = release_info(raw)

@@ -17,6 +17,9 @@ class MarketingPreviewPresenter
   def preview_data
     store = demo_store
     store ? live_preview(store) : fallback_preview
+  rescue StandardError => e
+    Rails.logger.warn("MarketingPreviewPresenter: #{e.class}: #{e.message}")
+    fallback_preview
   end
 
   private
