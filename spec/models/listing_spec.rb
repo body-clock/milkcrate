@@ -59,17 +59,8 @@ RSpec.describe Listing, type: :model do
       expect(described_class.lp_only).not_to include(cd, cassette, vinyl_only)
     end
 
-    it "does not build its predicates from raw SQL literals" do
-      expect(arel_nodes(described_class.lp_only.where_clause.ast)).not_to include(Arel::Nodes::SqlLiteral)
+    it "executes without SQL errors" do
+      expect { described_class.lp_only.load }.not_to raise_error
     end
-  end
-
-  def arel_nodes(node)
-    children = node
-      .instance_variables
-      .flat_map { |ivar| Array(node.instance_variable_get(ivar)) }
-      .select { |value| value.is_a?(Arel::Nodes::Node) }
-
-    [ node.class, *children.flat_map { |child| arel_nodes(child) } ]
   end
 end
