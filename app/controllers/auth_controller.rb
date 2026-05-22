@@ -1,15 +1,12 @@
 class AuthController < ApplicationController
   def callback
-    store_id = session[:oauth_store_id]
+    slug = session[:oauth_store_slug]
     request_token_token = session[:oauth_request_token]
     request_token_secret = session[:oauth_request_token_secret]
     oauth_verifier = params[:oauth_verifier]
 
-    return redirect_with_error("Session expired. Please try again.") if store_id.blank? || request_token_token.blank?
+    return redirect_with_error("Session expired. Please try again.") if slug.blank? || request_token_token.blank?
     return redirect_with_error("Missing authorization code from Discogs.") if oauth_verifier.blank?
-
-    store = Store.find_by(id: store_id)
-    return redirect_with_error("Store not found.") unless store
 
     oauth_client = DiscogsOauthClient.new
 
@@ -20,10 +17,16 @@ class AuthController < ApplicationController
     # Exchange verifier for access token
     token_result = oauth_client.exchange_access_token(request_token, oauth_verifier)
 
-    # Verify the identity matches the claimed store
+    # Verify the identity matches the claimed store slug
     identity = oauth_client.verify_identity(token_result.access_token, token_result.access_token_secret)
-    unless identity.username.downcase == store.discogs_username.downcase
-      return redirect_with_error("Discogs identity mismatch. Please try again.")
+    unless identity.username.downcase == slug.downcase
+      return redirect_with_error("Discogs identity mismatch. The Discogs account you authorized (#{identity.username}) does not match the store URL (#{slug}).")
+    end
+
+    # Look up existing store or create one (only after OAuth confirms ownership)
+    store = Store.with_discogs_username(slug).first || create_store(slug)
+    unless store
+      return redirect_with_error("Could not create store for #{slug}.")
     end
 
     # Store tokens and mark as authorized
@@ -48,9 +51,16 @@ class AuthController < ApplicationController
 
   private
 
+  def create_store(slug)
+    profile = DiscogsClient.new.seller_profile(slug)
+    name = profile["name"].presence || slug
+    Store.create!(discogs_username: slug, name:)
+  rescue DiscogsClient::ApiError
+    nil
+  end
+
   def redirect_with_error(message)
-    store_id = session[:oauth_store_id]
-    slug = Store.find_by(id: store_id)&.discogs_username
+    slug = session[:oauth_store_slug]
     clear_oauth_session
     redirect_to slug ? store_path(slug) : root_path, alert: message
   end
@@ -58,7 +68,7 @@ class AuthController < ApplicationController
   def clear_oauth_session
     session.delete(:oauth_request_token)
     session.delete(:oauth_request_token_secret)
-    session.delete(:oauth_store_id)
+    session.delete(:oauth_store_slug)
   end
 
   def build_consumer

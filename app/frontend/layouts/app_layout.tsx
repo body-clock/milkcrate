@@ -10,8 +10,9 @@ import BrandMark from "@/components/brand_mark"
 import MilkcrateShell from "@/layouts/milkcrate_shell"
 
 function AppLayoutInner({ children }: { children: React.ReactNode }) {
-  const page = usePage<{ notice?: string; store?: { name?: string; discogs_username?: string; oauth_authorized?: boolean } }>()
+  const page = usePage<{ notice?: string; alert?: string; store?: { name?: string; discogs_username?: string; oauth_authorized?: boolean } }>()
   const notice = page.props.notice
+  const alertMsg = page.props.alert
   const storeName = page.props.store?.name
   const discogsUsername = page.props.store?.discogs_username
   const oauthAuthorized = page.props.store?.oauth_authorized
@@ -92,9 +93,10 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
     </footer>
   )
 
-  const afterHeader = notice ? (
+  const flashMsg = notice || alertMsg
+  const afterHeader = flashMsg ? (
     <div className="px-4 py-2 text-sm mc-notice" role="alert" aria-live="polite">
-      {notice}
+      {flashMsg}
     </div>
   ) : undefined
 
