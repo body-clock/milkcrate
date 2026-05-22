@@ -2,7 +2,7 @@ class WantHaveRatio < Data.define(:want, :have)
   RATIO_HIGH = 2.0
   RATIO_LOW  = 0.5
   MIN_HAVE   = 10
-  LOG_CAP    = 4.0
+  LOG_CAP    = 2.0
 
   def ratio
     h = have.to_i

@@ -1,8 +1,8 @@
 # Milkcrate settings — override per environment or via env vars.
 
 demo_store:
-  name: Freebird Records
-  discogs_username: freebirdrecords
+  name: Beautiful World Syndicate
+  discogs_username: philadelphiamusic
   description:
 
 discogs:
@@ -22,9 +22,7 @@ honeybadger:
 
 experiments:
   crate_size: 40
-  bands:
-    hot_threshold: 5.0
-    warm_threshold: 1.0
-    cold_threshold: -1.0
-  samples_per_band: 10
-  duplicate_count: 2
+  # When true, these strategies are excluded from experiment crate generation.
+  # The live storefront is unaffected.
+  disable_desirability: false
+  disable_freshness: true

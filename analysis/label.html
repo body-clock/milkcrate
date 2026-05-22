@@ -21,11 +21,15 @@
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
   body {
     font-family: Georgia, "Times New Roman", serif;
     background: var(--bg);
     color: var(--text);
-    min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -33,11 +37,10 @@
   }
 
   #progress-container {
-    position: fixed;
-    top: 0; left: 0; right: 0;
+    flex-shrink: 0;
+    width: 100%;
     height: 4px;
     background: var(--progress-bg);
-    z-index: 100;
   }
   #progress-bar {
     height: 100%;
@@ -47,105 +50,100 @@
 
   #main {
     flex: 1;
+    min-height: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     width: 100%;
-    max-width: 800px;
-    padding: 24px 20px 120px;
+    max-width: 520px;
+    padding: 8px 16px;
+    gap: 6px;
   }
 
   #cover-container {
+    flex: 1;
+    min-height: 0;
     width: 100%;
-    max-width: min(70vh, 500px);
-    aspect-ratio: 1;
+    max-width: 500px;
+    max-height: 55vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 24px;
   }
   #cover {
     max-width: 100%;
-    max-height: 70vh;
+    max-height: 100%;
     object-fit: contain;
     border-radius: 4px;
-    box-shadow: 0 2px 16px rgba(0,0,0,0.12);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.12);
     transition: opacity 0.2s ease;
   }
   #cover.loading { opacity: 0.3; }
   #cover-placeholder {
     width: 100%;
     aspect-ratio: 1;
+    max-width: 500px;
+    max-height: 55vh;
     background: #e8e8e6;
     border-radius: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--muted);
-    font-size: 14px;
+    font-size: 13px;
   }
 
-  #artist { font-size: 22px; font-weight: normal; text-align: center; margin-bottom: 4px; }
-  #title { font-size: 18px; color: var(--muted); text-align: center; margin-bottom: 24px; font-style: italic; }
+  #artist { font-size: 17px; font-weight: normal; text-align: center; }
+  #title { font-size: 14px; color: var(--muted); text-align: center; font-style: italic; }
 
   #metadata {
-    display: none;
     width: 100%;
-    max-width: 500px;
     background: white;
     border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    padding: 16px 20px;
-    margin-bottom: 24px;
-    font-size: 14px;
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-size: 12px;
     color: var(--muted);
-    line-height: 1.7;
+    line-height: 1.6;
+    flex-shrink: 0;
   }
-  #metadata.visible { display: block; }
-  #metadata dt { font-weight: 600; color: var(--text); display: inline; }
-  #metadata dt::after { content: ": "; }
-  #metadata dd { display: inline; margin: 0 0 4px 0; }
-  #metadata dd::after { content: ""; display: block; }
 
-  #flip-reason-container {
+  #score-detail {
     display: none;
     width: 100%;
-    max-width: 500px;
-    margin-bottom: 24px;
-  }
-  #flip-reason-container.visible { display: block; }
-  #flip-reason {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #d0d0d0;
+    background: #f5f4f2;
+    border: 1px solid #e0e0e0;
     border-radius: 6px;
-    font-family: inherit;
-    font-size: 14px;
-    resize: vertical;
-    min-height: 60px;
-    background: white;
+    padding: 8px 14px;
+    font-size: 12px;
+    color: var(--text);
+    line-height: 1.7;
+    flex-shrink: 0;
   }
-  #flip-reason-label {
-    font-size: 13px;
-    color: var(--muted);
-    margin-bottom: 6px;
-    display: block;
-  }
+  #score-detail.visible { display: block; }
+  #score-detail .strat-name { font-weight: 600; }
+  #score-detail .strat-val  { float: right; }
+  #score-detail .total-row  { border-top: 1px solid #ccc; padding-top: 4px; margin-top: 4px; font-weight: 600; }
+
+  #metadata dt { font-weight: 600; color: var(--text); display: inline; }
+  #metadata dt::after { content: ": "; }
+  #metadata dd { display: inline; margin-right: 0; }
+  #metadata dd::after { content: ""; display: block; }
 
   #buttons {
     display: flex;
-    gap: 12px;
+    gap: 8px;
     width: 100%;
-    max-width: 500px;
+    flex-shrink: 0;
   }
   #buttons button {
     flex: 1;
-    padding: 16px 12px;
+    padding: 10px 8px;
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
     font-family: inherit;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     transition: background 0.15s ease, opacity 0.3s ease;
@@ -161,35 +159,61 @@
   #btn-indifferent:hover:not(:disabled) { background: var(--indifferent-hover); }
   #btn-cool { background: var(--cool); }
   #btn-cool:hover:not(:disabled) { background: var(--cool-hover); }
+  #btn-next {
+    display: none;
+    flex: 1;
+    padding: 10px 8px;
+    border: none;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    background: var(--progress-fill);
+    color: var(--bg);
+    transition: opacity 0.15s ease;
+  }
+  #btn-next.visible { display: block; }
+  #btn-next:hover { opacity: 0.85; }
 
   .key-hint {
     display: block;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: normal;
     opacity: 0.8;
-    margin-top: 2px;
+    margin-top: 1px;
   }
 
   #countdown {
-    font-size: 14px;
+    font-size: 12px;
     color: var(--muted);
     text-align: center;
-    margin-bottom: 12px;
-    min-height: 21px;
+    min-height: 16px;
+    flex-shrink: 0;
   }
 
   #download-area {
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    padding: 16px 20px;
+    flex-shrink: 0;
+    width: 100%;
+    padding: 10px 16px;
     background: white;
     border-top: 1px solid #e0e0e0;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 12px;
-    z-index: 50;
   }
+  #reset-btn {
+    padding: 6px 14px;
+    border: 1px solid #ccc;
+    background: transparent;
+    color: var(--muted);
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  #reset-btn:hover { border-color: var(--junk); color: var(--junk); }
   #download-btn {
     padding: 10px 24px;
     border: 2px solid var(--text);
@@ -216,6 +240,19 @@
   #complete.visible { display: flex; }
   #complete h2 { font-size: 24px; font-weight: normal; }
   #complete p { font-size: 16px; color: var(--muted); max-width: 400px; }
+  #save-btn {
+    padding: 10px 24px;
+    border: none;
+    background: var(--progress-fill);
+    color: var(--bg);
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  #save-btn:hover { opacity: 0.85; }
+  #save-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  #save-status { font-size: 13px; color: var(--muted); min-height: 18px; }
 
   #loading { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 60px 20px; }
   #loading p { color: var(--muted); }
@@ -239,12 +276,12 @@
       --progress-bg: #333;
       --progress-fill: #e8e8e6;
     }
+    #score-detail { background: #222; border-color: #444; }
     #metadata { background: #2a2a2a; border-color: #444; }
-    #flip-reason { background: #2a2a2a; border-color: #444; color: var(--text); }
     #cover-placeholder { background: #333; }
+    #download-area { background: #1a1a1a; border-color: #333; }
     #download-btn { border-color: var(--text); background: #2a2a2a; color: var(--text); }
     #download-btn:hover { background: var(--text); color: var(--bg); }
-    #download-area { background: #1a1a1a; border-color: #333; }
   }
 </style>
 </head>
@@ -261,6 +298,8 @@
   <div id="complete">
     <h2>All records labeled!</h2>
     <p>Download your results below.</p>
+    <button id="save-btn">Save to Server</button>
+    <span id="save-status"></span>
   </div>
 
   <div id="cover-container">
@@ -273,10 +312,7 @@
 
   <dl id="metadata"></dl>
 
-  <div id="flip-reason-container">
-    <label id="flip-reason-label" for="flip-reason">What changed your mind?</label>
-    <textarea id="flip-reason" placeholder="Optional&hellip;"></textarea>
-  </div>
+  <div id="score-detail"></div>
 
   <div id="countdown"></div>
 
@@ -290,28 +326,28 @@
     <button id="btn-cool" disabled>
       Cool<span class="key-hint">[K]</span>
     </button>
+    <button id="btn-next">Next &rarr;</button>
   </div>
 </div>
 
 <div id="download-area">
-  <span id="status-text">Round 1 &middot; 0 of 0</span>
+  <span id="status-text">0 of 0</span>
   <button id="download-btn">Download Results</button>
+  <button id="reset-btn">Start Over</button>
 </div>
 
 <script>
 (function() {
-  const params = new URLSearchParams(window.location.search);
-  const ROUND  = params.get("round") === "2" ? 2 : 1;
-  const STORAGE_KEY = ROUND === 1 ? "labeling-round1" : "labeling-round2";
+  const STORAGE_KEY = "labeling-results";
   const DELAY_MS = 2000;
 
   let seed      = [];
   let results   = [];
   let current   = 0;
+  let crateName = "results";
   let imgLoadTs = null;
   let btnsActive = false;
   let allowNext  = false;
-  let round1Labels = null;
 
   const $loading    = document.getElementById("loading");
   const $error      = document.getElementById("error");
@@ -322,17 +358,24 @@
   const $artist     = document.getElementById("artist");
   const $titleEl    = document.getElementById("title");
   const $metadata   = document.getElementById("metadata");
-  const $flipCtr    = document.getElementById("flip-reason-container");
-  const $flipReason = document.getElementById("flip-reason");
+  const $scoreDetail = document.getElementById("score-detail");
   const $countdown  = document.getElementById("countdown");
   const $btnJunk    = document.getElementById("btn-junk");
   const $btnIndiff  = document.getElementById("btn-indifferent");
   const $btnCool    = document.getElementById("btn-cool");
+  const $btnNext    = document.getElementById("btn-next");
   const $progress   = document.getElementById("progress-bar");
   const $status     = document.getElementById("status-text");
   const $download   = document.getElementById("download-btn");
+  const $resetBtn   = document.getElementById("reset-btn");
+  const $saveBtn    = document.getElementById("save-btn");
+  const $saveStatus = document.getElementById("save-status");
 
   async function init() {
+    // Clear old localStorage keys from previous labeling versions
+    localStorage.removeItem("labeling-round1");
+    localStorage.removeItem("labeling-round2");
+
     try {
       const resp = await fetch("seed.json");
       if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
@@ -347,21 +390,27 @@
       return;
     }
 
+    if (seed[0].crate) crateName = seed[0].crate;
+
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length) {
-          results = parsed;
-          current = results.length;
+        if (Array.isArray(parsed) && parsed.length && parsed.length <= seed.length) {
+          // Verify saved results match this seed (check discogs_release_ids)
+          const seedIds = new Set(seed.map(r => r.discogs_release_id));
+          const allMatch = parsed.every(r => r.release_id && seedIds.has(r.release_id));
+          if (allMatch) {
+            results = parsed;
+            current = results.length;
+          } else {
+            localStorage.removeItem(STORAGE_KEY);
+          }
+        } else {
+          localStorage.removeItem(STORAGE_KEY);
         }
-      } catch (_) {}
-    }
-
-    if (ROUND === 2) {
-      const r1 = localStorage.getItem("labeling-round1");
-      if (r1) {
-        try { round1Labels = JSON.parse(r1); } catch (_) { round1Labels = null; }
+      } catch (_) {
+        localStorage.removeItem(STORAGE_KEY);
       }
     }
 
@@ -372,13 +421,17 @@
       return;
     }
 
-    if (ROUND === 2) $metadata.classList.add("visible");
+    $metadata.style.display = "block";
     showRecord(current);
   }
 
   function showRecord(idx) {
     const rec = seed[idx];
     if (!rec) { showComplete(); return; }
+
+    $scoreDetail.classList.remove("visible");
+    $scoreDetail.innerHTML = "";
+    $btnNext.classList.remove("visible");
 
     $artist.textContent = rec.artist || "Unknown Artist";
     $titleEl.textContent = rec.title || "Unknown Title";
@@ -393,22 +446,17 @@
       $placeholder.style.display = "";
     }
 
-    if (ROUND === 2) {
-      $metadata.innerHTML = buildMetadata(rec);
-      $flipReason.value = "";
-      $flipCtr.classList.remove("visible");
-    }
+    $metadata.innerHTML = buildMetadata(rec);
 
     btnsActive = false;
     allowNext = false;
     imgLoadTs = Date.now();
     disableButtons();
     $countdown.textContent = "Buttons unlock in 2s\u2026";
-    $flipReason.value = "";
 
     const pct = ((current) / seed.length * 100).toFixed(1);
     $progress.style.width = pct + "%";
-    $status.textContent = `Round ${ROUND} \u00b7 Record ${current + 1} of ${seed.length}`;
+    $status.textContent = `Record ${current + 1} of ${seed.length}`;
 
     let remaining = DELAY_MS / 1000;
     const timer = setInterval(() => {
@@ -435,12 +483,8 @@
     add("Genres", rec.genres);
     add("Styles", rec.styles);
     add("Condition", rec.condition);
-    add("Price", rec.price);
-    add("Want / Have", rec.want_count != null ? `${rec.want_count} / ${rec.have_count}` : null);
     add("Label", rec.label);
     add("Format", rec.format);
-    add("Band", rec.band);
-    add("Score", rec.algorithm_score != null ? rec.algorithm_score.toFixed(2) : null);
     return items.join("");
   }
 
@@ -456,6 +500,23 @@
     $btnCool.disabled = false;
   }
 
+  function buildScoreDetail(rec) {
+    const bd = rec.score_breakdown;
+    if (!bd) return "";
+
+    const entries = Object.entries(bd).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
+    let html = `<div style="font-weight:600;margin-bottom:4px">Score: ${rec.algorithm_score ? rec.algorithm_score.toFixed(2) : "?"}</div>`;
+    html += '<div style="font-size:11px;color:var(--muted)">';
+    for (const [strat, val] of entries) {
+      if (val !== 0) {
+        html += `<div><span class="strat-name">${strat}</span><span class="strat-val">${val >= 0 ? "+" : ""}${val.toFixed(2)}</span></div>`;
+      }
+    }
+    html += `<div class="total-row"><span class="strat-name">Total</span><span class="strat-val">${rec.algorithm_score ? (rec.algorithm_score >= 0 ? "+" : "") + rec.algorithm_score.toFixed(2) : "?"}</span></div>`;
+    html += "</div>";
+    return html;
+  }
+
   function label(label) {
     if (!btnsActive || allowNext) return;
     allowNext = true;
@@ -465,38 +526,21 @@
     const rec = seed[current];
     const elapsed = imgLoadTs ? Date.now() - imgLoadTs : 0;
 
-    const entry = {
+    results.push({
       position: rec.position,
+      release_id: rec.discogs_release_id,
       label,
       timing_ms: elapsed,
       timestamp: new Date().toISOString(),
       artist: rec.artist,
       title: rec.title
-    };
+    });
 
-    if (ROUND === 2 && round1Labels) {
-      const r1 = round1Labels.find(l => l.position === rec.position);
-      if (r1 && r1.label !== label) {
-        entry.flipped_from = r1.label;
-        entry.flip_reason = $flipReason.value.trim() || null;
-        $flipCtr.classList.add("visible");
-        setTimeout(() => advance(entry), 100);
-        return;
-      }
-    }
-
-    advance(entry);
-  }
-
-  function advance(entry) {
-    results.push(entry);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(results));
-    current++;
-    if (current >= seed.length) {
-      showComplete();
-    } else {
-      setTimeout(() => showRecord(current), 200);
-    }
+
+    $scoreDetail.innerHTML = buildScoreDetail(rec);
+    $scoreDetail.classList.add("visible");
+    $btnNext.classList.add("visible");
   }
 
   function showComplete() {
@@ -505,13 +549,11 @@
     $artist.textContent = "";
     $titleEl.textContent = "";
     $metadata.innerHTML = "";
-    $metadata.classList.remove("visible");
-    $flipCtr.classList.remove("visible");
     $countdown.textContent = "";
     disableButtons();
     $complete.classList.add("visible");
     $progress.style.width = "100%";
-    $status.textContent = `Round ${ROUND} \u00b7 Complete \u00b7 ${results.length} labeled`;
+    $status.textContent = `Complete \u00b7 ${results.length} labeled`;
   }
 
   function showError(msg) {
@@ -520,13 +562,43 @@
     $errorMsg.innerHTML = msg;
   }
 
+  function saveToServer() {
+    $saveBtn.disabled = true;
+    $saveStatus.textContent = "Saving...";
+    fetch("/save", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(results)
+    })
+    .then(r => {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      $saveStatus.textContent = "Saved! Run: bin/rake 'experiment:report[" + crateName + "]'";
+    })
+    .catch(e => {
+      $saveStatus.textContent = "Save failed: " + e.message + " — download instead";
+      $saveBtn.disabled = false;
+    });
+  }
+
+  $saveBtn.addEventListener("click", saveToServer);
+
+  $resetBtn.addEventListener("click", () => {
+    if (confirm("Clear all labels and start over?")) {
+      localStorage.removeItem(STORAGE_KEY);
+      results = [];
+      current = 0;
+      $complete.classList.remove("visible");
+      showRecord(0);
+    }
+  });
+
   $download.addEventListener("click", () => {
     const data = JSON.stringify(results, null, 2);
     const blob = new Blob([data], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = ROUND === 1 ? "round1-results.json" : "round2-results.json";
+    a.download = crateName + "-results.json";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -536,6 +608,16 @@
   $btnJunk.addEventListener("click", () => label("junk"));
   $btnIndiff.addEventListener("click", () => label("indifferent"));
   $btnCool.addEventListener("click", () => label("cool"));
+
+  $btnNext.addEventListener("click", () => {
+    current++;
+    $btnNext.classList.remove("visible");
+    if (current >= seed.length) {
+      showComplete();
+    } else {
+      showRecord(current);
+    }
+  });
 
   document.addEventListener("keydown", (e) => {
     if (!btnsActive) return;

@@ -9,7 +9,7 @@
 # has breadth across the store's catalog.
 class ScoreStrategies::SectionStrategy
   SMALL_GENRE_THRESHOLD = 5
-  SMALL_GENRE_BOOST = 3
+  SMALL_GENRE_BOOST = 2
 
   def initialize(genre_counts:)
     @genre_counts = genre_counts
