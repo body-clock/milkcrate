@@ -15,7 +15,7 @@ class Listing < ApplicationRecord
 
   # Listings absent from latest sync are assumed sold. Never-synced stores fall
   # back to recent activity until first successful inventory snapshot lands.
-  scope :available, -> { Listings::AvailableQuery.new.call }
+  scope :available, -> { Listings::AvailableQuery.new(relation: all).call }
 
   def primary_genre
     genres.first

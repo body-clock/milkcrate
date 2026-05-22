@@ -48,6 +48,7 @@
 /experiments/*
 !/experiments/.gitkeep
 !/experiments/score-registry.yml
+!/experiments/server.ru
 
 # Vite Ruby
 /public/vite*
