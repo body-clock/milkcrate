@@ -22,6 +22,10 @@ Rails.application.routes.draw do
   post "/dashboard/resync", to: "dashboard#resync"
   post "/dashboard/signup", to: "dashboard#signup"
 
+  if Rails.env.development?
+    get "/dev/login-as/:store_id", to: "dev#login_as"
+  end
+
   # OAuth flow — must be before the catch-all /:slug route
   post "/:slug/authorize",
     to: "stores#authorize",
