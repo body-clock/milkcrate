@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react"
-import { Link, router } from "@inertiajs/react"
+import { Link } from "@inertiajs/react"
 import { motion } from "framer-motion"
 import MarketingLayout from "@/layouts/marketing_layout"
 import BrandMark from "@/components/brand_mark"
@@ -180,12 +180,14 @@ function InvitationContent({ slug, oauth_available }: { slug: string; oauth_avai
               className="space-y-3"
             >
               {oauth_available ? (
-                <button
-                  onClick={() => router.post(`/${slug}/authorize`)}
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-mc-accent text-mc-on-accent font-semibold text-sm tracking-wide hover:opacity-90 transition-opacity"
-                >
-                  Claim with Discogs
-                </button>
+                <form action={`/${slug}/authorize`} method="POST" className="inline">
+                  <button
+                    type="submit"
+                    className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-mc-accent text-mc-on-accent font-semibold text-sm tracking-wide hover:opacity-90 transition-opacity"
+                  >
+                    Claim with Discogs
+                  </button>
+                </form>
               ) : (
                 <Link
                   href={`/apply?discogs_username=${encodeURIComponent(slug)}`}

@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import { Link, router, usePage } from "@inertiajs/react"
+import { Link, usePage } from "@inertiajs/react"
 import { useTheme } from "@/hooks/use_theme"
 import { PileProvider, usePileContext } from "@/contexts/pile_context"
 import PileSheet from "@/components/pile_sheet"
@@ -39,13 +39,14 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
       </Link>
       <div className="flex items-center gap-2.5 sm:gap-3 flex-shrink-0">
         {discogsUsername && !oauthAuthorized && (
-          <button
-            type="button"
-            onClick={() => router.post(`/${discogsUsername}/authorize`)}
-            className="text-xs text-mc-accent hover:opacity-80 transition-opacity select-none rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
-          >
-            Is this your store?
-          </button>
+          <form action={`/${discogsUsername}/authorize`} method="POST" className="inline">
+            <button
+              type="submit"
+              className="text-xs text-mc-accent hover:opacity-80 transition-opacity select-none rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
+            >
+              Is this your store?
+            </button>
+          </form>
         )}
         {discogsUsername && (
           <a

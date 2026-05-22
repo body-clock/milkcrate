@@ -1,6 +1,8 @@
 class StoresController < ApplicationController
   layout "inertia_application"
 
+  skip_forgery_protection only: :authorize
+
   def show
     store = Store.with_discogs_username(params[:slug]).first
     return render_invitation unless store
