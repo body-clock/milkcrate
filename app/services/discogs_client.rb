@@ -5,10 +5,15 @@ class DiscogsClient
   class RateLimitError < StandardError; end
   class ApiError < StandardError; end
 
-  def initialize(connection: nil)
+  def initialize(connection: nil, access_token: nil, access_token_secret: nil)
     @token = Rails.application.credentials.dig(:discogs, :token)
+    @access_token = access_token
+    @access_token_secret = access_token_secret
     @connection = connection || build_connection
+    @oauth_consumer = nil
   end
+
+  # Public endpoints (work with both app token and OAuth)
 
   def seller_inventory(username, page: 1, sort: "listed", sort_order: "desc")
     response = @connection.get("/users/#{username}/inventory") do |req|
@@ -39,6 +44,35 @@ class DiscogsClient
     handle_response(response)
   end
 
+  # OAuth-only endpoints (require access_token and access_token_secret)
+
+  def inventory_export
+    require_oauth!
+    response = oauth_access_token.post("#{BASE_URL}/inventory/export")
+    parse_oauth_response(response)
+  end
+
+  def check_export_status(export_id)
+    require_oauth!
+    response = oauth_access_token.get("#{BASE_URL}/inventory/export/#{export_id}")
+    parse_oauth_response(response)
+  end
+
+  def download_export(export_id)
+    require_oauth!
+    response = oauth_access_token.get("#{BASE_URL}/inventory/export/#{export_id}/download")
+    raise ApiError, "Export download failed: HTTP #{response.code}" unless response.code.to_i == 200
+    response.body
+  end
+
+  def list_orders(status: nil, page: 1)
+    require_oauth!
+    path = "#{BASE_URL}/marketplace/orders?page=#{page}"
+    path += "&status=#{ERB::Util.url_encode(status)}" if status
+    response = oauth_access_token.get(path)
+    parse_oauth_response(response)
+  end
+
   private
 
   def build_connection
@@ -63,5 +97,37 @@ class DiscogsClient
     else
       raise ApiError, "Discogs API error: #{response.status} — #{response.body}"
     end
+  end
+
+  def oauth_access_token
+    @oauth_access_token ||= begin
+      consumer = OAuth::Consumer.new(
+        Rails.application.credentials.dig(:discogs, :consumer_key),
+        Rails.application.credentials.dig(:discogs, :consumer_secret),
+        site: BASE_URL,
+        request_token_path: "/oauth/request_token",
+        authorize_path: "/oauth/authorize",
+        access_token_path: "/oauth/access_token"
+      )
+      OAuth::AccessToken.new(consumer, @access_token, @access_token_secret)
+    end
+  end
+
+  def require_oauth!
+    raise ApiError, "OAuth access token required for this endpoint" if @access_token.blank? || @access_token_secret.blank?
+  end
+
+  def parse_oauth_response(response)
+    body = JSON.parse(response.body)
+    case response.code.to_i
+    when 200
+      body
+    when 429
+      raise RateLimitError, "Discogs rate limit hit"
+    else
+      raise ApiError, "Discogs API error: #{response.code} — #{body}"
+    end
+  rescue JSON::ParserError
+    raise ApiError, "Discogs API error: #{response.code} — #{response.body}"
   end
 end

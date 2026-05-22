@@ -1,15 +1,25 @@
 class CsvExportSyncJob < ApplicationJob
-  # TODO: Replace with full CSV export implementation in U6.
-  # For now, this stub allows the OAuth callback to enqueue without error.
   limits_concurrency to: 1, key: ->(store_id) { "csv_export:#{store_id}" }
   queue_as :default
 
   def perform(store_id)
     store = Store.find(store_id)
-    Rails.logger.info("[CsvExportSyncJob] CSV export sync triggered for #{store.discogs_username} (store=#{store_id})")
-    # Actual implementation: trigger Discogs CSV export, poll, download, parse, reconcile
+    raise "Store #{store_id} is not OAuth authorized" unless store.oauth_authorized?
+
+    service = CsvExportSyncService.new(store)
+    result = service.call
+
+    Rails.logger.info("[CsvExportSyncJob] Synced #{store.listings.count} listings for #{store.discogs_username} (export_id=#{result.export_id})")
+
+    if result.listing_ids_for_enrichment.any?
+      EnrichmentJob.perform_later(store_id, listing_ids: result.listing_ids_for_enrichment)
+    end
+
+    DailyCurationJob.perform_later(store_id)
   rescue StandardError => error
-    Rails.logger.error("[CsvExportSyncJob] store=#{store_id} failed: #{error.message}")
+    Rails.logger.error(
+      "[CsvExportSyncJob] store=#{store&.discogs_username || store_id} failed\n#{error.full_message(highlight: false, order: :top)}"
+    )
     raise
   end
 end

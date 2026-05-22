@@ -53,4 +53,26 @@ RSpec.describe DiscogsClient do
       expect(remaining).to eq(55)
     end
   end
+
+  describe "OAuth client" do
+    subject(:oauth_client) { described_class.new(connection: conn, access_token: "at", access_token_secret: "ats") }
+
+    describe "#inventory_export" do
+      it "raises ApiError when called without OAuth tokens" do
+        expect { client.inventory_export }.to raise_error(DiscogsClient::ApiError, /OAuth access token required/)
+      end
+    end
+
+    describe "#list_orders" do
+      it "raises ApiError when called without OAuth tokens" do
+        expect { client.list_orders }.to raise_error(DiscogsClient::ApiError, /OAuth access token required/)
+      end
+    end
+
+    describe "#download_export" do
+      it "raises ApiError when called without OAuth tokens" do
+        expect { client.download_export(1) }.to raise_error(DiscogsClient::ApiError, /OAuth access token required/)
+      end
+    end
+  end
 end
