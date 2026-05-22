@@ -4,6 +4,7 @@ import CrateTabs from "./crate_tabs"
 import GhostFingerCue from "./ghost_finger_cue"
 import RecordCard from "./record_card"
 import RecordDetails from "./record_details"
+import ScoreBreakdown from "./score_breakdown"
 import { buildCrateWindow } from "../lib/crate_window"
 import {
   RIFFLE_LANGUAGE,
@@ -412,6 +413,12 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
         </p>
       )}
 
+      {activeRecord && (
+        <div className="mx-auto mt-3 w-full max-w-xs sm:max-w-sm md:hidden">
+          <ScoreBreakdown listing={activeRecord} />
+        </div>
+      )}
+
     </>
   )
 
@@ -429,6 +436,7 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
         {activeRecord && (
           <div className="hidden md:flex md:flex-col md:pt-7">
             <RecordDetails listing={activeRecord} direction={direction.current} isCompact={isCompact} />
+          <ScoreBreakdown listing={activeRecord} />
           </div>
         )}
       </div>

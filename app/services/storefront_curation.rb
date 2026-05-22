@@ -12,7 +12,8 @@ class StorefrontCuration
     key = curation_cache_key(store, filter_available:)
     cache.fetch(key, expires_in: CURATION_CACHE_TTL, race_condition_ttl: CURATION_CACHE_RACE_TTL) do
       curation  = new(store, filter_available:)
-      presenter = CratePresenter.new(store)
+      scorer    = dev_scorer(curation)
+      presenter = CratePresenter.new(store, scorer:)
       {
         sections: presenter.build_storefront_sections(curation.storefront_groups),
         crates:   presenter.build_crates(curation.crates)
@@ -208,5 +209,11 @@ class StorefrontCuration
 
   def genre_counts
     @genre_counts ||= eligible_listings.map(&:primary_genre).compact.tally
+  end
+
+  def self.dev_scorer(curation)
+    return nil unless Rails.env.development?
+
+    RecordScorer.new(genre_counts: curation.genre_counts, today: Date.today)
   end
 end

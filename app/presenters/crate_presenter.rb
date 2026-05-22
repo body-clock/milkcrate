@@ -1,6 +1,7 @@
 class CratePresenter
-  def initialize(store)
+  def initialize(store, scorer: nil)
     @store = store
+    @scorer = scorer
   end
 
   def store_props
@@ -68,12 +69,19 @@ class CratePresenter
       thumbnail_url: listing.thumbnail_url,
       notes: listing.notes,
       discogs_url: "https://www.discogs.com/sell/item/#{listing.discogs_listing_id}",
-      display_price: format_price(listing.price)
+      display_price: format_price(listing.price),
+      score_breakdown: dev_score_breakdown(listing)
     }
   end
 
   def format_price(price)
     return "—" unless price
     "$#{'%.2f' % price}"
+  end
+
+  def dev_score_breakdown(listing)
+    return nil unless Rails.env.development? && @scorer
+
+    @scorer.score_breakdown(listing).transform_keys(&:to_s)
   end
 end
