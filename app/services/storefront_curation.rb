@@ -1,32 +1,6 @@
 require "set"
 
 class StorefrontCuration
-  CURATION_CACHE_TTL = 36.hours
-  CURATION_CACHE_RACE_TTL = 30.seconds
-  CURATION_CACHE_KEY = "storefront/curation/v1/%<store_id>s/%<date>s"
-
-  # Returns { sections: [...], crates: [...] } — plain hashes, cache-safe.
-  # On cache miss, runs curation + presentation, writes to cache, returns payload.
-  # On cache hit, returns cached payload without instantiating curation or presenter.
-  def self.cached_curation(store, filter_available: true, cache: Rails.cache)
-    key = CURATION_CACHE_KEY % { store_id: store.id, date: Date.current.iso8601 }
-    cache.fetch(key, expires_in: CURATION_CACHE_TTL, race_condition_ttl: CURATION_CACHE_RACE_TTL) do
-      curation  = new(store, filter_available:)
-      presenter = CratePresenter.new(store)
-      {
-        sections: presenter.build_storefront_sections(curation.storefront_groups),
-        crates:   presenter.build_crates(curation.crates)
-      }
-    end
-  end
-
-  # Writes the fully-serialized curation payload to cache.
-  # Used by DailyCurationService for pre-warming.
-  def self.write_curation_cache(store, curation_payload, cache: Rails.cache)
-    key = CURATION_CACHE_KEY % { store_id: store.id, date: Date.current.iso8601 }
-    cache.write(key, curation_payload, expires_in: CURATION_CACHE_TTL)
-  end
-
   def initialize(store, filter_available: true)
     @store = store
     @filter_available = filter_available

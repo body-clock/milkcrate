@@ -23,10 +23,14 @@ RSpec.describe "Stores", type: :request do
       include_examples "resolves store at slug", "TESTSTORE"
 
       before do
-        allow(StorefrontCuration).to receive(:cached_curation).and_return({
-          sections: [],
-          crates: []
-        })
+        curation = instance_double(StorefrontCuration, crates: [], storefront_groups: { picks: CuratedCrate.new(slug: "picks", name: "Milkcrate Picks", listings: []), featured: [], genres: [] })
+        presenter_double = instance_double(CratePresenter,
+          store_props: { id: store.id, name: store.name },
+          build_crates: [],
+          build_storefront_sections: []
+        )
+        allow(StorefrontCuration).to receive(:new).and_return(curation)
+        allow(CratePresenter).to receive(:new).and_return(presenter_double)
       end
 
       it "sends Content-Security-Policy header on the storefront page" do
