@@ -13,10 +13,10 @@ RSpec.describe DiscogsOauthClient do
       allow(consumer).to receive(:get_request_token).with(oauth_callback: "https://milkcrate.fm/auth/discogs/callback").and_return(request_token)
     end
 
-    it "returns a request token and authorize url" do
+    it "returns a request token and authorize url pointing to www.discogs.com" do
       result = client.request_token(callback_url: "https://milkcrate.fm/auth/discogs/callback")
       expect(result.request_token).to eq(request_token)
-      expect(result.authorize_url).to eq("https://discogs.com/oauth/authorize?oauth_token=rt")
+      expect(result.authorize_url).to eq("https://www.discogs.com/oauth/authorize?oauth_token=rt")
     end
 
     context "when Discogs returns unauthorized" do

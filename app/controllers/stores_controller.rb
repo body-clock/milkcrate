@@ -12,10 +12,20 @@ class StoresController < ApplicationController
 
   def authorize
     slug = params[:slug]&.strip&.downcase
-    return redirect_to root_path, alert: "Invalid username" if slug.blank?
+    return redirect_to slug.present? ? store_path(slug) : root_path, alert: "Invalid username" if slug.blank?
 
-    store = Store.with_discogs_username(slug).first || create_store(slug)
-    return redirect_to root_path, alert: "Could not find or create store" unless store
+    # Verify the user is a Discogs seller before initiating OAuth
+    client = DiscogsClient.new
+    inventory = client.seller_inventory(slug, page: 1)
+    total_listings = inventory.dig("pagination", "items") || 0
+
+    if total_listings == 0
+      redirect_to store_path(slug), alert: "We couldn't find any inventory for this Discogs account. Milkcrate is for record stores with vinyl to sell."
+      return
+    end
+
+    store = Store.with_discogs_username(slug).first || create_store(slug, profile: client.seller_profile(slug))
+    return redirect_to store_path(slug), alert: "Could not create store. Please try again." unless store
 
     oauth_client = DiscogsOauthClient.new
     callback_url = discogs_oauth_callback_url
@@ -28,6 +38,8 @@ class StoresController < ApplicationController
     redirect_to result.authorize_url, allow_other_host: true
   rescue DiscogsOauthClient::OauthError => e
     redirect_to store_path(slug), alert: e.message
+  rescue DiscogsClient::ApiError
+    redirect_to store_path(slug), alert: "Could not verify this Discogs account. Please check the username and try again."
   end
 
   private
@@ -69,8 +81,7 @@ class StoresController < ApplicationController
     }
   end
 
-  def create_store(slug)
-    profile = DiscogsClient.new.seller_profile(slug)
+  def create_store(slug, profile:)
     name = profile["name"].presence || slug
     Store.create!(discogs_username: slug, name:)
   rescue DiscogsClient::ApiError

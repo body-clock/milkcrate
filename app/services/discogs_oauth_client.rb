@@ -13,7 +13,10 @@ class DiscogsOauthClient
 
   def request_token(callback_url:)
     rt = @consumer.get_request_token(oauth_callback: callback_url)
-    RequestTokenResult.new(request_token: rt, authorize_url: rt.authorize_url)
+    # Build authorize URL manually — Discogs' authorize page is on www.discogs.com,
+    # not api.discogs.com, but the OAuth gem always prepends site to authorize_path
+    authorize_url = "https://www.discogs.com/oauth/authorize?oauth_token=#{rt.token}"
+    RequestTokenResult.new(request_token: rt, authorize_url: authorize_url)
   rescue OAuth::Unauthorized => e
     raise OauthError, "Discogs OAuth request token failed: #{e.message}"
   end
