@@ -38,14 +38,13 @@ class MarketingPreviewPresenter
   # ── Live preview path ────────────────────────────────────────
 
   def live_preview(store)
-    curation  = StorefrontCuration.new(store, filter_available: !Rails.env.development?)
-    presenter = CratePresenter.new(store)
-    sections  = presenter.build_storefront_sections(curation.storefront_groups)
+    cached = StorefrontCuration.cached_curation(store,
+      filter_available: !Rails.env.development?)
 
     {
       store_name: store.name,
       store_slug: store.discogs_username,
-      sections: cap_sections(sections)
+      sections: cap_sections(cached[:sections])
     }
   end
 
