@@ -161,13 +161,11 @@ module CrateStrategies
       }
       return [] if desirable.size < MIN_RECORDS
 
-      # Blend RecordScorer score with a want/have ratio bonus. The bonus
-      # captures the "gem" signal (disproportionate demand) while the base
-      # score captures overall listing quality (vintage, condition, price, etc).
-      # This means a beat-up cheap record with a huge want/have ratio will
-      # still surface, but won't dominate a high-quality find.
+      # Rank by pure RecordScorer score. The strategy selects candidates
+      # (low engagement, wants > haves), then the scorer determines ordering
+      # just like every other crate strategy.
       scored = desirable
-        .map { |listing| [ listing, @scorer.score(listing) + want_have_bonus(listing) ] }
+        .map { |listing| [ listing, @scorer.score(listing) ] }
         .sort_by { |_, s| -s }
         .map(&:first)
 
@@ -175,17 +173,6 @@ module CrateStrategies
     end
 
     private
-
-    MAX_RATIO_BONUS = 3.0
-
-    def want_have_bonus(listing)
-      want = listing.want_count.to_i
-      have = listing.have_count.to_i
-      ratio = have.zero? ? want.to_f : want.to_f / have
-      return 0.0 if ratio <= 1.0
-
-      [ Math.log2(ratio), MAX_RATIO_BONUS ].min
-    end
 
     def apply_genre_cap(ranked)
       genre_seen = Hash.new(0)

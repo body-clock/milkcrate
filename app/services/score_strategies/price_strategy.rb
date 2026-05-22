@@ -3,7 +3,7 @@
 # making them worth surfacing in crates. This is a pure boost: records under
 # the threshold or with no price get 0, not a penalty.
 class ScoreStrategies::PriceStrategy
-  PRICE_THRESHOLD = 10.00
+  PRICE_THRESHOLD = 5.00
   PRICE_BOOST = 1.0
 
   def score(listing)
