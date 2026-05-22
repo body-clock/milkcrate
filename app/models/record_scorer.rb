@@ -27,7 +27,8 @@ class RecordScorer
       metadata: ScoreStrategies::MetadataStrategy.new,
       cover_quality: ScoreStrategies::CoverQualityStrategy.new,
       freshness: ScoreStrategies::FreshnessStrategy.new(today:),
-      noise: ScoreStrategies::NoiseStrategy.new(today:)
+      noise: ScoreStrategies::NoiseStrategy.new(today:),
+      price: ScoreStrategies::PriceStrategy.new
     }.freeze
   end
 
