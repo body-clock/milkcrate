@@ -214,6 +214,6 @@ class StorefrontCuration
   def self.dev_scorer(curation)
     return nil unless Rails.env.development?
 
-    RecordScorer.new(genre_counts: curation.genre_counts, today: Date.today)
+    RecordScorer.new(genre_counts: curation.send(:genre_counts), today: Date.today)
   end
 end
