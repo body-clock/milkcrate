@@ -211,4 +211,112 @@ RSpec.describe StorefrontCuration do
       expect(curation.surfaced_listings).to eq([ listing ])
     end
   end
+
+  describe ".cached_curation" do
+    let(:store) { create(:store) }
+    let(:cache) { ActiveSupport::Cache::MemoryStore.new }
+
+    before do
+      6.times { |i| lp_listing(store, genres: [ "Jazz" ], styles: [ "Bop" ]) }
+    end
+
+    it "returns a hash with :sections and :crates keys" do
+      result = described_class.cached_curation(store, cache: cache)
+
+      expect(result).to be_a(Hash)
+      expect(result.keys).to match_array(%i[sections crates])
+      expect(result[:sections]).to be_an(Array)
+      expect(result[:crates]).to be_an(Array)
+    end
+
+    it "sections contain expected keys" do
+      result = described_class.cached_curation(store, cache: cache)
+
+      first_section = result[:sections].first
+      expect(first_section[:key]).to eq("picks_wall")
+      expect(first_section[:crate]).to be_a(Hash)
+      expect(first_section[:crate].keys).to include(:slug, :name, :count, :records)
+    end
+
+    it "on cache hit returns cached value without recomputing" do
+      # Warm the cache
+      first_result = described_class.cached_curation(store, cache: cache)
+
+      # Second call should return cache hit
+      expect(described_class).not_to receive(:new)
+      expect(CratePresenter).not_to receive(:new)
+
+      second_result = described_class.cached_curation(store, cache: cache)
+      expect(second_result).to eq(first_result)
+    end
+
+    it "on cache miss computes curation and writes to cache" do
+      cache.clear
+
+      expect(described_class).to receive(:new).and_call_original.once
+      expect(CratePresenter).to receive(:new).and_call_original.once
+
+      result = described_class.cached_curation(store, cache: cache)
+      expect(result[:sections]).to be_present
+      expect(result[:crates]).to be_present
+    end
+
+    it "cache key includes store id and current date" do
+      key = described_class::CURATION_CACHE_KEY % {
+        store_id: store.id,
+        date: Date.current.iso8601
+      }
+
+      described_class.cached_curation(store, cache: cache)
+      expect(cache.exist?(key)).to be true
+
+      # Different date should result in a different (empty) cache
+      other_key = described_class::CURATION_CACHE_KEY % {
+        store_id: store.id,
+        date: (Date.current + 1.day).iso8601
+      }
+      expect(cache.exist?(other_key)).to be false
+    end
+
+    it "returns sections and crates with matching data" do
+      result = described_class.cached_curation(store, cache: cache)
+
+      # Check that record IDs are consistent between sections and crates
+      section_record_ids = result[:sections].flat_map { |s|
+        if s[:crate]
+          s[:crate][:records].map { |r| r[:id] }
+        elsif s[:crates]
+          s[:crates].flat_map { |c| c[:records].map { |r| r[:id] } }
+        else
+          []
+        end
+      }
+      crate_record_ids = result[:crates].flat_map { |c| c[:records].map { |r| r[:id] } }
+
+      expect(crate_record_ids).to include(*section_record_ids)
+    end
+  end
+
+  describe ".write_curation_cache" do
+    let(:store) { create(:store) }
+    let(:cache) { ActiveSupport::Cache::MemoryStore.new }
+
+    it "writes the payload to cache with the correct key" do
+      payload = { sections: [], crates: [] }
+      key = described_class::CURATION_CACHE_KEY % {
+        store_id: store.id,
+        date: Date.current.iso8601
+      }
+
+      described_class.write_curation_cache(store, payload, cache: cache)
+
+      expect(cache.read(key)).to eq(payload)
+    end
+
+    it "does not raise with an empty payload" do
+      expect {
+        described_class.write_curation_cache(store, {}, cache: cache)
+      }.not_to raise_error
+    end
+  end
 end
