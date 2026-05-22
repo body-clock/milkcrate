@@ -2,34 +2,23 @@ class WaitlistsController < ApplicationController
   layout "inertia_application"
 
   def create
-    unless turnstile_verified?
-      return render inertia: "apply", props: apply_props.merge(
-        submitted: false,
-        errors: { turnstile: [ { error: "Please confirm you are human.", value: nil } ] }
-      )
-    end
+    result = WaitlistRegistration.new(
+      waitlist_params,
+      turnstile_token:,
+      remote_ip: request.remote_ip
+    ).call
 
-    entry = Waitlist.new(waitlist_params)
-
-    if entry.save
-      SellerMailer.confirmation(entry).deliver_later
-      SellerMailer.admin_notification(entry).deliver_later
+    if result.success
       redirect_to apply_path, flash: { notice: "You're on the list! We'll be in touch.", submitted: true }
     else
       render inertia: "apply", props: apply_props.merge(
         submitted: false,
-        errors: serialize_errors(entry.errors)
+        errors: result.errors
       )
     end
   end
 
   private
-
-  def turnstile_verified?
-    return true unless TurnstileVerifier.enabled?
-
-    TurnstileVerifier.verify(token: turnstile_token, remote_ip: request.remote_ip)
-  end
 
   def turnstile_token
     params[:turnstile_token].presence || params[:"cf-turnstile-response"].presence
@@ -47,13 +36,5 @@ class WaitlistsController < ApplicationController
         site_key: TurnstileVerifier.site_key
       }
     }
-  end
-
-  def serialize_errors(errors)
-    errors.each_with_object({}) do |error, hash|
-      attribute = error.attribute
-      hash[attribute] ||= []
-      hash[attribute] << { error: error.message, value: error.options[:value] }
-    end
   end
 end

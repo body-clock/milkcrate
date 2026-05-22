@@ -1,6 +1,11 @@
 module StoreSync
   class ListingReconciler
     Result = Data.define(:listing_ids_for_enrichment)
+    UPDATE_FIELDS = %i[
+      discogs_release_id artist title label year
+      format genres styles condition price currency
+      thumbnail_url notes listed_at last_seen_at
+    ].freeze
 
     def initialize(store:, fetched_listings:, normalizer: ListingNormalizer.new)
       @store = store
@@ -9,55 +14,63 @@ module StoreSync
     end
 
     def call
-      records_by_listing_id = @fetched_listings.each_with_object({}) do |raw_listing, memo|
-        record = @normalizer.call(raw_listing, store_id: @store.id)
-        memo[record[:discogs_listing_id]] = record if record
-      end
+      records = normalized_records
+      return empty_result if records.empty?
 
-      records = records_by_listing_id.values
-      return Result.new(listing_ids_for_enrichment: []) if records.empty?
-
-      existing_by_listing_id = @store
-        .listings
-        .where(discogs_listing_id: records_by_listing_id.keys)
-        .index_by(&:discogs_listing_id)
-
-      changed_listing_ids = records.filter_map do |record|
-        existing = existing_by_listing_id[record[:discogs_listing_id]]
-        record[:discogs_listing_id] if existing.nil? || materially_changed?(existing, record)
-      end
-
-      @store.listings.upsert_all(
-        records,
-        unique_by: :discogs_listing_id,
-        update_only: %i[
-          discogs_release_id
-          artist
-          title
-          label
-          year
-          format
-          genres
-          styles
-          condition
-          price
-          currency
-          thumbnail_url
-          notes
-          listed_at
-          last_seen_at
-        ]
-      )
-
-      Result.new(
-        listing_ids_for_enrichment: @store.listings.where(discogs_listing_id: changed_listing_ids).pluck(:id)
-      )
+      perform_sync(records)
     rescue StandardError => e
       Rails.logger.error("[StoreSync::ListingReconciler] upsert_all failed: #{e.message}")
       raise
     end
 
     private
+
+    def empty_result
+      Result.new(listing_ids_for_enrichment: [])
+    end
+
+    def perform_sync(records)
+      existing_index = existing_records_index(records)
+      enrichment = records_to_enrich(records, existing_index)
+
+      upsert_all_records(records)
+
+      ids = enrichment_ids(enrichment)
+      Result.new(listing_ids_for_enrichment: ids)
+    end
+
+    def normalized_records
+      @fetched_listings.filter_map do |raw_listing|
+        @normalizer.call(raw_listing, store_id: @store.id)
+      end.index_by { |r| r[:discogs_listing_id] }
+    end
+
+    def existing_records_index(records)
+      @store.listings
+        .where(discogs_listing_id: records.keys)
+        .index_by(&:discogs_listing_id)
+    end
+
+    def records_to_enrich(records, existing_index)
+      records.filter_map do |discogs_id, record|
+        existing = existing_index[discogs_id]
+        discogs_id if existing.nil? || materially_changed?(existing, record)
+      end
+    end
+
+    def upsert_all_records(records)
+      @store.listings.upsert_all(
+        records.values,
+        unique_by: :discogs_listing_id,
+        update_only: UPDATE_FIELDS
+      )
+    end
+
+    def enrichment_ids(changed_discogs_ids)
+      @store.listings
+        .where(discogs_listing_id: changed_discogs_ids)
+        .pluck(:id)
+    end
 
     def materially_changed?(existing, incoming)
       [

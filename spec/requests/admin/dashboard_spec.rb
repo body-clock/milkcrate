@@ -43,9 +43,4 @@ RSpec.describe "Admin::Dashboard", type: :request do
       expect(inertia.props[:applicants].map { |applicant| applicant[:name] }).to include("Applicant Store")
     end
   end
-
-  def auth_headers(username, password)
-    credentials = Base64.strict_encode64("#{username}:#{password}")
-    { "HTTP_AUTHORIZATION" => "Basic #{credentials}" }
-  end
 end

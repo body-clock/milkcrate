@@ -156,9 +156,4 @@ RSpec.describe "Admin::Onboardings", type: :request do
       expect(flash[:notice]).to include("Onboarding queued for Applicant Store")
     end
   end
-
-  def auth_headers(username, password)
-    credentials = Base64.strict_encode64("#{username}:#{password}")
-    { "HTTP_AUTHORIZATION" => "Basic #{credentials}" }
-  end
 end

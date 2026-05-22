@@ -9,11 +9,7 @@ RSpec.describe DiscogsClient do
     end
   end
 
-  subject(:client) do
-    c = described_class.new
-    c.instance_variable_set(:@connection, conn)
-    c
-  end
+  subject(:client) { described_class.new(connection: conn) }
 
   describe "#seller_inventory" do
     it "returns parsed body on 200" do

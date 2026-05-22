@@ -5,9 +5,9 @@ class MusicBrainzClient
 
   class ApiError < StandardError; end
 
-  def initialize
-    @search_conn = build_connection(SEARCH_URL)
-    @caa_conn    = build_connection(CAA_URL)
+  def initialize(search_conn: nil, caa_conn: nil)
+    @search_conn = search_conn || build_connection(SEARCH_URL)
+    @caa_conn    = caa_conn || build_connection(CAA_URL)
   end
 
   def search_release(artist:, title:)
