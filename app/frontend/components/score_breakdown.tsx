@@ -22,22 +22,29 @@ export default function ScoreBreakdown({ listing }: Props) {
   const total = Object.values(breakdown).reduce((sum, v) => sum + v, 0)
 
   return (
-    <div className="mt-2 mb-1 rounded border border-mc-border/50 bg-mc-bg-raised/70 p-2 text-[10px] leading-relaxed font-mono">
-      <div className="mb-1 text-[9px] uppercase tracking-wider text-mc-text-dim/60 font-semibold">
-        Score Debug
+    <div className="mt-2 mb-1 rounded border border-mc-border/50 bg-mc-bg-raised/70 px-2.5 py-1.5 text-[10px] leading-snug font-mono">
+      <div className="mb-0.5 text-[9px] uppercase tracking-wider text-mc-text-dim/50 font-semibold">
+        Score
       </div>
-      {Object.entries(breakdown).map(([key, value]) => (
-        <div key={key} className="flex justify-between gap-3 tabular-nums text-mc-text-dim">
-          <span>{STRATEGY_LABELS[key] ?? key}</span>
-          <span className={value >= 0 ? "text-mc-accent" : "text-red-400"}>
-            {value >= 0 ? "+" : ""}{value.toFixed(2)}
+      <div className="grid grid-cols-[1fr_auto] gap-x-3 gap-y-px">
+        {Object.entries(breakdown).map(([key, value]) => (
+          <span key={key} className="truncate tabular-nums text-mc-text-dim/80">
+            {STRATEGY_LABELS[key] ?? key}
           </span>
-        </div>
-      ))}
-      <div className="mt-1 flex justify-between gap-3 border-t border-mc-border/30 pt-1 font-semibold tabular-nums text-mc-text">
+        ))}
+        {Object.values(breakdown).map((value, i) => (
+          <span
+            key={i}
+            className={`text-right tabular-nums ${value >= 0 ? "text-mc-accent" : "text-red-400"}`}
+          >
+            {value >= 0 ? "+" : ""}{value.toFixed(1)}
+          </span>
+        ))}
+      </div>
+      <div className="mt-0.5 flex justify-between gap-2 border-t border-mc-border/20 pt-0.5 text-mc-text font-semibold tabular-nums">
         <span>Total</span>
         <span className={total >= 0 ? "text-mc-accent" : "text-red-400"}>
-          {total >= 0 ? "+" : ""}{total.toFixed(2)}
+          {total >= 0 ? "+" : ""}{total.toFixed(1)}
         </span>
       </div>
     </div>

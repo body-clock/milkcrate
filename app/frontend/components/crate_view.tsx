@@ -413,12 +413,6 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
         </p>
       )}
 
-      {activeRecord && (
-        <div className="mx-auto mt-3 w-full max-w-xs sm:max-w-sm md:hidden">
-          <ScoreBreakdown listing={activeRecord} />
-        </div>
-      )}
-
     </>
   )
 
