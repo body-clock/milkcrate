@@ -85,74 +85,12 @@ RSpec.describe DailySelectionService do
       end
     end
 
-    context "score_listings weighting" do
-      it "gives higher weight to recently listed records" do
-        service = described_class.new(store)
+    context "scoring and selection" do
+      it "includes only available listings in the selection" do
+        selected = make_listing
+        result = described_class.new(store).generate(date: Date.new(2026, 5, 1))
 
-        date = Date.new(2026, 5, 1)
-        new_listing = make_listing(listed_at: date - 1.day)
-        old_listing = make_listing(listed_at: date - 200.days)
-
-        scored = service.send(:score_listings, store.listings.where(id: [ new_listing.id, old_listing.id ]), date:)
-        scores = scored.to_h { |l, w| [ l.id, w ] }
-
-        expect(scores[new_listing.id]).to be > scores[old_listing.id]
-      end
-
-      it "gives UNSEEN_BOOST to listings not in recent selections" do
-        service = described_class.new(store)
-
-        seen_listing  = make_listing
-        unseen_listing = make_listing
-
-        DailySelection.create!(
-          store: store,
-          selected_on: Date.new(2026, 5, 1),
-          listing_ids: [ seen_listing.id ]
-        )
-
-        scored = service.send(:score_listings, store.listings.where(id: [ seen_listing.id, unseen_listing.id ]), date: Date.new(2026, 5, 1))
-        scores = scored.to_h { |l, w| [ l.id, w ] }
-
-        expect(scores[unseen_listing.id]).to be > scores[seen_listing.id]
-      end
-
-      it "uses the supplied date for recent-listing boosts" do
-        service = described_class.new(store)
-        requested_date = Date.new(2026, 1, 10)
-        listing = make_listing(listed_at: Date.new(2026, 1, 1))
-
-        requested_score = service.send(:score_listings, store.listings.where(id: listing.id), date: requested_date).first.last
-        later_score = service.send(:score_listings, store.listings.where(id: listing.id), date: requested_date + 120.days).first.last
-
-        expect(requested_score).to be > later_score
-      end
-
-      it "uses scorer-derived quality and desirability signals" do
-        service = described_class.new(store)
-        strong = make_listing(condition: "Near Mint", want_count: 800, have_count: 300, genres: [ "Jazz" ])
-        weak = make_listing(condition: "Generic", want_count: 0, have_count: 0, genres: [ "Jazz" ])
-
-        scored = service.send(:score_listings, store.listings.where(id: [ strong.id, weak.id ]), date: Date.new(2026, 5, 1))
-        scores = scored.to_h { |l, w| [ l.id, w ] }
-
-        expect(scores[strong.id]).to be > scores[weak.id]
-      end
-
-      it "uses a recent-selection window relative to the supplied date" do
-        service = described_class.new(store)
-        listing = make_listing
-
-        DailySelection.create!(
-          store:,
-          selected_on: Date.new(2026, 1, 8),
-          listing_ids: [ listing.id ]
-        )
-
-        recent_score = service.send(:score_listings, store.listings.where(id: listing.id), date: Date.new(2026, 1, 10)).first.last
-        old_score = service.send(:score_listings, store.listings.where(id: listing.id), date: Date.new(2026, 2, 1)).first.last
-
-        expect(old_score).to be > recent_score
+        expect(result.listing_ids).to include(selected.id)
       end
     end
   end

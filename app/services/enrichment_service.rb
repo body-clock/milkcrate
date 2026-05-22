@@ -2,9 +2,9 @@ class EnrichmentService
   BATCH_SIZE = 50
   MUSICBRAINZ_SLEEP = 1.1  # MusicBrainz has its own rate limits
 
-  def initialize
-    @discogs = DiscogsClient.new
-    @musicbrainz = MusicBrainzClient.new
+  def initialize(discogs: DiscogsClient.new, musicbrainz: MusicBrainzClient.new)
+    @discogs = discogs
+    @musicbrainz = musicbrainz
   end
 
   def enrich_store(store, listing_ids: nil)
