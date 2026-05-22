@@ -8,12 +8,12 @@ class EnrichmentService
   end
 
   def enrich_store(store, listing_ids: nil)
-    store.mark_enrichment_started!
+    enrichment_manager(store).mark_started!
     enrich_releases(store, listing_ids:)
     enrich_music_brainz_images(store)
-    store.mark_enrichment_succeeded!
+    enrichment_manager(store).mark_succeeded!
   rescue StandardError
-    store.mark_enrichment_failed!
+    enrichment_manager(store).mark_failed!
     raise
   end
 
@@ -132,5 +132,10 @@ class EnrichmentService
     (data["tracklist"] || []).map do |track|
       { "position" => track["position"], "title" => track["title"] }
     end
+  end
+
+  def enrichment_manager(store)
+    @enrichment_managers ||= {}
+    @enrichment_managers[store.id] ||= StoreEnrichment::StatusManager.new(store)
   end
 end

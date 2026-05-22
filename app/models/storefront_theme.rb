@@ -41,10 +41,6 @@ class StorefrontTheme
   end
 
   def sort_key(listing)
-    want_count = listing.want_count || 0
-    have_count = listing.have_count || 0
-    timestamp = listing.listed_at&.to_i || listing.last_seen_at&.to_i || 0
-
-    [ -want_count, -have_count, -timestamp ]
+    listing.sort_key
   end
 end

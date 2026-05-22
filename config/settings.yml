@@ -1,7 +1,7 @@
 # Milkcrate settings — override per environment or via env vars.
 
 demo_store:
-  name: Philadelphia Music
+  name: Beautiful World Syndicate
   discogs_username: philadelphiamusic
   description:
 
@@ -19,3 +19,10 @@ analytics:
 
 honeybadger:
   api_key: <%= Rails.application.credentials.honeybadger_api_key %>
+
+experiments:
+  crate_size: 40
+  # When true, these strategies are excluded from experiment crate generation.
+  # The live storefront is unaffected.
+  disable_desirability: false
+  disable_freshness: true

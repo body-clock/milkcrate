@@ -17,14 +17,14 @@ class StoreSyncService
 
     import_listings(result.listings)
 
-    @store.mark_sync_succeeded!(
+    sync_manager.mark_succeeded!(
       last_synced_at: sync_started_at,
       total_listings: @store.listings.count
     )
 
     result.listings.size
   rescue StandardError => e
-    @store.mark_sync_failed!(e)
+    sync_manager.mark_failed!(e)
     raise
   end
 
@@ -46,7 +46,7 @@ class StoreSyncService
       normalizer: @normalizer
     ).call
 
-    @store.mark_sync_succeeded!(
+    sync_manager.mark_succeeded!(
       last_synced_at: sync_started_at,
       total_listings: @store.listings.count,
       catalog_coverage:,
@@ -59,11 +59,15 @@ class StoreSyncService
       inventory_page_count: observed_page_count
     )
   rescue StandardError => e
-    @store.mark_sync_failed!(e)
+    sync_manager.mark_failed!(e)
     raise
   end
 
   private
+
+  def sync_manager
+    @sync_manager ||= StoreSync::StatusManager.new(@store)
+  end
 
   def import_listings(raw_listings)
     records = raw_listings.filter_map { |raw| @normalizer.call(raw, store_id: @store.id) }

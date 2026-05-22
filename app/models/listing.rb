@@ -7,7 +7,7 @@ class Listing < ApplicationRecord
   # Excludes unenriched records (format="Vinyl" only) intentionally — they
   # lack genre/style data and shouldn't surface in picks or genre bins.
   LP_FORMAT_TERMS = %w[LP Album].freeze
-  NON_VINYL_FORMAT_TERMS = [ "8-Track", "Cassette", "CD", "DVD", "VHS", "Blu-ray", "SACD", "Reel" ].freeze
+  NON_VINYL_FORMAT_TERMS = [ "8-Track", "8-Trk", "Cass", "Cassette", "CD", "DVD", "VHS", "Blu-ray", "SACD", "Reel" ].freeze
   scope :by_genre, ->(genre) { where("? = ANY(genres)", genre) }
   scope :recent, -> { order(listed_at: :desc) }
   scope :new_arrivals, -> { recent.limit(50) }
@@ -15,35 +15,18 @@ class Listing < ApplicationRecord
 
   # Listings absent from latest sync are assumed sold. Never-synced stores fall
   # back to recent activity until first successful inventory snapshot lands.
-  scope :available, lambda {
-    joins(:store).where(
-      <<~SQL.squish,
-        (
-          COALESCE(stores.catalog_coverage, 'unknown') = 'partial'
-          AND listings.last_seen_at > ?
-        )
-        OR
-        (
-          COALESCE(stores.catalog_coverage, 'unknown') != 'partial'
-          AND (
-            (
-              stores.last_synced_at IS NOT NULL
-              AND listings.last_seen_at >= stores.last_synced_at
-            )
-            OR (
-              stores.last_synced_at IS NULL
-              AND listings.last_seen_at > ?
-            )
-          )
-        )
-      SQL
-      3.days.ago,
-      3.days.ago
-    )
-  }
+  scope :available, -> { Listings::AvailableQuery.new(relation: all).call }
 
   def primary_genre
     genres.first
+  end
+
+  def sort_key
+    want_count = self.want_count || 0
+    have_count = self.have_count || 0
+    timestamp = listed_at&.to_i || last_seen_at&.to_i || 0
+
+    [ -want_count, -have_count, -timestamp ]
   end
 
   def self.vinyl
