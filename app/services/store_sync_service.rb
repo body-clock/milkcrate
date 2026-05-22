@@ -1,10 +1,10 @@
 class StoreSyncService
   Result = Data.define(:listing_ids_for_enrichment, :catalog_coverage, :inventory_page_count)
 
-  def initialize(store)
+  def initialize(store, client: DiscogsClient.new, normalizer: StoreSync::ListingNormalizer.new)
     @store = store
-    @client = DiscogsClient.new
-    @normalizer = StoreSync::ListingNormalizer.new
+    @client = client
+    @normalizer = normalizer
   end
 
   # Full sync: crawls all pages. Pass max_pages: 1 for a quick 100-record dev sync.

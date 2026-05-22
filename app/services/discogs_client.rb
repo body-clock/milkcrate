@@ -5,9 +5,9 @@ class DiscogsClient
   class RateLimitError < StandardError; end
   class ApiError < StandardError; end
 
-  def initialize
+  def initialize(connection: nil)
     @token = Rails.application.credentials.dig(:discogs, :token)
-    @connection = build_connection
+    @connection = connection || build_connection
   end
 
   def seller_inventory(username, page: 1, sort: "listed", sort_order: "desc")

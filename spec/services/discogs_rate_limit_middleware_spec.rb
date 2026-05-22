@@ -124,8 +124,7 @@ RSpec.describe DiscogsRateLimitMiddleware do
         f.adapter :test, stubs
       end
 
-      client = DiscogsClient.new
-      client.instance_variable_set(:@connection, conn)
+      client = DiscogsClient.new(connection: conn)
 
       call_count = 0
       stubs.get("/users/testuser/inventory") do
