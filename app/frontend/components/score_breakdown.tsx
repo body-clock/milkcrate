@@ -22,7 +22,7 @@ export default function ScoreBreakdown({ listing }: Props) {
   const total = Object.values(breakdown).reduce((sum, v) => sum + v, 0)
 
   return (
-    <div className="mt-2 mb-1 w-44 rounded border border-mc-border/50 bg-mc-bg-raised/70 px-2.5 py-1.5 text-[10px] font-mono leading-snug">
+    <div className="mt-2 mb-1 rounded border border-mc-border/50 bg-mc-bg-raised/70 px-2.5 py-1.5 text-[10px] font-mono leading-snug">
       <div className="mb-0.5 text-[9px] uppercase tracking-wider text-mc-text-dim/50 font-semibold">
         Score
       </div>
