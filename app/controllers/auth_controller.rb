@@ -49,8 +49,9 @@ class AuthController < ApplicationController
   private
 
   def redirect_with_error(message)
+    store_id = session[:oauth_store_id]
+    slug = Store.find_by(id: store_id)&.discogs_username
     clear_oauth_session
-    slug = Store.find_by(id: session[:oauth_store_id])&.discogs_username
     redirect_to slug ? store_path(slug) : root_path, alert: message
   end
 

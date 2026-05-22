@@ -7,7 +7,6 @@ import { usePage } from "@inertiajs/react"
 
 export default function Dashboard({ store }: DashboardProps) {
   const { notice } = usePage<{ notice?: string; alert?: string }>().props
-  const [signingUp, setSigningUp] = useState(false)
   const [email, setEmail] = useState("")
   const [showWelcome, setShowWelcome] = useState(
     !store.owner_email && !(window.history.state?.welcomeSeen)
