@@ -116,5 +116,4 @@ RSpec.describe "Admin::DiscogsLookups", type: :request do
   def lookup_result(result)
     instance_double(DiscogsSellerLookup, call: result)
   end
-
 end

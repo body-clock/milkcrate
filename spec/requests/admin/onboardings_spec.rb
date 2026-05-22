@@ -156,5 +156,4 @@ RSpec.describe "Admin::Onboardings", type: :request do
       expect(flash[:notice]).to include("Onboarding queued for Applicant Store")
     end
   end
-
 end

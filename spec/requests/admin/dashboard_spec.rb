@@ -43,5 +43,4 @@ RSpec.describe "Admin::Dashboard", type: :request do
       expect(inertia.props[:applicants].map { |applicant| applicant[:name] }).to include("Applicant Store")
     end
   end
-
 end
