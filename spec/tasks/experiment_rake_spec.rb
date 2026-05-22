@@ -2,7 +2,7 @@ require "rails_helper"
 require "rake"
 
 RSpec.describe "experiment:generate" do
-  let!(:store) { create(:store, discogs_username: "freebirdrecords", catalog_coverage: "partial", last_synced_at: 1.hour.ago) }
+  let!(:store) { create(:store, discogs_username: Settings.demo_store.discogs_username, catalog_coverage: "partial", last_synced_at: 1.hour.ago) }
 
   before(:all) do
     Rake.application = Rake::Application.new
@@ -23,7 +23,7 @@ RSpec.describe "experiment:generate" do
     end
 
     expect { Rake::Task["experiment:generate"].invoke("test-crate") }
-      .to output(/Generating seed crate/).to_stdout
+      .to output(/Generating crate/).to_stdout
 
     seed_path = Rails.root.join("experiments", "test-crate", "seed.json")
     expect(File.exist?(seed_path)).to be(true)

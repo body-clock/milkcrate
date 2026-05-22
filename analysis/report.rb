@@ -55,7 +55,7 @@ bands.each do |label, scores|
   min = scores.min
   max = scores.max
   mean = scores.sum / scores.size
-  puts "  %-13s n=%-3d  mean=%+.2f  range=[%+.2f, %+.2f]" % [label, scores.size, mean, min, max]
+  puts "  %-13s n=%-3d  mean=%+.2f  range=[%+.2f, %+.2f]" % [ label, scores.size, mean, min, max ]
 end
 puts
 
@@ -86,7 +86,7 @@ else
       contribs = breakdown.sort_by { |_, v| -v.abs }
       puts "   Score breakdown:"
       contribs.each do |strat, val|
-        puts "     %-20s %+.2f" % [strat, val]
+        puts "     %-20s %+.2f" % [ strat, val ]
       end
     end
 

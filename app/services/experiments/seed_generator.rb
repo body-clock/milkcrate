@@ -113,7 +113,5 @@ module Experiments
         }
       end
     end
-
-
   end
 end

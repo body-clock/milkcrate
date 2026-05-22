@@ -52,7 +52,7 @@ labels = all_labeled.group_by { |r| r["label"] }
   min = scores.min
   max = scores.max
   mean = scores.sum / scores.size
-  puts "  %-12s n=%-3d  mean=%+.2f  range=[%+.2f, %+.2f]" % [label, scores.size, mean, min, max]
+  puts "  %-12s n=%-3d  mean=%+.2f  range=[%+.2f, %+.2f]" % [ label, scores.size, mean, min, max ]
 end
 puts
 
@@ -83,7 +83,7 @@ else
       contribs = breakdown.sort_by { |_, v| -v.abs }
       puts "   Score breakdown:"
       contribs.each do |strat, val|
-        puts "     %-20s %+.2f" % [strat, val]
+        puts "     %-20s %+.2f" % [ strat, val ]
       end
     end
     puts
@@ -117,7 +117,7 @@ else
       contribs = breakdown.sort_by { |_, v| -v.abs }
       puts "   Score breakdown:"
       contribs.each do |strat, val|
-        puts "     %-20s %+.2f" % [strat, val]
+        puts "     %-20s %+.2f" % [ strat, val ]
       end
     end
     puts
@@ -145,7 +145,7 @@ if top_junk.any? && top_cool.any?
   all_strategies.each do |strat|
     vals = top_junk.map { |r| (r["score_breakdown"] || {})[strat] || 0 }
     avg = vals.sum / vals.size
-    puts "  %-20s %+.2f" % [strat, avg]
+    puts "  %-20s %+.2f" % [ strat, avg ]
   end
   puts
 
@@ -154,7 +154,7 @@ if top_junk.any? && top_cool.any?
   all_strategies.each do |strat|
     vals = top_cool.map { |r| (r["score_breakdown"] || {})[strat] || 0 }
     avg = vals.sum / vals.size
-    puts "  %-20s %+.2f" % [strat, avg]
+    puts "  %-20s %+.2f" % [ strat, avg ]
   end
   puts
 
@@ -165,7 +165,7 @@ if top_junk.any? && top_cool.any?
     cool_avg = top_cool.map { |r| (r["score_breakdown"] || {})[strat] || 0 }.sum / top_cool.size
     gap = junk_avg - cool_avg
     arrow = gap > 0 ? "↑ over-boosts junk" : gap < 0 ? "↓ under-boosts cool" : "—"
-    puts "  %-20s %+.2f  %s" % [strat, gap, arrow]
+    puts "  %-20s %+.2f  %s" % [ strat, gap, arrow ]
   end
   puts
 else

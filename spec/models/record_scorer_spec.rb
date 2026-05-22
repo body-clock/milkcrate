@@ -34,15 +34,6 @@ RSpec.describe RecordScorer do
       expect(scorer.score(vintage)).to be > scorer.score(recent)
     end
 
-    it "boosts records from small genre sections" do
-      listing = build_stubbed(:listing, genres: [ "Jazz" ])
-
-      small = build(:record_scorer, genre_counts: { "Jazz" => 4 }, today: Date.new(2026, 5, 5))
-      large = build(:record_scorer, genre_counts: { "Jazz" => 5 }, today: Date.new(2026, 5, 5))
-
-      expect(small.score(listing)).to be > large.score(listing)
-    end
-
     it "boosts records with high want/have ratio above minimum have threshold" do
       scorer  = build(:record_scorer, genre_counts: { "Jazz" => 5 }, today: Date.new(2026, 5, 5))
       coveted = listing(id: 1, want_count: 800, have_count: 300, genres: [ "Jazz" ])

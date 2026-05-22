@@ -8,8 +8,14 @@ RSpec.describe ScoreStrategies::VintageStrategy do
   end
 
   describe "#score" do
-    it "returns 2.0 for records from before 1980" do
-      expect(strategy.score(listing(year: 1979))).to eq(2.0)
+    it "returns 1.0 for records from 1960 to 1979" do
+      expect(strategy.score(listing(year: 1965))).to eq(1.0)
+      expect(strategy.score(listing(year: 1979))).to eq(1.0)
+    end
+
+    it "returns 0.0 for records from before 1960" do
+      expect(strategy.score(listing(year: 1959))).to eq(0.0)
+      expect(strategy.score(listing(year: 1940))).to eq(0.0)
     end
 
     it "returns 0.0 for records from 1980 or later" do
