@@ -17,6 +17,11 @@ Rails.application.routes.draw do
   get  "/apply",   to: "pages#apply"
   post "/apply", to: "waitlists#create"
 
+  # Store owner dashboard
+  get "/dashboard", to: "dashboard#index", as: :dashboard
+  post "/dashboard/resync", to: "dashboard#resync"
+  post "/dashboard/signup", to: "dashboard#signup"
+
   # OAuth flow — must be before the catch-all /:slug route
   post "/:slug/authorize",
     to: "stores#authorize",
