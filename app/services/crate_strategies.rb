@@ -144,7 +144,8 @@ module CrateStrategies
     MAX_ENGAGEMENT  = 100
     MIN_WANTS       = 10
 
-    def initialize(genre_counts:)
+    def initialize(genre_counts:, today: Date.today)
+      @scorer       = RecordScorer.new(genre_counts:, today:)
       @genre_counts = genre_counts
     end
 
@@ -160,20 +161,18 @@ module CrateStrategies
       }
       return [] if desirable.size < MIN_RECORDS
 
-      # Rank by want/have ratio: the more disproportionate the demand, the
-      # stronger the gem signal.
-      ranked = desirable.sort_by { |listing| -want_have_ratio(listing) }
-      apply_genre_cap(ranked)
+      # Score by RecordScorer and sort best-first, then apply genre cap.
+      # Using the same scoring algorithm as other strategies means tweaks
+      # like the price strategy affect Hidden Gems consistently.
+      scored = desirable
+        .map { |listing| [ listing, @scorer.score(listing) ] }
+        .sort_by { |_, s| -s }
+        .map(&:first)
+
+      apply_genre_cap(scored)
     end
 
     private
-
-    def want_have_ratio(listing)
-      want = listing.want_count.to_i
-      have = listing.have_count.to_i
-      return want.to_f if have.zero?
-      want.to_f / have
-    end
 
     def apply_genre_cap(ranked)
       genre_seen = Hash.new(0)

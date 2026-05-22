@@ -181,7 +181,7 @@ class StorefrontCuration
   end
 
   def hidden_gems_strategy
-    @hidden_gems_strategy ||= CrateStrategies::HiddenGems.new(genre_counts:)
+    @hidden_gems_strategy ||= CrateStrategies::HiddenGems.new(genre_counts:, today: Date.today)
   end
 
   def build_hidden_gems_crate(excluded_ids:)
