@@ -26,6 +26,15 @@ class Store < ApplicationRecord
     failed: "failed"
   }, default: "idle", prefix: "enrichment"
 
+  enum :sync_source, {
+    public_api: "public_api",
+    csv_export: "csv_export"
+  }, default: "public_api", prefix: "sync_source"
+
+  def oauth_authorized?
+    discogs_oauth_token.present? && discogs_oauth_token_secret.present? && oauth_authorized_at.present?
+  end
+
   def listings_for_selection(listing_ids)
     listings.where(id: listing_ids)
   end
