@@ -20,8 +20,8 @@ class StoresController < ApplicationController
     inventory = client.seller_inventory(slug, page: 1)
     total_listings = inventory.dig("pagination", "items") || 0
 
-    if total_listings == 0
-      redirect_to store_path(slug), alert: "We couldn't find any inventory for this Discogs account. Milkcrate is for record stores with vinyl to sell."
+    if total_listings < 500
+      redirect_to store_path(slug), alert: "We couldn't find enough inventory for this Discogs account. Milkcrate requires at least 500 vinyl records to create a storefront."
       return
     end
 
@@ -49,7 +49,9 @@ class StoresController < ApplicationController
     render inertia: "stores/invitation", props: {
       waitlist_present: waitlist_present,
       slug: slug,
-      oauth_available: true
+      oauth_available: true,
+      alert: flash[:alert],
+      notice: flash[:notice]
     }
   end
 
@@ -60,7 +62,9 @@ class StoresController < ApplicationController
     render inertia: "stores/show", props: {
       store: store_props(store),
       crates: cached[:crates],
-      storefront_sections: cached[:sections]
+      storefront_sections: cached[:sections],
+      alert: flash[:alert],
+      notice: flash[:notice]
     }
   end
 
