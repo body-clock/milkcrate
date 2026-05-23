@@ -62,33 +62,36 @@ class EnrichmentService
   def enrich_release(discogs_release_id, store)
     data, = @discogs.release(discogs_release_id)
 
-    want    = data.dig("community", "want").to_i
-    have    = data.dig("community", "have").to_i
-    genres  = Array(data["genres"])
-    styles  = Array(data["styles"])
-    formats = Array(data["formats"])
-    format_str  = formats.flat_map { |f| [ f["name"], *Array(f["descriptions"]) ] }.join(", ").presence
-    cover_url   = extract_primary_image(data)
-    tracklist   = extract_tracklist(data)
-
     now = Time.current
     Release.upsert(
-      { discogs_release_id: discogs_release_id, want_count: want, have_count: have,
-        enriched_at: now, discogs_image_missing: cover_url.nil?, created_at: now, updated_at: now },
+      { discogs_release_id: discogs_release_id, want_count: data.dig("community", "want").to_i,
+        have_count: data.dig("community", "have").to_i,
+        enriched_at: now, discogs_image_missing: extract_primary_image(data).nil?,
+        created_at: now, updated_at: now },
       unique_by: :discogs_release_id,
       update_only: %i[want_count have_count enriched_at discogs_image_missing]
     )
 
-    listing_updates = { want_count: want, have_count: have }
-    listing_updates[:genres]          = genres     if genres.any?
-    listing_updates[:styles]          = styles     if styles.any?
-    listing_updates[:format]          = format_str if format_str
-    listing_updates[:cover_image_url] = cover_url  if cover_url.present?
-    listing_updates[:tracklist]       = tracklist  if tracklist.any?
-
     store.listings
       .where(discogs_release_id: discogs_release_id)
-      .update_all(listing_updates)
+      .update_all(listing_updates(data))
+  end
+
+  def listing_updates(data)
+    { want_count: data.dig("community", "want").to_i,
+      have_count: data.dig("community", "have").to_i,
+      genres: Array(data["genres"]).presence,
+      styles: Array(data["styles"]).presence,
+      format: format_label(data),
+      cover_image_url: extract_primary_image(data),
+      tracklist: extract_tracklist(data).presence }
+      .compact
+  end
+
+  def format_label(data)
+    Array(data["formats"])
+      .flat_map { |f| [f["name"], *Array(f["descriptions"])] }
+      .join(", ").presence
   end
 
   def extract_primary_image(data)

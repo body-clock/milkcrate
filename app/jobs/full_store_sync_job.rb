@@ -81,17 +81,16 @@ class FullStoreSyncJob < ApplicationJob
   end
 
   def materially_changed?(existing, incoming)
-    [
-      existing.discogs_release_id.to_s,
-      normalized_price(existing.price),
-      existing.condition,
-      existing.notes
-    ] != [
-      incoming[:discogs_release_id].to_s,
-      normalized_price(incoming[:price]),
-      incoming[:condition],
-      incoming[:notes]
-    ]
+    differing?(
+      [existing.discogs_release_id.to_s, incoming[:discogs_release_id].to_s],
+      [normalized_price(existing.price), normalized_price(incoming[:price])],
+      [existing.condition, incoming[:condition]],
+      [existing.notes, incoming[:notes]]
+    )
+  end
+
+  def differing?(*pairs)
+    pairs.any? { |a, b| a != b }
   end
 
   def normalized_price(value)
