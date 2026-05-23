@@ -1,6 +1,5 @@
 class EnrichmentService
   BATCH_SIZE = 50
-  MUSICBRAINZ_SLEEP = 1.1  # MusicBrainz has its own rate limits
 
   def initialize(discogs: DiscogsClient.new, musicbrainz: MusicBrainzClient.new)
     @discogs = discogs
@@ -10,7 +9,7 @@ class EnrichmentService
   def enrich_store(store, listing_ids: nil)
     enrichment_manager(store).mark_started!
     enrich_releases(store, listing_ids:)
-    enrich_music_brainz_images(store)
+    MusicBrainzEnricher.new(musicbrainz: @musicbrainz).enrich_store(store)
     enrichment_manager(store).mark_succeeded!
   rescue StandardError
     enrichment_manager(store).mark_failed!
@@ -55,45 +54,6 @@ class EnrichmentService
       rescue DiscogsClient::ApiError => e
         Rails.logger.warn "[EnrichmentService] API error for release #{release_id}: #{e.message}"
       end
-    end
-  end
-
-  # ── MusicBrainz Cover Image Enrichment ──────────────────────────────────
-
-  def enrich_music_brainz_images(store)
-    candidate_release_ids = store.listings
-      .joins("INNER JOIN releases ON releases.discogs_release_id = listings.discogs_release_id")
-      .where(releases: { discogs_image_missing: true, musicbrainz_id: nil })
-      .distinct
-      .pluck("listings.discogs_release_id")
-
-    Rails.logger.info "[EnrichmentService] #{candidate_release_ids.size} releases to search for store #{store.name}"
-
-    candidate_release_ids.each do |discogs_release_id|
-      listing = store.listings.find_by(discogs_release_id: discogs_release_id)
-      next unless listing
-
-      mbid = @musicbrainz.search_release(artist: listing.artist, title: listing.title)
-
-      if mbid.nil?
-        Release.where(discogs_release_id: discogs_release_id).update_all(musicbrainz_id: "")
-        sleep(MUSICBRAINZ_SLEEP)
-        next
-      end
-
-      cover_url = @musicbrainz.front_cover_url(mbid)
-
-      Release.where(discogs_release_id: discogs_release_id).update_all(musicbrainz_id: mbid)
-
-      if cover_url.present?
-        store.listings
-          .where(discogs_release_id: discogs_release_id)
-          .update_all(cover_image_url: cover_url)
-      end
-
-      sleep(MUSICBRAINZ_SLEEP)
-    rescue MusicBrainzClient::ApiError => e
-      Rails.logger.warn "[EnrichmentService] API error for #{discogs_release_id}: #{e.message}"
     end
   end
 

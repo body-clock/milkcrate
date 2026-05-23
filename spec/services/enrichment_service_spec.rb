@@ -13,27 +13,29 @@ RSpec.describe EnrichmentService do
 
   describe "#enrich_store" do
     it "sets enrichment lifecycle state around both enrichment phases" do
+      enricher = instance_double(MusicBrainzEnricher, enrich_store: nil)
+      allow(MusicBrainzEnricher).to receive(:new).with(musicbrainz: musicbrainz).and_return(enricher)
       allow(service).to receive(:enrich_releases)
-      allow(service).to receive(:enrich_music_brainz_images)
 
       service.enrich_store(store, listing_ids: [ 1, 2 ])
 
       expect(service).to have_received(:enrich_releases).with(store, listing_ids: [ 1, 2 ])
-      expect(service).to have_received(:enrich_music_brainz_images).with(store)
+      expect(enricher).to have_received(:enrich_store).with(store)
       expect(store.reload.enrichment_status).to eq("idle")
       expect(store.last_enriched_at).to be_within(1.second).of(Time.current)
     end
 
     it "marks enrichment failed and re-raises on hard failure" do
+      enricher = instance_double(MusicBrainzEnricher, enrich_store: nil)
+      allow(MusicBrainzEnricher).to receive(:new).and_return(enricher)
       allow(service).to receive(:enrich_releases).and_raise(StandardError.new("boom"))
-      allow(service).to receive(:enrich_music_brainz_images)
 
       expect {
         service.enrich_store(store)
       }.to raise_error(StandardError, "boom")
 
       expect(store.reload.enrichment_status).to eq("failed")
-      expect(service).not_to have_received(:enrich_music_brainz_images)
+      expect(enricher).not_to have_received(:enrich_store)
     end
 
     it "finishes idle when individual API errors are handled inside enrichment phases" do
@@ -168,49 +170,4 @@ RSpec.describe EnrichmentService do
     end
   end
 
-  describe "#enrich_music_brainz_images" do
-    let!(:listing) do
-      create(:listing, store:, discogs_release_id: "123", artist: "Test Artist", title: "Test Album", cover_image_url: nil)
-    end
-
-    before do
-      Release.create!(
-        discogs_release_id: "123",
-        discogs_image_missing: true,
-        musicbrainz_id: nil,
-        enriched_at: Time.current)
-    end
-
-    it "fetches cover images for releases without them" do
-      allow(musicbrainz).to receive(:search_release).with(artist: "Test Artist", title: "Test Album")
-        .and_return("mbid-123")
-      allow(musicbrainz).to receive(:front_cover_url).with("mbid-123")
-        .and_return("https://coverartarchive.org/release/mbid-123/front")
-
-      service.enrich_music_brainz_images(store)
-
-      listing.reload
-      expect(listing.cover_image_url).to eq("https://coverartarchive.org/release/mbid-123/front")
-      expect(Release.find_by(discogs_release_id: "123").musicbrainz_id).to eq("mbid-123")
-    end
-
-    it "skips releases with no matching MusicBrainz ID" do
-      allow(musicbrainz).to receive(:search_release).with(artist: "Test Artist", title: "Test Album")
-        .and_return(nil)
-
-      service.enrich_music_brainz_images(store)
-
-      listing.reload
-      expect(listing.cover_image_url).to be_nil
-      expect(Release.find_by(discogs_release_id: "123").musicbrainz_id).to eq("")
-    end
-
-    it "handles MusicBrainz API errors gracefully" do
-      allow(musicbrainz).to receive(:search_release).with(artist: "Test Artist", title: "Test Album")
-        .and_raise(MusicBrainzClient::ApiError, "Search failed")
-      expect(Rails.logger).to receive(:warn).with(/API error/)
-
-      service.enrich_music_brainz_images(store)
-    end
-  end
 end
