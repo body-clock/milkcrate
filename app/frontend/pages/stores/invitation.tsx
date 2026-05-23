@@ -67,7 +67,7 @@ export default function Invitation({ waitlist_present, slug, oauth_available }: 
 }
 
 function InvitationContent({ slug, oauth_available }: { slug: string; oauth_available?: boolean }) {
-  const [probeState, setProbeState] = useState<"loading" | "found" | "not_found" | "error">("loading")
+  const [probeState, setProbeState] = useState<"loading" | "found" | "not_found">("loading")
   const [sellerName, setSellerName] = useState<string | null>(null)
   const csrfToken = document.querySelector<HTMLMetaElement>("meta[name='csrf-token']")?.content
 
@@ -103,7 +103,7 @@ function InvitationContent({ slug, oauth_available }: { slug: string; oauth_avai
     fetch(`/api/discogs/lookup/${encodeURIComponent(slug)}`, { signal: controller.signal })
       .then((res) => {
         if (!res.ok) {
-          setProbeState("error")
+          setProbeState("not_found")
           return
         }
         return res.json() as Promise<LookupResponse>
@@ -119,7 +119,7 @@ function InvitationContent({ slug, oauth_available }: { slug: string; oauth_avai
       })
       .catch((err) => {
         if (err instanceof DOMException && err.name === "AbortError") return
-        setProbeState("error")
+        setProbeState("not_found")
       })
       .finally(() => clearTimeout(timeoutId))
 
@@ -210,7 +210,7 @@ function InvitationContent({ slug, oauth_available }: { slug: string; oauth_avai
           </motion.div>
         )}
 
-        {/* Not found or errored — generic invitation */}
+        {/* Not found — generic invitation */}
         {probeState === "not_found" && (
           <motion.div
             initial={{ opacity: 0, y: 8 }}
@@ -246,45 +246,6 @@ function InvitationContent({ slug, oauth_available }: { slug: string; oauth_avai
               >
                 Apply to join
               </Link>
-            </motion.div>
-          </motion.div>
-        )}
-
-        {probeState === "error" && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            className="w-full"
-          >
-            <motion.h1
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1, duration: 0.3 }}
-              className="text-2xl font-bold mc-text mb-3"
-            >
-              Could not check availability
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.3 }}
-              className="text-sm text-mc-text-dim leading-relaxed max-w-sm mx-auto mb-8"
-            >
-              We ran into a network issue while looking up this Discogs account.
-              Please try again later.
-            </motion.p>
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.3 }}
-            >
-              <button
-                onClick={() => window.location.reload()}
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-mc-accent text-mc-on-accent font-semibold text-sm tracking-wide hover:opacity-90 transition-opacity"
-              >
-                Try again
-              </button>
             </motion.div>
           </motion.div>
         )}
