@@ -1,3 +1,4 @@
+# The owner of a store with OAuth credentials and contact info.
 class StoreOwner < ApplicationRecord
   has_many :stores, dependent: :nullify
 

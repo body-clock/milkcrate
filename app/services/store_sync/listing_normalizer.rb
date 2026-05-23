@@ -1,4 +1,6 @@
+# Namespace for store sync components (fetch, normalize, reconcile, status).
 module StoreSync
+  # Normalizes raw Discogs listing data into the internal listing schema.
   class ListingNormalizer
     VINYL_FORMATS = Listing::VINYL_FORMATS
     NON_VINYL = %w[CD Cassette DVD VHS].freeze

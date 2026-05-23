@@ -1,3 +1,4 @@
+# Cached Discogs release metadata (artist, title, year, genres).
 class Release < ApplicationRecord
   validates :discogs_release_id, presence: true, uniqueness: true
 

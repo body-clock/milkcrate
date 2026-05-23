@@ -40,7 +40,7 @@ RSpec.describe DailyCurationService do
           build_crates: [ { slug: "picks", records: [] } ]
         )
       end
-      allow(StorefrontCuration).to receive(:write_curation_cache).and_return(true)
+      allow(StorefrontCuration::CacheManager).to receive(:write_curation_cache).and_return(true)
     end
 
     it "updates surfaced bookkeeping for listings from storefront curation" do
@@ -75,7 +75,7 @@ RSpec.describe DailyCurationService do
     it "pre-warms the cache after surfacing listings" do
       described_class.new.curate(store)
 
-      expect(StorefrontCuration).to have_received(:write_curation_cache) do |store_arg, payload|
+      expect(StorefrontCuration::CacheManager).to have_received(:write_curation_cache) do |store_arg, payload|
         expect(store_arg).to eq(store)
         expect(payload).to be_a(Hash)
         expect(payload.keys).to match_array(%i[sections crates])

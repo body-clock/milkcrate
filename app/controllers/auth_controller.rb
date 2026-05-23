@@ -1,3 +1,4 @@
+# Handles Discogs OAuth authentication flow (login, callback, logout).
 class AuthController < ApplicationController
   def callback
     slug = session[:oauth_store_slug]
@@ -18,8 +19,8 @@ class AuthController < ApplicationController
     ).call
 
     if result.success?
+      reset_session
       session[:store_owner_id] = result.store.store_owner_id
-      clear_oauth_session
       redirect_to dashboard_path, notice: "Store authorized! Full inventory sync has started."
     else
       redirect_with_error(result.error)

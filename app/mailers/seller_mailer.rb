@@ -1,3 +1,4 @@
+# Mailer for sending seller notifications (sync errors, curation reports).
 class SellerMailer < ApplicationMailer
   def confirmation(waitlist)
     @waitlist = waitlist

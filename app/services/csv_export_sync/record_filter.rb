@@ -1,4 +1,6 @@
+# Namespace for CSV export sync components.
 module CsvExportSync
+  # Filters parsed CSV records to remove non-LP formats and unwanted entries.
   module RecordFilter
     NON_VINYL = %w[CD Cassette DVD VHS].freeze
     SOLD_STATUSES = %w[Sold Draft Expired].freeze

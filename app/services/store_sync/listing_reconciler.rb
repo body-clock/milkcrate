@@ -1,4 +1,6 @@
+# Namespace for store sync components (fetch, normalize, reconcile, status).
 module StoreSync
+  # Reconciles incoming listing data with existing records to detect changes.
   class ListingReconciler
     Result = Data.define(:listing_ids_for_enrichment)
     UPDATE_FIELDS = %i[

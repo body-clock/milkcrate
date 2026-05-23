@@ -1,3 +1,4 @@
+# Coordinates full inventory synchronization for a store across strategies.
 class StoreSyncService
   # Dev-console helper for quick syncs. For production syncs, use FullStoreSyncJob
   # which delegates to SyncStrategies::PublicApi or SyncStrategies::CsvExport.

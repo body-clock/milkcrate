@@ -1,4 +1,6 @@
+# Namespace for admin controllers and presenters.
 module Admin
+  # Serializes admin dashboard data (store health, sync stats) for Inertia views.
   class DashboardPresenter
     def props
       {

@@ -19,8 +19,8 @@ RSpec.describe DiscogsClient do
     response
   end
 
-  describe "#seller_inventory" do
-    it "returns parsed body on 200" do
+  describe "delegation shim" do
+    it "delegates seller_inventory to PublicClient" do
       stubs.get("/users/testuser/inventory") do
         [ 200, { "Content-Type" => "application/json" }, '{"listings":[],"pagination":{"pages":1}}' ]
       end
@@ -29,7 +29,17 @@ RSpec.describe DiscogsClient do
       expect(result["listings"]).to eq([])
     end
 
-    it "raises RateLimitError on 429" do
+    it "delegates release to PublicClient" do
+      stubs.get("/releases/12345") do
+        [ 200, { "Content-Type" => "application/json", "x-discogs-ratelimit-remaining" => "55" }, '{"id":12345}' ]
+      end
+
+      body, remaining = client.release("12345")
+      expect(body["id"]).to eq(12345)
+      expect(remaining).to eq(55)
+    end
+
+    it "raises DiscogsClient::RateLimitError on 429" do
       stubs.get("/users/testuser/inventory") do
         [ 429, {}, "rate limited" ]
       end
@@ -39,7 +49,7 @@ RSpec.describe DiscogsClient do
       }.to raise_error(DiscogsClient::RateLimitError, /rate limit/)
     end
 
-    it "raises ApiError on other error status" do
+    it "raises DiscogsClient::ApiError on other error status" do
       stubs.get("/users/testuser/inventory") do
         [ 503, {}, "service unavailable" ]
       end
@@ -48,26 +58,22 @@ RSpec.describe DiscogsClient do
         client.seller_inventory("testuser")
       }.to raise_error(DiscogsClient::ApiError, /503/)
     end
-  end
 
-  describe "#release" do
-    it "returns body and remaining rate limit count" do
-      stubs.get("/releases/12345") do
-        [ 200, { "Content-Type" => "application/json", "x-discogs-ratelimit-remaining" => "55" }, '{"id":12345}' ]
-      end
+    it "DiscogsClient::RateLimitError is the same class as Discogs::Errors::RateLimitError" do
+      expect(DiscogsClient::RateLimitError).to eq(Discogs::Errors::RateLimitError)
+    end
 
-      body, remaining = client.release("12345")
-      expect(body["id"]).to eq(12345)
-      expect(remaining).to eq(55)
+    it "DiscogsClient::ApiError is the same class as Discogs::Errors::ApiError" do
+      expect(DiscogsClient::ApiError).to eq(Discogs::Errors::ApiError)
     end
   end
 
-  describe "OAuth client" do
+  describe "OAuth delegation" do
     subject(:oauth_client) { described_class.new(connection: conn, access_token: "at", access_token_secret: "ats") }
-    let(:oauth_access_token) { instance_double(OAuth::AccessToken) }
+    let(:marketplace) { instance_double(Discogs::Marketplace) }
 
     before do
-      allow(oauth_client).to receive(:oauth_access_token).and_return(oauth_access_token)
+      allow(Discogs::Marketplace).to receive(:new).and_return(marketplace)
     end
 
     describe "#inventory_export" do
@@ -75,40 +81,34 @@ RSpec.describe DiscogsClient do
         expect { client.inventory_export }.to raise_error(DiscogsClient::ApiError, /OAuth access token required/)
       end
 
-      it "returns an export id from a JSON body" do
-        response = oauth_response(code: 200, body: '{"id":42}')
-        allow(oauth_access_token).to receive(:post).and_return(response)
-
-        expect(oauth_client.inventory_export).to eq({ "id" => 42 })
-      end
-
-      it "falls back to the Location header when the body is empty" do
-        response = oauth_response(
-          code: 202,
-          body: "",
-          location: "https://api.discogs.com/inventory/export/42"
-        )
-        allow(oauth_access_token).to receive(:post).and_return(response)
+      it "delegates to Marketplace when tokens are present" do
+        allow(marketplace).to receive(:inventory_export).and_return({ "id" => 42 })
 
         expect(oauth_client.inventory_export).to eq({ "id" => 42 })
       end
     end
 
     describe "#check_export_status" do
-      it "normalizes 304 responses to not_modified" do
-        response = oauth_response(code: 304, body: "")
-        allow(oauth_access_token).to receive(:get).and_return(response)
+      it "delegates to Marketplace" do
+        allow(marketplace).to receive(:check_export_status).with(42).and_return({ "status" => "completed" })
 
-        expect(oauth_client.check_export_status(42)).to eq({ "status" => "not_modified" })
+        expect(oauth_client.check_export_status(42)).to eq({ "status" => "completed" })
       end
     end
 
     describe "#recent_exports" do
-      it "returns an array of recent export hashes" do
-        response = oauth_response(code: 200, body: '{"exports":{"id":42}}')
-        allow(oauth_access_token).to receive(:get).and_return(response)
+      it "delegates to Marketplace" do
+        allow(marketplace).to receive(:recent_exports).and_return([ { "id" => 42 } ])
 
         expect(oauth_client.recent_exports).to eq([ { "id" => 42 } ])
+      end
+    end
+
+    describe "#download_export" do
+      it "delegates to Marketplace" do
+        allow(marketplace).to receive(:download_export).with(42).and_return("csv data")
+
+        expect(oauth_client.download_export(42)).to eq("csv data")
       end
     end
 
@@ -116,18 +116,11 @@ RSpec.describe DiscogsClient do
       it "raises ApiError when called without OAuth tokens" do
         expect { client.list_orders }.to raise_error(DiscogsClient::ApiError, /OAuth access token required/)
       end
-    end
 
-    describe "#download_export" do
-      it "raises ApiError when called without OAuth tokens" do
-        expect { client.download_export(1) }.to raise_error(DiscogsClient::ApiError, /OAuth access token required/)
-      end
+      it "delegates to Marketplace" do
+        allow(marketplace).to receive(:list_orders).and_return([])
 
-      it "raises ApiError on non-200 responses" do
-        response = oauth_response(code: 500, body: "boom")
-        allow(oauth_access_token).to receive(:get).and_return(response)
-
-        expect { oauth_client.download_export(1) }.to raise_error(DiscogsClient::ApiError, /HTTP 500/)
+        expect(oauth_client.list_orders).to eq([])
       end
     end
   end

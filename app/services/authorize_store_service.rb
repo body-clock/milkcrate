@@ -1,3 +1,4 @@
+# Authorizes a store owner by exchanging OAuth tokens and setting up the store.
 class AuthorizeStoreService
   MINIMUM_LISTINGS = 500
 

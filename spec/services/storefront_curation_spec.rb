@@ -262,7 +262,7 @@ RSpec.describe StorefrontCuration do
     end
 
     it "cache key includes store id, current date, and scope" do
-      key = described_class::CURATION_CACHE_KEY % {
+      key = StorefrontCuration::CacheManager::CURATION_CACHE_KEY % {
         store_id: store.id,
         date: Date.current.iso8601,
         scope: "available"
@@ -272,7 +272,7 @@ RSpec.describe StorefrontCuration do
       expect(cache.exist?(key)).to be true
 
       # Different date should result in a different (empty) cache
-      other_key = described_class::CURATION_CACHE_KEY % {
+      other_key = StorefrontCuration::CacheManager::CURATION_CACHE_KEY % {
         store_id: store.id,
         date: (Date.current + 1.day).iso8601,
         scope: "available"
@@ -281,12 +281,12 @@ RSpec.describe StorefrontCuration do
     end
 
     it "uses different cache keys for different filter_available scopes" do
-      available_key = described_class::CURATION_CACHE_KEY % {
+      available_key = StorefrontCuration::CacheManager::CURATION_CACHE_KEY % {
         store_id: store.id,
         date: Date.current.iso8601,
         scope: "available"
       }
-      all_key = described_class::CURATION_CACHE_KEY % {
+      all_key = StorefrontCuration::CacheManager::CURATION_CACHE_KEY % {
         store_id: store.id,
         date: Date.current.iso8601,
         scope: "all"
@@ -326,7 +326,7 @@ RSpec.describe StorefrontCuration do
 
     it "writes the payload to cache with the correct key including scope" do
       payload = { sections: [], crates: [] }
-      key = described_class::CURATION_CACHE_KEY % {
+      key = StorefrontCuration::CacheManager::CURATION_CACHE_KEY % {
         store_id: store.id,
         date: Date.current.iso8601,
         scope: "available"
@@ -339,12 +339,12 @@ RSpec.describe StorefrontCuration do
 
     it "writes to a different key when filter_available is false" do
       payload = { sections: [], crates: [] }
-      available_key = described_class::CURATION_CACHE_KEY % {
+      available_key = StorefrontCuration::CacheManager::CURATION_CACHE_KEY % {
         store_id: store.id,
         date: Date.current.iso8601,
         scope: "available"
       }
-      all_key = described_class::CURATION_CACHE_KEY % {
+      all_key = StorefrontCuration::CacheManager::CURATION_CACHE_KEY % {
         store_id: store.id,
         date: Date.current.iso8601,
         scope: "all"

@@ -1,4 +1,6 @@
+# Namespace for admin controllers and presenters.
 module Admin
+  # Serializes store health metrics for the admin monitoring view.
   class StoreHealthPresenter
     def initialize(store)
       @store = store

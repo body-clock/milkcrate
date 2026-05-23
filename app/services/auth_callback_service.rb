@@ -1,3 +1,4 @@
+# Handles the OAuth callback from Discogs after a user authorizes the application.
 class AuthCallbackService
   Result = Data.define(:store, :error) do
     def success? = error.nil?

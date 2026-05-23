@@ -1,3 +1,4 @@
+# Manages the enrichment status lifecycle for a store (idle, enriching, failed).
 class StoreEnrichment::StatusManager
   def initialize(store)
     @store = store

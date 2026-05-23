@@ -1,4 +1,6 @@
+# Namespace for CSV export sync components.
 module CsvExportSync
+  # Requests and polls a Discogs CSV export, then downloads the result.
   class ExportRequester
     POLL_INTERVAL = 5.seconds
     MAX_POLL_TIME = 10.minutes

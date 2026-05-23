@@ -1,3 +1,4 @@
+# Encapsulates the Picks crate selection policy: genre diversity, shuffle seeding, and genre caps.
 class PickPolicy
   # Maximum picks from any single genre to ensure diversity.
   # At least 2 per genre, at most count/3.

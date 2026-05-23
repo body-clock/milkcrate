@@ -1,3 +1,4 @@
+# Job that triggers FullStoreSyncJob for every active store.
 class SyncAllStoresJob < ApplicationJob
   queue_as :default
 

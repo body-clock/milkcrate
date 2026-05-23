@@ -1,4 +1,6 @@
+# Namespace for store sync components (fetch, normalize, reconcile, status).
 module StoreSync
+  # Classifies the catalog coverage of a store inventory import.
   class CoverageClassifier
     PUBLIC_PAGE_LIMIT = 100
 

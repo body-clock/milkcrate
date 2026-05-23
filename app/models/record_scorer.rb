@@ -1,3 +1,4 @@
+# Computes a composite score for a listing across all score strategies.
 class RecordScorer
   def initialize(strategies: nil, genre_counts:, today: Date.today)
     @strategies = strategies || self.class.default_strategies(genre_counts:, today:)

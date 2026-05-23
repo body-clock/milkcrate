@@ -1,4 +1,6 @@
+# Namespace for sync strategies (public API, CSV export).
 module SyncStrategies
+  # Sync strategy that imports listings from the Discogs public API (app token).
   class PublicApi
     def initialize(client: nil, normalizer: nil)
       @client = client || DiscogsClient.new

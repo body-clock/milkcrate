@@ -1,3 +1,4 @@
+# Domain value for theme-based crate curation (genre themes, style themes).
 class StorefrontTheme
   FEATURED_MIN_RECORDS = 4
 

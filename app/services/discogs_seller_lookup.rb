@@ -1,3 +1,4 @@
+# Looks up a Discogs seller by username to verify they exist before onboarding.
 class DiscogsSellerLookup
   ROUTE_USERNAME_REGEX = /#{Settings.discogs.username_pattern}/
   VALID_USERNAME_REGEX = /\A#{Settings.discogs.username_pattern}\z/

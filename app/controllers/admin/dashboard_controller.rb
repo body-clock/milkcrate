@@ -1,3 +1,4 @@
+# Admin dashboard for store health monitoring and operations.
 class Admin::DashboardController < Admin::BaseController
   layout "inertia_application"
 

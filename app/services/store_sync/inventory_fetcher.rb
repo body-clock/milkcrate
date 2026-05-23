@@ -1,3 +1,4 @@
+# Fetches a store inventory from the Discogs API with pagination handling.
 class StoreSync::InventoryFetcher
   Result = Data.define(:listings, :pages_fetched, :total_pages)
 

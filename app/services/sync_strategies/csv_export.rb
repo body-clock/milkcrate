@@ -1,4 +1,6 @@
+# Namespace for sync strategies (public API, CSV export).
 module SyncStrategies
+  # Sync strategy that imports listings from a Discogs CSV export via OAuth.
   class CsvExport
     class NotAuthorizedError < StandardError; end
 

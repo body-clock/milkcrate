@@ -1,3 +1,4 @@
+# Vendor waitlist entry for store onboarding interest.
 class Waitlist < ApplicationRecord
   before_validation :normalize_discogs_username, if: :discogs_username_changed?
 

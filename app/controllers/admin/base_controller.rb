@@ -1,3 +1,4 @@
+# Base controller for admin routes with authentication and admin-scoped layout.
 class Admin::BaseController < ApplicationController
   before_action :http_basic_auth_admin
 
