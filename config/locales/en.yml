@@ -30,22 +30,47 @@
 en:
   pages:
     home:
-      headline: "Your Discogs inventory, now a storefront."
-      subhead: "Milkcrate turns your existing Discogs listings into a warm, browsable record shop that you can share in seconds."
-      cta_demo: "See the demo →"
-      cta_apply: "Get your store on Milkcrate"
-      footnote: "Early access. We handle the setup."
-      steps:
-        step1_title: "Share your Discogs"
-        step1_body: "Tell us your Discogs username. That's it."
-        step2_title: "We sync & curate"
-        step2_body: "Your inventory becomes curated crates — picks, featured, genre bins."
-        step3_title: "Share your store"
-        step3_body: "One link. Your customers browse like they're in the shop."
-      preview_label: "Flip Through Milkcrate Picks"
-      record_fair_title: "Bring your store to the next record fair"
-      record_fair_body: "QR codes on cards, bags, and signage turn foot traffic into return visitors — long after the fair ends."
-      store_character_title: "Your shop. Crated for browsing."
+      hero:
+        headline: "Browse a Discogs seller like a record store."
+        subhead: "Milkcrate turns a seller's Discogs inventory into crates, picks, and bins made for digging."
+        cta_demo: "Visit the demo store"
+        cta_apply: "Request a storefront"
+        footnote: "Discogs stays the source of inventory and checkout."
+        preview_label: "Storefront lobby"
+        fallback_title: "Start with the demo store."
+        fallback_body: "Open Philadelphia Music to see crates, picks, bins, and the Discogs checkout path in context."
+      marketplace_loop:
+        title: "The loop works because buyers get the better room."
+        items:
+          - title: "Buyers dig through crates"
+            body: "Start with picks, then move through bins that feel closer to a shop than a spreadsheet."
+          - title: "Stores share one front door"
+            body: "A Milkcrate link gives regulars and fair visitors a warmer way into existing Discogs stock."
+          - title: "Discogs still handles checkout"
+            body: "Listings, availability, and purchases stay grounded in the seller's Discogs workflow."
+      seller_path:
+        title: "Have a Discogs shop worth browsing?"
+        body: "Tell us your username. We are onboarding storefronts carefully while the beta stays hands-on."
+        cta: "Request a storefront"
+      store_character:
+        title: "A storefront with record-store shape."
+        moments:
+          - title: "Milkcrate Picks"
+            body: "A front wall of records gives buyers a place to start."
+          - title: "Featured Crates"
+            body: "Focused sections make a large inventory easier to enter."
+          - title: "Genre Bins"
+            body: "Familiar bins keep the browse moving without burying the records."
+          - title: "Build a Pile"
+            body: "Buyers can compare finds before heading back to Discogs."
+          - title: "Store Character"
+            body: "Future premium surfaces can make storefronts feel more like the seller behind them."
+      record_fair:
+        title: "Bring the store back from the record fair."
+        body: "A Milkcrate link gives table traffic a way to keep browsing after the room closes."
+      final_cta:
+        body: "We are onboarding stores one at a time. Send your Discogs username and we will review it for beta access."
+        cta: "Request a storefront"
     apply:
       headline: "Get your store on Milkcrate"
       subhead: "We're onboarding stores one at a time. Fill this out and we'll be in touch."

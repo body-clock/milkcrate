@@ -12,19 +12,25 @@ RSpec.describe "Pages", type: :request do
       expect(inertia).to render_component("home")
     end
 
-    it "renders the vendor-facing headline" do
+    it "renders a buyer-led headline" do
       get "/"
-      expect(inertia.props["copy"]["headline"]).to include("now a storefront")
+      expect(inertia.props.dig("copy", "hero", "headline")).to include("Browse a Discogs seller like a record store")
+    end
+
+    it "does not include seller-first or em dash homepage copy" do
+      get "/"
+
+      copy_json = inertia.props["copy"].to_json
+      expect(copy_json).not_to include("Your Discogs inventory, now a storefront")
+      expect(copy_json).not_to include("—")
     end
 
     it "does not include retired dig-session content in copy values" do
       get "/"
 
-      inertia.props["copy"].each_value do |v|
-        next unless v.is_a?(String)
-        expect(v).not_to include("Sessions")
-        expect(v).not_to include("session-bar")
-      end
+      copy_json = inertia.props["copy"].to_json
+      expect(copy_json).not_to include("Sessions")
+      expect(copy_json).not_to include("session-bar")
     end
 
     it "includes a preview prop with store_name and sections" do

@@ -113,6 +113,25 @@ RSpec.describe MarketingPreviewPresenter do
       end
     end
 
+    context "when curation raises" do
+      let!(:store) do
+        create(:store,
+          discogs_username: discogs_username,
+          name: "Philadelphia Music"
+        )
+      end
+
+      it "returns safe fallback preview data" do
+        allow(StorefrontCuration).to receive(:cached_curation).and_raise(StandardError, "curation failed")
+
+        result = described_class.new.preview_data
+
+        expect(result.keys).to match_array(%i[store_name store_slug sections])
+        expect(result[:store_slug]).to be_nil
+        expect(result[:sections]).to eq([])
+      end
+    end
+
     context "preview data shape matches expected frontend contract" do
       let!(:store) do
         create(:store,

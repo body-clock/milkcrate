@@ -26,13 +26,13 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
             href="/philadelphiamusic"
             className="text-xs text-mc-text-dim hover:text-mc-text transition-colors rounded px-2 py-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
           >
-            Demo
+            Browse demo
           </Link>
           <Link
             href="/apply"
             className="text-xs text-mc-text-dim hover:text-mc-text transition-colors rounded px-2 py-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
           >
-            Apply
+            For sellers
           </Link>
           <button
             type="button"
