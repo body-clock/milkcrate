@@ -1,6 +1,7 @@
 class CratePresenter
-  def initialize(store)
+  def initialize(store, scorer: nil)
     @store = store
+    @scorer = scorer
   end
 
   def store_props
@@ -51,6 +52,13 @@ class CratePresenter
   end
 
   def listing_props(listing)
+    base_listing_props(listing)
+      .merge(media_listing_props(listing))
+      .merge(enrichment_listing_props(listing))
+      .merge(display_listing_props(listing))
+  end
+
+  def base_listing_props(listing)
     {
       id: listing.id,
       discogs_listing_id: listing.discogs_listing_id,
@@ -58,16 +66,32 @@ class CratePresenter
       title: listing.title,
       label: listing.label,
       year: listing.year,
+      condition: listing.condition,
+      price: listing.price.to_s
+    }
+  end
+
+  def media_listing_props(listing)
+    {
       format: listing.format,
+      cover_image_url: listing.cover_image_url,
+      thumbnail_url: listing.thumbnail_url
+    }
+  end
+
+  def enrichment_listing_props(listing)
+    {
       genres: listing.genres,
       styles: listing.styles,
-      condition: listing.condition,
-      price: listing.price.to_s,
-      currency: listing.currency,
-      cover_image_url: listing.cover_image_url,
-      thumbnail_url: listing.thumbnail_url,
       notes: listing.notes,
       discogs_url: "https://www.discogs.com/sell/item/#{listing.discogs_listing_id}",
+      score_breakdown: dev_score_breakdown(listing)
+    }
+  end
+
+  def display_listing_props(listing)
+    {
+      currency: listing.currency,
       display_price: format_price(listing.price)
     }
   end
@@ -75,5 +99,11 @@ class CratePresenter
   def format_price(price)
     return "—" unless price
     "$#{'%.2f' % price}"
+  end
+
+  def dev_score_breakdown(listing)
+    return nil unless Rails.env.development? && @scorer
+
+    @scorer.score_breakdown(listing).transform_keys(&:to_s)
   end
 end

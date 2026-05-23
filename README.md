@@ -7,16 +7,22 @@ The public-facing app has:
 - a marketing homepage at `/`
 - a store application / waitlist form at `/apply`
 - store crate pages at `/:slug` (a Discogs-style username), for example `/philadelphiamusic`
+- a Discogs OAuth claim flow at `/:slug/authorize` — store owners can claim their store and unlock full-inventory sync
+- a store owner dashboard at `/dashboard` — sync status, listing count, re-sync
 - a development-only jobs dashboard at `/jobs`
 
 ## Current Shape
 
-Milkcrate is centered on one configured Discogs seller. The default seller is configured in `config/settings.yml` and can be overridden per environment.
+Milkcrate has a two-tier model for storefronts: a **free demo** using the public Discogs API and a **full OAuth storefront** for partnered stores.
+
+**Free demo:** Any Discogs seller with a username gets an instant demo storefront at `/:slug`. The public API cap is 10,000 listings (100 pages × 100 records) — for small stores this is their full catalog; for large stores our scoring engine surfaces the most interesting records from whatever the API returns.
+
+**OAuth storefront:** A store owner claims their store via `/:slug/authorize` and authorizes via Discogs OAuth 1.0a. This unlocks the Inventory Export API (full CSV, no 10k ceiling) and near-real-time sold-item detection via order polling. Stores must have 500+ vinyl listings to qualify.
 
 The catalog flow:
 
-1. Create a `Store`.
-2. Sync that store's Discogs seller inventory.
+1. Create a `Store` (via admin onboarding or OAuth claim).
+2. Sync the store's Discogs inventory — paginated API for free-demo stores, CSV export for OAuth stores.
 3. Import vinyl listings and mark missing listings as unavailable through `last_seen_at`.
 4. Enrich releases with Discogs release metadata — genres, styles, images, tracklists, want counts, and have counts.
 5. Run curation to build crates and stamp surfacing fields.
@@ -171,9 +177,13 @@ Useful local routes:
 | `/` | Marketing homepage |
 | `/apply` | Store application / waitlist form |
 | `/:slug` | Any store by Discogs username, e.g. `/philadelphiamusic` |
+| `/:slug/authorize` | Start Discogs OAuth claim flow for a store |
+| `/auth/discogs/callback` | Discogs OAuth callback (internal, no direct visit) |
+| `/dashboard` | Store owner dashboard (requires OAuth session) |
 | `/admin` | Admin dashboard — store onboarding, Discogs lookup |
 | `/admin/discogs_lookup` | Discogs username lookup for store onboarding |
 | `/jobs` | Mission Control jobs dashboard (development only) |
+| `/dev/login-as/:id` | Dev tool — set store owner session (development only) |
 
 ## Store Data
 
@@ -199,8 +209,9 @@ end
 
 The main jobs:
 
-- **`SyncAllStoresJob`** — runs a full sync for every store in the database (used by the production recurring schedule).
-- **`FullStoreSyncJob`** — imports a seller's Discogs inventory, then queues enrichment and curation.
+- **`SyncAllStoresJob`** — runs a full sync for every store in the database (used by the production recurring schedule). Routes OAuth stores to `CsvExportSyncJob`.
+- **`FullStoreSyncJob`** — imports a seller's Discogs inventory via paginated API for free-demo stores, or delegates to `CsvExportSyncJob` for OAuth-authorized stores.
+- **`CsvExportSyncJob`** — triggers a Discogs CSV inventory export, polls for completion, downloads and parses the CSV, upserts listings. Only runs for OAuth-authorized stores.
 - **`EnrichmentJob`** — fetches Discogs release metadata and MusicBrainz images for imageless releases.
 - **`DailyCurationJob`** — builds picks, featured crates, and genre crates, then stamps surfacing fields.
 

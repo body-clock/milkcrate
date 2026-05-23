@@ -12,7 +12,8 @@ class StorefrontCuration
     key = curation_cache_key(store, filter_available:)
     cache.fetch(key, expires_in: CURATION_CACHE_TTL, race_condition_ttl: CURATION_CACHE_RACE_TTL) do
       curation  = new(store, filter_available:)
-      presenter = CratePresenter.new(store)
+      scorer    = dev_scorer(curation)
+      presenter = CratePresenter.new(store, scorer:)
       {
         sections: presenter.build_storefront_sections(curation.storefront_groups),
         crates:   presenter.build_crates(curation.crates)
@@ -136,20 +137,11 @@ class StorefrontCuration
 
   def build_genre_crates(excluded_ids:)
     seen_ids = excluded_ids.dup
-    scorer   = RecordScorer.new(genre_counts:, today: Date.today)
-
-    # Score all eligible (non-excluded) listings once, sorted best-first.
-    # Each genre then filters its slice from this shared scored pool.
-    scored = eligible_listings
-      .reject { |l| excluded_ids.include?(l.id) }
-      .map    { |l| [ l, scorer.score(l) ] }
-      .sort_by { |_, s| -s }
 
     genre_counts.sort_by { |_, count| -count }.filter_map do |genre, _|
-      listings = scored
-        .select { |l, _| l.primary_genre == genre && !seen_ids.include?(l.id) }
-        .first(CuratedCrate::CRATE_SIZE)
-        .map(&:first)
+      strategy = CrateStrategies::Genre.new(genre:, genre_counts:, today: Date.today)
+      listings = strategy.select(eligible_listings, excluded_ids: seen_ids)
+      next if listings.empty?
 
       crate = CuratedCrate.new(slug: genre.parameterize, name: genre, listings:)
       next unless crate.viable?
@@ -180,7 +172,7 @@ class StorefrontCuration
   end
 
   def hidden_gems_strategy
-    @hidden_gems_strategy ||= CrateStrategies::HiddenGems.new(genre_counts:)
+    @hidden_gems_strategy ||= CrateStrategies::HiddenGems.new(genre_counts:, today: Date.today)
   end
 
   def build_hidden_gems_crate(excluded_ids:)
@@ -208,5 +200,11 @@ class StorefrontCuration
 
   def genre_counts
     @genre_counts ||= eligible_listings.map(&:primary_genre).compact.tally
+  end
+
+  def self.dev_scorer(curation)
+    return nil unless Rails.env.development?
+
+    RecordScorer.new(genre_counts: curation.send(:genre_counts), today: Date.today)
   end
 end

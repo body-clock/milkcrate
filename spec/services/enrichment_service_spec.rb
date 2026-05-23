@@ -13,27 +13,29 @@ RSpec.describe EnrichmentService do
 
   describe "#enrich_store" do
     it "sets enrichment lifecycle state around both enrichment phases" do
+      enricher = instance_double(MusicBrainzEnricher, enrich_store: nil)
+      allow(MusicBrainzEnricher).to receive(:new).with(musicbrainz: musicbrainz).and_return(enricher)
       allow(service).to receive(:enrich_releases)
-      allow(service).to receive(:enrich_music_brainz_images)
 
       service.enrich_store(store, listing_ids: [ 1, 2 ])
 
       expect(service).to have_received(:enrich_releases).with(store, listing_ids: [ 1, 2 ])
-      expect(service).to have_received(:enrich_music_brainz_images).with(store)
+      expect(enricher).to have_received(:enrich_store).with(store)
       expect(store.reload.enrichment_status).to eq("idle")
       expect(store.last_enriched_at).to be_within(1.second).of(Time.current)
     end
 
     it "marks enrichment failed and re-raises on hard failure" do
+      enricher = instance_double(MusicBrainzEnricher, enrich_store: nil)
+      allow(MusicBrainzEnricher).to receive(:new).and_return(enricher)
       allow(service).to receive(:enrich_releases).and_raise(StandardError.new("boom"))
-      allow(service).to receive(:enrich_music_brainz_images)
 
       expect {
         service.enrich_store(store)
       }.to raise_error(StandardError, "boom")
 
       expect(store.reload.enrichment_status).to eq("failed")
-      expect(service).not_to have_received(:enrich_music_brainz_images)
+      expect(enricher).not_to have_received(:enrich_store)
     end
 
     it "finishes idle when individual API errors are handled inside enrichment phases" do
@@ -99,51 +101,72 @@ RSpec.describe EnrichmentService do
 
       service.enrich_releases(store, listing_ids: [ listing.id ])
     end
-  end
 
-  describe "#enrich_music_brainz_images" do
-    let!(:listing) do
-      create(:listing, store:, discogs_release_id: "123", artist: "Test Artist", title: "Test Album", cover_image_url: nil)
-    end
+    describe "overwritten-release detection" do
+      before do
+        # Default stub: any unexpected release calls return data silently
+        allow(discogs).to receive(:release).and_return([ release_data, 55 ])
+      end
 
-    before do
-      Release.create!(
-        discogs_release_id: "123",
-        discogs_image_missing: true,
-        musicbrainz_id: nil,
-        enriched_at: Time.current)
-    end
+      it "re-enriches a release whose listing format shows it was overwritten, even if recent" do
+        overwritten = create(:listing, store:,
+          discogs_listing_id: "ow", discogs_release_id: "999",
+          format: "LP, Album", genres: [], styles: [])
+        Release.create!(discogs_release_id: "999", enriched_at: 1.hour.ago, want_count: 10, have_count: 5)
 
-    it "fetches cover images for releases without them" do
-      allow(musicbrainz).to receive(:search_release).with(artist: "Test Artist", title: "Test Album")
-        .and_return("mbid-123")
-      allow(musicbrainz).to receive(:front_cover_url).with("mbid-123")
-        .and_return("https://coverartarchive.org/release/mbid-123/front")
+        service.enrich_releases(store, listing_ids: [ listing.id ])
 
-      service.enrich_music_brainz_images(store)
+        expect(discogs).to have_received(:release).with("999")
+      end
 
-      listing.reload
-      expect(listing.cover_image_url).to eq("https://coverartarchive.org/release/mbid-123/front")
-      expect(Release.find_by(discogs_release_id: "123").musicbrainz_id).to eq("mbid-123")
-    end
+      it "does not re-enrich a release that already has enriched format" do
+        enriched = create(:listing, store:,
+          discogs_listing_id: "enr", discogs_release_id: "888",
+          format: "Vinyl, LP, Album", genres: [ "Jazz" ], styles: [ "Bebop" ])
+        Release.create!(discogs_release_id: "888", enriched_at: 1.hour.ago, want_count: 10, have_count: 5)
 
-    it "skips releases with no matching MusicBrainz ID" do
-      allow(musicbrainz).to receive(:search_release).with(artist: "Test Artist", title: "Test Album")
-        .and_return(nil)
+        service.enrich_releases(store, listing_ids: [ listing.id ])
 
-      service.enrich_music_brainz_images(store)
+        expect(discogs).not_to have_received(:release).with("888")
+      end
 
-      listing.reload
-      expect(listing.cover_image_url).to be_nil
-      expect(Release.find_by(discogs_release_id: "123").musicbrainz_id).to eq("")
-    end
+      it "catches overwritten releases across the whole store, not just listing_ids" do
+        overwritten = create(:listing, store:,
+          discogs_listing_id: "ow", discogs_release_id: "999",
+          format: "LP, Album", genres: [], styles: [])
+        Release.create!(discogs_release_id: "999", enriched_at: 1.hour.ago, want_count: 10, have_count: 5)
 
-    it "handles MusicBrainz API errors gracefully" do
-      allow(musicbrainz).to receive(:search_release).with(artist: "Test Artist", title: "Test Album")
-        .and_raise(MusicBrainzClient::ApiError, "Search failed")
-      expect(Rails.logger).to receive(:warn).with(/API error/)
+        other_listing = create(:listing, store:,
+          discogs_listing_id: "other", discogs_release_id: "777", format: "Cassette")
+        Release.create!(discogs_release_id: "777", enriched_at: 1.hour.ago, want_count: 0, have_count: 0)
 
-      service.enrich_music_brainz_images(store)
+        service.enrich_releases(store, listing_ids: [ other_listing.id ])
+
+        expect(discogs).to have_received(:release).with("999")
+      end
+
+      it "re-enriches a listing that is both in listing_ids and has sync format, even if recently enriched" do
+        in_scope = create(:listing, store:,
+          discogs_listing_id: "in-scope", discogs_release_id: "555",
+          format: "LP, Album", genres: [], styles: [])
+        Release.create!(discogs_release_id: "555", enriched_at: 1.hour.ago, want_count: 10, have_count: 5)
+
+        service.enrich_releases(store, listing_ids: [ in_scope.id ])
+
+        # Previously excluded by .where.not(discogs_release_id: release_ids)
+        expect(discogs).to have_received(:release).with("555")
+      end
+
+      it "still enriches stale releases via stale_release_ids, not overwritten detection" do
+        stale_listing = create(:listing, store:,
+          discogs_listing_id: "stale", discogs_release_id: "666",
+          format: "LP, Album")
+        Release.create!(discogs_release_id: "666", enriched_at: 8.days.ago, want_count: 0, have_count: 0)
+
+        service.enrich_releases(store, listing_ids: [ listing.id, stale_listing.id ])
+
+        expect(discogs).to have_received(:release).with("666")
+      end
     end
   end
 end

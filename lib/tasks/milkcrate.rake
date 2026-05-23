@@ -5,15 +5,40 @@ namespace :milkcrate do
     store
   end
 
-  desc "Full inventory sync from Discogs (two passes), then enrich and curate"
+  def recently_synced_listing_ids(store)
+    return [] unless store.last_synced_at
+
+    store.listings.where("last_seen_at >= ?", store.last_synced_at).pluck(:id)
+  end
+
+  def run_follow_up_jobs(store, synchronous:)
+    listing_ids = recently_synced_listing_ids(store)
+
+    if synchronous
+      if listing_ids.any?
+        EnrichmentJob.perform_now(store.id, listing_ids:)
+      else
+        EnrichmentJob.perform_now(store.id)
+      end
+      DailyCurationJob.perform_now(store.id)
+    else
+      if listing_ids.any?
+        EnrichmentJob.perform_later(store.id, listing_ids:)
+      else
+        EnrichmentJob.perform_later(store.id)
+      end
+      DailyCurationJob.perform_later(store.id)
+    end
+  end
+
+  desc "Full inventory sync from Discogs, then queue enrichment and curation"
   task sync: :environment do
     store = demo_store
     service = StoreSyncService.new(store)
-    puts "Syncing #{store.name} (@#{store.discogs_username}) — two passes..."
-    result = service.sync
-    puts "Synced #{store.listings.count} listings (coverage: #{result.catalog_coverage})."
-    EnrichReleasesJob.perform_later(store.id, listing_ids: result.listing_ids_for_enrichment) if result.listing_ids_for_enrichment.any?
-    DailyCurationJob.perform_later(store.id)
+    puts "Syncing #{store.name} (@#{store.discogs_username})..."
+    synced_count = service.full_sync
+    puts "Synced #{synced_count} listings."
+    run_follow_up_jobs(store, synchronous: false)
     puts "Enrichment and curation queued (background)."
   end
 
@@ -22,28 +47,20 @@ namespace :milkcrate do
     store = demo_store
     service = StoreSyncService.new(store)
     puts "Quick-syncing #{store.name} (1 page per pass)..."
-    result = service.sync(max_pages: 1)
-    puts "Synced #{store.listings.count} listings (coverage: #{result.catalog_coverage})."
-    if result.listing_ids_for_enrichment.any?
-      puts "Enriching #{result.listing_ids_for_enrichment.size} releases (synchronous)..."
-      EnrichReleasesJob.perform_now(store.id, listing_ids: result.listing_ids_for_enrichment)
-      puts "Enrichment complete."
-    else
-      puts "No releases required enrichment."
-    end
-    DailyCurationJob.perform_now(store.id)
+    synced_count = service.full_sync(max_pages: 1)
+    puts "Synced #{synced_count} listings."
+    puts "Enriching #{store.name} synchronously..."
+    run_follow_up_jobs(store, synchronous: true)
+    puts "Enrichment complete."
     puts "Curation complete."
   end
 
   desc "Enrich releases: Discogs metadata + MusicBrainz images for imageless releases"
   task enrich: :environment do
     store = demo_store
-    puts "Enriching Discogs metadata for #{store.name}..."
-    EnrichReleasesJob.perform_now(store.id)
-    puts "Discogs enrichment complete."
-    puts "Enriching images via MusicBrainz..."
-    EnrichMusicBrainzImagesJob.perform_now(store.id)
-    puts "MusicBrainz enrichment complete."
+    puts "Enriching metadata and images for #{store.name}..."
+    EnrichmentJob.perform_now(store.id)
+    puts "Enrichment complete."
   end
 
   desc "Run daily curation (stamp last_surfaced_at, compute picks rotation)"
@@ -54,23 +71,16 @@ namespace :milkcrate do
     puts "Done."
   end
 
-  desc "Bootstrap a fresh install — two-pass sync, enrich, curate (all synchronous)"
+  desc "Bootstrap a fresh install — full sync, synchronous enrichment, curation"
   task setup: :environment do
     store = demo_store
     service = StoreSyncService.new(store)
-    puts "Syncing #{store.name} (@#{store.discogs_username}) — two passes..."
-    result = service.sync
-    puts "Synced #{store.listings.count} listings (coverage: #{result.catalog_coverage})."
-    if result.listing_ids_for_enrichment.any?
-      puts "Enriching #{result.listing_ids_for_enrichment.size} releases (synchronous)..."
-      EnrichReleasesJob.perform_now(store.id, listing_ids: result.listing_ids_for_enrichment)
-      puts "Discogs enrichment complete."
-    else
-      puts "No releases required Discogs enrichment."
-    end
-    EnrichMusicBrainzImagesJob.perform_now(store.id)
-    puts "MusicBrainz enrichment complete."
-    DailyCurationJob.perform_now(store.id)
+    puts "Bootstrapping #{store.name} (@#{store.discogs_username})..."
+    synced_count = service.full_sync
+    puts "Synced #{synced_count} listings."
+    puts "Enriching #{store.name} synchronously..."
+    run_follow_up_jobs(store, synchronous: true)
+    puts "Enrichment complete."
     puts "Setup complete."
   end
 

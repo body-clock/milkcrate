@@ -16,12 +16,7 @@ class MarketingPreviewPresenter
   # than duplicating listing-presentation logic.
   def preview_data
     store = demo_store
-
-    if store
-      live_preview(store)
-    else
-      fallback_preview
-    end
+    store ? live_preview(store) : fallback_preview
   rescue StandardError => e
     Rails.logger.warn("MarketingPreviewPresenter: #{e.class}: #{e.message}")
     fallback_preview
@@ -33,6 +28,9 @@ class MarketingPreviewPresenter
 
   def demo_store
     Store.find_by(discogs_username: Settings.demo_store.discogs_username)
+  rescue StandardError => e
+    Rails.logger.warn("MarketingPreviewPresenter: #{e.class}: #{e.message}")
+    nil
   end
 
   # ── Live preview path ────────────────────────────────────────
@@ -53,16 +51,24 @@ class MarketingPreviewPresenter
   def cap_sections(sections)
     sections.filter_map do |section|
       if section[:crate]
-        capped = cap_single_crate(section[:crate])
-        next if capped.nil?
-        { key: section[:key], crate: capped }
+        cap_single_crate_section(section)
       elsif section[:crates]
-        max = max_crates_for_key(section[:key])
-        capped_crates = section[:crates].first(max).filter_map { |c| cap_single_crate(c) }
-        next if capped_crates.empty?
-        { key: section[:key], crates: capped_crates }
+        cap_multi_crate_section(section)
       end
     end
+  end
+
+  def cap_single_crate_section(section)
+    capped = cap_single_crate(section[:crate])
+    return nil if capped.nil?
+    { key: section[:key], crate: capped }
+  end
+
+  def cap_multi_crate_section(section)
+    max = max_crates_for_key(section[:key])
+    capped_crates = section[:crates].first(max).filter_map { |c| cap_single_crate(c) }
+    return nil if capped_crates.empty?
+    { key: section[:key], crates: capped_crates }
   end
 
   def cap_single_crate(crate)

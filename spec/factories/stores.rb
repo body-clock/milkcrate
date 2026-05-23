@@ -10,5 +10,10 @@ FactoryBot.define do
     total_listings { 0 }
     last_synced_at { 1.hour.ago }
     last_enriched_at { 1.hour.ago }
+
+    trait :oauth_authorized do
+      association :store_owner
+      sync_source { "csv_export" }
+    end
   end
 end

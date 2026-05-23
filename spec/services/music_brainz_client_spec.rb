@@ -3,12 +3,7 @@ require "rails_helper"
 RSpec.describe MusicBrainzClient do
   let(:search_conn) { instance_double(Faraday::Connection) }
   let(:caa_conn)    { instance_double(Faraday::Connection) }
-  let(:client) do
-    described_class.new.tap do |c|
-      c.instance_variable_set(:@search_conn, search_conn)
-      c.instance_variable_set(:@caa_conn, caa_conn)
-    end
-  end
+  let(:client) { described_class.new(search_conn:, caa_conn:) }
 
   describe "#search_release" do
     it "returns the MBID when score >= 90" do

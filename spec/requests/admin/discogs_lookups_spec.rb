@@ -116,9 +116,4 @@ RSpec.describe "Admin::DiscogsLookups", type: :request do
   def lookup_result(result)
     instance_double(DiscogsSellerLookup, call: result)
   end
-
-  def auth_headers(username, password)
-    credentials = Base64.strict_encode64("#{username}:#{password}")
-    { "HTTP_AUTHORIZATION" => "Basic #{credentials}" }
-  end
 end

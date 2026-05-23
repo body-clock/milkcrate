@@ -13,7 +13,7 @@ interface LookupResponse {
   reason?: string
 }
 
-export default function Invitation({ waitlist_present, slug }: InvitationProps) {
+export default function Invitation({ waitlist_present, slug, oauth_available }: InvitationProps) {
   // Waitlist acknowledgment — no probe, static page
   if (waitlist_present) {
     return (
@@ -63,12 +63,13 @@ export default function Invitation({ waitlist_present, slug }: InvitationProps) 
   }
 
   // Invitation page — async Discogs probe
-  return <InvitationContent slug={slug} />
+  return <InvitationContent slug={slug} oauth_available={oauth_available} />
 }
 
-function InvitationContent({ slug }: { slug: string }) {
-  const [probeState, setProbeState] = useState<"loading" | "found" | "not_found" | "error">("loading")
+function InvitationContent({ slug, oauth_available }: { slug: string; oauth_available?: boolean }) {
+  const [probeState, setProbeState] = useState<"loading" | "found" | "not_found">("loading")
   const [sellerName, setSellerName] = useState<string | null>(null)
+  const csrfToken = document.querySelector<HTMLMetaElement>("meta[name='csrf-token']")?.content
 
   // Quality gate: only probe plausible Discogs usernames
   const shouldProbe = useMemo(() => {
@@ -102,7 +103,7 @@ function InvitationContent({ slug }: { slug: string }) {
     fetch(`/api/discogs/lookup/${encodeURIComponent(slug)}`, { signal: controller.signal })
       .then((res) => {
         if (!res.ok) {
-          setProbeState("error")
+          setProbeState("not_found")
           return
         }
         return res.json() as Promise<LookupResponse>
@@ -118,7 +119,7 @@ function InvitationContent({ slug }: { slug: string }) {
       })
       .catch((err) => {
         if (err instanceof DOMException && err.name === "AbortError") return
-        setProbeState("error")
+        setProbeState("not_found")
       })
       .finally(() => clearTimeout(timeoutId))
 
@@ -177,19 +178,40 @@ function InvitationContent({ slug }: { slug: string }) {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.3 }}
+              className="space-y-3"
             >
-              <Link
-                href={`/apply?discogs_username=${encodeURIComponent(slug)}`}
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-mc-accent text-mc-on-accent font-semibold text-sm tracking-wide hover:opacity-90 transition-opacity"
-              >
-                Claim this storefront
-              </Link>
+              {oauth_available ? (
+                <form action={`/${slug}/authorize`} method="POST" className="inline">
+                  {csrfToken && <input type="hidden" name="authenticity_token" value={csrfToken} />}
+                  <button
+                    type="submit"
+                    className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-mc-accent text-mc-on-accent font-semibold text-sm tracking-wide hover:opacity-90 transition-opacity"
+                  >
+                    Claim with Discogs
+                  </button>
+                </form>
+              ) : (
+                <Link
+                  href={`/apply?discogs_username=${encodeURIComponent(slug)}`}
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-mc-accent text-mc-on-accent font-semibold text-sm tracking-wide hover:opacity-90 transition-opacity"
+                >
+                  Claim this storefront
+                </Link>
+              )}
+              <div>
+                <Link
+                  href={`/apply?discogs_username=${encodeURIComponent(slug)}`}
+                  className="text-xs text-mc-text-dim hover:text-mc-accent transition-colors"
+                >
+                  Or apply via waitlist
+                </Link>
+              </div>
             </motion.div>
           </motion.div>
         )}
 
-        {/* Not found or errored — generic invitation */}
-        {(probeState === "not_found" || probeState === "error") && (
+        {/* Not found — generic invitation */}
+        {probeState === "not_found" && (
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
