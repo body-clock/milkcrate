@@ -14,7 +14,7 @@ import {
   type RiffleDirection,
 } from "../lib/riffle_navigation"
 import { useViewport } from "@/hooks/use_viewport"
-import { SCALE_PRESS, springPress, springTactile, transitionCrate, transitionCrateDesktop, reducedMotionTransition } from "@/lib/motion_tokens"
+import { SCALE_PRESS, springPress, transitionCrate, transitionCrateDesktop, reducedMotionTransition } from "@/lib/motion_tokens"
 import { useReducedMotionContext } from "./storefront_motion_config"
 import { isLessonEligible, markLessonLearned, isLessonLearned } from "../lib/first_swipe_lesson"
 import { usePreload } from "@/hooks/use_preload"
@@ -429,7 +429,7 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
         {/* Desktop details panel */}
         {activeRecord && (
           <div className="hidden md:flex md:flex-col md:pt-7">
-            <RecordDetails listing={activeRecord} direction={direction.current} isCompact={isCompact} />
+            <RecordDetails listing={activeRecord} direction={direction.current} />
           <ScoreBreakdown listing={activeRecord} />
           </div>
         )}
