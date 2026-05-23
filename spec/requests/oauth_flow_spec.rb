@@ -30,6 +30,16 @@ RSpec.describe "Discogs OAuth flow", type: :request do
   let(:slug) { "recordstore" }
   let(:discogs_client) { instance_double(DiscogsClient) }
   let(:oauth_client) { instance_double(DiscogsOauthClient) }
+  let(:oauth_consumer) do
+    OAuth::Consumer.new(
+      "test-key",
+      "test-secret",
+      site: "https://api.discogs.com",
+      request_token_path: "/oauth/request_token",
+      authorize_path: "/oauth/authorize",
+      access_token_path: "/oauth/access_token"
+    )
+  end
   let(:request_token) { instance_double(OAuth::RequestToken, token: "req_token_123", secret: "req_secret_456") }
   let(:request_token_result) {
     DiscogsOauthClient::RequestTokenResult.new(
@@ -45,6 +55,7 @@ RSpec.describe "Discogs OAuth flow", type: :request do
   before do
     allow(DiscogsClient).to receive(:new).and_return(discogs_client)
     allow(DiscogsOauthClient).to receive(:new).and_return(oauth_client)
+    allow(DiscogsOauthConsumer).to receive(:build).and_return(oauth_consumer)
   end
 
   def csrf_token_for(path)
