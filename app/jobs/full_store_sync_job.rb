@@ -67,11 +67,18 @@ class FullStoreSyncJob < ApplicationJob
 
   def remove_stale_listings(store, current_listings)
     current_ids = current_listings.map { |r| r[:discogs_listing_id] }
-    if current_ids.any?
-      store.listings.where.not(discogs_listing_id: current_ids).delete_all
-    else
+
+    if current_ids.empty?
       store.listings.delete_all
+    else
+      remove_listings_not_in_set(store, current_ids)
     end
+  end
+
+  def remove_listings_not_in_set(store, listing_ids)
+    store.listings
+      .where.not(discogs_listing_id: listing_ids)
+      .delete_all
   end
 
   def sync_manager(store)
