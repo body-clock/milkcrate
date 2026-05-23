@@ -80,10 +80,10 @@ class FullStoreSyncJob < ApplicationJob
 
   def materially_changed?(existing, incoming)
     differing?(
-      [existing.discogs_release_id.to_s, incoming[:discogs_release_id].to_s],
-      [normalized_price(existing.price), normalized_price(incoming[:price])],
-      [existing.condition, incoming[:condition]],
-      [existing.notes, incoming[:notes]]
+      [ existing.discogs_release_id.to_s, incoming[:discogs_release_id].to_s ],
+      [ normalized_price(existing.price), normalized_price(incoming[:price]) ],
+      [ existing.condition, incoming[:condition] ],
+      [ existing.notes, incoming[:notes] ]
     )
   end
 

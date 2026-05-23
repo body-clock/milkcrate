@@ -90,7 +90,7 @@ class EnrichmentService
 
   def format_label(data)
     Array(data["formats"])
-      .flat_map { |f| [f["name"], *Array(f["descriptions"])] }
+      .flat_map { |f| [ f["name"], *Array(f["descriptions"]) ] }
       .join(", ").presence
   end
 

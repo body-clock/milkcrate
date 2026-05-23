@@ -169,5 +169,4 @@ RSpec.describe EnrichmentService do
       end
     end
   end
-
 end
