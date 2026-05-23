@@ -143,6 +143,18 @@ RSpec.describe EnrichmentService do
         expect(discogs).to have_received(:release).with("999")
       end
 
+      it "re-enriches a listing that is both in listing_ids and has sync format, even if recently enriched" do
+        in_scope = create(:listing, store:,
+          discogs_listing_id: "in-scope", discogs_release_id: "555",
+          format: "LP, Album", genres: [], styles: [])
+        Release.create!(discogs_release_id: "555", enriched_at: 1.hour.ago, want_count: 10, have_count: 5)
+
+        service.enrich_releases(store, listing_ids: [ in_scope.id ])
+
+        # Previously excluded by .where.not(discogs_release_id: release_ids)
+        expect(discogs).to have_received(:release).with("555")
+      end
+
       it "still enriches stale releases via stale_release_ids, not overwritten detection" do
         stale_listing = create(:listing, store:,
           discogs_listing_id: "stale", discogs_release_id: "666",

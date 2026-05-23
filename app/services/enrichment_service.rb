@@ -40,7 +40,6 @@ class EnrichmentService
     # prefix) despite having a Release record. Their enriched data was
     # overwritten by prior syncs. After U1, subsequent syncs won't overwrite.
     overwritten_release_ids = store.listings
-      .where.not(discogs_release_id: release_ids)
       .where("format NOT LIKE ? AND format LIKE ?", "Vinyl%", "%LP%")
       .where(discogs_release_id: Release.select(:discogs_release_id))
       .distinct
