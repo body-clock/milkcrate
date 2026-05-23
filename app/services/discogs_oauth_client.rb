@@ -37,5 +37,4 @@ class DiscogsOauthClient
   rescue JSON::ParserError => e
     raise OauthError, "Discogs identity response parse failed: #{e.message}"
   end
-
 end

@@ -7,9 +7,7 @@ import type { DashboardProps } from "@/types/inertia"
 
 export default function Dashboard({ store }: DashboardProps) {
   const { notice, alert: flashAlert } = usePage<{ notice?: string; alert?: string }>().props
-  const [showWelcome, setShowWelcome] = useState(
-    !(window.history.state?.welcomeSeen)
-  )
+  const [showWelcome, setShowWelcome] = useState(true)
   const [submitting, setSubmitting] = useState(false)
 
   const syncStatusLabel = (() => {
@@ -31,10 +29,7 @@ export default function Dashboard({ store }: DashboardProps) {
     })
   }
 
-  const dismissWelcome = () => {
-    setShowWelcome(false)
-    window.history.replaceState({ ...window.history.state, welcomeSeen: true }, "")
-  }
+  const dismissWelcome = () => setShowWelcome(false)
 
   return (
     <main className="min-h-screen bg-mc-bg text-mc-text">
@@ -75,11 +70,11 @@ export default function Dashboard({ store }: DashboardProps) {
                   Your store is live!
                 </h2>
                 <p className="text-sm text-mc-text-dim mb-6 max-w-md mx-auto leading-relaxed">
-                  Your Discogs inventory is syncing in the background.
-                  Check back soon to see your full storefront.
+                  Your Discogs inventory has been synced to Milkcrate.
+                  Your listings are now appearing in curated crates.
                 </p>
-                <Button onClick={dismissWelcome}>
-                  Got it
+                <Button onClick={() => { dismissWelcome(); router.visit(store.storefront_url); }}>
+                  View your store →
                 </Button>
               </CardContent>
             </Card>

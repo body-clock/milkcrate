@@ -49,7 +49,15 @@ class DiscogsClient
   def inventory_export
     require_oauth!
     response = oauth_access_token.post("#{BASE_URL}/inventory/export")
-    parse_oauth_response(response)
+    body = parse_oauth_response(response)
+    if body.blank? || body == {}
+      location = response["Location"] || response["location"]
+      if location
+        export_id = location.split("/").last.to_i
+        body = { "id" => export_id }
+      end
+    end
+    body
   end
 
   def check_export_status(export_id)
@@ -69,7 +77,7 @@ class DiscogsClient
     require_oauth!
     response = oauth_access_token.get("#{BASE_URL}/inventory/export")
     body = parse_oauth_response(response)
-    body["exports"] || body
+    body["exports"] || body["items"] || body
   end
 
   def list_orders(status: nil, page: 1)

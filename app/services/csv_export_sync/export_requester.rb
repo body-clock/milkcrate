@@ -45,7 +45,7 @@ module CsvExportSync
         Rails.logger.info("[ExportRequester] Poll attempt #{attempt + 1}: id=#{export_id} response=#{response.inspect}")
 
         status = response["status"]
-        return if status == "completed"
+        return if %w[completed success].include?(status)
 
         if %w[failed error].include?(status)
           raise ExportError, "Export failed with status: #{status}"

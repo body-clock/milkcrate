@@ -58,6 +58,23 @@ The canonical list is in `compound-engineering.local.md` (see palkan/skills inte
 docs). This file is the configuration source of truth; the instructions above are the
 implementation wiring.
 
+## Server Management
+
+The developer runs `bin/dev` in a tmux session. I must **never** start or stop
+`bin/dev`, `bin/rails server`, `bin/vite`, `bin/jobs`, or any background 
+process. If a task needs a running server (testing pages, verifying UI changes),
+I should ask the developer to start it and paste output, or use `curl` against
+their running server for quick checks.
+
+## Server Logs Panel
+
+`.pi/extensions/server-logs.ts` provides a toggleable server log panel inside pi.
+- **Usage:** Type `/logs` to open, `Escape` to close
+- Reads the last 40 lines from `log/development.log`
+- Auto-refreshes via file watcher
+- Colorized output (red=errors, yellow=warnings, green=success, accent=requests)
+- Close with `Escape`
+
 Use Context7 for all developer documentation.
 
 When I ask a question or propose an implementation, ensure that you're not just confirming what I said. I want realy critial analysis of my proposition, not just automatically going in that direction because I proposed it.
