@@ -36,9 +36,19 @@ class EnrichmentService
       .distinct
       .pluck(:discogs_release_id)
 
-    enrich_ids = (stale_release_ids + downgraded_release_ids).uniq
+    # Also re-enrich releases whose listings have sync-format data (no "Vinyl"
+    # prefix) despite having a Release record. Their enriched data was
+    # overwritten by prior syncs. After U1, subsequent syncs won't overwrite.
+    overwritten_release_ids = store.listings
+      .where.not(discogs_release_id: release_ids)
+      .where("format NOT LIKE ? AND format LIKE ?", "Vinyl%", "%LP%")
+      .where(discogs_release_id: Release.select(:discogs_release_id))
+      .distinct
+      .pluck(:discogs_release_id)
 
-    Rails.logger.info "[EnrichmentService] #{enrich_ids.size} releases to enrich for store #{store.name} (stale: #{stale_release_ids.size}, downgraded: #{downgraded_release_ids.size})"
+    enrich_ids = (stale_release_ids + downgraded_release_ids + overwritten_release_ids).uniq
+
+    Rails.logger.info "[EnrichmentService] #{enrich_ids.size} releases to enrich for store #{store.name} (stale: #{stale_release_ids.size}, downgraded: #{downgraded_release_ids.size}, overwritten: #{overwritten_release_ids.size})"
 
     enrich_ids.each_slice(BATCH_SIZE) do |batch|
       batch.each do |release_id|

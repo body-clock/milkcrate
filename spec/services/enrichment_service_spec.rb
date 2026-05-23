@@ -99,6 +99,61 @@ RSpec.describe EnrichmentService do
 
       service.enrich_releases(store, listing_ids: [ listing.id ])
     end
+
+    describe "overwritten-release detection" do
+      before do
+        # Default stub: any unexpected release calls return data silently
+        allow(discogs).to receive(:release).and_return([ release_data, 55 ])
+      end
+
+      it "re-enriches a release whose listing format shows it was overwritten, even if recent" do
+        overwritten = create(:listing, store:,
+          discogs_listing_id: "ow", discogs_release_id: "999",
+          format: "LP, Album", genres: [], styles: [])
+        Release.create!(discogs_release_id: "999", enriched_at: 1.hour.ago, want_count: 10, have_count: 5)
+
+        service.enrich_releases(store, listing_ids: [ listing.id ])
+
+        expect(discogs).to have_received(:release).with("999")
+      end
+
+      it "does not re-enrich a release that already has enriched format" do
+        enriched = create(:listing, store:,
+          discogs_listing_id: "enr", discogs_release_id: "888",
+          format: "Vinyl, LP, Album", genres: ["Jazz"], styles: ["Bebop"])
+        Release.create!(discogs_release_id: "888", enriched_at: 1.hour.ago, want_count: 10, have_count: 5)
+
+        service.enrich_releases(store, listing_ids: [ listing.id ])
+
+        expect(discogs).not_to have_received(:release).with("888")
+      end
+
+      it "catches overwritten releases across the whole store, not just listing_ids" do
+        overwritten = create(:listing, store:,
+          discogs_listing_id: "ow", discogs_release_id: "999",
+          format: "LP, Album", genres: [], styles: [])
+        Release.create!(discogs_release_id: "999", enriched_at: 1.hour.ago, want_count: 10, have_count: 5)
+
+        other_listing = create(:listing, store:,
+          discogs_listing_id: "other", discogs_release_id: "777", format: "Cassette")
+        Release.create!(discogs_release_id: "777", enriched_at: 1.hour.ago, want_count: 0, have_count: 0)
+
+        service.enrich_releases(store, listing_ids: [ other_listing.id ])
+
+        expect(discogs).to have_received(:release).with("999")
+      end
+
+      it "still enriches stale releases via stale_release_ids, not overwritten detection" do
+        stale_listing = create(:listing, store:,
+          discogs_listing_id: "stale", discogs_release_id: "666",
+          format: "LP, Album")
+        Release.create!(discogs_release_id: "666", enriched_at: 8.days.ago, want_count: 0, have_count: 0)
+
+        service.enrich_releases(store, listing_ids: [ listing.id, stale_listing.id ])
+
+        expect(discogs).to have_received(:release).with("666")
+      end
+    end
   end
 
   describe "#enrich_music_brainz_images" do
