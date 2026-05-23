@@ -1,16 +1,14 @@
 import { useState } from "react"
 import { Link, router, usePage } from "@inertiajs/react"
 import { motion } from "framer-motion"
-import { springTactile } from "@/lib/motion_tokens"
 import Button from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { DashboardProps } from "@/types/inertia"
 
 export default function Dashboard({ store }: DashboardProps) {
   const { notice, alert: flashAlert } = usePage<{ notice?: string; alert?: string }>().props
-  const [email, setEmail] = useState("")
   const [showWelcome, setShowWelcome] = useState(
-    !store.owner_email && !(window.history.state?.welcomeSeen)
+    !(window.history.state?.welcomeSeen)
   )
   const [submitting, setSubmitting] = useState(false)
 
@@ -29,16 +27,6 @@ export default function Dashboard({ store }: DashboardProps) {
     router.post("/dashboard/resync", {}, {
       onFinish: () => setSubmitting(false),
       onError: () => alert("Failed to queue sync. Please try again."),
-      onNetworkError: () => alert("Network error. Please check your connection."),
-    })
-  }
-
-  const handleSignup = (e: React.FormEvent) => {
-    e.preventDefault()
-    setSubmitting(true)
-    router.post("/dashboard/signup", { email }, {
-      onFinish: () => setSubmitting(false),
-      onError: () => alert("Failed to save. Please try again."),
       onNetworkError: () => alert("Network error. Please check your connection."),
     })
   }
@@ -79,7 +67,7 @@ export default function Dashboard({ store }: DashboardProps) {
           <motion.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={springTactile}
+            transition={{ duration: 0.3 }}
           >
             <Card>
               <CardContent className="p-6 text-center">
@@ -87,28 +75,12 @@ export default function Dashboard({ store }: DashboardProps) {
                   Your store is live!
                 </h2>
                 <p className="text-sm text-mc-text-dim mb-6 max-w-md mx-auto leading-relaxed">
-                  Milkcrate is free during beta. Leave your email for early access
-                  to premium features when we launch.
+                  Your Discogs inventory is syncing in the background.
+                  Check back soon to see your full storefront.
                 </p>
-                <form onSubmit={handleSignup} className="flex gap-2 max-w-sm mx-auto">
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="your@email.com"
-                    className="flex-1 px-3 py-2 rounded bg-mc-bg-raised text-sm mc-text border mc-border focus:outline-none focus:border-mc-accent transition-colors"
-                    required
-                  />
-                  <Button type="submit" disabled={submitting}>
-                    {submitting ? "Saving…" : "Sign up"}
-                  </Button>
-                </form>
-                <button
-                  onClick={dismissWelcome}
-                  className="mt-4 text-xs text-mc-text-dim hover:text-mc-text transition-colors"
-                >
-                  Not now
-                </button>
+                <Button onClick={dismissWelcome}>
+                  Got it
+                </Button>
               </CardContent>
             </Card>
           </motion.div>
