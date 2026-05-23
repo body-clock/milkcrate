@@ -3,17 +3,17 @@ require "csv"
 module CsvExportSync
   class CsvParser
     HEADER_TO_FIELD = {
-      "listing_id" =>  { field: :discogs_listing_id, coerce: ->(v) { v.to_s } },
-      "release_id" =>  { field: :discogs_release_id, coerce: ->(v) { v.to_s } },
-      "artist" =>      { field: :artist, coerce: ->(v) { v.strip } },
-      "title" =>       { field: :title, coerce: ->(v) { v.strip } },
-      "label" =>       { field: :label, coerce: ->(v) { v.strip } },
-      "format" =>      { field: :format, coerce: ->(v) { v.strip } },
-      "condition" =>   { field: :condition, coerce: ->(v) { v.strip } },
-      "price" =>       { field: :price, coerce: ->(v) { v.to_d } },
-      "posted" =>      { field: :listed_at, coerce: ->(v) { CsvParser.parse_time(v) } },
-      "comments" =>    { field: :notes, coerce: ->(v) { v.strip.presence } },
-      "status" =>      { field: :_status, coerce: ->(v) { v.strip } }
+      "listing_id" =>      { field: :discogs_listing_id, coerce: ->(v) { v.to_s } },
+      "release_id" =>      { field: :discogs_release_id, coerce: ->(v) { v.to_s } },
+      "artist" =>          { field: :artist, coerce: ->(v) { v.strip } },
+      "title" =>           { field: :title, coerce: ->(v) { v.strip } },
+      "label" =>           { field: :label, coerce: ->(v) { v.strip } },
+      "format" =>          { field: :format, coerce: ->(v) { v.strip } },
+      "media_condition" => { field: :condition, coerce: ->(v) { v.strip } },
+      "price" =>           { field: :price, coerce: ->(v) { v.to_d } },
+      "listed" =>          { field: :listed_at, coerce: ->(v) { CsvParser.parse_time(v) } },
+      "comments" =>        { field: :notes, coerce: ->(v) { v.strip.presence } },
+      "status" =>          { field: :_status, coerce: ->(v) { v.strip } }
     }.freeze
 
     Result = Data.define(:records)

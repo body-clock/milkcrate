@@ -7,7 +7,7 @@ RSpec.describe "CSV export sync pipeline", type: :request do
   # A realistic Discogs CSV export
   let(:sample_csv) do
     <<~CSV
-      listing_id,release_id,artist,title,label,catno,format,condition,price,posted,comments,status
+      listing_id,release_id,artist,title,label,catno,format,media_condition,price,listed,comments,status
       1001,2001,Miles Davis,Kind of Blue,Columbia,CL1355,Vinyl,Very Good Plus (VG+),25.00,2026-01-15 10:00:00 UTC,,For Sale
       1002,2002,John Coltrane,A Love Supreme,Impulse!,AS-77,Vinyl,Mint (M),40.00,2026-01-20 14:30:00 UTC,Original press,For Sale
       1003,2003,Thelonious Monk,Brilliant Corners,Riverside,RLP-226,Vinyl,Very Good (VG),15.00,2026-02-01 09:00:00 UTC,,For Sale

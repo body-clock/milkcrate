@@ -4,7 +4,7 @@ RSpec.describe CsvExportSync::CsvParser do
   subject(:parser) { described_class.new }
 
   let(:csv_headers) do
-    "listing_id,release_id,artist,title,label,catno,format,condition,price,posted,comments,status"
+    "listing_id,release_id,artist,title,label,catno,format,media_condition,price,listed,comments,status"
   end
 
   describe "#call" do
