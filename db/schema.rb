@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_22_191520) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_23_003636) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -240,6 +240,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_22_191520) do
     t.index ["key"], name: "index_solid_queue_semaphores_on_key", unique: true
   end
 
+  create_table "store_owners", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "discogs_oauth_token"
+    t.string "discogs_oauth_token_secret"
+    t.string "discogs_username", null: false
+    t.datetime "oauth_authorized_at"
+    t.string "owner_email"
+    t.datetime "updated_at", null: false
+    t.index ["discogs_username"], name: "index_store_owners_on_discogs_username", unique: true
+  end
+
   create_table "storefront_snapshots", force: :cascade do |t|
     t.boolean "active", default: false, null: false
     t.jsonb "crates", default: [], null: false
@@ -267,8 +278,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_22_191520) do
     t.string "catalog_coverage", default: "unknown", null: false
     t.datetime "created_at", null: false
     t.text "description"
-    t.string "discogs_oauth_token"
-    t.string "discogs_oauth_token_secret"
     t.string "discogs_username"
     t.string "enrichment_status", default: "idle", null: false
     t.integer "inventory_page_count", default: 0, null: false
@@ -277,13 +286,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_22_191520) do
     t.datetime "last_sync_error_at"
     t.datetime "last_synced_at"
     t.string "name"
-    t.datetime "oauth_authorized_at"
-    t.string "owner_email"
+    t.bigint "store_owner_id"
     t.string "sync_source", default: "public_api", null: false
     t.string "sync_status"
     t.integer "total_listings"
     t.datetime "updated_at", null: false
     t.index ["discogs_username"], name: "index_stores_on_discogs_username", unique: true
+    t.index ["store_owner_id"], name: "index_stores_on_store_owner_id"
   end
 
   create_table "waitlists", force: :cascade do |t|
@@ -306,4 +315,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_22_191520) do
   add_foreign_key "solid_queue_recurring_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_scheduled_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "storefront_snapshots", "stores"
+  add_foreign_key "stores", "store_owners"
 end

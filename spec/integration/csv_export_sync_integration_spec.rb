@@ -92,7 +92,7 @@ RSpec.describe "CSV export sync pipeline", type: :request do
 
     it "shows the synced listing count" do
       allow_any_instance_of(DashboardController).to receive(:session).and_return(
-        ActiveSupport::HashWithIndifferentAccess.new(store_owner_id: store.id)
+        ActiveSupport::HashWithIndifferentAccess.new(store_owner_id: store.store_owner_id)
       )
 
       get "/dashboard"

@@ -170,13 +170,14 @@ RSpec.describe "Discogs OAuth flow", type: :request do
       context "when the store already exists" do
         let!(:existing_store) { create(:store, discogs_username: slug) }
 
-        it "upgrades the existing store instead of creating a new one" do
+        it "associates the store with the owner and upgrades to CSV sync" do
           expect {
             get "/auth/discogs/callback", params: { oauth_verifier: "v1" }
           }.not_to change(Store, :count)
 
           existing_store.reload
-          expect(existing_store).to be_oauth_authorized
+          expect(existing_store.store_owner).to be_present
+          expect(existing_store.sync_source).to eq("csv_export")
         end
       end
     end

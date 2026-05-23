@@ -19,7 +19,7 @@ class DashboardController < ApplicationController
       return
     end
 
-    current_store.update!(owner_email: email)
+    current_store_owner.update!(owner_email: email)
     session[:welcome_seen] = true
     redirect_to dashboard_path, notice: "Thanks! We'll keep you updated."
   end
@@ -27,15 +27,19 @@ class DashboardController < ApplicationController
   private
 
   def require_store_owner
-    store_id = session[:store_owner_id]
-    @current_store = Store.find_by(id: store_id)
+    owner_id = session[:store_owner_id]
+    @current_store_owner = StoreOwner.find_by(id: owner_id)
 
-    unless @current_store&.oauth_authorized?
+    unless @current_store_owner&.oauth_authorized?
       redirect_to root_path, alert: "Please claim your store first."
     end
   end
 
+  def current_store_owner
+    @current_store_owner
+  end
+
   def current_store
-    @current_store
+    @current_store ||= @current_store_owner&.stores&.first
   end
 end

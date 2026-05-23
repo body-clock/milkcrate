@@ -70,10 +70,15 @@ class CsvExportSyncService
     @store.listings.where(discogs_listing_id: changed).pluck(:id)
   end
 
+
+
   def build_client
+    owner = @store.store_owner
+    raise SyncError, "Store #{@store.discogs_username} has no owner" unless owner
+
     DiscogsClient.new(
-      access_token: @store.discogs_oauth_token,
-      access_token_secret: @store.discogs_oauth_token_secret
+      access_token: owner.discogs_oauth_token,
+      access_token_secret: owner.discogs_oauth_token_secret
     )
   end
 

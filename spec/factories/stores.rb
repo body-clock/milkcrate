@@ -12,9 +12,7 @@ FactoryBot.define do
     last_enriched_at { 1.hour.ago }
 
     trait :oauth_authorized do
-      discogs_oauth_token { "test_oauth_token" }
-      discogs_oauth_token_secret { "test_oauth_token_secret" }
-      oauth_authorized_at { Time.current }
+      association :store_owner
       sync_source { "csv_export" }
     end
   end

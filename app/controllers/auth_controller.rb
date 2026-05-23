@@ -18,7 +18,7 @@ class AuthController < ApplicationController
     ).call
 
     if result.success?
-      session[:store_owner_id] = result.store.id
+      session[:store_owner_id] = result.store.store_owner_id
       clear_oauth_session
       redirect_to dashboard_path, notice: "Store authorized! Full inventory sync has started."
     else

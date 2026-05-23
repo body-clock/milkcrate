@@ -15,7 +15,7 @@ class DashboardPresenter
         last_synced_at: @store.last_synced_at,
         last_sync_error: @store.last_sync_error,
         last_sync_error_at: @store.last_sync_error_at,
-        owner_email: @store.owner_email,
+        owner_email: @store.store_owner&.owner_email,
         oauth_authorized_at: @store.oauth_authorized_at
       }
     }
