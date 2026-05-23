@@ -17,6 +17,7 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
   const storeName = page.props.store?.name
   const discogsUsername = page.props.store?.discogs_username
   const oauthAuthorized = page.props.store?.oauth_authorized
+  const csrfToken = document.querySelector<HTMLMetaElement>("meta[name='csrf-token']")?.content
   const { theme, toggle } = useTheme()
   const { isCompact } = useViewport()
   const { pile } = usePileContext()
@@ -42,6 +43,7 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
       <div className="flex items-center gap-2.5 sm:gap-3 flex-shrink-0">
         {discogsUsername && !oauthAuthorized && (
           <form action={`/${discogsUsername}/authorize`} method="POST" className="inline">
+            {csrfToken && <input type="hidden" name="authenticity_token" value={csrfToken} />}
             <button
               type="submit"
               className="text-xs text-mc-accent hover:opacity-80 transition-opacity select-none rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"

@@ -120,7 +120,7 @@ export interface DashboardStore {
   total_listings: number | null
   sync_status: string
   last_synced_at: string | null
-  last_sync_error: string | null
+  last_sync_error_summary: string | null
   last_sync_error_at: string | null
   owner_email: string | null
   oauth_authorized_at: string | null

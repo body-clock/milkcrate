@@ -8,6 +8,11 @@ class DashboardController < ApplicationController
   end
 
   def resync
+    if current_store.sync_syncing?
+      redirect_to dashboard_path, alert: "A sync is already running for your store. Please wait before requesting another one."
+      return
+    end
+
     FullStoreSyncJob.perform_later(current_store.id)
     redirect_to dashboard_path, notice: "Full inventory sync has been queued."
   end

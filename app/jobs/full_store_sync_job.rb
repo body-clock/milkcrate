@@ -11,6 +11,7 @@ class FullStoreSyncJob < ApplicationJob
   def perform(store_id, max_pages: nil)
     store = Store.find(store_id)
     store.update!(sync_status: "syncing")
+    sync_started_at = Time.current
 
     result = store.sync_strategy.call(store, max_pages: max_pages)
     listing_ids_for_enrichment = import_listings(store, result.listings)
@@ -20,7 +21,7 @@ class FullStoreSyncJob < ApplicationJob
     end
 
     sync_manager(store).mark_succeeded!(
-      last_synced_at: Time.current,
+      last_synced_at: sync_started_at,
       total_listings: store.listings.count
     )
 
@@ -66,11 +67,13 @@ class FullStoreSyncJob < ApplicationJob
 
   def remove_stale_listings(store, current_listings)
     current_ids = current_listings.map { |r| r[:discogs_listing_id] }
-    return if current_ids.empty?
-
-    store.listings
-      .where.not(discogs_listing_id: current_ids)
-      .delete_all
+    if current_ids.empty?
+      store.listings.delete_all
+    else
+      store.listings
+        .where.not(discogs_listing_id: current_ids)
+        .delete_all
+    end
   end
 
   def sync_manager(store)

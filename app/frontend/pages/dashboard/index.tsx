@@ -130,15 +130,15 @@ export default function Dashboard({ store }: DashboardProps) {
           </CardContent>
         </Card>
 
-        {store.last_sync_error && (
+        {store.last_sync_error_summary && (
           <Card className="border-red-700/30">
             <CardHeader>
               <CardTitle className="text-red-400">Last sync error</CardTitle>
             </CardHeader>
             <CardContent>
-              <pre className="text-xs text-red-300 whitespace-pre-wrap font-mono">
-                {store.last_sync_error}
-              </pre>
+              <p className="text-sm text-red-300 leading-relaxed">
+                {store.last_sync_error_summary}
+              </p>
               {store.last_sync_error_at && (
                 <p className="text-xs text-red-400/70 mt-2">
                   {new Date(store.last_sync_error_at).toLocaleString()}

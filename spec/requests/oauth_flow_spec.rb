@@ -47,13 +47,36 @@ RSpec.describe "Discogs OAuth flow", type: :request do
     allow(DiscogsOauthClient).to receive(:new).and_return(oauth_client)
   end
 
+  def csrf_token_for(path)
+    get path
+    response.body[/meta name="csrf-token" content="([^"]+)"/, 1]
+  end
+
+  def post_authorize(path = "/#{slug}/authorize", csrf_path = "/#{slug}")
+    post path, params: { authenticity_token: csrf_token_for(csrf_path) }
+  end
+
   describe "POST /:slug/authorize" do
+    around do |example|
+      previous = ActionController::Base.allow_forgery_protection
+      ActionController::Base.allow_forgery_protection = true
+      example.run
+    ensure
+      ActionController::Base.allow_forgery_protection = previous
+    end
+
+    it "rejects requests without an authenticity token" do
+      post "/#{slug}/authorize"
+
+      expect(response).to have_http_status(:unprocessable_entity)
+    end
+
     context "when inventory >= 500" do
       include_context "with sufficient inventory"
       include_context "with oauth request token"
 
       it "redirects to Discogs authorization page" do
-        post "/#{slug}/authorize"
+        post_authorize
 
         expect(response).to redirect_to(
           "https://www.discogs.com/oauth/authorize?oauth_token=req_token_123"
@@ -68,7 +91,7 @@ RSpec.describe "Discogs OAuth flow", type: :request do
       end
 
       it "redirects to store page with a 500-listing minimum message" do
-        post "/#{slug}/authorize"
+        post_authorize
 
         expect(response).to redirect_to(store_path(slug))
         expect(flash[:alert]).to match(/at least 500/)
@@ -82,7 +105,7 @@ RSpec.describe "Discogs OAuth flow", type: :request do
       end
 
       it "redirects to store page with a 500-listing minimum message" do
-        post "/#{slug}/authorize"
+        post_authorize
 
         expect(response).to redirect_to(store_path(slug))
         expect(flash[:alert]).to match(/at least 500/)
@@ -96,7 +119,7 @@ RSpec.describe "Discogs OAuth flow", type: :request do
       end
 
       it "redirects with a verification-failure message" do
-        post "/#{slug}/authorize"
+        post_authorize
 
         expect(response).to redirect_to(store_path(slug))
         expect(flash[:alert]).to match(/Could not verify/)
@@ -112,7 +135,7 @@ RSpec.describe "Discogs OAuth flow", type: :request do
       end
 
       it "redirects with the OAuth error message" do
-        post "/#{slug}/authorize"
+        post_authorize
 
         expect(flash[:alert]).to match(/Discogs rejected/)
       end
@@ -178,6 +201,28 @@ RSpec.describe "Discogs OAuth flow", type: :request do
           existing_store.reload
           expect(existing_store.store_owner).to be_present
           expect(existing_store.sync_source).to eq("csv_export")
+        end
+      end
+
+      context "when the store owner already exists" do
+        let!(:existing_owner) do
+          create(
+            :store_owner,
+            discogs_username: slug,
+            discogs_oauth_token: "old-token",
+            discogs_oauth_token_secret: "old-secret",
+            oauth_authorized_at: 1.day.ago
+          )
+        end
+        let!(:existing_store) { create(:store, discogs_username: slug, store_owner: existing_owner) }
+
+        it "refreshes the owner's OAuth credentials" do
+          get "/auth/discogs/callback", params: { oauth_verifier: "v1" }
+
+          existing_owner.reload
+          expect(existing_owner.discogs_oauth_token).to eq("at_123")
+          expect(existing_owner.discogs_oauth_token_secret).to eq("ats_456")
+          expect(existing_owner.oauth_authorized_at).to be_present
         end
       end
     end
@@ -254,6 +299,34 @@ RSpec.describe "Discogs OAuth flow", type: :request do
         get "/auth/discogs/callback"
 
         expect(flash[:alert]).to match(/Missing authorization code/)
+      end
+    end
+
+    context "when token exchange fails after reauthorization" do
+      include_context "with oauth session"
+
+      let!(:existing_owner) do
+        create(
+          :store_owner,
+          discogs_username: slug,
+          discogs_oauth_token: "old-token",
+          discogs_oauth_token_secret: "old-secret",
+          oauth_authorized_at: 1.day.ago
+        )
+      end
+      let!(:existing_store) { create(:store, discogs_username: slug, store_owner: existing_owner) }
+
+      before do
+        allow(oauth_client).to receive(:exchange_access_token)
+          .and_raise(DiscogsOauthClient::OauthError, "Invalid verifier")
+      end
+
+      it "does not modify the existing owner credentials" do
+        get "/auth/discogs/callback", params: { oauth_verifier: "bad" }
+
+        existing_owner.reload
+        expect(existing_owner.discogs_oauth_token).to eq("old-token")
+        expect(existing_owner.discogs_oauth_token_secret).to eq("old-secret")
       end
     end
   end

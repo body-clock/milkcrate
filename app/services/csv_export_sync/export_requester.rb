@@ -23,6 +23,7 @@ module CsvExportSync
     def trigger_or_find_export
       response = @client.inventory_export
       export_id = extract_export_id(response)
+      raise ExportError, "Could not determine export ID from export trigger response" unless export_id
       Rails.logger.info("[ExportRequester] Export triggered: id=#{export_id} response=#{response.inspect}")
       export_id
     rescue DiscogsClient::ApiError => e
@@ -55,14 +56,6 @@ module CsvExportSync
       end
 
       raise ExportError, "Export timed out after #{MAX_POLL_TIME / 60} minutes"
-    rescue DiscogsClient::ApiError => e
-      if e.message.include?("304")
-        Rails.logger.info("[ExportRequester] Export not modified (304), retrying")
-        sleep(POLL_INTERVAL)
-        retry
-      else
-        raise
-      end
     end
 
     def download_export(export_id)
@@ -70,7 +63,13 @@ module CsvExportSync
     end
 
     def extract_export_id(response)
-      response["id"] || response["export_id"]
+      return nil unless response.is_a?(Hash)
+
+      value = response["id"] || response["export_id"]
+      return nil if value.blank?
+
+      id = Integer(value, exception: false)
+      id.positive? ? id : nil
     end
   end
 end

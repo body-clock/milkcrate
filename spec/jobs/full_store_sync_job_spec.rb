@@ -94,20 +94,24 @@ RSpec.describe FullStoreSyncJob do
 
       it "uses strategy call time as the sync start watermark" do
         travel_to(Time.zone.parse("2026-05-05 12:00:00")) do
-          listing_attrs = {
-            discogs_listing_id: "1", artist: "Test", title: "Record", label: "Label",
-            format: "LP", condition: "Mint", price: 10.00, currency: "USD",
-            listed_at: Time.current, last_seen_at: 2.seconds.from_now
-          }
-          sync_result = SyncStrategies::Result.new(listings: [ listing_attrs ], complete: false)
-          allow(mock_strategy).to receive(:call).with(store, max_pages: nil).and_return(sync_result)
+          synced_at = nil
+          allow(mock_strategy).to receive(:call).with(store, max_pages: nil) do
+            synced_at = Time.current
+            SyncStrategies::Result.new(listings: [
+              {
+                discogs_listing_id: "1", artist: "Test", title: "Record", label: "Label",
+                format: "LP", condition: "Mint", price: 10.00, currency: "USD",
+                listed_at: Time.current, last_seen_at: Time.current
+              }
+            ], complete: false)
+          end
 
           travel 5.seconds
           described_class.perform_now(store.id)
 
           store.reload
-          expect(store.last_synced_at).to eq(Time.zone.parse("2026-05-05 12:00:05"))
-          expect(store.listings.available.count).to eq(0)
+          expect(store.last_synced_at).to be <= synced_at
+          expect(store.listings.available.count).to eq(1)
         end
       end
 
@@ -152,6 +156,26 @@ RSpec.describe FullStoreSyncJob do
         store.reload
         expect(store.listings.count).to eq(1)
         expect(store.listings.pluck(:discogs_listing_id)).to eq(%w[1])
+      end
+
+      it "removes all listings when a complete snapshot is empty" do
+        create_list(:listing, 2, store:)
+        allow(mock_strategy).to receive(:call).with(store, max_pages: nil)
+          .and_return(SyncStrategies::Result.new(listings: [], complete: true))
+
+        described_class.perform_now(store.id)
+
+        expect(store.reload.listings).to be_empty
+      end
+
+      it "keeps existing listings when an incomplete snapshot is empty" do
+        create(:listing, store:, discogs_listing_id: "stale")
+        allow(mock_strategy).to receive(:call).with(store, max_pages: nil)
+          .and_return(SyncStrategies::Result.new(listings: [], complete: false))
+
+        described_class.perform_now(store.id)
+
+        expect(store.reload.listings.pluck(:discogs_listing_id)).to eq(%w[stale])
       end
 
       it "sets sync_status to syncing then idle" do

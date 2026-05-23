@@ -50,14 +50,13 @@ class DiscogsClient
     require_oauth!
     response = oauth_access_token.post("#{BASE_URL}/inventory/export")
     body = parse_oauth_response(response)
-    if body.blank? || body == {}
-      location = response["Location"] || response["location"]
-      if location
-        export_id = location.split("/").last.to_i
-        body = { "id" => export_id }
-      end
+    export_id = extract_export_id(body) || extract_location_export_id(response)
+
+    if export_id
+      { "id" => export_id }
+    else
+      raise ApiError, "Discogs API error: #{response.code} — #{response.body}"
     end
-    body
   end
 
   def check_export_status(export_id)
@@ -77,7 +76,11 @@ class DiscogsClient
     require_oauth!
     response = oauth_access_token.get("#{BASE_URL}/inventory/export")
     body = parse_oauth_response(response)
-    body["exports"] || body["items"] || body
+    exports = case body
+    when Array then body
+    when Hash then body["exports"] || body["items"]
+    end
+    Array.wrap(exports).compact
   end
 
   def list_orders(status: nil, page: 1)
@@ -128,10 +131,18 @@ class DiscogsClient
     code = response.code.to_i
     return { "status" => "not_modified" } if code == 304
 
-    body = JSON.parse(response.body)
-    case code
-    when 200
+    body = response.body
+    parsed_body = case body
+    when Hash, Array
       body
+    else
+      raw = body.to_s
+      raw.blank? ? {} : JSON.parse(raw)
+    end
+
+    case code
+    when 200..299
+      parsed_body
     when 429
       raise RateLimitError, "Discogs rate limit hit"
     else
@@ -139,5 +150,25 @@ class DiscogsClient
     end
   rescue JSON::ParserError
     raise ApiError, "Discogs API error: #{response.code} — #{response.body}"
+  end
+
+  def extract_export_id(body)
+    return nil unless body.is_a?(Hash)
+
+    normalize_export_id(body["id"] || body["export_id"])
+  end
+
+  def extract_location_export_id(response)
+    location = response["Location"] || response["location"]
+    return nil if location.blank?
+
+    location.to_s.match(%r{/inventory/export/(\d+)})&.[](1)&.to_i
+  end
+
+  def normalize_export_id(value)
+    return nil if value.blank?
+
+    id = Integer(value, exception: false)
+    id.positive? ? id : nil
   end
 end

@@ -30,4 +30,25 @@ RSpec.describe StoreOwner do
       expect(owner).not_to be_oauth_authorized
     end
   end
+
+  describe "encrypted OAuth credentials" do
+    it "stores OAuth tokens encrypted at rest while exposing plaintext through the model" do
+      owner = create(
+        :store_owner,
+        discogs_oauth_token: "plain-token",
+        discogs_oauth_token_secret: "plain-secret"
+      )
+
+      raw_row = described_class.connection.select_one(<<~SQL.squish)
+        SELECT discogs_oauth_token, discogs_oauth_token_secret
+        FROM store_owners
+        WHERE id = #{owner.id}
+      SQL
+
+      expect(raw_row["discogs_oauth_token"]).not_to eq("plain-token")
+      expect(raw_row["discogs_oauth_token_secret"]).not_to eq("plain-secret")
+      expect(owner.reload.discogs_oauth_token).to eq("plain-token")
+      expect(owner.reload.discogs_oauth_token_secret).to eq("plain-secret")
+    end
+  end
 end

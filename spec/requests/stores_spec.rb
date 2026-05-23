@@ -40,6 +40,14 @@ RSpec.describe "Stores", type: :request do
         expect(csp).to include("script-src")
         expect(csp).to include("'nonce-")
       end
+
+      it "does not expose OAuth tokens in the storefront props" do
+        store.update!(store_owner: create(:store_owner, discogs_username: "teststore"))
+
+        get "/teststore"
+
+        expect(inertia.props[:store].keys).not_to include("discogs_oauth_token", "discogs_oauth_token_secret")
+      end
     end
 
     context "with unknown slug" do

@@ -42,6 +42,7 @@ RSpec.describe "CSV export sync pipeline", type: :request do
       expect(store.total_listings).to eq(4)
       expect(store.last_synced_at).to be_present
       expect(store.sync_status).to eq("idle")
+      expect(store.listings.available.count).to eq(4)
     end
 
     it "is idempotent — re-syncing doesn't duplicate listings" do
@@ -102,6 +103,22 @@ RSpec.describe "CSV export sync pipeline", type: :request do
   end
 
   describe "error handling" do
+    context "when the complete export is empty" do
+      before do
+        allow(discogs_client).to receive(:inventory_export).and_return({ "id" => 42 })
+        allow(discogs_client).to receive(:check_export_status).with(42).and_return({ "status" => "completed" })
+        allow(discogs_client).to receive(:download_export).with(42).and_return("")
+        allow(DiscogsClient).to receive(:new).and_return(discogs_client)
+        create(:listing, store:, discogs_listing_id: "stale")
+      end
+
+      it "removes all existing listings for the store" do
+        expect {
+          FullStoreSyncJob.perform_now(store.id)
+        }.to change { store.reload.listings.count }.from(1).to(0)
+      end
+    end
+
     context "when Discogs export fails" do
       before do
         allow(discogs_client).to receive(:inventory_export).and_raise(DiscogsClient::ApiError, "Export failed")

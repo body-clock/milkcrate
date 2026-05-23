@@ -69,6 +69,7 @@ export default function Invitation({ waitlist_present, slug, oauth_available }: 
 function InvitationContent({ slug, oauth_available }: { slug: string; oauth_available?: boolean }) {
   const [probeState, setProbeState] = useState<"loading" | "found" | "not_found" | "error">("loading")
   const [sellerName, setSellerName] = useState<string | null>(null)
+  const csrfToken = document.querySelector<HTMLMetaElement>("meta[name='csrf-token']")?.content
 
   // Quality gate: only probe plausible Discogs usernames
   const shouldProbe = useMemo(() => {
@@ -181,6 +182,7 @@ function InvitationContent({ slug, oauth_available }: { slug: string; oauth_avai
             >
               {oauth_available ? (
                 <form action={`/${slug}/authorize`} method="POST" className="inline">
+                  {csrfToken && <input type="hidden" name="authenticity_token" value={csrfToken} />}
                   <button
                     type="submit"
                     className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-mc-accent text-mc-on-accent font-semibold text-sm tracking-wide hover:opacity-90 transition-opacity"

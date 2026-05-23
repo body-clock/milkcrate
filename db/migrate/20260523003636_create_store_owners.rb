@@ -2,8 +2,8 @@ class CreateStoreOwners < ActiveRecord::Migration[8.1]
   def change
     create_table :store_owners do |t|
       t.string :discogs_username, null: false
-      t.string :discogs_oauth_token
-      t.string :discogs_oauth_token_secret
+      t.text :discogs_oauth_token
+      t.text :discogs_oauth_token_secret
       t.datetime :oauth_authorized_at
       t.string :owner_email
 

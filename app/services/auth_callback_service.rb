@@ -19,11 +19,16 @@ class AuthCallbackService
     identity = oauth_client.verify_identity(token_result.access_token, token_result.access_token_secret)
     return error_result("Discogs identity mismatch. The Discogs account you authorized (#{identity.username}) does not match the store URL (#{@slug}).") unless identity.username.downcase == @slug.downcase
 
-    store_owner = find_or_create_owner!(@slug, token_result)
-    store = find_or_create_store!(@slug, store_owner)
-    return error_result("Could not create store for #{@slug}.") unless store
+    store = nil
+    ActiveRecord::Base.transaction do
+      store_owner = find_or_create_owner!(@slug, token_result)
+      store = find_or_create_store!(@slug, store_owner)
+      raise ActiveRecord::Rollback if store.nil?
 
-    store.update!(sync_source: :csv_export)
+      store.update!(sync_source: :csv_export)
+    end
+
+    return error_result("Could not create store for #{@slug}.") unless store
     FullStoreSyncJob.perform_later(store.id)
 
     Result.new(store:, error: nil)
@@ -37,12 +42,13 @@ class AuthCallbackService
   private
 
   def find_or_create_owner!(slug, token_result)
-    StoreOwner.with_discogs_username(slug).first || StoreOwner.create!(
-      discogs_username: slug,
+    owner = StoreOwner.find_or_initialize_by(discogs_username: slug)
+    owner.update!(
       discogs_oauth_token: token_result.access_token,
       discogs_oauth_token_secret: token_result.access_token_secret,
       oauth_authorized_at: Time.current
     )
+    owner
   end
 
   def find_or_create_store!(slug, store_owner)
