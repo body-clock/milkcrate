@@ -68,15 +68,13 @@ export default function Dashboard({ store }: DashboardProps) {
         </a>
       </header>
 
-      {/* Flash messages */}
-      {(notice || flashAlert) && (
-        <div className="px-4 py-2 text-sm mc-notice" role="alert" aria-live="polite">
-          {notice || flashAlert}
-        </div>
-      )}
+      <div className="mx-auto max-w-2xl flex flex-col gap-6 px-4 py-8">
+        {(notice || flashAlert) && (
+          <div className="px-4 py-2 text-sm mc-notice" role="alert" aria-live="polite">
+            {notice || flashAlert}
+          </div>
+        )}
 
-      <div className="mx-auto max-w-2xl px-4 py-8 space-y-6">
-        {/* Welcome overlay — first visit */}
         {showWelcome && (
           <motion.div
             initial={{ opacity: 0, y: -8 }}
@@ -116,7 +114,6 @@ export default function Dashboard({ store }: DashboardProps) {
           </motion.div>
         )}
 
-        {/* Store info */}
         <Card>
           <CardHeader>
             <CardTitle>{store.name}</CardTitle>
@@ -166,7 +163,6 @@ export default function Dashboard({ store }: DashboardProps) {
           </CardContent>
         </Card>
 
-        {/* Sync error */}
         {store.last_sync_error && (
           <Card className="border-red-700/30">
             <CardHeader>
