@@ -28,6 +28,12 @@ Rails.application.configure do
   # Disable request forgery protection in test environment.
   config.action_controller.allow_forgery_protection = false
 
+  # Use deterministic test-only encryption credentials so encrypted attributes
+  # work in CI without depending on Rails credentials being injected.
+  config.active_record.encryption.primary_key = "milkcrate-test-primary-key"
+  config.active_record.encryption.deterministic_key = "milkcrate-test-deterministic-key"
+  config.active_record.encryption.key_derivation_salt = "milkcrate-test-key-derivation-salt"
+
   # Store uploaded files on the local file system in a temporary directory.
 
   # Tell Action Mailer not to deliver emails to the real world.
