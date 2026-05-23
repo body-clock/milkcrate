@@ -1,3 +1,4 @@
+# A record store with Discogs inventory, sync status, and curation state.
 class Store < ApplicationRecord
   belongs_to :store_owner, optional: true
 

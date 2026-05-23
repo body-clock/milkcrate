@@ -1,3 +1,4 @@
+# Value object encapsulating the want/have ratio for a Discogs listing.
 class WantHaveRatio < Data.define(:want, :have)
   RATIO_HIGH = 2.0
   RATIO_LOW  = 0.5

@@ -1,3 +1,4 @@
+# Serializes store owner dashboard data (store info, error summaries) for Inertia views.
 class DashboardPresenter
   def initialize(store)
     @store = store

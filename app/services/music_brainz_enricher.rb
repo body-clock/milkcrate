@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# Enriches listings with additional metadata from MusicBrainz lookups.
 class MusicBrainzEnricher
   SLEEP_INTERVAL = 1.1
 

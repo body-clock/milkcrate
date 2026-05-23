@@ -1,3 +1,4 @@
+# A vinyl record listing imported from a store Discogs inventory.
 class Listing < ApplicationRecord
   belongs_to :store
 

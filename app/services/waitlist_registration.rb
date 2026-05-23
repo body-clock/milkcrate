@@ -1,3 +1,4 @@
+# Registers a new waitlist entry with email validation and rate limiting.
 class WaitlistRegistration
   Result = Data.define(:success, :waitlist, :errors)
 

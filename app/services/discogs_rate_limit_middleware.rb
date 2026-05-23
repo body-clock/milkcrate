@@ -1,3 +1,4 @@
+# Faraday middleware that tracks and logs Discogs API rate limit headers.
 class DiscogsRateLimitMiddleware < Faraday::Middleware
   SLEEP = 1.1       # baseline pacing: ~55 req/min
   LOW = 5           # remaining threshold to trigger extended pause

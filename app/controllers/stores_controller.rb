@@ -1,3 +1,4 @@
+# Public storefront pages displaying curated crates and listings.
 class StoresController < ApplicationController
   layout "inertia_application"
 

@@ -1,3 +1,4 @@
+# Job that enriches listing metadata (genres, images) from external APIs.
 class EnrichmentJob < ApplicationJob
   limits_concurrency to: 1, key: ->(*) { "discogs_api" }
   queue_as :default

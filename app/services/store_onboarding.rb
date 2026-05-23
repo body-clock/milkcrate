@@ -1,3 +1,4 @@
+# Orchestrates the full store onboarding flow: OAuth, sync, and initial setup.
 class StoreOnboarding
   Result = Data.define(:store)
   Error = Class.new(StandardError)

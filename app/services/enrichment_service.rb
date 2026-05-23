@@ -1,3 +1,4 @@
+# Enriches listing metadata (genres, styles, images) from MusicBrainz and Discogs APIs.
 class EnrichmentService
   BATCH_SIZE = 50
 

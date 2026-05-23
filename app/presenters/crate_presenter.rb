@@ -1,3 +1,4 @@
+# Serializes curated crate data into Inertia-compatible props for the storefront.
 class CratePresenter
   def initialize(store, scorer: nil)
     @store = store

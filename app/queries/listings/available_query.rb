@@ -1,3 +1,4 @@
+# Query object for scoping listings to currently available (in-stock) records.
 class Listings::AvailableQuery
   RECENCY_THRESHOLD = 3.days
 

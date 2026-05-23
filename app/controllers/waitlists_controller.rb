@@ -1,3 +1,4 @@
+# Waitlist signup and status for the vendor waiting list.
 class WaitlistsController < ApplicationController
   layout "inertia_application"
 

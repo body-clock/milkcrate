@@ -1,3 +1,4 @@
+# Namespace for crate selection strategies that power storefront crates.
 module CrateStrategies
   class Picks
     def initialize(genre_counts:, today: Date.today)

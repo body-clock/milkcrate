@@ -1,3 +1,4 @@
+# Admin onboarding flow for claiming and setting up new stores.
 class Admin::OnboardingsController < Admin::BaseController
   def create
     waitlist = Waitlist.find(params[:waitlist_id])

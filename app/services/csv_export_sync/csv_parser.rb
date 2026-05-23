@@ -1,6 +1,8 @@
 require "csv"
 
+# Namespace for CSV export sync components.
 module CsvExportSync
+  # Parses Discogs CSV export data into structured listing records.
   class CsvParser
     HEADER_TO_FIELD = {
       "listing_id" =>      { field: :discogs_listing_id, coerce: ->(v) { v.to_s } },

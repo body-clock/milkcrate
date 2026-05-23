@@ -1,3 +1,4 @@
+# Namespace for admin controllers and presenters.
 module Admin
   class StoreHealth
     STALE_AFTER = 23.hours
