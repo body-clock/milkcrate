@@ -101,15 +101,7 @@ class DiscogsClient
 
   def oauth_access_token
     @oauth_access_token ||= begin
-      consumer = OAuth::Consumer.new(
-        Rails.application.credentials.dig(:discogs, :consumer_key),
-        Rails.application.credentials.dig(:discogs, :consumer_secret),
-        site: BASE_URL,
-        request_token_path: "/oauth/request_token",
-        authorize_path: "/oauth/authorize",
-        access_token_path: "/oauth/access_token"
-      )
-      OAuth::AccessToken.new(consumer, @access_token, @access_token_secret)
+      OAuth::AccessToken.new(DiscogsOauthConsumer.build, @access_token, @access_token_secret)
     end
   end
 

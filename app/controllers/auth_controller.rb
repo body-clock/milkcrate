@@ -86,15 +86,6 @@ class AuthController < ApplicationController
   end
 
   def build_consumer
-    key = Rails.application.credentials.dig(:discogs, :consumer_key)
-    secret = Rails.application.credentials.dig(:discogs, :consumer_secret)
-    OAuth::Consumer.new(
-      key,
-      secret,
-      site: "https://api.discogs.com",
-      request_token_path: "/oauth/request_token",
-      authorize_path: "/oauth/authorize",
-      access_token_path: "/oauth/access_token"
-    )
+    DiscogsOauthConsumer.build
   end
 end

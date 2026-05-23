@@ -94,10 +94,10 @@ RSpec.describe DiscogsOauthClient do
     context "without a consumer and without credentials configured" do
       subject(:client) { described_class.new }
 
-      it "raises an OauthError" do
+      it "raises a ConfigurationError" do
         allow(Rails.application.credentials).to receive(:dig).with(:discogs, :consumer_key).and_return(nil)
         allow(Rails.application.credentials).to receive(:dig).with(:discogs, :consumer_secret).and_return(nil)
-        expect { client }.to raise_error(DiscogsOauthClient::OauthError, /consumer key is not configured/)
+        expect { client }.to raise_error(DiscogsOauthConsumer::ConfigurationError, /consumer key is not configured/)
       end
     end
   end

@@ -6,9 +6,7 @@ class DiscogsOauthClient
   class OauthError < StandardError; end
 
   def initialize(consumer: nil)
-    key = Rails.application.credentials.dig(:discogs, :consumer_key)
-    secret = Rails.application.credentials.dig(:discogs, :consumer_secret)
-    @consumer = consumer || build_consumer(key, secret)
+    @consumer = consumer || DiscogsOauthConsumer.build
   end
 
   def request_token(callback_url:)
@@ -40,19 +38,4 @@ class DiscogsOauthClient
     raise OauthError, "Discogs identity response parse failed: #{e.message}"
   end
 
-  private
-
-  def build_consumer(key, secret)
-    raise OauthError, "Discogs consumer key is not configured" if key.blank?
-    raise OauthError, "Discogs consumer secret is not configured" if secret.blank?
-
-    OAuth::Consumer.new(
-      key,
-      secret,
-      site: "https://api.discogs.com",
-      request_token_path: "/oauth/request_token",
-      authorize_path: "/oauth/authorize",
-      access_token_path: "/oauth/access_token"
-    )
-  end
 end
