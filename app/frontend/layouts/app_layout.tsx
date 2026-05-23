@@ -8,12 +8,16 @@ import { ViewportProvider } from "@/contexts/viewport_context"
 import { useViewport } from "@/hooks/use_viewport"
 import BrandMark from "@/components/brand_mark"
 import MilkcrateShell from "@/layouts/milkcrate_shell"
+import type { Store } from "@/types/inertia"
 
 function AppLayoutInner({ children }: { children: React.ReactNode }) {
-  const page = usePage<{ notice?: string; store?: { name?: string; discogs_username?: string } }>()
+  const page = usePage<{ notice?: string; alert?: string; store?: Pick<Store, "name" | "discogs_username" | "oauth_authorized"> }>()
   const notice = page.props.notice
+  const alertMsg = page.props.alert
   const storeName = page.props.store?.name
   const discogsUsername = page.props.store?.discogs_username
+  const oauthAuthorized = page.props.store?.oauth_authorized
+  const csrfToken = document.querySelector<HTMLMetaElement>("meta[name='csrf-token']")?.content
   const { theme, toggle } = useTheme()
   const { isCompact } = useViewport()
   const { pile } = usePileContext()
@@ -37,6 +41,17 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
         )}
       </Link>
       <div className="flex items-center gap-2.5 sm:gap-3 flex-shrink-0">
+        {discogsUsername && !oauthAuthorized && (
+          <form action={`/${discogsUsername}/authorize`} method="POST" className="inline">
+            {csrfToken && <input type="hidden" name="authenticity_token" value={csrfToken} />}
+            <button
+              type="submit"
+              className="text-xs text-mc-accent hover:opacity-80 transition-opacity select-none rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
+            >
+              Is this your store?
+            </button>
+          </form>
+        )}
         {discogsUsername && (
           <a
             href={`https://www.discogs.com/seller/${discogsUsername}/profile`}
@@ -81,9 +96,10 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
     </footer>
   )
 
-  const afterHeader = notice ? (
+  const flashMsg = notice || alertMsg
+  const afterHeader = flashMsg ? (
     <div className="px-4 py-2 text-sm mc-notice" role="alert" aria-live="polite">
-      {notice}
+      {flashMsg}
     </div>
   ) : undefined
 

@@ -1,5 +1,5 @@
 import React from "react"
-import { Link } from "@inertiajs/react"
+import { Link, usePage } from "@inertiajs/react"
 import { useTheme } from "@/hooks/use_theme"
 import BrandMark from "@/components/brand_mark"
 import MilkcrateShell from "@/layouts/milkcrate_shell"
@@ -7,6 +7,8 @@ import StorefrontMotionConfig from "@/components/storefront_motion_config"
 import { ViewportProvider } from "@/contexts/viewport_context"
 
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {
+  const { alert: alertMsg, notice: noticeMsg } = usePage<{ alert?: string; notice?: string }>().props
+  const flashMsg = noticeMsg || alertMsg
   const { theme, toggle } = useTheme()
 
   const header = (
@@ -48,7 +50,15 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
   return (
     <StorefrontMotionConfig>
       <ViewportProvider>
-        <MilkcrateShell header={header} contentWidth="max-w-6xl">
+        <MilkcrateShell
+          header={header}
+          afterHeader={flashMsg ? (
+            <div className="px-4 py-2 text-sm mc-notice" role="alert" aria-live="polite">
+              {flashMsg}
+            </div>
+          ) : undefined}
+          contentWidth="max-w-6xl"
+        >
           {children}
         </MilkcrateShell>
       </ViewportProvider>

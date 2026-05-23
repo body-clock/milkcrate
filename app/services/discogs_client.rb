@@ -5,10 +5,15 @@ class DiscogsClient
   class RateLimitError < StandardError; end
   class ApiError < StandardError; end
 
-  def initialize(connection: nil)
+  def initialize(connection: nil, access_token: nil, access_token_secret: nil)
     @token = Rails.application.credentials.dig(:discogs, :token)
+    @access_token = access_token
+    @access_token_secret = access_token_secret
     @connection = connection || build_connection
+    @oauth_consumer = nil
   end
+
+  # Public endpoints (work with both app token and OAuth)
 
   def seller_inventory(username, page: 1, sort: "listed", sort_order: "desc")
     response = @connection.get("/users/#{username}/inventory") do |req|
@@ -39,6 +44,53 @@ class DiscogsClient
     handle_response(response)
   end
 
+  # OAuth-only endpoints (require access_token and access_token_secret)
+
+  def inventory_export
+    require_oauth!
+    response = oauth_access_token.post("#{BASE_URL}/inventory/export")
+    body = parse_oauth_response(response)
+    export_id = extract_export_id(body) || extract_location_export_id(response)
+
+    if export_id
+      { "id" => export_id }
+    else
+      raise ApiError, "Discogs API error: #{response.code} — #{response.body}"
+    end
+  end
+
+  def check_export_status(export_id)
+    require_oauth!
+    response = oauth_access_token.get("#{BASE_URL}/inventory/export/#{export_id}")
+    parse_oauth_response(response)
+  end
+
+  def download_export(export_id)
+    require_oauth!
+    response = oauth_access_token.get("#{BASE_URL}/inventory/export/#{export_id}/download")
+    raise ApiError, "Export download failed: HTTP #{response.code}" unless response.code.to_i == 200
+    response.body
+  end
+
+  def recent_exports
+    require_oauth!
+    response = oauth_access_token.get("#{BASE_URL}/inventory/export")
+    body = parse_oauth_response(response)
+    exports = case body
+    when Array then body
+    when Hash then body["exports"] || body["items"]
+    end
+    Array.wrap(exports).compact
+  end
+
+  def list_orders(status: nil, page: 1)
+    require_oauth!
+    path = "#{BASE_URL}/marketplace/orders?page=#{page}"
+    path += "&status=#{ERB::Util.url_encode(status)}" if status
+    response = oauth_access_token.get(path)
+    parse_oauth_response(response)
+  end
+
   private
 
   def build_connection
@@ -63,5 +115,60 @@ class DiscogsClient
     else
       raise ApiError, "Discogs API error: #{response.status} — #{response.body}"
     end
+  end
+
+  def oauth_access_token
+    @oauth_access_token ||= begin
+      OAuth::AccessToken.new(DiscogsOauthConsumer.build, @access_token, @access_token_secret)
+    end
+  end
+
+  def require_oauth!
+    raise ApiError, "OAuth access token required for this endpoint" if @access_token.blank? || @access_token_secret.blank?
+  end
+
+  def parse_oauth_response(response)
+    code = response.code.to_i
+    return { "status" => "not_modified" } if code == 304
+
+    body = response.body
+    parsed_body = case body
+    when Hash, Array
+      body
+    else
+      raw = body.to_s
+      raw.blank? ? {} : JSON.parse(raw)
+    end
+
+    case code
+    when 200..299
+      parsed_body
+    when 429
+      raise RateLimitError, "Discogs rate limit hit"
+    else
+      raise ApiError, "Discogs API error: #{code} — #{response.body}"
+    end
+  rescue JSON::ParserError
+    raise ApiError, "Discogs API error: #{response.code} — #{response.body}"
+  end
+
+  def extract_export_id(body)
+    return nil unless body.is_a?(Hash)
+
+    normalize_export_id(body["id"] || body["export_id"])
+  end
+
+  def extract_location_export_id(response)
+    location = response["Location"] || response["location"]
+    return nil if location.blank?
+
+    location.to_s.match(%r{/inventory/export/(\d+)})&.[](1)&.to_i
+  end
+
+  def normalize_export_id(value)
+    return nil if value.blank?
+
+    id = Integer(value, exception: false)
+    id.positive? ? id : nil
   end
 end

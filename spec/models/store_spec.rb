@@ -125,4 +125,41 @@ RSpec.describe Store, type: :model do
       expect(store.reload.enrichment_status).to eq("failed")
     end
   end
+
+  describe "#sync_strategy" do
+    it "returns CsvExport strategy when store is OAuth authorized" do
+      owner = create(:store_owner)
+      store = create(:store, store_owner: owner)
+
+      strategy = store.sync_strategy
+
+      expect(strategy).to be_a(SyncStrategies::CsvExport)
+      expect(strategy).to respond_to(:call)
+    end
+
+    it "returns PublicApi strategy when store has no store_owner" do
+      store = create(:store, store_owner: nil)
+
+      strategy = store.sync_strategy
+
+      expect(strategy).to be_a(SyncStrategies::PublicApi)
+      expect(strategy).to respond_to(:call)
+    end
+
+    it "returns PublicApi strategy when store_owner exists but is not authorized" do
+      owner = create(:store_owner, discogs_oauth_token: nil, discogs_oauth_token_secret: nil, oauth_authorized_at: nil)
+      store = create(:store, store_owner: owner)
+
+      strategy = store.sync_strategy
+
+      expect(strategy).to be_a(SyncStrategies::PublicApi)
+    end
+
+    it "returned strategy responds to call with a SyncStrategies::Result" do
+      store = create(:store, store_owner: nil)
+      strategy = store.sync_strategy
+
+      expect(strategy).to respond_to(:call).with(1).argument
+    end
+  end
 end
