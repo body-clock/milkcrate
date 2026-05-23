@@ -3,16 +3,17 @@ require "csv"
 module CsvExportSync
   class CsvParser
     HEADER_TO_FIELD = {
-      "listing_id" => :discogs_listing_id,
-      "release_id" => :discogs_release_id,
-      "artist" => :artist,
-      "title" => :title,
-      "label" => :label,
-      "format" => :format,
-      "condition" => :condition,
-      "price" => :price,
-      "posted" => :listed_at,
-      "comments" => :notes
+      "listing_id" =>  { field: :discogs_listing_id, coerce: ->(v) { v.to_s } },
+      "release_id" =>  { field: :discogs_release_id, coerce: ->(v) { v.to_s } },
+      "artist" =>      { field: :artist, coerce: ->(v) { v.strip } },
+      "title" =>       { field: :title, coerce: ->(v) { v.strip } },
+      "label" =>       { field: :label, coerce: ->(v) { v.strip } },
+      "format" =>      { field: :format, coerce: ->(v) { v.strip } },
+      "condition" =>   { field: :condition, coerce: ->(v) { v.strip } },
+      "price" =>       { field: :price, coerce: ->(v) { v.to_d } },
+      "posted" =>      { field: :listed_at, coerce: ->(v) { CsvParser.parse_time(v) } },
+      "comments" =>    { field: :notes, coerce: ->(v) { v.strip.presence } },
+      "status" =>      { field: :_status, coerce: ->(v) { v.strip } }
     }.freeze
 
     Result = Data.define(:records)
@@ -28,39 +29,17 @@ module CsvExportSync
     private
 
     def normalize_row(row, store_id:)
-      HEADER_TO_FIELD.each_with_object({ store_id:, last_seen_at: Time.current }) do |(header, field), record|
+      record = { store_id:, last_seen_at: Time.current }
+
+      HEADER_TO_FIELD.each do |header, config|
         value = row[header]
-
-        record[field] = if value.nil?
-          nil
-        else
-          case field
-          when :price then value.to_d
-          when :listed_at then parse_time(value)
-          when :discogs_listing_id, :discogs_release_id then value.to_s
-          else value.strip.presence
-          end
-        end
-      end.tap do |record|
-        # Skip non-vinyl formats
-        return nil unless vinyl?(record[:format])
-
-        # Skip sold/unavailable listings
-        status = row["status"]
-        return nil if status.present? && %w[Sold Draft Expired].include?(status.strip)
-
-        # Ensure required fields
-        return nil if record[:discogs_listing_id].blank?
+        record[config[:field]] = value.nil? ? nil : config[:coerce].call(value)
       end
+
+      record
     end
 
-    def vinyl?(format)
-      return true if format.blank?
-      non_vinyl = %w[CD Cassette DVD VHS]
-      non_vinyl.none? { |nv| format.include?(nv) }
-    end
-
-    def parse_time(str)
+    def self.parse_time(str)
       Time.parse(str)
     rescue ArgumentError
       nil

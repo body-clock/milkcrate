@@ -14,30 +14,16 @@ class StoresController < ApplicationController
     slug = params[:slug]&.strip&.downcase
     return redirect_to slug.present? ? store_path(slug) : root_path, alert: "Invalid username" if slug.blank?
 
-    # Don't create the store yet — wait until OAuth confirms ownership.
-    # But verify they're a seller before sending them to Discogs.
-    client = DiscogsClient.new
-    inventory = client.seller_inventory(slug, page: 1)
-    total_listings = inventory.dig("pagination", "items") || 0
+    result = AuthorizeStoreService.new(slug:, callback_url: discogs_oauth_callback_url).call
 
-    if total_listings < 500
-      redirect_to store_path(slug), alert: "We couldn't find enough inventory for this Discogs account. Milkcrate requires at least 500 vinyl records to create a storefront."
-      return
+    if result.success?
+      session[:oauth_request_token] = result.request_token
+      session[:oauth_request_token_secret] = result.request_token_secret
+      session[:oauth_store_slug] = slug
+      redirect_to result.authorize_url, allow_other_host: true
+    else
+      redirect_to store_path(slug), alert: result.error
     end
-
-    oauth_client = DiscogsOauthClient.new
-    callback_url = discogs_oauth_callback_url
-    result = oauth_client.request_token(callback_url:)
-
-    session[:oauth_request_token] = result.request_token.token
-    session[:oauth_request_token_secret] = result.request_token.secret
-    session[:oauth_store_slug] = slug
-
-    redirect_to result.authorize_url, allow_other_host: true
-  rescue DiscogsOauthClient::OauthError => e
-    redirect_to store_path(slug), alert: e.message
-  rescue DiscogsClient::ApiError
-    redirect_to store_path(slug), alert: "Could not verify this Discogs account. Please check the username and try again."
   end
 
   private

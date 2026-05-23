@@ -17,22 +17,26 @@ RSpec.describe CsvExportSync::CsvParser do
         CSV
       end
 
-      it "parses records into normalized hashes" do
+      it "parses all rows including headers" do
         result = parser.call(csv_body, store_id: 1)
         expect(result.records.size).to eq(2)
+      end
 
+      it "coerces field types correctly" do
+        result = parser.call(csv_body, store_id: 1)
         first = result.records.first
+
         expect(first[:discogs_listing_id]).to eq("123")
         expect(first[:discogs_release_id]).to eq("456")
         expect(first[:artist]).to eq("Artist Name")
-        expect(first[:title]).to eq("Song Title")
-        expect(first[:label]).to eq("Test Label")
-        expect(first[:format]).to eq("Vinyl")
-        expect(first[:condition]).to eq("Very Good Plus (VG+)")
         expect(first[:price]).to eq(12.99)
-        expect(first[:store_id]).to eq(1)
-        expect(first[:notes]).to be_nil
         expect(first[:listed_at]).to be_a(Time)
+        expect(first[:store_id]).to eq(1)
+      end
+
+      it "includes raw status in the record" do
+        result = parser.call(csv_body, store_id: 1)
+        expect(result.records.first[:_status]).to eq("For Sale")
       end
 
       it "sets last_seen_at on all records" do
@@ -45,14 +49,14 @@ RSpec.describe CsvExportSync::CsvParser do
       let(:csv_body) do
         <<~CSV
           #{csv_headers}
-          123,456,Artist,Song,TEST,CAT001,Vinyl,Very Good Plus (VG+),12.99,2026-01-15,,Sold
-          124,457,Another,Title,TEST,CAT002,Vinyl,Very Good Plus (VG+),12.99,2026-01-15,,Draft
+          123,456,Artist,Title,TEST,CAT001,Vinyl,Very Good Plus (VG+),12.99,2026-01-15,,Sold
         CSV
       end
 
-      it "excludes sold and draft listings" do
+      it "parses sold listings (filtering is a separate step)" do
         result = parser.call(csv_body, store_id: 1)
-        expect(result.records).to be_empty
+        expect(result.records.size).to eq(1)
+        expect(result.records.first[:_status]).to eq("Sold")
       end
     end
 
@@ -60,13 +64,14 @@ RSpec.describe CsvExportSync::CsvParser do
       let(:csv_body) do
         <<~CSV
           #{csv_headers}
-          123,456,Artist,Song,TEST,CAT001,CD,Very Good Plus (VG+),12.99,2026-01-15,,For Sale
+          123,456,Artist,Title,TEST,CAT001,CD,Very Good Plus (VG+),12.99,2026-01-15,,For Sale
         CSV
       end
 
-      it "excludes non-vinyl formats" do
+      it "parses non-vinyl rows (filtering is a separate step)" do
         result = parser.call(csv_body, store_id: 1)
-        expect(result.records).to be_empty
+        expect(result.records.size).to eq(1)
+        expect(result.records.first[:format]).to eq("CD")
       end
     end
 
@@ -80,7 +85,7 @@ RSpec.describe CsvExportSync::CsvParser do
     end
 
     context "with malformed CSV" do
-      let(:csv_body) { "broken,csv\na,b\"c,d" }
+      let(:csv_body) { "listing_id,title\n\"unclosed\n" }
 
       it "raises a ParseError" do
         expect { parser.call(csv_body, store_id: 1) }

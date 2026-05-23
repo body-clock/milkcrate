@@ -15,46 +15,11 @@ class CsvExportSyncService
   def call
     raise SyncError, "Store #{@store.discogs_username} is not OAuth authorized" unless @store.oauth_authorized?
 
-    StoreSync::StatusManager.new(@store).tap do |status|
-      status.send(:mark_succeeded!, sync_status: "syncing")
-    end
+    @store.update!(sync_status: "syncing")
 
-    # Step 1: Trigger CSV export and download
-    export_result = CsvExportSync::ExportRequester.new(client: @client).call
-
-    # Step 2: Parse CSV into listing records
-    parse_result = CsvExportSync::CsvParser.new.call(export_result.csv_body, store_id: @store.id)
-
-    # Step 3: Upsert listings directly (records are already normalized)
-    records = parse_result.records.index_by { |r| r[:discogs_listing_id] }
-    enrichment_ids = []
-
-    if records.any?
-      existing = @store.listings
-        .where(discogs_listing_id: records.keys)
-        .index_by(&:discogs_listing_id)
-
-      changed = records.filter_map do |id, record|
-        existing_record = existing[id]
-        id if existing_record.nil? || materially_changed?(existing_record, record)
-      end
-
-      @store.listings.upsert_all(
-        records.values,
-        unique_by: :discogs_listing_id,
-        update_only: UPDATE_FIELDS
-      )
-
-      enrichment_ids = @store.listings
-        .where(discogs_listing_id: changed)
-        .pluck(:id)
-    end
-
-    # Step 4: Update store metadata
-    StoreSync::StatusManager.new(@store).mark_succeeded!(
-      total_listings: records.size,
-      last_synced_at: Time.current
-    )
+    export_result = fetch_export
+    enrichment_ids, total_count = import_listings(export_result.csv_body)
+    finalize!(total_count)
 
     Result.new(listing_ids_for_enrichment: enrichment_ids, export_id: export_result.export_id)
   rescue StandardError => e
@@ -63,6 +28,47 @@ class CsvExportSyncService
   end
 
   private
+
+  def finalize!(total_count)
+    StoreSync::StatusManager.new(@store).mark_succeeded!(
+      total_listings: total_count,
+      last_synced_at: Time.current
+    )
+  end
+
+  def fetch_export
+    CsvExportSync::ExportRequester.new(client: @client).call
+  end
+
+  def import_listings(csv_body)
+    records = parse_records(csv_body)
+    return [[], 0] if records.empty?
+
+    enrichment_ids = upsert_records(records)
+    [enrichment_ids, records.size]
+  end
+
+  def parse_records(csv_body)
+    parsed = CsvExportSync::CsvParser.new.call(csv_body, store_id: @store.id)
+    filtered = CsvExportSync::RecordFilter.call(parsed.records)
+    filtered.each { |r| r.delete(:_status) }
+    filtered.index_by { |r| r[:discogs_listing_id] }
+  end
+
+  def upsert_records(records)
+    existing = @store.listings
+      .where(discogs_listing_id: records.keys)
+      .index_by(&:discogs_listing_id)
+
+    changed = records.filter_map do |id, record|
+      existing_record = existing[id]
+      id if existing_record.nil? || materially_changed?(existing_record, record)
+    end
+
+    @store.listings.upsert_all(records.values, unique_by: :discogs_listing_id, update_only: UPDATE_FIELDS)
+
+    @store.listings.where(discogs_listing_id: changed).pluck(:id)
+  end
 
   def build_client
     DiscogsClient.new(
