@@ -12,7 +12,7 @@ module CsvExportSync
     end
 
     def call
-      export_id = trigger_export
+      export_id = trigger_or_find_export
       wait_for_export(export_id)
       csv_body = download_export(export_id)
       Result.new(csv_body:, export_id:)
@@ -20,28 +20,57 @@ module CsvExportSync
 
     private
 
-    def trigger_export
+    def trigger_or_find_export
       response = @client.inventory_export
-      export_id = response["id"] || response["export_id"]
-      raise ExportError, "No export ID returned from Discogs" unless export_id
+      export_id = extract_export_id(response)
+      Rails.logger.info("[ExportRequester] Export triggered: id=#{export_id} response=#{response.inspect}")
       export_id
+    rescue DiscogsClient::ApiError => e
+      if e.message.include?("409")
+        Rails.logger.info("[ExportRequester] Export already in progress, checking recent exports")
+        recent = @client.recent_exports
+        raise ExportError, "No recent export found" if recent.blank?
+        export_id = extract_export_id(recent.first)
+        raise ExportError, "Could not determine export ID from recent exports" unless export_id
+        Rails.logger.info("[ExportRequester] Using existing export: id=#{export_id}")
+        export_id
+      else
+        raise
+      end
     end
 
     def wait_for_export(export_id)
-      MAX_POLL_ATTEMPTS.times do
-        status = @client.check_export_status(export_id)
-        return if status["status"] == "completed"
+      MAX_POLL_ATTEMPTS.times do |attempt|
+        response = @client.check_export_status(export_id)
+        Rails.logger.info("[ExportRequester] Poll attempt #{attempt + 1}: id=#{export_id} response=#{response.inspect}")
 
-        raise ExportError, "Export failed with status: #{status["status"]}" if %w[failed error].include?(status["status"])
+        status = response["status"]
+        return if status == "completed"
+
+        if %w[failed error].include?(status)
+          raise ExportError, "Export failed with status: #{status}"
+        end
 
         sleep(POLL_INTERVAL)
       end
 
       raise ExportError, "Export timed out after #{MAX_POLL_TIME / 60} minutes"
+    rescue DiscogsClient::ApiError => e
+      if e.message.include?("304")
+        Rails.logger.info("[ExportRequester] Export not modified (304), retrying")
+        sleep(POLL_INTERVAL)
+        retry
+      else
+        raise
+      end
     end
 
     def download_export(export_id)
       @client.download_export(export_id)
+    end
+
+    def extract_export_id(response)
+      response["id"] || response["export_id"]
     end
   end
 end

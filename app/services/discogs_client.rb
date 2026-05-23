@@ -65,6 +65,13 @@ class DiscogsClient
     response.body
   end
 
+  def recent_exports
+    require_oauth!
+    response = oauth_access_token.get("#{BASE_URL}/inventory/export")
+    body = parse_oauth_response(response)
+    body["exports"] || body
+  end
+
   def list_orders(status: nil, page: 1)
     require_oauth!
     path = "#{BASE_URL}/marketplace/orders?page=#{page}"
@@ -110,14 +117,17 @@ class DiscogsClient
   end
 
   def parse_oauth_response(response)
+    code = response.code.to_i
+    return { "status" => "not_modified" } if code == 304
+
     body = JSON.parse(response.body)
-    case response.code.to_i
+    case code
     when 200
       body
     when 429
       raise RateLimitError, "Discogs rate limit hit"
     else
-      raise ApiError, "Discogs API error: #{response.code} — #{body}"
+      raise ApiError, "Discogs API error: #{code} — #{response.body}"
     end
   rescue JSON::ParserError
     raise ApiError, "Discogs API error: #{response.code} — #{response.body}"
