@@ -28,35 +28,30 @@ module CsvExportSync
     private
 
     def normalize_row(row, store_id:)
-      record = { store_id:, last_seen_at: Time.current }
-
-      HEADER_TO_FIELD.each do |header, field|
+      HEADER_TO_FIELD.each_with_object({ store_id:, last_seen_at: Time.current }) do |(header, field), record|
         value = row[header]
-        next if value.nil?
 
-        record[field] = case field
-        when :price
-          value.to_d
-        when :listed_at
-          parse_time(value)
-        when :discogs_listing_id, :discogs_release_id
-          value.to_s
+        record[field] = if value.nil?
+          nil
         else
-          value.strip.presence
+          case field
+          when :price then value.to_d
+          when :listed_at then parse_time(value)
+          when :discogs_listing_id, :discogs_release_id then value.to_s
+          else value.strip.presence
+          end
         end
+      end.tap do |record|
+        # Skip non-vinyl formats
+        return nil unless vinyl?(record[:format])
+
+        # Skip sold/unavailable listings
+        status = row["status"]
+        return nil if status.present? && %w[Sold Draft Expired].include?(status.strip)
+
+        # Ensure required fields
+        return nil if record[:discogs_listing_id].blank?
       end
-
-      # Skip non-vinyl formats
-      return nil unless vinyl?(record[:format])
-
-      # Skip sold/unavailable listings
-      status = row["status"]
-      return nil if status.present? && %w[Sold Draft Expired].include?(status.strip)
-
-      # Ensure required fields
-      return nil if record[:discogs_listing_id].blank?
-
-      record
     end
 
     def vinyl?(format)
