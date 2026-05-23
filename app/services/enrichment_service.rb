@@ -107,7 +107,6 @@ class EnrichmentService
   end
 
   def enrichment_manager(store)
-    @enrichment_managers ||= {}
-    @enrichment_managers[store.id] ||= StoreEnrichment::StatusManager.new(store)
+    @enrichment_manager ||= StoreEnrichment::StatusManager.new(store)
   end
 end
