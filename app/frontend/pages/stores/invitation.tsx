@@ -209,7 +209,7 @@ function InvitationContent({ slug, oauth_available }: { slug: string; oauth_avai
         )}
 
         {/* Not found or errored — generic invitation */}
-        {(probeState === "not_found" || probeState === "error") && (
+        {probeState === "not_found" && (
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -244,6 +244,45 @@ function InvitationContent({ slug, oauth_available }: { slug: string; oauth_avai
               >
                 Apply to join
               </Link>
+            </motion.div>
+          </motion.div>
+        )}
+
+        {probeState === "error" && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="w-full"
+          >
+            <motion.h1
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1, duration: 0.3 }}
+              className="text-2xl font-bold mc-text mb-3"
+            >
+              Could not check availability
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.3 }}
+              className="text-sm text-mc-text-dim leading-relaxed max-w-sm mx-auto mb-8"
+            >
+              We ran into a network issue while looking up this Discogs account.
+              Please try again later.
+            </motion.p>
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.3 }}
+            >
+              <button
+                onClick={() => window.location.reload()}
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-mc-accent text-mc-on-accent font-semibold text-sm tracking-wide hover:opacity-90 transition-opacity"
+              >
+                Try again
+              </button>
             </motion.div>
           </motion.div>
         )}

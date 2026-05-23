@@ -1,9 +1,8 @@
 import { useState } from "react"
-import { Link, router } from "@inertiajs/react"
+import { Link, router, usePage } from "@inertiajs/react"
 import { motion } from "framer-motion"
 import { springTactile } from "@/lib/motion_tokens"
 import type { DashboardProps } from "@/types/inertia"
-import { usePage } from "@inertiajs/react"
 
 export default function Dashboard({ store }: DashboardProps) {
   const { notice } = usePage<{ notice?: string; alert?: string }>().props
@@ -23,12 +22,18 @@ export default function Dashboard({ store }: DashboardProps) {
   const syncStatusColor = store.sync_status === "failed" ? "text-red-400" : "text-mc-text-dim"
 
   const handleResync = () => {
-    router.post("/dashboard/resync")
+    router.post("/dashboard/resync", {}, {
+      onError: () => alert("Failed to queue sync. Please try again."),
+      onNetworkError: () => alert("Network error. Please check your connection."),
+    })
   }
 
   const handleSignup = (e: React.FormEvent) => {
     e.preventDefault()
-    router.post("/dashboard/signup", { email })
+    router.post("/dashboard/signup", { email }, {
+      onError: () => alert("Failed to save. Please try again."),
+      onNetworkError: () => alert("Network error. Please check your connection."),
+    })
   }
 
   const dismissWelcome = () => {

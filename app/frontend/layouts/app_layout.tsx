@@ -8,9 +8,10 @@ import { ViewportProvider } from "@/contexts/viewport_context"
 import { useViewport } from "@/hooks/use_viewport"
 import BrandMark from "@/components/brand_mark"
 import MilkcrateShell from "@/layouts/milkcrate_shell"
+import type { Store } from "@/types/inertia"
 
 function AppLayoutInner({ children }: { children: React.ReactNode }) {
-  const page = usePage<{ notice?: string; alert?: string; store?: { name?: string; discogs_username?: string; oauth_authorized?: boolean } }>()
+  const page = usePage<{ notice?: string; alert?: string; store?: Pick<Store, "name" | "discogs_username" | "oauth_authorized"> }>()
   const notice = page.props.notice
   const alertMsg = page.props.alert
   const storeName = page.props.store?.name
