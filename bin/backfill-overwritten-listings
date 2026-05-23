@@ -1,0 +1,50 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# One-time backfill: Re-enrich listings whose enriched data (format, genres,
+# styles) was overwritten by prior FullStoreSyncJob runs.
+#
+# Before U1+U2, every sync re-upserted format/genres/styles from the Discogs
+# seller inventory API (which returns empty genres and a different format
+# string), destroying the data that EnrichmentJob carefully populated. After
+# enrichment skipped those releases (they weren't stale), the overwritten
+# data became permanent.
+#
+# This script detects overwritten listings and enqueues EnrichmentJob for
+# them. After U1+U2 are deployed, the enrichment will "stick" — subsequent
+# syncs won't overwrite it.
+#
+# Usage:
+#   bin/rails runner bin/backfill-overwritten-listings
+#   # Or, to dry-run:
+#   DRY_RUN=true bin/rails runner bin/backfill-overwritten-listings
+#
+# Risk: The backfill hits the Discogs API for ~1,400 releases per large store.
+# With 1.1s pacing and concurrency capped at 1, a single large store takes
+# ~25 minutes. Run outside peak hours.
+
+require_relative "../config/environment"
+
+DRY_RUN = ENV["DRY_RUN"] == "true"
+
+Rails.logger.info "[Backfill] #{DRY_RUN ? 'DRY RUN - no jobs will be enqueued' : 'Starting'}"
+
+Store.find_each do |store|
+  overwritten_ids = store.listings
+    .where("format NOT LIKE ? AND format LIKE ?", "Vinyl%", "%LP%")
+    .pluck(:id)
+
+  if overwritten_ids.any?
+    count = overwritten_ids.size
+    if DRY_RUN
+      Rails.logger.info "[Backfill] Would enqueue #{count} listings for #{store.discogs_username}"
+    else
+      EnrichmentJob.perform_later(store.id, listing_ids: overwritten_ids)
+      Rails.logger.info "[Backfill] Enqueued #{count} listings for #{store.discogs_username}"
+    end
+  else
+    Rails.logger.info "[Backfill] No overwritten listings for #{store.discogs_username}"
+  end
+end
+
+Rails.logger.info "[Backfill] #{DRY_RUN ? 'DRY RUN complete' : 'Complete'}"

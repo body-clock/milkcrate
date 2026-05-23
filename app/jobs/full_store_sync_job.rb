@@ -1,7 +1,7 @@
 class FullStoreSyncJob < ApplicationJob
   UPDATE_FIELDS = %i[
     discogs_release_id artist title label year
-    format genres styles condition price currency
+    condition price currency
     thumbnail_url notes listed_at last_seen_at
   ].freeze
 
@@ -67,13 +67,18 @@ class FullStoreSyncJob < ApplicationJob
 
   def remove_stale_listings(store, current_listings)
     current_ids = current_listings.map { |r| r[:discogs_listing_id] }
+
     if current_ids.empty?
       store.listings.delete_all
     else
-      store.listings
-        .where.not(discogs_listing_id: current_ids)
-        .delete_all
+      remove_listings_not_in_set(store, current_ids)
     end
+  end
+
+  def remove_listings_not_in_set(store, listing_ids)
+    store.listings
+      .where.not(discogs_listing_id: listing_ids)
+      .delete_all
   end
 
   def sync_manager(store)
@@ -81,19 +86,16 @@ class FullStoreSyncJob < ApplicationJob
   end
 
   def materially_changed?(existing, incoming)
-    [
-      existing.discogs_release_id.to_s,
-      normalized_price(existing.price),
-      existing.condition,
-      existing.format,
-      existing.notes
-    ] != [
-      incoming[:discogs_release_id].to_s,
-      normalized_price(incoming[:price]),
-      incoming[:condition],
-      incoming[:format],
-      incoming[:notes]
-    ]
+    differing?(
+      [ existing.discogs_release_id.to_s, incoming[:discogs_release_id].to_s ],
+      [ normalized_price(existing.price), normalized_price(incoming[:price]) ],
+      [ existing.condition, incoming[:condition] ],
+      [ existing.notes, incoming[:notes] ]
+    )
+  end
+
+  def differing?(*pairs)
+    pairs.any? { |a, b| a != b }
   end
 
   def normalized_price(value)
