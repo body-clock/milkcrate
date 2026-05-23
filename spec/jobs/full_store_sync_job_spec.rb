@@ -135,8 +135,8 @@ RSpec.describe FullStoreSyncJob do
           create(:listing, store:,
             discogs_listing_id: "1",
             format: "Vinyl, LP, Album",
-            genres: ["Jazz"],
-            styles: ["Bebop"])
+            genres: [ "Jazz" ],
+            styles: [ "Bebop" ])
         end
 
         let(:sync_listing_data) do
@@ -172,8 +172,8 @@ RSpec.describe FullStoreSyncJob do
           described_class.perform_now(store.id)
 
           existing_listing.reload
-          expect(existing_listing.genres).to eq(["Jazz"])
-          expect(existing_listing.styles).to eq(["Bebop"])
+          expect(existing_listing.genres).to eq([ "Jazz" ])
+          expect(existing_listing.styles).to eq([ "Bebop" ])
         end
 
         it "does not flag listing as changed when only format/genres/styles differ" do

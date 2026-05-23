@@ -120,7 +120,7 @@ RSpec.describe EnrichmentService do
       it "does not re-enrich a release that already has enriched format" do
         enriched = create(:listing, store:,
           discogs_listing_id: "enr", discogs_release_id: "888",
-          format: "Vinyl, LP, Album", genres: ["Jazz"], styles: ["Bebop"])
+          format: "Vinyl, LP, Album", genres: [ "Jazz" ], styles: [ "Bebop" ])
         Release.create!(discogs_release_id: "888", enriched_at: 1.hour.ago, want_count: 10, have_count: 5)
 
         service.enrich_releases(store, listing_ids: [ listing.id ])
