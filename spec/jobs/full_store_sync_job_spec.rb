@@ -129,6 +129,80 @@ RSpec.describe FullStoreSyncJob do
         expect { key.call }.not_to raise_error
         expect { key.call(1) }.not_to raise_error
       end
+
+      describe "UPDATE_FIELDS exclusion" do
+        let!(:existing_listing) do
+          create(:listing, store:,
+            discogs_listing_id: "1",
+            format: "Vinyl, LP, Album",
+            genres: ["Jazz"],
+            styles: ["Bebop"])
+        end
+
+        let(:sync_listing_data) do
+          # Must match existing_listing on all materially_changed? fields:
+          # discogs_release_id, condition, price, notes
+          { discogs_listing_id: "1",
+            discogs_release_id: existing_listing.discogs_release_id,
+            artist: "Test", title: "Record", label: "Label",
+            format: "LP, Album", genres: [], styles: [],
+            condition: existing_listing.condition,
+            price: existing_listing.price,
+            currency: "USD",
+            notes: existing_listing.notes,
+            listed_at: Time.current, last_seen_at: Time.current }
+        end
+
+        it "does not overwrite enriched format during sync" do
+          listings = [ sync_listing_data ]
+          sync_result = SyncStrategies::Result.new(listings:, complete: false)
+          allow(mock_strategy).to receive(:call).with(store, max_pages: nil).and_return(sync_result)
+
+          described_class.perform_now(store.id)
+
+          existing_listing.reload
+          expect(existing_listing.format).to eq("Vinyl, LP, Album")
+        end
+
+        it "does not overwrite enriched genres during sync" do
+          listings = [ sync_listing_data ]
+          sync_result = SyncStrategies::Result.new(listings:, complete: false)
+          allow(mock_strategy).to receive(:call).with(store, max_pages: nil).and_return(sync_result)
+
+          described_class.perform_now(store.id)
+
+          existing_listing.reload
+          expect(existing_listing.genres).to eq(["Jazz"])
+          expect(existing_listing.styles).to eq(["Bebop"])
+        end
+
+        it "does not flag listing as changed when only format/genres/styles differ" do
+          listings = [ sync_listing_data ]
+          sync_result = SyncStrategies::Result.new(listings:, complete: false)
+          allow(mock_strategy).to receive(:call).with(store, max_pages: nil).and_return(sync_result)
+
+          expect { described_class.perform_now(store.id) }
+            .not_to have_enqueued_job(EnrichmentJob)
+        end
+      end
+
+      it "still inserts sync format/genres for a brand-new listing with no prior record" do
+        listings = [
+          { discogs_listing_id: "new1", artist: "New", title: "Record", label: "Label",
+            format: "LP, Album", genres: [], styles: [],
+            condition: "Mint", price: 10.00, currency: "USD",
+            listed_at: Time.current, last_seen_at: Time.current }
+        ]
+        sync_result = SyncStrategies::Result.new(listings:, complete: false)
+        allow(mock_strategy).to receive(:call).with(store, max_pages: nil).and_return(sync_result)
+
+        described_class.perform_now(store.id)
+
+        listing = store.listings.find_by(discogs_listing_id: "new1")
+        expect(listing.format).to eq("LP, Album")
+        expect(listing.genres).to eq([])
+        expect(listing.styles).to eq([])
+      end
     end
 
     context "with OAuth-authorized store" do

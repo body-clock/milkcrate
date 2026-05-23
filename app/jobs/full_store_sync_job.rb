@@ -1,7 +1,7 @@
 class FullStoreSyncJob < ApplicationJob
   UPDATE_FIELDS = %i[
     discogs_release_id artist title label year
-    format genres styles condition price currency
+    condition price currency
     thumbnail_url notes listed_at last_seen_at
   ].freeze
 
@@ -85,13 +85,11 @@ class FullStoreSyncJob < ApplicationJob
       existing.discogs_release_id.to_s,
       normalized_price(existing.price),
       existing.condition,
-      existing.format,
       existing.notes
     ] != [
       incoming[:discogs_release_id].to_s,
       normalized_price(incoming[:price]),
       incoming[:condition],
-      incoming[:format],
       incoming[:notes]
     ]
   end
