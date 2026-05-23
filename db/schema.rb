@@ -14,31 +14,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_23_183215) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
-  create_table "leads", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.jsonb "discogs_profile"
-    t.string "discogs_username", null: false
-    t.string "genres", default: [], array: true
-    t.integer "inventory_size"
-    t.text "notes"
-    t.datetime "reviewed_at"
-    t.jsonb "sampled_listings"
-    t.decimal "score", precision: 8, scale: 2
-    t.jsonb "score_breakdown"
-    t.datetime "scored_at"
-    t.string "status", default: "pending", null: false
-    t.string "store_name"
-    t.string "styles", default: [], array: true
-    t.datetime "updated_at", null: false
-    t.integer "vinyl_count"
-    t.decimal "vinyl_percentage", precision: 5, scale: 2
-    t.jsonb "web_presence"
-    t.index ["discogs_username"], name: "index_leads_on_discogs_username", unique: true
-    t.index ["genres"], name: "index_leads_on_genres", using: :gin
-    t.index ["score"], name: "index_leads_on_score"
-    t.index ["status"], name: "index_leads_on_status"
-  end
-
   create_table "listings", force: :cascade do |t|
     t.string "artist"
     t.string "condition"
@@ -231,36 +206,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_23_183215) do
 
   create_table "store_owners", force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.string "discogs_oauth_token"
-    t.string "discogs_oauth_token_secret"
+    t.text "discogs_oauth_token"
+    t.text "discogs_oauth_token_secret"
     t.string "discogs_username", null: false
     t.datetime "oauth_authorized_at"
     t.string "owner_email"
     t.datetime "updated_at", null: false
     t.index ["discogs_username"], name: "index_store_owners_on_discogs_username", unique: true
-  end
-
-  create_table "storefront_snapshots", force: :cascade do |t|
-    t.boolean "active", default: false, null: false
-    t.jsonb "crates", default: [], null: false
-    t.datetime "created_at", null: false
-    t.date "curation_date", null: false
-    t.datetime "failed_at"
-    t.text "failure_message"
-    t.datetime "generated_at"
-    t.jsonb "metrics", default: {}, null: false
-    t.integer "props_schema_version", null: false
-    t.string "status", default: "generating", null: false
-    t.bigint "store_id", null: false
-    t.jsonb "storefront_sections", default: [], null: false
-    t.integer "surfaced_listing_ids", default: [], null: false, array: true
-    t.datetime "updated_at", null: false
-    t.index ["store_id", "curation_date"], name: "index_storefront_snapshots_on_store_id_and_curation_date"
-    t.index ["store_id", "props_schema_version"], name: "index_storefront_snapshots_on_store_and_schema"
-    t.index ["store_id", "status"], name: "index_storefront_snapshots_on_store_id_and_status"
-    t.index ["store_id"], name: "index_storefront_snapshots_on_active_store", unique: true, where: "active"
-    t.index ["store_id"], name: "index_storefront_snapshots_on_store_id"
-    t.index ["surfaced_listing_ids"], name: "index_storefront_snapshots_on_surfaced_listing_ids", using: :gin
   end
 
   create_table "stores", force: :cascade do |t|
@@ -302,6 +254,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_23_183215) do
   add_foreign_key "solid_queue_ready_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_recurring_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_scheduled_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
-  add_foreign_key "storefront_snapshots", "stores"
   add_foreign_key "stores", "store_owners"
 end
