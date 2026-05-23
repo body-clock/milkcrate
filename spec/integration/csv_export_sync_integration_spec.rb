@@ -20,12 +20,12 @@ RSpec.describe "CSV export sync pipeline", type: :request do
       allow(discogs_client).to receive(:inventory_export).and_return({ "id" => 42 })
       allow(discogs_client).to receive(:check_export_status).with(42).and_return({ "status" => "completed" })
       allow(discogs_client).to receive(:download_export).with(42).and_return(sample_csv)
+      allow(DiscogsClient).to receive(:new).and_return(discogs_client)
     end
 
     it "creates listings from the CSV export" do
-      service = CsvExportSyncService.new(store, client: discogs_client)
       expect {
-        service.call
+        FullStoreSyncJob.perform_now(store.id)
       }.to change(store.listings, :count).from(0).to(4)
 
       listing = store.listings.find_by!(discogs_listing_id: "1001")
@@ -36,7 +36,7 @@ RSpec.describe "CSV export sync pipeline", type: :request do
     end
 
     it "updates store metadata after sync" do
-      CsvExportSyncService.new(store, client: discogs_client).call
+      FullStoreSyncJob.perform_now(store.id)
 
       store.reload
       expect(store.total_listings).to eq(4)
@@ -45,38 +45,36 @@ RSpec.describe "CSV export sync pipeline", type: :request do
     end
 
     it "is idempotent — re-syncing doesn't duplicate listings" do
-      service = CsvExportSyncService.new(store, client: discogs_client)
-      service.call
+      FullStoreSyncJob.perform_now(store.id)
       expect {
-        service.call
+        FullStoreSyncJob.perform_now(store.id)
       }.not_to change(store.listings, :count)
     end
 
     it "updates changed prices on re-sync" do
-      CsvExportSyncService.new(store, client: discogs_client).call
+      FullStoreSyncJob.perform_now(store.id)
 
       listing = store.listings.find_by!(discogs_listing_id: "1001")
       listing.update!(price: 0.01)
 
-      CsvExportSyncService.new(store, client: discogs_client).call
+      FullStoreSyncJob.perform_now(store.id)
 
       listing.reload
       expect(listing.price).to eq(25.00)
     end
   end
 
-  describe "CsvExportSyncJob integration" do
+  describe "FullStoreSyncJob integration" do
     before do
       allow(discogs_client).to receive(:inventory_export).and_return({ "id" => 42 })
       allow(discogs_client).to receive(:check_export_status).with(42).and_return({ "status" => "completed" })
       allow(discogs_client).to receive(:download_export).with(42).and_return(sample_csv)
-      # The job creates its own DiscogsClient via the service
       allow(DiscogsClient).to receive(:new).and_return(discogs_client)
     end
 
     it "runs the full job without error" do
       expect {
-        CsvExportSyncJob.perform_now(store.id)
+        FullStoreSyncJob.perform_now(store.id)
       }.to change(store.listings, :count).by(4)
     end
   end
@@ -86,8 +84,9 @@ RSpec.describe "CSV export sync pipeline", type: :request do
       allow(discogs_client).to receive(:inventory_export).and_return({ "id" => 42 })
       allow(discogs_client).to receive(:check_export_status).with(42).and_return({ "status" => "completed" })
       allow(discogs_client).to receive(:download_export).with(42).and_return(sample_csv)
+      allow(DiscogsClient).to receive(:new).and_return(discogs_client)
 
-      CsvExportSyncService.new(store, client: discogs_client).call
+      FullStoreSyncJob.perform_now(store.id)
     end
 
     it "shows the synced listing count" do
@@ -106,11 +105,12 @@ RSpec.describe "CSV export sync pipeline", type: :request do
     context "when Discogs export fails" do
       before do
         allow(discogs_client).to receive(:inventory_export).and_raise(DiscogsClient::ApiError, "Export failed")
+        allow(DiscogsClient).to receive(:new).and_return(discogs_client)
       end
 
       it "marks the store as failed" do
         expect {
-          CsvExportSyncService.new(store, client: discogs_client).call
+          FullStoreSyncJob.perform_now(store.id)
         }.to raise_error(DiscogsClient::ApiError)
 
         store.reload
@@ -124,11 +124,12 @@ RSpec.describe "CSV export sync pipeline", type: :request do
         allow(discogs_client).to receive(:inventory_export).and_return({ "id" => 42 })
         allow(discogs_client).to receive(:check_export_status).with(42).and_return({ "status" => "completed" })
         allow(discogs_client).to receive(:download_export).with(42).and_return("listing_id,title\n\"unclosed\n")
+        allow(DiscogsClient).to receive(:new).and_return(discogs_client)
       end
 
       it "marks the store as failed" do
         expect {
-          CsvExportSyncService.new(store, client: discogs_client).call
+          FullStoreSyncJob.perform_now(store.id)
         }.to raise_error(CsvExportSync::ParseError)
 
         store.reload
@@ -136,14 +137,5 @@ RSpec.describe "CSV export sync pipeline", type: :request do
       end
     end
 
-    context "when not OAuth authorized" do
-      let(:unauthorized_store) { create(:store, discogs_username: "nobody") }
-
-      it "raises an error" do
-        expect {
-          CsvExportSyncService.new(unauthorized_store, client: discogs_client).call
-        }.to raise_error(CsvExportSyncService::SyncError, /not OAuth authorized/)
-      end
-    end
   end
 end

@@ -161,10 +161,10 @@ RSpec.describe "Discogs OAuth flow", type: :request do
         expect(flash[:notice]).to match(/authorized/)
       end
 
-      it "enqueues a CSV export sync job" do
+      it "enqueues a full store sync job" do
         expect {
           get "/auth/discogs/callback", params: { oauth_verifier: "v1" }
-        }.to have_enqueued_job(CsvExportSyncJob)
+        }.to have_enqueued_job(FullStoreSyncJob)
       end
 
       context "when the store already exists" do

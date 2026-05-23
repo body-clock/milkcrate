@@ -8,7 +8,7 @@ class DashboardController < ApplicationController
   end
 
   def resync
-    CsvExportSyncJob.perform_later(current_store.id)
+    FullStoreSyncJob.perform_later(current_store.id)
     redirect_to dashboard_path, notice: "Full inventory sync has been queued."
   end
 

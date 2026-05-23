@@ -44,6 +44,14 @@ class Store < ApplicationRecord
     listings.where(id: listing_ids)
   end
 
+  def sync_strategy
+    if oauth_authorized?
+      SyncStrategies::CsvExport.new
+    else
+      SyncStrategies::PublicApi.new
+    end
+  end
+
   private
 
   def normalize_discogs_username

@@ -24,7 +24,7 @@ class AuthCallbackService
     return error_result("Could not create store for #{@slug}.") unless store
 
     store.update!(sync_source: :csv_export)
-    CsvExportSyncJob.perform_later(store.id)
+    FullStoreSyncJob.perform_later(store.id)
 
     Result.new(store:, error: nil)
   rescue DiscogsOauthClient::OauthError => e
