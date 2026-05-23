@@ -11,8 +11,7 @@ class StorefrontCuration::CacheManager
       key = curation_cache_key(store, filter_available:)
       cache.fetch(key, expires_in: CURATION_CACHE_TTL, race_condition_ttl: CURATION_CACHE_RACE_TTL) do
         curation  = StorefrontCuration.new(store, filter_available:)
-        genre_counts = curation.send(:genre_counts)
-        scorer    = dev_scorer(genre_counts)
+        scorer    = dev_scorer(curation)
         presenter = CratePresenter.new(store, scorer:)
         {
           sections: presenter.build_storefront_sections(curation.storefront_groups),
@@ -39,9 +38,9 @@ class StorefrontCuration::CacheManager
       CURATION_CACHE_KEY % { store_id: store.id, date: Date.current.iso8601, scope: }
     end
 
-    def self.dev_scorer(genre_counts)
+    def self.dev_scorer(curation)
       return nil unless Rails.env.development?
 
-      RecordScorer.new(genre_counts:, today: Date.today)
+      RecordScorer.new(genre_counts: curation.send(:genre_counts), today: Date.today)
     end
 end
