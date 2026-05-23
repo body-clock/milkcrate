@@ -99,7 +99,7 @@ RSpec.describe FullStoreSyncJob do
             format: "LP", condition: "Mint", price: 10.00, currency: "USD",
             listed_at: Time.current, last_seen_at: 2.seconds.from_now
           }
-          sync_result = SyncStrategies::Result.new(listings: [listing_attrs], complete: false)
+          sync_result = SyncStrategies::Result.new(listings: [ listing_attrs ], complete: false)
           allow(mock_strategy).to receive(:call).with(store, max_pages: nil).and_return(sync_result)
 
           travel 5.seconds

@@ -120,5 +120,4 @@ RSpec.describe StoreSyncService do
       expect(store.reload.sync_status).to eq("idle")
     end
   end
-
 end

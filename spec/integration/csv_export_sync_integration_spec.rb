@@ -136,6 +136,5 @@ RSpec.describe "CSV export sync pipeline", type: :request do
         expect(store.sync_status).to eq("failed")
       end
     end
-
   end
 end

@@ -26,7 +26,7 @@ RSpec.describe SyncStrategies::Result do
 
   describe "#listings" do
     it "returns the listings array" do
-      listings = [{ discogs_listing_id: "1" }, { discogs_listing_id: "2" }]
+      listings = [ { discogs_listing_id: "1" }, { discogs_listing_id: "2" } ]
       result = described_class.new(listings:, complete: false)
       expect(result.listings).to eq(listings)
     end
