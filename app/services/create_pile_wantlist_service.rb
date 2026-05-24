@@ -35,7 +35,7 @@ class CreatePileWantlistService
     @shopper.touch_last_used!
 
     Result.new(
-      wantlist_url: "https://www.discogs.com/users/#{@shopper.discogs_username}/wants",
+      wantlist_url: "https://www.discogs.com/wantlist?user=#{@shopper.discogs_username}",
       added_count:,
       skipped_count:,
       error: nil
