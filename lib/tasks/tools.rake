@@ -125,7 +125,7 @@ namespace :tools do
   # ── Sample data ──────────────────────────────────────────────
 
   desc "Load sample data from db/sample/listings.jsonl"
-  task :load => :environment do
+  task load: :environment do
     require "ruby-progressbar"
 
     raise "Sample data file not found at #{SAMPLE_DATA_FILE}" unless SAMPLE_DATA_FILE.exist?
@@ -164,7 +164,7 @@ namespace :tools do
   end
 
   desc "Capture sample data from a synced store to db/sample/listings.jsonl"
-  task :capture => :environment do
+  task capture: :environment do
     username = ENV["STORE_USERNAME"] || Settings.demo_store.discogs_username
     store = Store.find_by(discogs_username: username)
     raise "Store not found for username '#{username}'. Sync one first via `stores:sync[username]`." unless store
