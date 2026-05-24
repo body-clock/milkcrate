@@ -1,6 +1,8 @@
 # Tracks enrichment progress and persists to the store record.
 # Duck-types to support EnrichmentService's @progress interface (.total=, .increment).
 class StoreEnrichment::ProgressTracker
+  attr_reader :total
+
   def initialize(store)
     @store = store
     @current = 0

@@ -1,6 +1,8 @@
 # Tracks page-level sync progress and persists to the store record.
 # Duck-types to support InventoryFetcher's @progress interface (.total=, .increment).
 class StoreSync::ProgressTracker
+  attr_reader :total
+
   def initialize(store)
     @store = store
     @current = 0
