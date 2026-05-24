@@ -5,6 +5,7 @@ import Button from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import SectionHeader from "@/components/ui/section_header"
 import StatusDot from "@/components/ui/status_dot"
+import JobProgressBar from "@/components/ui/job_progress_bar"
 
 function formatTime(value: string | null) {
   if (!value) return "Not yet"
@@ -338,8 +339,8 @@ function StoreCard({ store }: { store: AdminStoreSummary }) {
           <Metric label="Last enrich" value={formatTime(store.last_enriched_at)} />
           <Metric label="Inventory" value={listingText(store.total_listings)} />
           <Metric label="Coverage" value={store.catalog_coverage.replace("_", " ")} />
-          <Metric label="Sync" value={store.sync_status} />
-          <Metric label="Enrichment" value={store.enrichment_status} />
+          <JobProgressBar label="Sync" status={store.sync_status} />
+          <JobProgressBar label="Enrichment" status={store.enrichment_status} />
         </dl>
 
         {store.health.last_sync_error_summary && (
