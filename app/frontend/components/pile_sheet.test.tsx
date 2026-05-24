@@ -8,33 +8,7 @@ import { ViewportProvider } from "../contexts/viewport_context"
 import { renderWithTier } from "../test/viewport-test-utils"
 import type { Listing } from "../types/inertia"
 
-// Mock the ShopperContext so PileSheet doesn't need real Inertia page props
-vi.mock("../contexts/shopper_context", () => ({
-  useShopperContext: () => ({
-    shopper: null,
-    isConnected: false,
-    state: "idle",
-    addToWantlist: vi.fn(),
-    wantlistResult: null,
-    errorMessage: null,
-    resetResult: vi.fn(),
-  }),
-  ShopperProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-}))
-
-// Mock usePage for the store slug the pile sheet needs
-vi.mock("@inertiajs/react", async () => {
-  const actual = await vi.importActual("@inertiajs/react")
-  return {
-    ...actual,
-    usePage: () => ({
-      props: {
-        store: { discogs_username: "test-store" },
-        shopper: null,
-      },
-    }),
-  }
-})
+// PileSheet no longer needs ShopperContext or Inertia usePage mocks
 
 beforeEach(() => {
   localStorage.clear()
@@ -404,29 +378,21 @@ describe("PileSheet", () => {
     })
   })
 
-  describe("Add to Discogs wantlist button", () => {
-    it("shows wantlist button when pile has records", async () => {
+  describe("Add all to Discogs cart button", () => {
+    it("shows add to cart button when pile has records", async () => {
       renderPileSheet([makeListing()])
 
       await waitFor(() => {
-        const btn = screen.getByText(/add to discogs wantlist/i)
+        const btn = screen.getByText(/add all to discogs cart/i)
         expect(btn).toBeInTheDocument()
         expect(btn).not.toBeDisabled()
       })
     })
 
-    it("shows wantlist → Connect when shopper is not connected", async () => {
-      renderPileSheet([makeListing()])
-
-      await waitFor(() => {
-        expect(screen.getByText(/add to discogs wantlist.*connect/i)).toBeInTheDocument()
-      })
-    })
-
-    it("does not show wantlist button when pile is empty", () => {
+    it("does not show add to cart button when pile is empty", () => {
       renderPileSheet([])
 
-      expect(screen.queryByText(/add to discogs wantlist/i)).toBeNull()
+      expect(screen.queryByText(/add all to discogs cart/i)).toBeNull()
     })
   })
 })

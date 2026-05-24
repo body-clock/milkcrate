@@ -1,10 +1,12 @@
 import React from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { usePileContext } from "../contexts/pile_context"
-import { useShopperContext } from "../contexts/shopper_context"
 import { useViewport } from "@/hooks/use_viewport"
 import { springDrawer } from "@/lib/motion_tokens"
 import { formatPriceValue } from "@/lib/format_price"
+
+const DISCOGS_CART_BASE = "https://www.discogs.com/sell/cart"
+const ADD_INTERVAL_MS = 600
 
 interface Props {
   open: boolean
@@ -13,9 +15,9 @@ interface Props {
 
 export default function PileSheet({ open, onClose }: Props) {
   const { pile, removeFromPile, clearPile } = usePileContext()
-  const { isConnected, state: shopperState, addToWantlist, wantlistResult, errorMessage, resetResult } = useShopperContext()
   const { isCompact } = useViewport()
   const [confirmClear, setConfirmClear] = React.useState(false)
+  const [addingToCart, setAddingToCart] = React.useState(false)
   const dialogRef = React.useRef<HTMLDivElement>(null)
   const previousFocusRef = React.useRef<HTMLElement | null>(null)
 
@@ -30,7 +32,6 @@ export default function PileSheet({ open, onClose }: Props) {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setConfirmClear(false)
-        resetResult()
         onClose()
       }
     }
@@ -41,29 +42,43 @@ export default function PileSheet({ open, onClose }: Props) {
       document.removeEventListener("keydown", handleKeyDown)
       previousFocusRef.current?.focus?.()
     }
-  }, [open, onClose, resetResult])
+  }, [open, onClose])
 
-  const handleAddToWantlist = async () => {
-    if (!isConnected) {
-      // Redirect to OAuth via form POST
-      const form = document.createElement("form")
-      form.method = "POST"
-      form.action = "/auth/discogs/shopper/authorize"
-      const csrfToken = document.querySelector<HTMLMetaElement>("meta[name='csrf-token']")?.content
-      if (csrfToken) {
-        const tokenInput = document.createElement("input")
-        tokenInput.type = "hidden"
-        tokenInput.name = "authenticity_token"
-        tokenInput.value = csrfToken
-        form.appendChild(tokenInput)
-      }
-      document.body.appendChild(form)
-      form.submit()
+  const handleAddAllToCart = () => {
+    const ids = pile.map((l) => l.discogs_listing_id)
+    if (ids.length === 0) return
+
+    setAddingToCart(true)
+
+    // Open a single popup that navigates through each add URL
+    const popup = window.open(
+      `${DISCOGS_CART_BASE}/?add=${ids[0]}`,
+      "discogs-cart",
+      "width=500,height=600,left=100,top=100"
+    )
+
+    if (!popup) {
+      // Popup blocked — fall back: open the cart so user can add manually
+      window.open(DISCOGS_CART_BASE, "_blank")
+      setAddingToCart(false)
       return
     }
 
-    const items = pile.map((l) => ({ discogs_listing_id: l.discogs_listing_id }))
-    await addToWantlist(items)
+    // Chain through remaining items
+    let i = 1
+    const interval = setInterval(() => {
+      if (i >= ids.length || popup.closed) {
+        clearInterval(interval)
+        setAddingToCart(false)
+        if (!popup.closed) {
+          // Land on the cart page with everything added
+          popup.location.href = DISCOGS_CART_BASE
+        }
+        return
+      }
+      popup.location.href = `${DISCOGS_CART_BASE}/?add=${ids[i]}`
+      i++
+    }, ADD_INTERVAL_MS)
   }
 
   return (
@@ -195,59 +210,21 @@ export default function PileSheet({ open, onClose }: Props) {
             {/* Footer */}
             {pile.length > 0 && (
               <div className="flex-shrink-0 px-4 py-4 border-t border-mc-border flex flex-col gap-3">
-                {shopperState === "success" && wantlistResult ? (
-                  <div className="flex flex-col gap-2">
-                    <p className="text-xs text-emerald-500 font-medium">
-                      ✓ Added {wantlistResult.added} of {wantlistResult.added + wantlistResult.skipped} items to your Discogs wantlist
-                      {wantlistResult.skipped > 0 && (
-                        <span className="text-mc-text-dim"> ({wantlistResult.skipped} skipped — missing release data)</span>
-                      )}
-                    </p>
-                    <div className="flex gap-2">
-                      <a
-                        href={wantlistResult.wantlist_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex-1 mc-btn mc-btn-primary py-2.5 text-sm text-center"
-                      >
-                        View wantlist on Discogs ↗
-                      </a>
-                      <button
-                        onClick={resetResult}
-                        className="mc-btn py-2.5 text-sm"
-                      >
-                        Close
-                      </button>
-                    </div>
-                  </div>
-                ) : shopperState === "error" ? (
-                  <div className="flex flex-col gap-2">
-                    <p className="text-xs text-red-400">{errorMessage}</p>
-                    <button
-                      onClick={handleAddToWantlist}
-                      className="w-full mc-btn py-2.5 text-sm"
-                    >
-                      Try again
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-mc-text-dim uppercase tracking-wider">Total</span>
-                      <span className="text-sm font-semibold">{formatPriceValue(total.toFixed(2), pile[0]?.currency)}</span>
-                    </div>
-                    <button
-                      onClick={handleAddToWantlist}
-                      disabled={shopperState === "creating"}
-                      className="w-full mc-btn mc-btn-primary py-2.5 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                      {shopperState === "creating"
-                        ? "Adding to wantlist…"
-                        : isConnected
-                          ? "Add to Discogs wantlist"
-                          : "Add to Discogs wantlist → Connect"}
-                    </button>
-                  </>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-mc-text-dim uppercase tracking-wider">Total</span>
+                  <span className="text-sm font-semibold">{formatPriceValue(total.toFixed(2), pile[0]?.currency)}</span>
+                </div>
+                <button
+                  onClick={handleAddAllToCart}
+                  disabled={addingToCart}
+                  className="w-full mc-btn mc-btn-primary py-2.5 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {addingToCart ? "Adding to cart…" : "Add all to Discogs cart"}
+                </button>
+                {addingToCart && (
+                  <p className="text-[11px] text-mc-text-dim text-center">
+                    Adding {pile.length} items to your cart on Discogs…
+                  </p>
                 )}
               </div>
             )}
