@@ -14,6 +14,7 @@ const STATUS_CONFIG: Record<string, JobProgressBarConfig> = {
   completed: { fillPercent: 100, barColor: "bg-emerald-400", label: "Complete", animate: false },
   syncing: { fillPercent: 100, barColor: "bg-sky-400", label: "Syncing", animate: true },
   processing: { fillPercent: 100, barColor: "bg-sky-400", label: "Processing", animate: true },
+  enriching: { fillPercent: 100, barColor: "bg-sky-400", label: "Enriching", animate: true },
   pending: { fillPercent: 15, barColor: "bg-amber-400", label: "Pending", animate: false },
   failed: { fillPercent: 0, barColor: "bg-red-400", label: "Failed", animate: false },
 }
