@@ -11,13 +11,11 @@ import MilkcrateShell from "@/layouts/milkcrate_shell"
 import type { Store } from "@/types/inertia"
 
 function AppLayoutInner({ children }: { children: React.ReactNode }) {
-  const page = usePage<{ notice?: string; alert?: string; store?: Pick<Store, "name" | "discogs_username" | "oauth_authorized"> }>()
+  const page = usePage<{ notice?: string; alert?: string; store?: Pick<Store, "name" | "discogs_username"> }>()
   const notice = page.props.notice
   const alertMsg = page.props.alert
   const storeName = page.props.store?.name
   const discogsUsername = page.props.store?.discogs_username
-  const oauthAuthorized = page.props.store?.oauth_authorized
-  const csrfToken = document.querySelector<HTMLMetaElement>("meta[name='csrf-token']")?.content
   const { theme, toggle } = useTheme()
   const { isCompact } = useViewport()
   const { pile } = usePileContext()
@@ -25,33 +23,35 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
 
   const header = (
     <header className="mc-header flex items-center justify-between px-4 py-2 sm:py-3 border-b mc-border sticky top-0 z-30 bg-mc-bg-raised/95 backdrop-blur-sm">
-      <Link
-        href="/"
-        className="flex flex-col leading-none min-w-0 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
-      >
+      <div className="flex flex-col leading-none min-w-0">
         {storeName ? (
           <>
-            <span className="mc-brand-title text-base font-bold mc-text truncate">{storeName}</span>
-            <span className="text-[10px] tracking-widest uppercase text-mc-text-dim">
-              {isCompact ? "on MC" : "on Milkcrate"}
-            </span>
+            <Link
+              href={`/${discogsUsername}`}
+              className="rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
+            >
+              <span className="mc-brand-title text-base font-bold mc-text truncate">{storeName}</span>
+            </Link>
+            <Link
+              href="/"
+              className="rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
+            >
+              <span className="text-[10px] tracking-widest uppercase text-mc-text-dim">
+                {isCompact ? "on MC" : "on Milkcrate"}
+              </span>
+            </Link>
           </>
         ) : (
-          <BrandMark size="small" />
+          <Link
+            href="/"
+            className="rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
+          >
+            <BrandMark size="small" />
+          </Link>
         )}
-      </Link>
+      </div>
       <div className="flex items-center gap-2.5 sm:gap-3 flex-shrink-0">
-        {discogsUsername && !oauthAuthorized && (
-          <form action={`/${discogsUsername}/authorize`} method="POST" className="inline">
-            {csrfToken && <input type="hidden" name="authenticity_token" value={csrfToken} />}
-            <button
-              type="submit"
-              className="text-xs text-mc-accent hover:opacity-80 transition-opacity select-none rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
-            >
-              Is this your store?
-            </button>
-          </form>
-        )}
+
         {discogsUsername && (
           <a
             href={`https://www.discogs.com/seller/${discogsUsername}/profile`}
