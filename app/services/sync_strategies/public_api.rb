@@ -14,12 +14,6 @@ module SyncStrategies
     #   listings  — array of normalized listing hashes (nil entries filtered out)
     #   complete? — false (public API is paginated and may be incomplete)
     def call(store, max_pages: nil, progress: nil)
-      # Set progress total before fetcher runs — two passes (desc + asc)
-      if progress && store.inventory_page_count
-        pages = max_pages ? [ store.inventory_page_count, max_pages ].min : store.inventory_page_count
-        progress.total = pages * 2
-      end
-
       desc_result = fetch_listings(store, sort_order: "desc", max_pages:, progress:)
       asc_result = fetch_listings(store, sort_order: "asc", max_pages:, progress:)
 

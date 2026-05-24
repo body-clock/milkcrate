@@ -33,6 +33,14 @@ class StoreSync::InventoryFetcher
 
       break if empty_page?(data)
 
+      # Set progress total from first API response (knows real page count)
+      # Additive for multi-pass syncs (desc + asc) — accumulates across passes
+      if @progress && @pages_fetched == 1
+        total = extract_total_pages(data)
+        capped = max_pages ? [ total, max_pages ].min : total
+        @progress.total = (@progress.total || 0) + capped
+      end
+
       yield data, @pages_fetched
       @progress&.increment
 
