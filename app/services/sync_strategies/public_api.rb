@@ -14,6 +14,14 @@ module SyncStrategies
     #   listings  — array of normalized listing hashes (nil entries filtered out)
     #   complete? — false (public API is paginated and may be incomplete)
     def call(store, max_pages: nil, progress: nil)
+      # Probe page 1 to get total pages up-front, then multiply by 2 for both passes
+      if progress
+        probe = @client.seller_inventory(store.discogs_username, page: 1, sort_order: "desc")
+        total = probe.dig("pagination", "pages") || 1
+        capped = max_pages ? [ total, max_pages ].min : total
+        progress.total = capped * 2
+      end
+
       desc_result = fetch_listings(store, sort_order: "desc", max_pages:, progress:)
       asc_result = fetch_listings(store, sort_order: "asc", max_pages:, progress:)
 
