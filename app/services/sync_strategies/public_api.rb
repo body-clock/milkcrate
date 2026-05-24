@@ -7,6 +7,11 @@ module SyncStrategies
       @normalizer = normalizer || StoreSync::ListingNormalizer.new
     end
 
+    # Discogs public API limits pagination to 100 pages per sort order.
+    # For stores with more than 100 pages, we do two passes (desc + asc)
+    # to get up to 2x coverage — the pages don't overlap across sort orders.
+    DISCOGS_PAGE_LIMIT = 100
+
     # Fetches inventory from the Discogs public API and returns normalized listings.
     # Performs two passes (desc + asc) to maximize coverage across paginated results.
     #
@@ -17,12 +22,17 @@ module SyncStrategies
       # Probe page 1 to get total pages — used for progress tracking and pass count
       probe = @client.seller_inventory(store.discogs_username, page: 1, sort_order: "desc")
       total_pages = probe.dig("pagination", "pages") || 1
-      capped = max_pages ? [ total_pages, max_pages ].min : total_pages
-      passes = capped > 5 ? 2 : 1
+      needs_two_pass = total_pages > DISCOGS_PAGE_LIMIT
 
-      if progress
-        progress.total = capped * passes
+      # Actual pages we can fetch per pass (Discogs caps at 100)
+      fetchable = if max_pages
+        [ total_pages, max_pages, DISCOGS_PAGE_LIMIT ].min
+      else
+        [ total_pages, DISCOGS_PAGE_LIMIT ].min
       end
+
+      passes = needs_two_pass ? 2 : 1
+      progress.total = fetchable * passes if progress
 
       desc_result = fetch_listings(store, sort_order: "desc", max_pages:, progress:)
       asc_result = if passes > 1

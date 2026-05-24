@@ -17,25 +17,18 @@ RSpec.describe SyncStrategies::PublicApi do
 
   describe "#call" do
     it "returns normalized listings from desc and asc passes" do
-      # Desc pass: page 1 + 5 empty pages (use 6 pages to trigger two-pass)
+      # Use >100 pages to trigger two-pass (Discogs API page limit)
+      page_count = 101
+      empty_page = api_page(listings: [], pages: page_count)
+      # Generic stub: any page returns empty (covers pages 2-101 for both sort orders)
+      allow(client).to receive(:seller_inventory).and_return(empty_page)
+      # Override page 1 for each sort order with actual listings
       allow(client).to receive(:seller_inventory)
         .with("teststore", page: 1, sort_order: "desc")
-        .and_return(api_page(listings: [ raw_listing(id: "1"), raw_listing(id: "2") ], pages: 6))
-      (2..6).each do |pg|
-        allow(client).to receive(:seller_inventory)
-          .with("teststore", page: pg, sort_order: "desc")
-          .and_return(api_page(listings: [], pages: 6))
-      end
-
-      # Asc pass: 6 pages, only page 1 has the third listing
+        .and_return(api_page(listings: [ raw_listing(id: "1"), raw_listing(id: "2") ], pages: page_count))
       allow(client).to receive(:seller_inventory)
         .with("teststore", page: 1, sort_order: "asc")
-        .and_return(api_page(listings: [ raw_listing(id: "3") ], pages: 6))
-      (2..6).each do |pg|
-        allow(client).to receive(:seller_inventory)
-          .with("teststore", page: pg, sort_order: "asc")
-          .and_return(api_page(listings: [], pages: 6))
-      end
+        .and_return(api_page(listings: [ raw_listing(id: "3") ], pages: page_count))
 
       allow(normalizer).to receive(:call) { |raw, store_id:|
         { discogs_listing_id: raw["id"], store_id: }
