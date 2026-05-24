@@ -4,9 +4,10 @@ class StoreSync::InventoryFetcher
 
   DISCOGS_PAGE_LIMIT_ERROR = "Pagination above 100"
 
-  def initialize(store, client: nil)
+  def initialize(store, client: nil, progress: nil)
     @store = store
     @client = client || DiscogsClient.new
+    @progress = progress
   end
 
   def fetch(sort_order: "desc", max_pages: nil)
@@ -32,7 +33,14 @@ class StoreSync::InventoryFetcher
 
       break if empty_page?(data)
 
+      # Configure progress bar total after first response (we know total pages then)
+      if @progress && @pages_fetched == 1
+        total = extract_total_pages(data)
+        @progress.total = max_pages ? [total, max_pages].min : total
+      end
+
       yield data, @pages_fetched
+      @progress&.increment
 
       break if last_page?(data, max_pages)
     end

@@ -20,10 +20,26 @@ namespace :stores do
 
   desc "Full inventory sync from Discogs — stores:sync[username]"
   task :sync, [ :username ] => :environment do |_, args|
+    require "ruby-progressbar"
+
     store = find_store(args[:username])
-    service = StoreSyncService.new(store)
-    puts "Syncing #{store.name} (@#{store.discogs_username})..."
-    synced_count = service.full_sync
+
+    max_pages = ENV["MAX_PAGES"]&.to_i
+    page_hint = max_pages ? " (max #{max_pages} pages)" : ""
+
+    puts "Syncing #{store.name} (@#{store.discogs_username})#{page_hint}..."
+
+    progress = ProgressBar.create(
+      title: "Pages",
+      total: nil,
+      format: "%t: %c/%C |%B| %e",
+      throttle_rate: 0.5
+    )
+
+    service = StoreSyncService.new(store, progress:)
+    synced_count = service.full_sync(max_pages:)
+    progress.finish
+
     puts "Synced #{synced_count} listings."
   end
 
@@ -31,9 +47,22 @@ namespace :stores do
 
   desc "Enrich releases: Discogs metadata + MusicBrainz images — stores:enrich[username]"
   task :enrich, [ :username ] => :environment do |_, args|
+    require "ruby-progressbar"
+
     store = find_store(args[:username])
     puts "Enriching metadata and images for #{store.name}..."
-    EnrichmentJob.perform_now(store.id)
+
+    progress = ProgressBar.create(
+      title: "Releases",
+      total: nil,
+      format: "%t: %c/%C |%B| %e",
+      throttle_rate: 0.5
+    )
+
+    service = EnrichmentService.new(progress:)
+    service.enrich_store(store)
+    progress.finish
+
     puts "Enrichment complete."
   end
 

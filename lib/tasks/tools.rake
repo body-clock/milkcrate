@@ -120,7 +120,11 @@ namespace :tools do
 
   desc "Load sample data from db/sample/listings.jsonl"
   task :load => :environment do
+    require "ruby-progressbar"
+
     raise "Sample data file not found at #{SAMPLE_DATA_FILE}" unless SAMPLE_DATA_FILE.exist?
+
+    total_lines = File.foreach(SAMPLE_DATA_FILE).count
 
     if ENV["FORCE"]
       puts "==> Force mode: clearing existing data..."
@@ -130,25 +134,27 @@ namespace :tools do
       StoreOwner.delete_all
     end
 
-    listing_count = 0
-    release_count = 0
-    store_count   = 0
-    owner_count   = 0
+    progress = ProgressBar.create(
+      title: "Records",
+      total: total_lines,
+      format: "%t: %c/%C |%B|",
+      throttle_rate: 0.1
+    )
 
     File.foreach(SAMPLE_DATA_FILE) do |line|
-      listing = load_jsonl_line(line)
-      listing_count += 1
+      load_jsonl_line(line)
+      progress.increment
     rescue JSON::ParserError => e
       puts "  Skipping malformed line: #{e.message}"
     end
 
-    if listing_count > 0
-      store_count   = Store.count
-      release_count = Release.count
-      owner_count   = StoreOwner.count
-    end
+    progress.finish
 
-    puts "Loaded #{listing_count} listings, #{release_count} releases, #{store_count} stores, #{owner_count} owners (force=#{!!ENV['FORCE']})"
+    store_count   = Store.count
+    release_count = Release.count
+    owner_count   = StoreOwner.count
+
+    puts "Loaded #{total_lines} listings, #{release_count} releases, #{store_count} stores, #{owner_count} owners (force=#{!!ENV['FORCE']})"
   end
 
   desc "Capture sample data from a synced store to db/sample/listings.jsonl"
