@@ -1,9 +1,11 @@
 import React from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { usePileContext } from "../contexts/pile_context"
+import { useShopperContext } from "../contexts/shopper_context"
 import { useViewport } from "@/hooks/use_viewport"
 import { springDrawer } from "@/lib/motion_tokens"
 import { formatPriceValue } from "@/lib/format_price"
+import { usePage } from "@inertiajs/react"
 
 interface Props {
   open: boolean
@@ -12,10 +14,13 @@ interface Props {
 
 export default function PileSheet({ open, onClose }: Props) {
   const { pile, removeFromPile, clearPile } = usePileContext()
+  const { isConnected, state: shopperState, createListFromPile, listResult, errorMessage, resetListResult } = useShopperContext()
   const { isCompact } = useViewport()
   const [confirmClear, setConfirmClear] = React.useState(false)
   const dialogRef = React.useRef<HTMLDivElement>(null)
   const previousFocusRef = React.useRef<HTMLElement | null>(null)
+  const page = usePage<{ store?: { discogs_username?: string } }>()
+  const storeSlug = page.props.store?.discogs_username
 
   const total = pile.reduce((sum, l) => sum + (parseFloat(l.price) || 0), 0)
 
@@ -28,6 +33,7 @@ export default function PileSheet({ open, onClose }: Props) {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setConfirmClear(false)
+        resetListResult()
         onClose()
       }
     }
@@ -38,7 +44,37 @@ export default function PileSheet({ open, onClose }: Props) {
       document.removeEventListener("keydown", handleKeyDown)
       previousFocusRef.current?.focus?.()
     }
-  }, [open, onClose])
+  }, [open, onClose, resetListResult])
+
+  const handleSendToDiscogs = async () => {
+    if (!storeSlug) return
+
+    if (!isConnected) {
+      // Redirect to OAuth via form POST
+      const form = document.createElement("form")
+      form.method = "POST"
+      form.action = "/auth/discogs/shopper/authorize"
+      const csrfToken = document.querySelector<HTMLMetaElement>("meta[name='csrf-token']")?.content
+      if (csrfToken) {
+        const tokenInput = document.createElement("input")
+        tokenInput.type = "hidden"
+        tokenInput.name = "authenticity_token"
+        tokenInput.value = csrfToken
+        form.appendChild(tokenInput)
+      }
+      const slugInput = document.createElement("input")
+      slugInput.type = "hidden"
+      slugInput.name = "store_slug"
+      slugInput.value = storeSlug
+      form.appendChild(slugInput)
+      document.body.appendChild(form)
+      form.submit()
+      return
+    }
+
+    const items = pile.map((l) => ({ discogs_listing_id: l.discogs_listing_id }))
+    await createListFromPile(storeSlug, items)
+  }
 
   return (
     <AnimatePresence>
@@ -169,17 +205,60 @@ export default function PileSheet({ open, onClose }: Props) {
             {/* Footer */}
             {pile.length > 0 && (
               <div className="flex-shrink-0 px-4 py-4 border-t border-mc-border flex flex-col gap-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-mc-text-dim uppercase tracking-wider">Total</span>
-                  <span className="text-sm font-semibold">{formatPriceValue(total.toFixed(2), pile[0]?.currency)}</span>
-                </div>
-                <button
-                  disabled
-                  className="w-full mc-btn mc-btn-primary py-2.5 text-sm opacity-40 cursor-not-allowed"
-                  title="Coming soon — requires Discogs login"
-                >
-                  Add all to Discogs cart
-                </button>
+                {shopperState === "success" && listResult ? (
+                  <div className="flex flex-col gap-2">
+                    <p className="text-xs text-emerald-500 font-medium">
+                      ✓ Added {listResult.added} of {listResult.added + listResult.skipped} items to your Discogs list
+                      {listResult.skipped > 0 && (
+                        <span className="text-mc-text-dim"> ({listResult.skipped} skipped — missing release data)</span>
+                      )}
+                    </p>
+                    <div className="flex gap-2">
+                      <a
+                        href={listResult.list_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 mc-btn mc-btn-primary py-2.5 text-sm text-center"
+                      >
+                        View list on Discogs ↗
+                      </a>
+                      <button
+                        onClick={resetListResult}
+                        className="mc-btn py-2.5 text-sm"
+                      >
+                        Close
+                      </button>
+                    </div>
+                  </div>
+                ) : shopperState === "error" ? (
+                  <div className="flex flex-col gap-2">
+                    <p className="text-xs text-red-400">{errorMessage}</p>
+                    <button
+                      onClick={handleSendToDiscogs}
+                      className="w-full mc-btn py-2.5 text-sm"
+                    >
+                      Try again
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-mc-text-dim uppercase tracking-wider">Total</span>
+                      <span className="text-sm font-semibold">{formatPriceValue(total.toFixed(2), pile[0]?.currency)}</span>
+                    </div>
+                    <button
+                      onClick={handleSendToDiscogs}
+                      disabled={shopperState === "creating"}
+                      className="w-full mc-btn mc-btn-primary py-2.5 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      {shopperState === "creating"
+                        ? "Creating list…"
+                        : isConnected
+                          ? "Send to Discogs"
+                          : "Send to Discogs → Connect"}
+                    </button>
+                  </>
+                )}
               </div>
             )}
           </motion.div>

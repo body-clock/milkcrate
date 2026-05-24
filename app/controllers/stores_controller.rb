@@ -27,6 +27,20 @@ class StoresController < ApplicationController
 
   private
 
+  def render_store(store)
+    cached = StorefrontCuration.cached_curation(store,
+      filter_available: !Rails.env.development?)
+
+    render inertia: "stores/show", props: {
+      store: store_props(store),
+      shopper: shopper_props,
+      crates: cached[:crates],
+      storefront_sections: cached[:sections],
+      alert: flash[:alert],
+      notice: flash[:notice]
+    }
+  end
+
   def render_invitation
     slug = params[:slug]
     waitlist_present = Waitlist.with_discogs_username(slug).exists?
@@ -35,19 +49,7 @@ class StoresController < ApplicationController
       waitlist_present: waitlist_present,
       slug: slug,
       oauth_available: true,
-      alert: flash[:alert],
-      notice: flash[:notice]
-    }
-  end
-
-  def render_store(store)
-    cached = StorefrontCuration.cached_curation(store,
-      filter_available: !Rails.env.development?)
-
-    render inertia: "stores/show", props: {
-      store: store_props(store),
-      crates: cached[:crates],
-      storefront_sections: cached[:sections],
+      shopper: shopper_props,
       alert: flash[:alert],
       notice: flash[:notice]
     }
@@ -66,5 +68,12 @@ class StoresController < ApplicationController
       last_enriched_at: store.last_enriched_at,
       oauth_authorized: store.oauth_authorized?
     }
+  end
+
+  def shopper_props
+    shopper = DiscogsShopper.find_by(id: session[:shopper_id])
+    return nil unless shopper&.authenticated?
+
+    { discogs_username: shopper.discogs_username }
   end
 end
