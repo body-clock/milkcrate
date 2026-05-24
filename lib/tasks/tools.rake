@@ -26,10 +26,13 @@ namespace :tools do
   def load_jsonl_line(line)
     data = JSON.parse(line)
 
-    # Resolve or create the owning store owner
+    # Resolve or create the owning store owner (may be nil in snapshot)
     owner_attrs = data["store_owner"]
-    store_owner = StoreOwner.find_or_create_by!(discogs_username: owner_attrs["discogs_username"]) do |o|
-      o.owner_email = owner_attrs["owner_email"]
+    store_owner = nil
+    if owner_attrs
+      store_owner = StoreOwner.find_or_create_by!(discogs_username: owner_attrs["discogs_username"]) do |o|
+        o.owner_email = owner_attrs["owner_email"]
+      end
     end
 
     # Resolve or create the store
@@ -42,15 +45,18 @@ namespace :tools do
       s.store_owner = store_owner
     end
 
-    # Resolve or create the release
+    # Resolve or create the release (may be nil in snapshot)
     release_attrs = data["release"]
-    release = Release.find_or_create_by!(discogs_release_id: release_attrs["discogs_release_id"]) do |r|
-      r.want_count = release_attrs["want_count"]
-      r.have_count = release_attrs["have_count"]
-      r.enriched_at = release_attrs["enriched_at"]
-      r.musicbrainz_id = release_attrs["musicbrainz_id"]
-      r.discogs_image_missing = release_attrs["discogs_image_missing"] || false
-    end if release_attrs
+    release = nil
+    if release_attrs
+      release = Release.find_or_create_by!(discogs_release_id: release_attrs["discogs_release_id"]) do |r|
+        r.want_count = release_attrs["want_count"]
+        r.have_count = release_attrs["have_count"]
+        r.enriched_at = release_attrs["enriched_at"]
+        r.musicbrainz_id = release_attrs["musicbrainz_id"]
+        r.discogs_image_missing = release_attrs["discogs_image_missing"] || false
+      end
+    end
 
     # Resolve or create the listing
     listing_attrs = data["listing"]
