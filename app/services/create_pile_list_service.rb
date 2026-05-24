@@ -15,6 +15,7 @@ class CreatePileListService
   def call
     return error_result("No items in pile.") if @item_ids.blank?
     return error_result("Shopper not authenticated with Discogs.") unless @shopper.authenticated?
+    return error_result("Store not found.") if @store_slug.blank?
 
     store_name = resolve_store_name
     release_ids = resolve_release_ids

@@ -3,16 +3,19 @@ class AuthController < ApplicationController
   def callback
     oauth_verifier = params[:oauth_verifier]
 
-    if session[:shopper_oauth_store_slug].present?
+    if session[:oauth_request_token].present?
+      handle_store_owner_callback(oauth_verifier)
+    elsif session[:shopper_oauth_request_token].present?
       handle_shopper_callback(oauth_verifier)
     else
-      handle_store_owner_callback(oauth_verifier)
+      redirect_to root_path, alert: "Session expired. Please try again."
     end
   end
 
   private
 
   def handle_store_owner_callback(oauth_verifier)
+    clear_shopper_oauth_session
     slug = session[:oauth_store_slug]
     request_token_token = session[:oauth_request_token]
     request_token_secret = session[:oauth_request_token_secret]
@@ -39,6 +42,7 @@ class AuthController < ApplicationController
   end
 
   def handle_shopper_callback(oauth_verifier)
+    clear_store_owner_oauth_session
     store_slug = session[:shopper_oauth_store_slug]
     request_token = session[:shopper_oauth_request_token]
     request_token_secret = session[:shopper_oauth_request_token_secret]
