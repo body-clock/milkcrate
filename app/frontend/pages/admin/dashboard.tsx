@@ -1,10 +1,12 @@
-import React, { useRef, useState } from "react"
+import React, { useRef, useState, useEffect } from "react"
+import { router } from "@inertiajs/react"
 import type { AdminApplicantSummary, AdminDashboardProps, AdminHealthSeverity, AdminStoreSummary } from "@/types/inertia"
 import Badge from "@/components/ui/badge"
 import Button from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import SectionHeader from "@/components/ui/section_header"
 import StatusDot from "@/components/ui/status_dot"
+import JobProgressBar from "@/components/ui/job_progress_bar"
 
 function formatTime(value: string | null) {
   if (!value) return "Not yet"
@@ -60,6 +62,18 @@ export default function Dashboard({ active_stores, applicants, discogs_onboardin
   const healthyCount = active_stores.filter((store) => store.health.key === "healthy").length
   const attentionCount = active_stores.filter((store) => ["failed", "stale", "partial"].includes(store.health.key)).length
   const processingCount = active_stores.filter((store) => store.health.key === "processing").length
+
+  // Poll for live progress updates while any store has active jobs
+  const hasActiveJobs = active_stores.some(
+    (s) => s.sync_status === "syncing" || s.enrichment_status === "enriching"
+  )
+  useEffect(() => {
+    if (!hasActiveJobs) return
+    const interval = setInterval(() => {
+      router.reload({ only: ["active_stores"], preserveState: true, preserveScroll: true })
+    }, 3000)
+    return () => clearInterval(interval)
+  }, [hasActiveJobs])
 
   return (
     <main className="min-h-screen bg-mc-bg px-4 py-6 text-mc-text sm:px-6 lg:px-8">
@@ -338,8 +352,8 @@ function StoreCard({ store }: { store: AdminStoreSummary }) {
           <Metric label="Last enrich" value={formatTime(store.last_enriched_at)} />
           <Metric label="Inventory" value={listingText(store.total_listings)} />
           <Metric label="Coverage" value={store.catalog_coverage.replace("_", " ")} />
-          <Metric label="Sync" value={store.sync_status} />
-          <Metric label="Enrichment" value={store.enrichment_status} />
+          <JobProgressBar label="Sync" status={store.sync_status} progressPct={store.sync_progress_pct} />
+          <JobProgressBar label="Enrichment" status={store.enrichment_status} progressPct={store.enrichment_progress_pct} />
         </dl>
 
         {store.health.last_sync_error_summary && (
