@@ -6,7 +6,8 @@ import { springDrawer } from "@/lib/motion_tokens"
 import { formatPriceValue } from "@/lib/format_price"
 
 const DISCOGS_CART_BASE = "https://www.discogs.com/sell/cart"
-const ADD_INTERVAL_MS = 600
+const ADD_INTERVAL_MS = 800
+const CART_REDIRECT_DELAY_MS = 2000
 
 interface Props {
   open: boolean
@@ -69,11 +70,13 @@ export default function PileSheet({ open, onClose }: Props) {
     const interval = setInterval(() => {
       if (i >= ids.length || popup.closed) {
         clearInterval(interval)
-        setAddingToCart(false)
-        if (!popup.closed) {
-          // Land on the cart page with everything added
-          popup.location.href = DISCOGS_CART_BASE
-        }
+        // Wait for the last add to settle before redirecting to cart
+        setTimeout(() => {
+          setAddingToCart(false)
+          if (!popup.closed) {
+            popup.location.href = DISCOGS_CART_BASE
+          }
+        }, CART_REDIRECT_DELAY_MS)
         return
       }
       popup.location.href = `${DISCOGS_CART_BASE}/?add=${ids[i]}`
