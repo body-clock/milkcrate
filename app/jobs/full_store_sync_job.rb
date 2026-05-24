@@ -5,10 +5,11 @@ class FullStoreSyncJob < ApplicationJob
 
   def perform(store_id, max_pages: nil)
     store = Store.find(store_id)
-    store.update!(sync_status: "syncing")
+    store.update!(sync_status: "syncing", sync_progress_pct: 0)
     sync_started_at = Time.current
 
-    result = store.sync_strategy.call(store, max_pages: max_pages)
+    progress = StoreSync::ProgressTracker.new(store)
+    result = store.sync_strategy.call(store, max_pages: max_pages, progress: progress)
     updater = StoreSync::InventoryUpdater.new(store)
     listing_ids_for_enrichment = updater.call(result.listings)
 
@@ -16,6 +17,7 @@ class FullStoreSyncJob < ApplicationJob
       updater.remove_stale(result.listings)
     end
 
+    store.update_columns(sync_progress_pct: nil)
     sync_manager(store).mark_succeeded!(
       last_synced_at: sync_started_at,
       total_listings: store.listings.count

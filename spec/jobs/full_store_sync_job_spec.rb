@@ -20,7 +20,7 @@ RSpec.describe FullStoreSyncJob do
             listed_at: Time.current, last_seen_at: Time.current }
         ]
         sync_result = SyncStrategies::Result.new(listings:, complete: false)
-        allow(mock_strategy).to receive(:call).with(store, max_pages: nil).and_return(sync_result)
+        allow(mock_strategy).to receive(:call).with(store, hash_including(max_pages: nil)).and_return(sync_result)
 
         described_class.perform_now(store.id)
 
@@ -28,16 +28,16 @@ RSpec.describe FullStoreSyncJob do
       end
 
       it "passes max_pages to the strategy" do
-        allow(mock_strategy).to receive(:call).with(store, max_pages: 1)
+        allow(mock_strategy).to receive(:call).with(store, hash_including(max_pages: 1))
           .and_return(SyncStrategies::Result.new(listings: [], complete: false))
 
         described_class.perform_now(store.id, max_pages: 1)
 
-        expect(mock_strategy).to have_received(:call).with(store, max_pages: 1)
+        expect(mock_strategy).to have_received(:call).with(store, hash_including(max_pages: 1))
       end
 
       it "sets sync_status to syncing then idle" do
-        allow(mock_strategy).to receive(:call).with(store, max_pages: nil)
+        allow(mock_strategy).to receive(:call).with(store, hash_including(max_pages: nil))
           .and_return(SyncStrategies::Result.new(listings: [], complete: false))
 
         described_class.perform_now(store.id)
@@ -54,14 +54,14 @@ RSpec.describe FullStoreSyncJob do
             listed_at: Time.current, last_seen_at: Time.current }
         ]
         sync_result = SyncStrategies::Result.new(listings:, complete: false)
-        allow(mock_strategy).to receive(:call).with(store, max_pages: nil).and_return(sync_result)
+        allow(mock_strategy).to receive(:call).with(store, hash_including(max_pages: nil)).and_return(sync_result)
 
         expect { described_class.perform_now(store.id) }
           .to have_enqueued_job(EnrichmentJob).with(store.id, listing_ids: kind_of(Array))
       end
 
       it "enqueues DailyCurationJob after sync" do
-        allow(mock_strategy).to receive(:call).with(store, max_pages: nil)
+        allow(mock_strategy).to receive(:call).with(store, hash_including(max_pages: nil))
           .and_return(SyncStrategies::Result.new(listings: [], complete: false))
 
         expect {
@@ -70,7 +70,7 @@ RSpec.describe FullStoreSyncJob do
       end
 
       it "does not enqueue EnrichmentJob when no listings changed" do
-        allow(mock_strategy).to receive(:call).with(store, max_pages: nil)
+        allow(mock_strategy).to receive(:call).with(store, hash_including(max_pages: nil))
           .and_return(SyncStrategies::Result.new(listings: [], complete: false))
 
         expect {
@@ -79,7 +79,7 @@ RSpec.describe FullStoreSyncJob do
       end
 
       it "persists failure details when strategy raises" do
-        allow(mock_strategy).to receive(:call).with(store, max_pages: nil)
+        allow(mock_strategy).to receive(:call).with(store, hash_including(max_pages: nil))
           .and_raise(RuntimeError, "discogs timeout")
 
         expect {
@@ -95,7 +95,7 @@ RSpec.describe FullStoreSyncJob do
       it "uses strategy call time as the sync start watermark" do
         travel_to(Time.zone.parse("2026-05-05 12:00:00")) do
           synced_at = nil
-          allow(mock_strategy).to receive(:call).with(store, max_pages: nil) do
+          allow(mock_strategy).to receive(:call).with(store, hash_including(max_pages: nil)) do
             synced_at = Time.current
             SyncStrategies::Result.new(listings: [
               {
@@ -116,7 +116,7 @@ RSpec.describe FullStoreSyncJob do
       end
 
       it "does not call oauth_authorized? on the strategy" do
-        allow(mock_strategy).to receive(:call).with(store, max_pages: nil)
+        allow(mock_strategy).to receive(:call).with(store, hash_including(max_pages: nil))
           .and_return(SyncStrategies::Result.new(listings: [], complete: false))
 
         described_class.perform_now(store.id)
@@ -156,7 +156,7 @@ RSpec.describe FullStoreSyncJob do
         it "does not overwrite enriched format during sync" do
           listings = [ sync_listing_data ]
           sync_result = SyncStrategies::Result.new(listings:, complete: false)
-          allow(mock_strategy).to receive(:call).with(store, max_pages: nil).and_return(sync_result)
+          allow(mock_strategy).to receive(:call).with(store, hash_including(max_pages: nil)).and_return(sync_result)
 
           described_class.perform_now(store.id)
 
@@ -167,7 +167,7 @@ RSpec.describe FullStoreSyncJob do
         it "does not overwrite enriched genres during sync" do
           listings = [ sync_listing_data ]
           sync_result = SyncStrategies::Result.new(listings:, complete: false)
-          allow(mock_strategy).to receive(:call).with(store, max_pages: nil).and_return(sync_result)
+          allow(mock_strategy).to receive(:call).with(store, hash_including(max_pages: nil)).and_return(sync_result)
 
           described_class.perform_now(store.id)
 
@@ -179,7 +179,7 @@ RSpec.describe FullStoreSyncJob do
         it "does not flag listing as changed when only format/genres/styles differ" do
           listings = [ sync_listing_data ]
           sync_result = SyncStrategies::Result.new(listings:, complete: false)
-          allow(mock_strategy).to receive(:call).with(store, max_pages: nil).and_return(sync_result)
+          allow(mock_strategy).to receive(:call).with(store, hash_including(max_pages: nil)).and_return(sync_result)
 
           expect { described_class.perform_now(store.id) }
             .not_to have_enqueued_job(EnrichmentJob)
@@ -194,7 +194,7 @@ RSpec.describe FullStoreSyncJob do
             listed_at: Time.current, last_seen_at: Time.current }
         ]
         sync_result = SyncStrategies::Result.new(listings:, complete: false)
-        allow(mock_strategy).to receive(:call).with(store, max_pages: nil).and_return(sync_result)
+        allow(mock_strategy).to receive(:call).with(store, hash_including(max_pages: nil)).and_return(sync_result)
 
         described_class.perform_now(store.id)
 
@@ -223,7 +223,7 @@ RSpec.describe FullStoreSyncJob do
             listed_at: Time.current, last_seen_at: Time.current }
         ]
         sync_result = SyncStrategies::Result.new(listings:, complete: true)
-        allow(mock_strategy).to receive(:call).with(store, max_pages: nil).and_return(sync_result)
+        allow(mock_strategy).to receive(:call).with(store, hash_including(max_pages: nil)).and_return(sync_result)
 
         described_class.perform_now(store.id)
 
@@ -234,7 +234,7 @@ RSpec.describe FullStoreSyncJob do
 
       it "removes all listings when a complete snapshot is empty" do
         create_list(:listing, 2, store:)
-        allow(mock_strategy).to receive(:call).with(store, max_pages: nil)
+        allow(mock_strategy).to receive(:call).with(store, hash_including(max_pages: nil))
           .and_return(SyncStrategies::Result.new(listings: [], complete: true))
 
         described_class.perform_now(store.id)
@@ -244,7 +244,7 @@ RSpec.describe FullStoreSyncJob do
 
       it "keeps existing listings when an incomplete snapshot is empty" do
         create(:listing, store:, discogs_listing_id: "stale")
-        allow(mock_strategy).to receive(:call).with(store, max_pages: nil)
+        allow(mock_strategy).to receive(:call).with(store, hash_including(max_pages: nil))
           .and_return(SyncStrategies::Result.new(listings: [], complete: false))
 
         described_class.perform_now(store.id)
@@ -253,7 +253,7 @@ RSpec.describe FullStoreSyncJob do
       end
 
       it "sets sync_status to syncing then idle" do
-        allow(mock_strategy).to receive(:call).with(store, max_pages: nil)
+        allow(mock_strategy).to receive(:call).with(store, hash_including(max_pages: nil))
           .and_return(SyncStrategies::Result.new(listings: [], complete: true))
 
         described_class.perform_now(store.id)
@@ -264,7 +264,7 @@ RSpec.describe FullStoreSyncJob do
       end
 
       it "enqueues DailyCurationJob after sync" do
-        allow(mock_strategy).to receive(:call).with(store, max_pages: nil)
+        allow(mock_strategy).to receive(:call).with(store, hash_including(max_pages: nil))
           .and_return(SyncStrategies::Result.new(listings: [], complete: true))
 
         expect {

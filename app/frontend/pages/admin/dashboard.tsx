@@ -339,8 +339,8 @@ function StoreCard({ store }: { store: AdminStoreSummary }) {
           <Metric label="Last enrich" value={formatTime(store.last_enriched_at)} />
           <Metric label="Inventory" value={listingText(store.total_listings)} />
           <Metric label="Coverage" value={store.catalog_coverage.replace("_", " ")} />
-          <JobProgressBar label="Sync" status={store.sync_status} />
-          <JobProgressBar label="Enrichment" status={store.enrichment_status} />
+          <JobProgressBar label="Sync" status={store.sync_status} progressPct={store.sync_progress_pct} />
+          <JobProgressBar label="Enrichment" status={store.enrichment_status} progressPct={store.enrichment_progress_pct} />
         </dl>
 
         {store.health.last_sync_error_summary && (

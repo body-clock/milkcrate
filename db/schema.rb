@@ -10,9 +10,20 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_23_183215) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_24_220452) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "discogs_shoppers", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "discogs_username", null: false
+    t.datetime "last_used_at"
+    t.text "oauth_token"
+    t.text "oauth_token_secret"
+    t.string "store_slug"
+    t.datetime "updated_at", null: false
+    t.index ["discogs_username"], name: "index_discogs_shoppers_on_discogs_username", unique: true
+  end
 
   create_table "listings", force: :cascade do |t|
     t.string "artist"
@@ -220,6 +231,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_23_183215) do
     t.datetime "created_at", null: false
     t.text "description"
     t.string "discogs_username"
+    t.integer "enrichment_progress_pct"
     t.string "enrichment_status", default: "idle", null: false
     t.integer "inventory_page_count", default: 0, null: false
     t.datetime "last_enriched_at"
@@ -228,6 +240,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_23_183215) do
     t.datetime "last_synced_at"
     t.string "name"
     t.bigint "store_owner_id"
+    t.integer "sync_progress_pct"
     t.string "sync_source", default: "public_api", null: false
     t.string "sync_status"
     t.integer "total_listings"

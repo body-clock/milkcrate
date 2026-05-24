@@ -88,7 +88,9 @@ export interface AdminStoreSummary {
   total_listings: number | null
   inventory_page_count: number
   sync_status: string
+  sync_progress_pct: number | null
   enrichment_status: string
+  enrichment_progress_pct: number | null
   catalog_coverage: string
   last_synced_at: string | null
   last_enriched_at: string | null

@@ -5,9 +5,13 @@ class EnrichmentJob < ApplicationJob
 
   def perform(store_id, listing_ids: nil)
     store = Store.find(store_id)
+    store.update!(enrichment_progress_pct: 0)
 
-    service = EnrichmentService.new
+    progress = StoreEnrichment::ProgressTracker.new(store)
+    service = EnrichmentService.new(progress: progress)
     service.enrich_store(store, listing_ids:)
+
+    store.update_columns(enrichment_progress_pct: nil)
   rescue StandardError => error
     Rails.logger.error(
       "[EnrichmentJob] store=#{store&.discogs_username || store_id} job_id=#{job_id} failed\n#{error.full_message(highlight: false, order: :top)}"

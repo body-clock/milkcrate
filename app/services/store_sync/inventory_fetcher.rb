@@ -33,12 +33,6 @@ class StoreSync::InventoryFetcher
 
       break if empty_page?(data)
 
-      # Configure progress bar total after first response (we know total pages then)
-      if @progress && @pages_fetched == 1
-        total = extract_total_pages(data)
-        @progress.total = max_pages ? [ total, max_pages ].min : total
-      end
-
       yield data, @pages_fetched
       @progress&.increment
 
