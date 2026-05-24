@@ -163,8 +163,8 @@ namespace :tools do
     store = Store.find_by(discogs_username: username)
     raise "Store not found for username '#{username}'. Sync one first via `stores:sync[username]`." unless store
 
-    listings = store.listings.available.lp_only.order(listed_at: :desc).limit(1000)
-    raise "No available LP listings found for #{store.name}. Sync the store first." if listings.empty?
+    listings = store.listings.available.vinyl.order(listed_at: :desc).limit(1000)
+    raise "No available vinyl listings found for #{store.name}. Sync the store first." if listings.empty?
 
     puts "Capturing #{listings.size} listings from #{store.name} (@#{store.discogs_username})..."
 
