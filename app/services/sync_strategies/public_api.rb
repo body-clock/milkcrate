@@ -19,7 +19,9 @@ module SyncStrategies
         probe = @client.seller_inventory(store.discogs_username, page: 1, sort_order: "desc")
         total = probe.dig("pagination", "pages") || 1
         capped = max_pages ? [ total, max_pages ].min : total
-        progress.total = capped * 2
+        # Two-pass multiplier: single-page stores don't need double progress tracking
+        passes = capped > 1 ? 2 : 1
+        progress.total = capped * passes
       end
 
       desc_result = fetch_listings(store, sort_order: "desc", max_pages:, progress:)
