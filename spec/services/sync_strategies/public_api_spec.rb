@@ -17,15 +17,25 @@ RSpec.describe SyncStrategies::PublicApi do
 
   describe "#call" do
     it "returns normalized listings from desc and asc passes" do
-      # Desc pass: page 1
+      # Desc pass: page 1 + 5 empty pages (use 6 pages to trigger two-pass)
       allow(client).to receive(:seller_inventory)
         .with("teststore", page: 1, sort_order: "desc")
-        .and_return(api_page(listings: [ raw_listing(id: "1"), raw_listing(id: "2") ], pages: 1))
+        .and_return(api_page(listings: [ raw_listing(id: "1"), raw_listing(id: "2") ], pages: 6))
+      (2..6).each do |pg|
+        allow(client).to receive(:seller_inventory)
+          .with("teststore", page: pg, sort_order: "desc")
+          .and_return(api_page(listings: [], pages: 6))
+      end
 
-      # Asc pass: page 1
+      # Asc pass: 6 pages, only page 1 has the third listing
       allow(client).to receive(:seller_inventory)
         .with("teststore", page: 1, sort_order: "asc")
-        .and_return(api_page(listings: [ raw_listing(id: "3") ], pages: 1))
+        .and_return(api_page(listings: [ raw_listing(id: "3") ], pages: 6))
+      (2..6).each do |pg|
+        allow(client).to receive(:seller_inventory)
+          .with("teststore", page: pg, sort_order: "asc")
+          .and_return(api_page(listings: [], pages: 6))
+      end
 
       allow(normalizer).to receive(:call) { |raw, store_id:|
         { discogs_listing_id: raw["id"], store_id: }

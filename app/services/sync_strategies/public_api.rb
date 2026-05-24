@@ -14,18 +14,22 @@ module SyncStrategies
     #   listings  — array of normalized listing hashes (nil entries filtered out)
     #   complete? — false (public API is paginated and may be incomplete)
     def call(store, max_pages: nil, progress: nil)
-      # Probe page 1 to get total pages up-front, then multiply by 2 for both passes
+      # Probe page 1 to get total pages — used for progress tracking and pass count
+      probe = @client.seller_inventory(store.discogs_username, page: 1, sort_order: "desc")
+      total_pages = probe.dig("pagination", "pages") || 1
+      capped = max_pages ? [ total_pages, max_pages ].min : total_pages
+      passes = capped > 5 ? 2 : 1
+
       if progress
-        probe = @client.seller_inventory(store.discogs_username, page: 1, sort_order: "desc")
-        total = probe.dig("pagination", "pages") || 1
-        capped = max_pages ? [ total, max_pages ].min : total
-        # Two-pass multiplier: single-page stores don't need double progress tracking
-        passes = capped > 1 ? 2 : 1
         progress.total = capped * passes
       end
 
       desc_result = fetch_listings(store, sort_order: "desc", max_pages:, progress:)
-      asc_result = fetch_listings(store, sort_order: "asc", max_pages:, progress:)
+      asc_result = if passes > 1
+        fetch_listings(store, sort_order: "asc", max_pages:, progress:)
+      else
+        SyncStrategies::Result.new(listings: [], complete: false)
+      end
 
       all_raw = desc_result.listings + asc_result.listings
       normalized = all_raw.filter_map { |raw| normalize(raw, store) }
