@@ -53,7 +53,7 @@ describe("oauth claim forms", () => {
     expect(form?.querySelector("input[name='authenticity_token']")).toHaveAttribute("value", "csrf-token-test")
   })
 
-  it("renders the store view with Discogs link but no claim button", () => {
+  it("renders the store view with Discogs icon but no claim button", () => {
     render(
       <StoreShow
         store={{
@@ -72,10 +72,9 @@ describe("oauth claim forms", () => {
     )
 
     // The "Is this your store?" claim button has been removed.
-    // Verify the Discogs link is still present.
-    const discogsLink = screen.getByRole("link", { name: /View store on Discogs/ })
-    expect(discogsLink).toBeInTheDocument()
-    expect(discogsLink).toHaveAttribute("href", "https://www.discogs.com/seller/philadelphiamusic/profile")
+    // Verify the Discogs auth icon button is present.
+    const discogsBtn = screen.getByRole("button", { name: /Connect with Discogs/ })
+    expect(discogsBtn).toBeInTheDocument()
 
     // Verify the store name links to the store view
     const storeLink = screen.getByText("Philadelphia Music")
