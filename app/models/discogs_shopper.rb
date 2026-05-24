@@ -7,6 +7,8 @@ class DiscogsShopper < ApplicationRecord
 
   scope :with_discogs_username, ->(username) { where(discogs_username: username.downcase) }
 
+  before_validation { self.discogs_username = discogs_username&.downcase }
+
   def authenticated?
     oauth_token.present? && oauth_token_secret.present?
   end
