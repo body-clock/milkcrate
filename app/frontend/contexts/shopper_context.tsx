@@ -5,14 +5,20 @@ interface ShopperInfo {
   discogs_username: string
 }
 
+interface WantlistResult {
+  wantlist_url: string
+  added: number
+  skipped: number
+}
+
 interface ShopperContextValue {
   shopper: ShopperInfo | null
   isConnected: boolean
   state: "idle" | "creating" | "success" | "error"
-  createListFromPile: (storeSlug: string, items: { discogs_listing_id: string }[]) => Promise<{ list_url: string; added: number; skipped: number } | null>
-  listResult: { list_url: string; added: number; skipped: number } | null
+  addToWantlist: (items: { discogs_listing_id: string }[]) => Promise<WantlistResult | null>
+  wantlistResult: WantlistResult | null
   errorMessage: string | null
-  resetListResult: () => void
+  resetResult: () => void
 }
 
 const ShopperContext = createContext<ShopperContextValue | null>(null)
@@ -23,36 +29,36 @@ export function ShopperProvider({ children }: { children: React.ReactNode }) {
   const isConnected = !!shopper
 
   const [state, setState] = useState<"idle" | "creating" | "success" | "error">("idle")
-  const [listResult, setListResult] = useState<{ list_url: string; added: number; skipped: number } | null>(null)
+  const [wantlistResult, setWantlistResult] = useState<WantlistResult | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const csrfToken = document.querySelector<HTMLMetaElement>("meta[name='csrf-token']")?.content
 
-  const createListFromPile = useCallback(
-    async (storeSlug: string, items: { discogs_listing_id: string }[]) => {
+  const addToWantlist = useCallback(
+    async (items: { discogs_listing_id: string }[]) => {
       if (!isConnected) return null
 
       setState("creating")
-      setListResult(null)
+      setWantlistResult(null)
       setErrorMessage(null)
 
       try {
-        const response = await fetch("/pile/create_list", {
+        const response = await fetch("/pile/add_to_wantlist", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             "X-CSRF-Token": csrfToken ?? "",
           },
-          body: JSON.stringify({ store_slug: storeSlug, items }),
+          body: JSON.stringify({ items }),
         })
 
         if (!response.ok) {
           const body = await response.json()
-          throw new Error(body.error || "Failed to create list")
+          throw new Error(body.error || "Failed to add to wantlist")
         }
 
         const result = await response.json()
-        setListResult(result)
+        setWantlistResult(result)
         setState("success")
         return result
       } catch (err) {
@@ -65,9 +71,9 @@ export function ShopperProvider({ children }: { children: React.ReactNode }) {
     [isConnected, csrfToken]
   )
 
-  const resetListResult = useCallback(() => {
+  const resetResult = useCallback(() => {
     setState("idle")
-    setListResult(null)
+    setWantlistResult(null)
     setErrorMessage(null)
   }, [])
 
@@ -77,10 +83,10 @@ export function ShopperProvider({ children }: { children: React.ReactNode }) {
         shopper,
         isConnected,
         state,
-        createListFromPile,
-        listResult,
+        addToWantlist,
+        wantlistResult,
         errorMessage,
-        resetListResult,
+        resetResult,
       }}
     >
       {children}
@@ -90,6 +96,6 @@ export function ShopperProvider({ children }: { children: React.ReactNode }) {
 
 export function useShopperContext() {
   const context = useContext(ShopperContext)
-  if (!context) throw new Error("useShopperContext must be used within ShopperProvider")
+  if (!context) throw new Error("useShopperContext must be used within ShopperContext")
   return context
 }

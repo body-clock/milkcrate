@@ -14,10 +14,10 @@ vi.mock("../contexts/shopper_context", () => ({
     shopper: null,
     isConnected: false,
     state: "idle",
-    createListFromPile: vi.fn(),
-    listResult: null,
+    addToWantlist: vi.fn(),
+    wantlistResult: null,
     errorMessage: null,
-    resetListResult: vi.fn(),
+    resetResult: vi.fn(),
   }),
   ShopperProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }))
@@ -404,29 +404,29 @@ describe("PileSheet", () => {
     })
   })
 
-  describe("Send to Discogs button", () => {
-    it("shows Send to Discogs button when pile has records", async () => {
+  describe("Add to Discogs wantlist button", () => {
+    it("shows wantlist button when pile has records", async () => {
       renderPileSheet([makeListing()])
 
       await waitFor(() => {
-        const cartBtn = screen.getByText(/send to discogs/i)
-        expect(cartBtn).toBeInTheDocument()
-        expect(cartBtn).not.toBeDisabled()
+        const btn = screen.getByText(/add to discogs wantlist/i)
+        expect(btn).toBeInTheDocument()
+        expect(btn).not.toBeDisabled()
       })
     })
 
-    it("shows Send to Discogs → Connect when shopper is not connected", async () => {
+    it("shows wantlist → Connect when shopper is not connected", async () => {
       renderPileSheet([makeListing()])
 
       await waitFor(() => {
-        expect(screen.getByText(/send to discogs.*connect/i)).toBeInTheDocument()
+        expect(screen.getByText(/add to discogs wantlist.*connect/i)).toBeInTheDocument()
       })
     })
 
-    it("does not show Send to Discogs button when pile is empty", () => {
+    it("does not show wantlist button when pile is empty", () => {
       renderPileSheet([])
 
-      expect(screen.queryByText(/send to discogs/i)).toBeNull()
+      expect(screen.queryByText(/add to discogs wantlist/i)).toBeNull()
     })
   })
 })

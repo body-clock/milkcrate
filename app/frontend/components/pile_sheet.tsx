@@ -5,7 +5,6 @@ import { useShopperContext } from "../contexts/shopper_context"
 import { useViewport } from "@/hooks/use_viewport"
 import { springDrawer } from "@/lib/motion_tokens"
 import { formatPriceValue } from "@/lib/format_price"
-import { usePage } from "@inertiajs/react"
 
 interface Props {
   open: boolean
@@ -14,13 +13,11 @@ interface Props {
 
 export default function PileSheet({ open, onClose }: Props) {
   const { pile, removeFromPile, clearPile } = usePileContext()
-  const { isConnected, state: shopperState, createListFromPile, listResult, errorMessage, resetListResult } = useShopperContext()
+  const { isConnected, state: shopperState, addToWantlist, wantlistResult, errorMessage, resetResult } = useShopperContext()
   const { isCompact } = useViewport()
   const [confirmClear, setConfirmClear] = React.useState(false)
   const dialogRef = React.useRef<HTMLDivElement>(null)
   const previousFocusRef = React.useRef<HTMLElement | null>(null)
-  const page = usePage<{ store?: { discogs_username?: string } }>()
-  const storeSlug = page.props.store?.discogs_username
 
   const total = pile.reduce((sum, l) => sum + (parseFloat(l.price) || 0), 0)
 
@@ -33,7 +30,7 @@ export default function PileSheet({ open, onClose }: Props) {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setConfirmClear(false)
-        resetListResult()
+        resetResult()
         onClose()
       }
     }
@@ -44,11 +41,9 @@ export default function PileSheet({ open, onClose }: Props) {
       document.removeEventListener("keydown", handleKeyDown)
       previousFocusRef.current?.focus?.()
     }
-  }, [open, onClose, resetListResult])
+  }, [open, onClose, resetResult])
 
-  const handleSendToDiscogs = async () => {
-    if (!storeSlug) return
-
+  const handleAddToWantlist = async () => {
     if (!isConnected) {
       // Redirect to OAuth via form POST
       const form = document.createElement("form")
@@ -62,18 +57,13 @@ export default function PileSheet({ open, onClose }: Props) {
         tokenInput.value = csrfToken
         form.appendChild(tokenInput)
       }
-      const slugInput = document.createElement("input")
-      slugInput.type = "hidden"
-      slugInput.name = "store_slug"
-      slugInput.value = storeSlug
-      form.appendChild(slugInput)
       document.body.appendChild(form)
       form.submit()
       return
     }
 
     const items = pile.map((l) => ({ discogs_listing_id: l.discogs_listing_id }))
-    await createListFromPile(storeSlug, items)
+    await addToWantlist(items)
   }
 
   return (
@@ -205,25 +195,25 @@ export default function PileSheet({ open, onClose }: Props) {
             {/* Footer */}
             {pile.length > 0 && (
               <div className="flex-shrink-0 px-4 py-4 border-t border-mc-border flex flex-col gap-3">
-                {shopperState === "success" && listResult ? (
+                {shopperState === "success" && wantlistResult ? (
                   <div className="flex flex-col gap-2">
                     <p className="text-xs text-emerald-500 font-medium">
-                      ✓ Added {listResult.added} of {listResult.added + listResult.skipped} items to your Discogs list
-                      {listResult.skipped > 0 && (
-                        <span className="text-mc-text-dim"> ({listResult.skipped} skipped — missing release data)</span>
+                      ✓ Added {wantlistResult.added} of {wantlistResult.added + wantlistResult.skipped} items to your Discogs wantlist
+                      {wantlistResult.skipped > 0 && (
+                        <span className="text-mc-text-dim"> ({wantlistResult.skipped} skipped — missing release data)</span>
                       )}
                     </p>
                     <div className="flex gap-2">
                       <a
-                        href={listResult.list_url}
+                        href={wantlistResult.wantlist_url}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex-1 mc-btn mc-btn-primary py-2.5 text-sm text-center"
                       >
-                        View list on Discogs ↗
+                        View wantlist on Discogs ↗
                       </a>
                       <button
-                        onClick={resetListResult}
+                        onClick={resetResult}
                         className="mc-btn py-2.5 text-sm"
                       >
                         Close
@@ -234,7 +224,7 @@ export default function PileSheet({ open, onClose }: Props) {
                   <div className="flex flex-col gap-2">
                     <p className="text-xs text-red-400">{errorMessage}</p>
                     <button
-                      onClick={handleSendToDiscogs}
+                      onClick={handleAddToWantlist}
                       className="w-full mc-btn py-2.5 text-sm"
                     >
                       Try again
@@ -247,15 +237,15 @@ export default function PileSheet({ open, onClose }: Props) {
                       <span className="text-sm font-semibold">{formatPriceValue(total.toFixed(2), pile[0]?.currency)}</span>
                     </div>
                     <button
-                      onClick={handleSendToDiscogs}
+                      onClick={handleAddToWantlist}
                       disabled={shopperState === "creating"}
                       className="w-full mc-btn mc-btn-primary py-2.5 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       {shopperState === "creating"
-                        ? "Creating list…"
+                        ? "Adding to wantlist…"
                         : isConnected
-                          ? "Send to Discogs"
-                          : "Send to Discogs → Connect"}
+                          ? "Add to Discogs wantlist"
+                          : "Add to Discogs wantlist → Connect"}
                     </button>
                   </>
                 )}
