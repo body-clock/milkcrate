@@ -1,4 +1,5 @@
-import React, { useRef, useState } from "react"
+import React, { useRef, useState, useEffect } from "react"
+import { router } from "@inertiajs/react"
 import type { AdminApplicantSummary, AdminDashboardProps, AdminHealthSeverity, AdminStoreSummary } from "@/types/inertia"
 import Badge from "@/components/ui/badge"
 import Button from "@/components/ui/button"
@@ -61,6 +62,18 @@ export default function Dashboard({ active_stores, applicants, discogs_onboardin
   const healthyCount = active_stores.filter((store) => store.health.key === "healthy").length
   const attentionCount = active_stores.filter((store) => ["failed", "stale", "partial"].includes(store.health.key)).length
   const processingCount = active_stores.filter((store) => store.health.key === "processing").length
+
+  // Poll for live progress updates while any store has active jobs
+  const hasActiveJobs = active_stores.some(
+    (s) => s.sync_status === "syncing" || s.enrichment_status === "enriching"
+  )
+  useEffect(() => {
+    if (!hasActiveJobs) return
+    const interval = setInterval(() => {
+      router.reload({ only: ["active_stores"], preserveState: true, preserveScroll: true })
+    }, 3000)
+    return () => clearInterval(interval)
+  }, [hasActiveJobs])
 
   return (
     <main className="min-h-screen bg-mc-bg px-4 py-6 text-mc-text sm:px-6 lg:px-8">
