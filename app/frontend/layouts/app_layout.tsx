@@ -16,7 +16,6 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
   const alertMsg = page.props.alert
   const storeName = page.props.store?.name
   const discogsUsername = page.props.store?.discogs_username
-  const csrfToken = document.querySelector<HTMLMetaElement>("meta[name='csrf-token']")?.content
   const { theme, toggle } = useTheme()
   const { isCompact } = useViewport()
   const { pile } = usePileContext()
