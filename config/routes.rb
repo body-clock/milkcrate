@@ -33,6 +33,10 @@ Rails.application.routes.draw do
     constraints: { slug: DiscogsSellerLookup::ROUTE_USERNAME_REGEX },
     format: false
 
+  # Shopper OAuth — initiates the Discogs OAuth flow for a buyer
+  post "/auth/discogs/shopper/authorize", to: "shopper_auth#authorize", as: :shopper_discogs_authorize
+
+  # Shared OAuth callback — handles both store-owner and shopper flows via session keys
   get "/auth/discogs/callback", to: "auth#callback", as: :discogs_oauth_callback
 
   get "/:slug",
