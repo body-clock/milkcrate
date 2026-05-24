@@ -24,7 +24,7 @@ Rails.application.configure do
   # Store uploaded files on the local file system (see config/storage.yml for options).
 
   # Assume all access to the app is happening through a SSL-terminating reverse proxy.
-  # config.assume_ssl = true
+  config.assume_ssl = true
 
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
   # config.force_ssl = true

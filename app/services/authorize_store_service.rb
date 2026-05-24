@@ -16,7 +16,7 @@ class AuthorizeStoreService
     inventory = client.seller_inventory(@slug, page: 1)
     total_listings = inventory.dig("pagination", "items") || 0
 
-    if total_listings < MINIMUM_LISTINGS && !Rails.env.development?
+    if enforce_minimum_listings?(total_listings)
       return error_result("We couldn't find enough inventory for this Discogs account. Milkcrate requires at least #{MINIMUM_LISTINGS} vinyl records to create a storefront.")
     end
 
@@ -36,6 +36,13 @@ class AuthorizeStoreService
   end
 
   private
+
+  def enforce_minimum_listings?(total_listings)
+    return false if Rails.env.development?
+    return false if Settings.discogs.minimum_listing_exemptions.include?(@slug)
+
+    total_listings < MINIMUM_LISTINGS
+  end
 
   def error_result(message)
     Result.new(authorize_url: nil, request_token: nil, request_token_secret: nil, error: message)
