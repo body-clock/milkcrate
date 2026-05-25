@@ -413,11 +413,11 @@ describe("PileSheet", () => {
       })
     })
 
-    it("shows disclosure text about Wantlist being permanent", async () => {
+    it("shows disclosure text about the store-scoped handoff", async () => {
       renderPileSheet([makeListing()])
 
       await waitFor(() => {
-        expect(screen.getByText(/Wantlist entries are permanent/)).toBeInTheDocument()
+        expect(screen.getByText(/Get these records from/)).toBeInTheDocument()
       })
     })
 

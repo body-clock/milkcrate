@@ -322,6 +322,7 @@ export default function PileSheet({ open, onClose }: Props) {
                       Connect with Discogs to send these releases to your Wantlist and shop from {store?.name ?? "this store"}.
                     </p>
                     <form method="POST" action="/auth/discogs/shopper/authorize">
+                      <input type="hidden" name="authenticity_token" value={document.querySelector<HTMLMetaElement>("meta[name='csrf-token']")?.content ?? ""} />
                       <input type="hidden" name="store_slug" value={storeSlug ?? ""} />
                       <button
                         type="submit"
