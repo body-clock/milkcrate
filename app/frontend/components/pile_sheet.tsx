@@ -6,8 +6,8 @@ import { springDrawer } from "@/lib/motion_tokens"
 import { formatPriceValue } from "@/lib/format_price"
 
 const DISCOGS_CART_BASE = "https://www.discogs.com/sell/cart"
-const ADD_INTERVAL_MS = 800
-const SETTLE_DELAY_MS = 2000
+const ADD_INTERVAL_MS = 1500
+const SETTLE_DELAY_MS = 3000
 
 type CartState = "idle" | "adding" | "done"
 
@@ -58,8 +58,8 @@ export default function PileSheet({ open, onClose }: Props) {
 
     setCartState("adding")
 
-    // Open blank popup first — avoids triggering Discogs app intercept on open
-    const popup = window.open("about:blank", "discogs-cart", "width=1,height=1,left=-1000,top=-1000")
+    // Open the cart page first — that's where we want to end up
+    const popup = window.open(DISCOGS_CART_BASE, "discogs-cart", "width=1,height=1,left=-1000,top=-1000")
 
     if (!popup) {
       window.open(DISCOGS_CART_BASE, "_blank")
@@ -67,20 +67,24 @@ export default function PileSheet({ open, onClose }: Props) {
       return
     }
 
-    // Navigate through each add URL — discogs app won't intercept JS-driven navigations
-    let i = 0
-    const interval = setInterval(() => {
-      if (i >= ids.length || popup.closed) {
-        clearInterval(interval)
-        setTimeout(() => {
-          if (!popup.closed) popup.close()
-          setCartState("done")
-        }, SETTLE_DELAY_MS)
-        return
-      }
-      popup.location.href = `${DISCOGS_CART_BASE}/?add=${ids[i]}`
-      i++
-    }, ADD_INTERVAL_MS)
+    // Wait for cart page to settle, then cycle through each add
+    // Adds navigate within the popup while it's already on Discogs,
+    // so the app doesn't re-intercept
+    setTimeout(() => {
+      let i = 0
+      const interval = setInterval(() => {
+        if (i >= ids.length || popup.closed) {
+          clearInterval(interval)
+          setTimeout(() => {
+            if (!popup.closed) popup.close()
+            setCartState("done")
+          }, SETTLE_DELAY_MS)
+          return
+        }
+        popup.location.href = `${DISCOGS_CART_BASE}/?add=${ids[i]}`
+        i++
+      }, ADD_INTERVAL_MS)
+    }, 1500)
   }
 
   const handleOpenCart = () => {
