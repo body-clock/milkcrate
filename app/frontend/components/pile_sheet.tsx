@@ -12,8 +12,6 @@ interface PageProps {
   store?: Store
 }
 
-type HandoffState = "idle" | "creating" | "success" | "error"
-
 interface Props {
   open: boolean
   onClose: () => void
@@ -23,7 +21,6 @@ export default function PileSheet({ open, onClose }: Props) {
   const { pile, removeFromPile, clearPile } = usePileContext()
   const { isCompact } = useViewport()
   const [confirmClear, setConfirmClear] = React.useState(false)
-  const [handoffState, setHandoffState] = React.useState<HandoffState>("idle")
   const dialogRef = React.useRef<HTMLDivElement>(null)
   const previousFocusRef = React.useRef<HTMLElement | null>(null)
 
@@ -35,6 +32,7 @@ export default function PileSheet({ open, onClose }: Props) {
   const {
     shopper,
     isConnected,
+    state,
     addToWantlist,
     wantlistResult,
     errorMessage,
@@ -64,32 +62,26 @@ export default function PileSheet({ open, onClose }: Props) {
     }
   }, [open, onClose])
 
-  // Reset handoff state when pile changes or sheet closes
+  // Reset context state when sheet closes
   React.useEffect(() => {
-    if (!open || pile.length === 0) {
-      setHandoffState("idle")
+    if (!open) {
       resetResult()
     }
-  }, [open, pile.length, resetResult])
+  }, [open, resetResult])
 
   const handleSendToWantlist = async () => {
     if (!isConnected || !storeSlug) return
 
-    setHandoffState("creating")
-    resetResult()
-
     const items = pile.map((l) => ({ discogs_listing_id: l.discogs_listing_id }))
-    const result = await addToWantlist(items, storeSlug)
-
-    if (result) {
-      setHandoffState("success")
-    } else {
-      setHandoffState("error")
-    }
+    await addToWantlist(items, storeSlug)
   }
 
-  // Determine whether to show the handoff action
-  const showWantlistAction = handoffAvailable && isConnected && handoffState !== "creating"
+  const isInProgress = state === "creating"
+  const showResult = state === "success" && wantlistResult
+  const showError = state === "error"
+  const showHandoffAction = handoffAvailable && isConnected && state === "idle"
+  const showDisconnectedCta = handoffAvailable && !isConnected && state === "idle"
+  const showTotal = state === "idle"
 
   return (
     <AnimatePresence>
@@ -128,7 +120,6 @@ export default function PileSheet({ open, onClose }: Props) {
             )}
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-mc-border flex-shrink-0">
-
               <div className="flex items-center gap-3">
                 <span id="pile-sheet-title" className="text-sm font-semibold">
                   Your pile {pile.length > 0 && <span className="text-mc-text-dim font-normal">· {pile.length} records</span>}
@@ -221,63 +212,47 @@ export default function PileSheet({ open, onClose }: Props) {
             {pile.length > 0 && (
               <div className="flex-shrink-0 px-4 py-4 border-t border-mc-border flex flex-col gap-3">
                 {/* Handoff result states */}
-                {handoffState === "success" && wantlistResult && (
+                {showResult && (
                   <div className="flex flex-col gap-2">
-                    {wantlistResult.added > 0 ? (
-                      <>
-                        <p className="text-xs text-emerald-500 font-medium">
-                          {wantlistResult.skipped > 0
-                            ? `${wantlistResult.added} of ${wantlistResult.added + wantlistResult.skipped} releases added to your Wantlist`
-                            : `${wantlistResult.added} release${wantlistResult.added === 1 ? "" : "s"} added to your Wantlist`}
-                        </p>
-                        <p className="text-[11px] text-mc-text-dim">
-                          {wantlistResult.wantlist_url ? (
-                            <>Ready to shop from {store?.name ?? "this store"} on Discogs.</>
-                          ) : (
-                            <>Added to your Wantlist. Shop from this store on Discogs by selecting their seller filter.</>
-                          )}
-                        </p>
-                        {wantlistResult.wantlist_url ? (
-                          <a
-                            href={wantlistResult.wantlist_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-full mc-btn mc-btn-primary py-2.5 text-sm text-center"
-                          >
-                            Shop My Wants ↗
-                          </a>
-                        ) : (
-                          <button
-                            onClick={() => { setHandoffState("idle"); resetResult() }}
-                            className="w-full mc-btn py-2.5 text-sm"
-                          >
-                            Keep browsing
-                          </button>
-                        )}
-                      </>
+                    <p className="text-xs text-emerald-500 font-medium">
+                      {wantlistResult.skipped > 0
+                        ? `${wantlistResult.added} of ${wantlistResult.added + wantlistResult.skipped} releases added to your Wantlist`
+                        : `${wantlistResult.added} release${wantlistResult.added === 1 ? "" : "s"} added to your Wantlist`}
+                    </p>
+                    <p className="text-[11px] text-mc-text-dim">
+                      {wantlistResult.wantlist_url ? (
+                        <>Ready to shop from {store?.name ?? "this store"} on Discogs.</>
+                      ) : (
+                        <>Added to your Wantlist. Shop from this store on Discogs by selecting their seller filter.</>
+                      )}
+                    </p>
+                    {wantlistResult.wantlist_url ? (
+                      <a
+                        href={wantlistResult.wantlist_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full mc-btn mc-btn-primary py-2.5 text-sm text-center"
+                      >
+                        Shop My Wants ↗
+                      </a>
                     ) : (
-                      <>
-                        <p className="text-xs text-amber-500 font-medium">
-                          No releases could be added to your Wantlist.
-                        </p>
-                        <button
-                          onClick={() => { setHandoffState("idle"); resetResult() }}
-                          className="w-full mc-btn py-2.5 text-sm"
-                        >
-                          Try again
-                        </button>
-                      </>
+                      <button
+                        onClick={() => resetResult()}
+                        className="w-full mc-btn py-2.5 text-sm"
+                      >
+                        Keep browsing
+                      </button>
                     )}
                   </div>
                 )}
 
-                {handoffState === "error" && (
+                {showError && (
                   <div className="flex flex-col gap-2">
                     <p className="text-xs text-red-500 font-medium">
                       {errorMessage || "Something went wrong."}
                     </p>
                     <button
-                      onClick={() => { setHandoffState("idle"); resetResult() }}
+                      onClick={() => resetResult()}
                       className="w-full mc-btn py-2.5 text-sm"
                     >
                       Try again
@@ -285,23 +260,8 @@ export default function PileSheet({ open, onClose }: Props) {
                   </div>
                 )}
 
-                {/* Wantlist handoff action (only when not showing results) */}
-                {showWantlistAction && handoffState === "idle" && (
-                  <div className="flex flex-col gap-2">
-                    <p className="text-[11px] text-mc-text-dim leading-relaxed">
-                      Get these records from {store?.name ?? "this store"} on Discogs.
-                    </p>
-                    <button
-                      onClick={handleSendToWantlist}
-                      className="w-full mc-btn mc-btn-primary py-2.5 text-sm"
-                    >
-                      Send to Discogs Wantlist
-                    </button>
-                  </div>
-                )}
-
                 {/* In-progress state */}
-                {handoffState === "creating" && (
+                {isInProgress && (
                   <div className="flex flex-col gap-2">
                     <button
                       disabled
@@ -315,8 +275,23 @@ export default function PileSheet({ open, onClose }: Props) {
                   </div>
                 )}
 
+                {/* Wantlist handoff action (only when not showing results) */}
+                {showHandoffAction && (
+                  <div className="flex flex-col gap-2">
+                    <p className="text-[11px] text-mc-text-dim leading-relaxed">
+                      Get these records from {store?.name ?? "this store"} on Discogs.
+                    </p>
+                    <button
+                      onClick={handleSendToWantlist}
+                      className="w-full mc-btn mc-btn-primary py-2.5 text-sm"
+                    >
+                      Send to Discogs Wantlist
+                    </button>
+                  </div>
+                )}
+
                 {/* Disconnected state — show connect CTA when handoff is available */}
-                {handoffAvailable && !isConnected && handoffState === "idle" && (
+                {showDisconnectedCta && (
                   <div className="flex flex-col gap-2">
                     <p className="text-[11px] text-mc-text-dim leading-relaxed">
                       Connect with Discogs to send these releases to your Wantlist and shop from {store?.name ?? "this store"}.
@@ -335,7 +310,7 @@ export default function PileSheet({ open, onClose }: Props) {
                 )}
 
                 {/* Total + exact listing links (always shown when idle) */}
-                {handoffState === "idle" && (
+                {showTotal && (
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-mc-text-dim uppercase tracking-wider">Total</span>
                     <span className="text-sm font-semibold">{formatPriceValue(total.toFixed(2), pile[0]?.currency)}</span>

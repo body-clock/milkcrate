@@ -3,10 +3,6 @@
 # Requires store context so listing resolution is scoped server-side.
 class PileController < ApplicationController
   def add_to_wantlist
-    unless seller_wantlist_handoff_enabled?
-      return render json: { error: "This feature is not yet available." }, status: :forbidden
-    end
-
     shopper = DiscogsShopper.find_by(id: session[:shopper_id])
     return render json: { error: "Not authenticated with Discogs. Please connect your account." }, status: :unauthorized unless shopper
 
@@ -16,7 +12,7 @@ class PileController < ApplicationController
     store = Store.with_discogs_username(store_slug).first
     return render json: { error: "Store not found." }, status: :not_found unless store
 
-    item_ids = params[:items]&.map { |i| i[:discogs_listing_id] } || []
+    item_ids = Array.wrap(params[:items]).filter_map { |i| i[:discogs_listing_id].to_s.presence }
 
     result = CreatePileWantlistService.new(
       shopper:,

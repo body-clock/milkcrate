@@ -32,9 +32,6 @@ class ShopperAuthCallbackService
     error_result("Authorization failed: #{e.message}")
   rescue ActiveRecord::RecordInvalid => e
     error_result("Could not save shopper credentials: #{e.message}")
-  rescue StandardError => e
-    Rails.logger.error("[ShopperAuthCallbackService] Unexpected error: #{e.class}: #{e.message}")
-    error_result("An unexpected error occurred: #{e.message}")
   end
 
   private

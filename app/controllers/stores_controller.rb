@@ -67,7 +67,7 @@ class StoresController < ApplicationController
       enrichment_status: store.enrichment_status,
       last_enriched_at: store.last_enriched_at,
       oauth_authorized: store.oauth_authorized?,
-      handoff_available: seller_wantlist_handoff_enabled? && store.discogs_user_id.present?
+      handoff_available: store.discogs_user_id.present?
     }
   end
 

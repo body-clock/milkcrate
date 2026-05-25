@@ -3,6 +3,10 @@ class AuthController < ApplicationController
   def callback
     oauth_verifier = params[:oauth_verifier]
 
+    if session[:oauth_request_token].present? && session[:shopper_oauth_request_token].present?
+      Rails.logger.warn("[AuthController] Both store-owner and shopper session keys present — routing as store-owner")
+    end
+
     if session[:oauth_request_token].present?
       handle_store_owner_callback(oauth_verifier)
     elsif session[:shopper_oauth_request_token].present?

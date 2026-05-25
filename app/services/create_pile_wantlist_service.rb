@@ -40,6 +40,7 @@ class CreatePileWantlistService
     failures = 0
 
     release_ids.each do |release_id|
+      sleep(1.2) if added_count > 0  # Pace requests to stay under Discogs 60 req/min quota
       client.add_want(username: @shopper.discogs_username, release_id:)
       added_count += 1
     rescue Discogs::Errors::RateLimitError
@@ -52,12 +53,11 @@ class CreatePileWantlistService
       failures += 1
     end
 
-    @shopper.touch_last_used!
-
     if added_count.zero?
       error_result("Could not add any releases to your Wantlist.")
     else
       wantlist_url = seller_wantlist_url
+      @shopper.touch_last_used!
       Result.new(
         wantlist_url:,
         added_count:,
@@ -66,7 +66,8 @@ class CreatePileWantlistService
       )
     end
   rescue Discogs::Errors::ApiError => e
-    error_result("Discogs API error: #{e.message}")
+    Rails.logger.warn "[CreatePileWantlistService] Discogs API error: #{e.message}"
+    error_result("Something went wrong while contacting Discogs. Please try again.")
   end
 
   private

@@ -32,8 +32,6 @@ export function ShopperProvider({ children }: { children: React.ReactNode }) {
   const [wantlistResult, setWantlistResult] = useState<WantlistResult | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
-  const csrfToken = document.querySelector<HTMLMetaElement>("meta[name='csrf-token']")?.content
-
   const addToWantlist = useCallback(
     async (items: { discogs_listing_id: string }[], storeSlug: string) => {
       if (!isConnected) return null
@@ -41,6 +39,8 @@ export function ShopperProvider({ children }: { children: React.ReactNode }) {
       setState("creating")
       setWantlistResult(null)
       setErrorMessage(null)
+
+      const csrfToken = document.querySelector<HTMLMetaElement>("meta[name='csrf-token']")?.content
 
       try {
         const response = await fetch("/pile/add_to_wantlist", {
@@ -68,7 +68,7 @@ export function ShopperProvider({ children }: { children: React.ReactNode }) {
         return null
       }
     },
-    [isConnected, csrfToken]
+    [isConnected]
   )
 
   const resetResult = useCallback(() => {
