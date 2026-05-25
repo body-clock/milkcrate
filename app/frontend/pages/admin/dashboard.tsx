@@ -70,7 +70,7 @@ export default function Dashboard({ active_stores, applicants, discogs_onboardin
   useEffect(() => {
     if (!hasActiveJobs) return
     const interval = setInterval(() => {
-      router.reload({ only: ["active_stores"], preserveState: true, preserveScroll: true })
+      router.reload({ only: ["active_stores"] })
     }, 3000)
     return () => clearInterval(interval)
   }, [hasActiveJobs])

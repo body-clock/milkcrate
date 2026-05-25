@@ -1,4 +1,3 @@
-import React from "react"
 import { useReducedMotionContext } from "@/components/storefront_motion_config"
 import type { Listing } from "../types/inertia"
 
