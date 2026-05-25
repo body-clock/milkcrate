@@ -34,10 +34,26 @@ export function AppLayoutContent({ children, compactLocation }: AppLayoutProps) 
   const { pile } = usePileContext()
   const { shopper } = useShopperContext()
   const [pileOpen, setPileOpen] = useState(false)
+  const handleClosePile = React.useCallback(() => setPileOpen(false), [])
   const compactCrateLocation = isCompact ? compactLocation : undefined
+  const storefrontBackgroundRef = React.useRef<HTMLDivElement>(null)
+  const contextFocusRef = React.useRef<HTMLElement>(null)
+
+  React.useEffect(() => {
+    const background = storefrontBackgroundRef.current
+    if (!background) return
+
+    if (pileOpen) {
+      background.setAttribute("inert", "")
+    } else {
+      background.removeAttribute("inert")
+    }
+
+    return () => background.removeAttribute("inert")
+  }, [pileOpen])
 
   const header = (
-    <header className="mc-header flex items-center justify-between px-4 py-2 sm:py-3 border-b mc-border sticky top-0 z-30 bg-mc-bg-raised/95 backdrop-blur-sm">
+    <header ref={contextFocusRef} tabIndex={-1} className="mc-header flex items-center justify-between px-4 py-2 sm:py-3 border-b mc-border sticky top-0 z-30 bg-mc-bg-raised/95 backdrop-blur-sm">
       <div className="flex min-w-0 items-center leading-none">
         {compactCrateLocation ? (
           <>
@@ -132,16 +148,18 @@ export function AppLayoutContent({ children, compactLocation }: AppLayoutProps) 
 
   return (
     <>
-      <MilkcrateShell
-        header={header}
-        afterHeader={afterHeader}
-        footer={footer}
-        contentWidth="max-w-6xl"
-        contentPadding="px-4 sm:px-6 lg:px-8 py-4 sm:py-8"
-      >
-        {children}
-      </MilkcrateShell>
-      <PileSheet open={pileOpen} onClose={() => setPileOpen(false)} />
+      <div ref={storefrontBackgroundRef} data-testid="storefront-background">
+        <MilkcrateShell
+          header={header}
+          afterHeader={afterHeader}
+          footer={footer}
+          contentWidth="max-w-6xl"
+          contentPadding="px-4 sm:px-6 lg:px-8 py-4 sm:py-8"
+        >
+          {children}
+        </MilkcrateShell>
+      </div>
+      <PileSheet open={pileOpen} onClose={handleClosePile} returnFocusRef={contextFocusRef} />
     </>
   )
 }

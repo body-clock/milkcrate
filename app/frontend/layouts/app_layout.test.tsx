@@ -1,6 +1,7 @@
 import React from "react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { render, screen, within } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import AppLayout from "./app_layout"
 import type { Listing } from "@/types/inertia"
 
@@ -101,5 +102,37 @@ describe("AppLayout storefront chrome", () => {
     const header = screen.getByRole("banner")
     const trigger = within(header).getByRole("button", { name: "Pile (1)" })
     expect(trigger).toHaveClass("min-h-11")
+  })
+
+  it("makes browsing chrome and content inert while the pile modal is open", async () => {
+    const user = userEvent.setup()
+    renderLayout(390, [listing])
+
+    await user.click(screen.getByRole("button", { name: "Pile (1)" }))
+
+    expect(screen.getByTestId("storefront-background")).toHaveAttribute("inert")
+    expect(screen.getByRole("dialog")).toHaveAttribute("aria-modal", "true")
+  })
+
+  it("focuses contextual storefront chrome after the final record removes its trigger", async () => {
+    const user = userEvent.setup()
+    renderLayout(390, [listing])
+
+    await user.click(screen.getByRole("button", { name: "Pile (1)" }))
+    await user.click(screen.getByRole("button", { name: "Remove Title from pile" }))
+    await user.click(screen.getByRole("button", { name: "Close pile" }))
+
+    expect(screen.getByRole("banner")).toHaveFocus()
+  })
+
+  it("returns focus to the pile trigger when records remain", async () => {
+    const user = userEvent.setup()
+    renderLayout(390, [listing])
+
+    const trigger = screen.getByRole("button", { name: "Pile (1)" })
+    await user.click(trigger)
+    await user.click(screen.getByRole("button", { name: "Close pile" }))
+
+    expect(trigger).toHaveFocus()
   })
 })
