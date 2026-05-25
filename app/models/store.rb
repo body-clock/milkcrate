@@ -8,6 +8,7 @@ class Store < ApplicationRecord
 
   validates :name, presence: true
   validates :discogs_username, presence: true, uniqueness: true
+  validates :discogs_user_id, uniqueness: true, allow_nil: true
 
   scope :with_discogs_username, ->(username) { where(discogs_username: username.downcase) }
 

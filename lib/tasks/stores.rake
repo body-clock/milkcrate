@@ -169,6 +169,24 @@ namespace :stores do
     puts "  … (#{genres.size} genres total)" if genres.size > 15
   end
 
+  # ── Discogs Identity ─────────────────────────────────────
+
+  desc "Refresh a store's stored Discogs profile ID — stores:discogs_identity[username]"
+  task :discogs_identity, [ :username ] => :environment do |_, args|
+    store = find_store(args[:username])
+
+    puts "Refreshing Discogs identity for #{store.name} (@#{store.discogs_username})..."
+
+    result = StoreDiscogsIdentityRefresh.call(store:)
+
+    if result.success?
+      puts "Updated discogs_user_id: #{store.reload.discogs_user_id}"
+    else
+      puts "Failed: #{result.error}"
+      exit 1
+    end
+  end
+
   # ── Onboarding ───────────────────────────────────────────────
 
   desc "Onboard a new store: create Store, kick off full sync — stores:add[username]"
