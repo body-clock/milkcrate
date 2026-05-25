@@ -1,7 +1,7 @@
 ---
 title: "feat: Add seller-scoped Discogs Wantlist handoff"
 type: feat
-status: active
+status: completed
 date: 2026-05-24
 origin: docs/ideation/2026-05-24-discogs-checkout-handoff-strategy-ideation.md
 historical_origin: docs/brainstorms/2026-05-24-shopper-discogs-oauth-lists-requirements.md

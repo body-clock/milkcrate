@@ -464,6 +464,25 @@ These are questions to answer before selecting a requirements/design path:
 | 7 | Browser extension or bookmarklet running on Discogs pages | Installation cost is too high for storefront conversion and it still depends on unofficial cart behavior. |
 | 8 | Claim order conversion from outbound clicks alone | Outbound intent is useful, but it is not a completed order and would undermine store trust if reported as sales. |
 
+## Validation Results (2026-05-24)
+
+All activation gates passed for the seller-scoped Wantlist handoff:
+
+| Check | Result |
+|---|---|
+| API profile ID matches seller facet URL | ✅ Pass — `philadelphiamusic` ID `420847` matches `?seller=420847` |
+| Desktop seller scope survives | ✅ Pass — Shop My Wants loads with seller filter |
+| Mobile browser (no app) | ✅ Pass — URL loads with seller scope |
+| Mobile browser (with Discogs app) | ✅ Pass — URL stays in browser, seller scope preserved |
+| Written commercial permission | ✅ Pass — confirmed by operator |
+
+**Activation posture:** Repository default remains disabled
+(`config/settings.yml`). Enable in production via
+`SELLER_WANTLIST_HANDOFF_ENABLED=true` environment variable. Store
+identities populated via `bin/rails stores:discogs_identity[username]`.
+
+---
+
 ## Next Branch Point
 
 The next brainstorm should choose between:
