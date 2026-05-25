@@ -34,5 +34,4 @@ class PileController < ApplicationController
       render json: { error: result.error }, status: :unprocessable_entity
     end
   end
-
 end

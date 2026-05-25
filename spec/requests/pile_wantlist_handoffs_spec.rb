@@ -32,7 +32,7 @@ RSpec.describe "Pile Wantlist handoffs", type: :request do
         end
 
         it "returns a successful handoff result" do
-          post "/pile/add_to_wantlist", params: { store_slug: "teststore", items: [{ discogs_listing_id: "111" }] }, as: :json
+          post "/pile/add_to_wantlist", params: { store_slug: "teststore", items: [ { discogs_listing_id: "111" } ] }, as: :json
 
           expect(response).to have_http_status(:ok)
           body = response.parsed_body
