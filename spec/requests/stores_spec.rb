@@ -48,6 +48,12 @@ RSpec.describe "Stores", type: :request do
 
         expect(inertia.props[:store].keys).not_to include("discogs_oauth_token", "discogs_oauth_token_secret")
       end
+
+      it "exposes handoff_available in store props" do
+        get "/teststore"
+
+        expect(inertia.props[:store].keys).to include("handoff_available")
+      end
     end
 
     context "with unknown slug" do

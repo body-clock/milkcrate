@@ -8,10 +8,12 @@ import { ViewportProvider } from "@/contexts/viewport_context"
 import { useViewport } from "@/hooks/use_viewport"
 import BrandMark from "@/components/brand_mark"
 import MilkcrateShell from "@/layouts/milkcrate_shell"
+import { ShopperProvider } from "@/contexts/shopper_context"
+import DiscogsAuthIcon from "@/components/discogs_auth_icon"
 import type { Store } from "@/types/inertia"
 
 function AppLayoutInner({ children }: { children: React.ReactNode }) {
-  const page = usePage<{ notice?: string; alert?: string; store?: Pick<Store, "name" | "discogs_username"> }>()
+  const page = usePage<{ notice?: string; alert?: string; store?: Pick<Store, "name" | "discogs_username">; shopper?: { discogs_username: string } | null }>()
   const notice = page.props.notice
   const alertMsg = page.props.alert
   const storeName = page.props.store?.name
@@ -52,17 +54,7 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
       </div>
       <div className="flex items-center gap-2.5 sm:gap-3 flex-shrink-0">
 
-        {discogsUsername && (
-          <a
-            href={`https://www.discogs.com/seller/${discogsUsername}/profile`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs text-mc-text-dim hover:text-mc-text transition-colors select-none rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
-            aria-label="View store on Discogs"
-          >
-            {isCompact ? "Store ↗" : "Discogs ↗"}
-          </a>
-        )}
+        <DiscogsAuthIcon />
         {pile.length > 0 && (
           <button
             type="button"
@@ -124,7 +116,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <StorefrontMotionConfig>
       <ViewportProvider>
         <PileProvider>
-          <AppLayoutInner>{children}</AppLayoutInner>
+          <ShopperProvider>
+            <AppLayoutInner>{children}</AppLayoutInner>
+          </ShopperProvider>
         </PileProvider>
       </ViewportProvider>
     </StorefrontMotionConfig>

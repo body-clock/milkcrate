@@ -230,6 +230,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_24_220452) do
     t.string "catalog_coverage", default: "unknown", null: false
     t.datetime "created_at", null: false
     t.text "description"
+    t.bigint "discogs_user_id"
     t.string "discogs_username"
     t.integer "enrichment_progress_pct"
     t.string "enrichment_status", default: "idle", null: false
@@ -245,6 +246,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_24_220452) do
     t.string "sync_status"
     t.integer "total_listings"
     t.datetime "updated_at", null: false
+    t.index ["discogs_user_id"], name: "index_stores_on_discogs_user_id", unique: true, where: "(discogs_user_id IS NOT NULL)"
     t.index ["discogs_username"], name: "index_stores_on_discogs_username", unique: true
     t.index ["store_owner_id"], name: "index_stores_on_store_owner_id"
   end

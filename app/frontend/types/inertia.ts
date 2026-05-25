@@ -9,6 +9,7 @@ export interface Store {
   enrichment_status: string
   last_enriched_at: string | null
   oauth_authorized?: boolean
+  handoff_available?: boolean
 }
 
 export interface Listing {

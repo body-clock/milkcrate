@@ -25,6 +25,8 @@ honeybadger:
 
 experiments:
   crate_size: 40
+
+features:
   # When true, these strategies are excluded from experiment crate generation.
   # The live storefront is unaffected.
   disable_desirability: false

@@ -1,10 +1,12 @@
 require "rails_helper"
 
 RSpec.describe StoreOnboarding do
-  def stub_discogs_profile(username, name:)
+  def stub_discogs_profile(username, name:, id: nil)
     client = instance_double(DiscogsClient)
     allow(DiscogsClient).to receive(:new).and_return(client)
-    allow(client).to receive(:seller_profile).with(username).and_return({ "name" => name })
+    profile = { "name" => name }
+    profile["id"] = id if id
+    allow(client).to receive(:seller_profile).with(username).and_return(profile)
   end
 
   it "creates a store with the Discogs profile name" do
@@ -23,6 +25,14 @@ RSpec.describe StoreOnboarding do
     result = described_class.call(discogs_username: "nameless")
 
     expect(result.store.name).to eq("nameless")
+  end
+
+  it "persists the Discogs profile ID when present" do
+    stub_discogs_profile("teststore", name: "Test Store", id: 4_616_786)
+
+    result = described_class.call(discogs_username: "teststore")
+
+    expect(result.store.discogs_user_id).to eq(4_616_786)
   end
 
   it "queues a full store sync for the created store" do

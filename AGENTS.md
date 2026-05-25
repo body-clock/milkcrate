@@ -75,6 +75,24 @@ their running server for quick checks.
 - Colorized output (red=errors, yellow=warnings, green=success, accent=requests)
 - Close with `Escape`
 
-Use Context7 for all developer documentation.
+## Context7 (Accurate Documentation)
+
+Before implementing or proposing code that involves any library, framework, or API
+(Next.js, Rails, Tailwind, Stripe, shadcn/ui, etc.), query Context7 for current,
+version-specific documentation to avoid hallucinated APIs.
+
+**Workflow:**
+1. **Find the library:** `npx ctx7 library "<library-name>" "<what I'm trying to do>"`
+2. **Get docs:** `npx ctx7 docs <libraryId> "<specific question>"`
+3. Include relevant code snippets from the output in your response
+
+Libraries I commonly use in this project:
+- Rails / Ruby gems → `npx ctx7 library "<gem>" | jq -r '.[0]["context7-id"]'`
+- Next.js → `npx ctx7 docs /vercel/next.js "<question>"`
+- shadcn/ui → `npx ctx7 library "shadcn/ui" "<question>"`
+- Tailwind CSS → `npx ctx7 docs /tailwindlabs/tailwindcss "<question>"`
+
+**CRITICAL: Do not skip this step.** Hallucinated APIs waste time. Always
+validate with Context7 before writing code.
 
 When I ask a question or propose an implementation, ensure that you're not just confirming what I said. I want realy critial analysis of my proposition, not just automatically going in that direction because I proposed it.
