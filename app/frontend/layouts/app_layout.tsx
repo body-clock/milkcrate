@@ -36,21 +36,7 @@ export function AppLayoutContent({ children, compactLocation }: AppLayoutProps) 
   const [pileOpen, setPileOpen] = useState(false)
   const handleClosePile = React.useCallback(() => setPileOpen(false), [])
   const compactCrateLocation = isCompact ? compactLocation : undefined
-  const storefrontBackgroundRef = React.useRef<HTMLDivElement>(null)
   const contextFocusRef = React.useRef<HTMLElement>(null)
-
-  React.useEffect(() => {
-    const background = storefrontBackgroundRef.current
-    if (!background) return
-
-    if (pileOpen) {
-      background.setAttribute("inert", "")
-    } else {
-      background.removeAttribute("inert")
-    }
-
-    return () => background.removeAttribute("inert")
-  }, [pileOpen])
 
   const header = (
     <header ref={contextFocusRef} tabIndex={-1} className="mc-header flex items-center justify-between px-4 py-2 sm:py-3 border-b mc-border sticky top-0 z-30 bg-mc-bg-raised/95 backdrop-blur-sm">
@@ -148,7 +134,7 @@ export function AppLayoutContent({ children, compactLocation }: AppLayoutProps) 
 
   return (
     <>
-      <div ref={storefrontBackgroundRef} data-testid="storefront-background">
+      <div inert={pileOpen} data-testid="storefront-background">
         <MilkcrateShell
           header={header}
           afterHeader={afterHeader}

@@ -133,6 +133,8 @@ describe("AppLayout storefront chrome", () => {
     await user.click(trigger)
     await user.click(screen.getByRole("button", { name: "Close pile" }))
 
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+    expect(screen.getByTestId("storefront-background")).not.toHaveAttribute("inert")
     expect(trigger).toHaveFocus()
   })
 })

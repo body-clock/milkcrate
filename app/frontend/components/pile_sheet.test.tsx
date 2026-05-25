@@ -254,6 +254,17 @@ describe("PileSheet", () => {
         expect(screen.getByText(/no records in your pile yet/i)).toBeInTheDocument()
       })
     })
+
+    it("keeps focus inside the modal after removing the focused final record", async () => {
+      const user = userEvent.setup()
+      renderPileSheet([makeListing({ title: "Last Record" })])
+
+      await user.click(await screen.findByRole("button", { name: "Remove Last Record from pile" }))
+
+      const dialog = screen.getByRole("dialog")
+      await waitFor(() => expect(dialog).toContainElement(document.activeElement as HTMLElement))
+      expect(document.getElementById("pile-sheet-title")).toHaveFocus()
+    })
   })
 
   describe("total calculation", () => {
