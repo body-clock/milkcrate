@@ -52,12 +52,26 @@ class DiscogsSellerLookup
 
   def lookup_discogs
     profile = client.seller_profile(normalized_username)
+    slug = normalized_username
 
     {
       found: true,
       seller_name: profile["name"] || profile["username"],
-      avatar_url: profile["avatar_url"]
+      avatar_url: profile["avatar_url"],
+      slug: slug,
+      store_status: local_store_status(slug),
+      store_storefront_path: (store_path(slug) if Store.with_discogs_username(slug).exists?)
     }
+  end
+
+  def local_store_status(slug)
+    return "active_store" if Store.with_discogs_username(slug).exists?
+    return "active_applicant" if Waitlist.with_discogs_username(slug).exists?
+    "none"
+  end
+
+  def store_path(slug)
+    "/#{slug}"
   end
 
   def cache_key

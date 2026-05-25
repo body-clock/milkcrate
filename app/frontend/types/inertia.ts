@@ -133,6 +133,24 @@ export interface DashboardProps {
   store: DashboardStore
 }
 
+export type DiscogsLookupStoreStatus = "none" | "active_store" | "active_applicant"
+
+export interface DiscogsLookupSuccess {
+  found: true
+  seller_name: string
+  avatar_url: string
+  slug: string
+  store_status: DiscogsLookupStoreStatus
+  store_storefront_path?: string
+}
+
+export interface DiscogsLookupFailure {
+  found: false
+  reason: "invalid_slug" | "api_error"
+}
+
+export type DiscogsLookupResult = DiscogsLookupSuccess | DiscogsLookupFailure
+
 export interface AdminDashboardProps {
   active_stores: AdminStoreSummary[]
   applicants: AdminApplicantSummary[]
