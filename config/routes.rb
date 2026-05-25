@@ -36,6 +36,9 @@ Rails.application.routes.draw do
   # Shopper OAuth — initiates the Discogs OAuth flow for a buyer
   post "/auth/discogs/shopper/authorize", to: "shopper_auth#authorize", as: :shopper_discogs_authorize
 
+  # Shopper OAuth — disconnect/clear session
+  delete "/auth/discogs/shopper/disconnect", to: "shopper_auth#disconnect", as: :shopper_discogs_disconnect
+
   # Pile list creation — requires shopper OAuth session
   post "/pile/add_to_wantlist", to: "pile#add_to_wantlist", as: :pile_add_to_wantlist
 
