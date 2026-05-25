@@ -34,10 +34,10 @@ vi.mock("../contexts/shopper_context", () => ({
     shopper: null,
     isConnected: false,
     state: "idle",
-    createListFromPile: vi.fn(),
-    listResult: null,
+    addToWantlist: vi.fn(),
+    wantlistResult: null,
     errorMessage: null,
-    resetListResult: vi.fn(),
+    resetResult: vi.fn(),
   }),
   ShopperProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }))

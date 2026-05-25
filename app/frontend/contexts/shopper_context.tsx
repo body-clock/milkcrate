@@ -5,8 +5,8 @@ interface ShopperInfo {
   discogs_username: string
 }
 
-interface WantlistResult {
-  wantlist_url: string
+export interface WantlistResult {
+  wantlist_url: string | null
   added: number
   skipped: number
 }
@@ -15,7 +15,7 @@ interface ShopperContextValue {
   shopper: ShopperInfo | null
   isConnected: boolean
   state: "idle" | "creating" | "success" | "error"
-  addToWantlist: (items: { discogs_listing_id: string }[]) => Promise<WantlistResult | null>
+  addToWantlist: (items: { discogs_listing_id: string }[], storeSlug: string) => Promise<WantlistResult | null>
   wantlistResult: WantlistResult | null
   errorMessage: string | null
   resetResult: () => void
@@ -35,7 +35,7 @@ export function ShopperProvider({ children }: { children: React.ReactNode }) {
   const csrfToken = document.querySelector<HTMLMetaElement>("meta[name='csrf-token']")?.content
 
   const addToWantlist = useCallback(
-    async (items: { discogs_listing_id: string }[]) => {
+    async (items: { discogs_listing_id: string }[], storeSlug: string) => {
       if (!isConnected) return null
 
       setState("creating")
@@ -49,7 +49,7 @@ export function ShopperProvider({ children }: { children: React.ReactNode }) {
             "Content-Type": "application/json",
             "X-CSRF-Token": csrfToken ?? "",
           },
-          body: JSON.stringify({ items }),
+          body: JSON.stringify({ items, store_slug: storeSlug }),
         })
 
         if (!response.ok) {

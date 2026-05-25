@@ -66,8 +66,18 @@ class StoresController < ApplicationController
       last_sync_error_at: store.last_sync_error_at,
       enrichment_status: store.enrichment_status,
       last_enriched_at: store.last_enriched_at,
-      oauth_authorized: store.oauth_authorized?
+      oauth_authorized: store.oauth_authorized?,
+      handoff_available: seller_wantlist_handoff_enabled? && store.discogs_user_id.present?
     }
+  end
+
+  def seller_wantlist_handoff_enabled?
+    return false unless Settings.respond_to?(:features)
+    return false unless Settings.features.respond_to?(:seller_wantlist_handoff)
+
+    ActiveModel::Type::Boolean.new.cast(
+      ENV.fetch("SELLER_WANTLIST_HANDOFF_ENABLED", Settings.features.seller_wantlist_handoff.enabled.to_s)
+    )
   end
 
   def shopper_props

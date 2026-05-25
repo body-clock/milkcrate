@@ -5,10 +5,27 @@ import userEvent from "@testing-library/user-event"
 import PileSheet from "./pile_sheet"
 import { PileProvider, usePileContext } from "../contexts/pile_context"
 import { ViewportProvider } from "../contexts/viewport_context"
+import { ShopperProvider } from "../contexts/shopper_context"
 import { renderWithTier } from "../test/viewport-test-utils"
 import type { Listing } from "../types/inertia"
 
-// PileSheet no longer needs ShopperContext or Inertia usePage mocks
+// Mock usePage to provide store context
+vi.mock("@inertiajs/react", async () => {
+  const actual = await vi.importActual("@inertiajs/react")
+  return {
+    ...actual,
+    usePage: () => ({
+      props: {
+        store: {
+          discogs_username: "test-store",
+          name: "Test Store",
+          handoff_available: true,
+        },
+        shopper: { discogs_username: "shopper1" },
+      },
+    }),
+  }
+})
 
 beforeEach(() => {
   localStorage.clear()
@@ -53,11 +70,13 @@ function renderPileSheet(
 
   return render(
     <ViewportProvider>
-      <PileProvider>
-        <PilePopulator>
-          <PileSheet open={open} onClose={onClose} />
-        </PilePopulator>
-      </PileProvider>
+      <ShopperProvider>
+        <PileProvider>
+          <PilePopulator>
+            <PileSheet open={open} onClose={onClose} />
+          </PilePopulator>
+        </PileProvider>
+      </ShopperProvider>
     </ViewportProvider>,
   )
 }
@@ -89,9 +108,11 @@ describe("PileSheet", () => {
       const onClose = vi.fn()
       const { container } = render(
         <ViewportProvider>
-          <PileProvider>
-            <PileSheet open={true} onClose={onClose} />
-          </PileProvider>
+          <ShopperProvider>
+            <PileProvider>
+              <PileSheet open={true} onClose={onClose} />
+            </PileProvider>
+          </ShopperProvider>
         </ViewportProvider>,
       )
       const backdrop = container.querySelector('[aria-hidden="true"]')
@@ -113,9 +134,11 @@ describe("PileSheet", () => {
     it("does not render when open is false", () => {
       render(
         <ViewportProvider>
-          <PileProvider>
-            <PileSheet open={false} onClose={vi.fn()} />
-          </PileProvider>
+          <ShopperProvider>
+            <PileProvider>
+              <PileSheet open={false} onClose={vi.fn()} />
+            </PileProvider>
+          </ShopperProvider>
         </ViewportProvider>,
       )
       expect(screen.queryByRole("dialog")).toBeNull()
@@ -209,9 +232,7 @@ describe("PileSheet", () => {
       ])
 
       await waitFor(() => {
-        // The footer total is a span inside the footer
         const footerTotals = screen.getAllByText(/^\$\d+\.\d{2}$/)
-        // Should be three: two per-record prices + one footer total
         const totalTexts = footerTotals.map((el) => el.textContent)
         expect(totalTexts).toContain("$25.50")
       })
@@ -224,9 +245,7 @@ describe("PileSheet", () => {
       ])
 
       await waitFor(() => {
-        // Footer total should be $10.00
         const priceElements = screen.getAllByText("$10.00")
-        // At least one $10.00 per-record + footer total
         expect(priceElements.length).toBeGreaterThanOrEqual(1)
       })
     })
@@ -307,9 +326,11 @@ describe("PileSheet", () => {
     it("renders as bottom-sheet in compact tier", () => {
       const { container } = renderWithTier(
         "compact",
-        <PileProvider>
-          <PileSheet open={true} onClose={vi.fn()} />
-        </PileProvider>,
+        <ShopperProvider>
+          <PileProvider>
+            <PileSheet open={true} onClose={vi.fn()} />
+          </PileProvider>
+        </ShopperProvider>,
       )
 
       const dialog = screen.getByRole("dialog")
@@ -319,9 +340,11 @@ describe("PileSheet", () => {
     it("renders as side-panel in wide tier", () => {
       renderWithTier(
         "wide",
-        <PileProvider>
-          <PileSheet open={true} onClose={vi.fn()} />
-        </PileProvider>,
+        <ShopperProvider>
+          <PileProvider>
+            <PileSheet open={true} onClose={vi.fn()} />
+          </PileProvider>
+        </ShopperProvider>,
       )
 
       const dialog = screen.getByRole("dialog")
@@ -331,12 +354,13 @@ describe("PileSheet", () => {
     it("shows drag handle bar in compact tier", () => {
       const { container } = renderWithTier(
         "compact",
-        <PileProvider>
-          <PileSheet open={true} onClose={vi.fn()} />
-        </PileProvider>,
+        <ShopperProvider>
+          <PileProvider>
+            <PileSheet open={true} onClose={vi.fn()} />
+          </PileProvider>
+        </ShopperProvider>,
       )
 
-      // Drag handle: a 12px wide, 1.5px tall rounded bar inside the dialog
       const dialog = screen.getByRole("dialog")
       const handle = dialog.querySelector(".w-12")
       expect(handle).toBeInTheDocument()
@@ -345,9 +369,11 @@ describe("PileSheet", () => {
     it("does not show drag handle in wide tier", () => {
       const { container } = renderWithTier(
         "wide",
-        <PileProvider>
-          <PileSheet open={true} onClose={vi.fn()} />
-        </PileProvider>,
+        <ShopperProvider>
+          <PileProvider>
+            <PileSheet open={true} onClose={vi.fn()} />
+          </PileProvider>
+        </ShopperProvider>,
       )
 
       const dialog = screen.getByRole("dialog")
@@ -378,21 +404,29 @@ describe("PileSheet", () => {
     })
   })
 
-  describe("Add all to Discogs cart button", () => {
-    it("shows add to cart button when pile has records", async () => {
+  describe("Wantlist handoff action", () => {
+    it("shows the Send to Wantlist button when handoff is available and shopper is connected", async () => {
       renderPileSheet([makeListing()])
 
       await waitFor(() => {
-        const btn = screen.getByText(/add all to discogs cart/i)
-        expect(btn).toBeInTheDocument()
-        expect(btn).not.toBeDisabled()
+        expect(screen.getByText("Send to Discogs Wantlist")).toBeInTheDocument()
       })
     })
 
-    it("does not show add to cart button when pile is empty", () => {
-      renderPileSheet([])
+    it("shows disclosure text about Wantlist being permanent", async () => {
+      renderPileSheet([makeListing()])
 
-      expect(screen.queryByText(/add all to discogs cart/i)).toBeNull()
+      await waitFor(() => {
+        expect(screen.getByText(/Wantlist entries are permanent/)).toBeInTheDocument()
+      })
+    })
+
+    it("does not show old cart button", async () => {
+      renderPileSheet([makeListing()])
+
+      await waitFor(() => {
+        expect(screen.queryByText(/add all to discogs cart/i)).toBeNull()
+      })
     })
   })
 })

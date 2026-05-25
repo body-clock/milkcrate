@@ -1,15 +1,18 @@
 import React from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import { usePage } from "@inertiajs/react"
 import { usePileContext } from "../contexts/pile_context"
 import { useViewport } from "@/hooks/use_viewport"
 import { springDrawer } from "@/lib/motion_tokens"
 import { formatPriceValue } from "@/lib/format_price"
+import { useShopperContext } from "../contexts/shopper_context"
+import type { Store } from "../types/inertia"
 
-const DISCOGS_CART_BASE = "https://www.discogs.com/sell/cart"
-const ADD_INTERVAL_MS = 1500
-const SETTLE_DELAY_MS = 3000
+interface PageProps {
+  store?: Store
+}
 
-type CartState = "idle" | "adding" | "done"
+type HandoffState = "idle" | "creating" | "success" | "error"
 
 interface Props {
   open: boolean
@@ -20,9 +23,23 @@ export default function PileSheet({ open, onClose }: Props) {
   const { pile, removeFromPile, clearPile } = usePileContext()
   const { isCompact } = useViewport()
   const [confirmClear, setConfirmClear] = React.useState(false)
-  const [cartState, setCartState] = React.useState<CartState>("idle")
+  const [handoffState, setHandoffState] = React.useState<HandoffState>("idle")
   const dialogRef = React.useRef<HTMLDivElement>(null)
   const previousFocusRef = React.useRef<HTMLElement | null>(null)
+
+  const page = usePage<PageProps>()
+  const store = page.props.store
+  const storeSlug = store?.discogs_username
+  const handoffAvailable = store?.handoff_available ?? false
+
+  const {
+    shopper,
+    isConnected,
+    addToWantlist,
+    wantlistResult,
+    errorMessage,
+    resetResult,
+  } = useShopperContext()
 
   const total = pile.reduce((sum, l) => sum + (parseFloat(l.price) || 0), 0)
 
@@ -47,57 +64,32 @@ export default function PileSheet({ open, onClose }: Props) {
     }
   }, [open, onClose])
 
-  // Reset cart state when pile changes or sheet closes
+  // Reset handoff state when pile changes or sheet closes
   React.useEffect(() => {
-    if (!open || pile.length === 0) setCartState("idle")
-  }, [open, pile.length])
+    if (!open || pile.length === 0) {
+      setHandoffState("idle")
+      resetResult()
+    }
+  }, [open, pile.length, resetResult])
 
-  const handleAddAllToCart = () => {
-    const ids = pile.map((l) => l.discogs_listing_id)
-    if (ids.length === 0) return
+  const handleSendToWantlist = async () => {
+    if (!isConnected || !storeSlug) return
 
-    setCartState("adding")
+    setHandoffState("creating")
+    resetResult()
 
-    // Use hidden form submissions to a tiny iframe — form submits are top-level
-    // navigations that send Discogs session cookies, but the iframe is invisible
-    const iframe = document.createElement("iframe")
-    iframe.name = "cart-iframe"
-    iframe.style.display = "none"
-    document.body.appendChild(iframe)
+    const items = pile.map((l) => ({ discogs_listing_id: l.discogs_listing_id }))
+    const result = await addToWantlist(items, storeSlug)
 
-    let i = 0
-    const interval = setInterval(() => {
-      if (i >= ids.length) {
-        clearInterval(interval)
-        // Give the last submit time to settle, then show success
-        setTimeout(() => {
-          document.body.removeChild(iframe)
-          setCartState("done")
-        }, SETTLE_DELAY_MS)
-        return
-      }
-
-      // Hidden form with `add` as a form field — browser appends to URL properly
-      const form = document.createElement("form")
-      form.method = "GET"
-      form.action = DISCOGS_CART_BASE
-      form.target = "cart-iframe"
-      form.style.display = "none"
-      const input = document.createElement("input")
-      input.type = "hidden"
-      input.name = "add"
-      input.value = String(ids[i])
-      form.appendChild(input)
-      document.body.appendChild(form)
-      form.submit()
-      document.body.removeChild(form)
-      i++
-    }, ADD_INTERVAL_MS)
+    if (result) {
+      setHandoffState("success")
+    } else {
+      setHandoffState("error")
+    }
   }
 
-  const handleOpenCart = () => {
-    window.open(DISCOGS_CART_BASE, "_blank")
-  }
+  // Determine whether to show the handoff action
+  const showWantlistAction = handoffAvailable && isConnected && handoffState !== "creating"
 
   return (
     <AnimatePresence>
@@ -228,43 +220,125 @@ export default function PileSheet({ open, onClose }: Props) {
             {/* Footer */}
             {pile.length > 0 && (
               <div className="flex-shrink-0 px-4 py-4 border-t border-mc-border flex flex-col gap-3">
-                {cartState === "done" ? (
+                {/* Handoff result states */}
+                {handoffState === "success" && wantlistResult && (
                   <div className="flex flex-col gap-2">
-                    <p className="text-xs text-emerald-500 font-medium">
-                      ✓ {pile.length} items added to your cart
+                    {wantlistResult.added > 0 ? (
+                      <>
+                        <p className="text-xs text-emerald-500 font-medium">
+                          {wantlistResult.skipped > 0
+                            ? `${wantlistResult.added} of ${wantlistResult.added + wantlistResult.skipped} releases added to your Wantlist`
+                            : `${wantlistResult.added} release${wantlistResult.added === 1 ? "" : "s"} added to your Wantlist`}
+                        </p>
+                        <p className="text-[11px] text-mc-text-dim">
+                          {wantlistResult.wantlist_url ? (
+                            <>Ready to shop from {store?.name ?? "this store"} on Discogs.</>
+                          ) : (
+                            <>Added to your Wantlist. Shop from this store on Discogs by selecting their seller filter.</>
+                          )}
+                        </p>
+                        {wantlistResult.wantlist_url ? (
+                          <a
+                            href={wantlistResult.wantlist_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full mc-btn mc-btn-primary py-2.5 text-sm text-center"
+                          >
+                            Shop My Wants ↗
+                          </a>
+                        ) : (
+                          <button
+                            onClick={() => { setHandoffState("idle"); resetResult() }}
+                            className="w-full mc-btn py-2.5 text-sm"
+                          >
+                            Keep browsing
+                          </button>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-xs text-amber-500 font-medium">
+                          No releases could be added to your Wantlist.
+                        </p>
+                        <button
+                          onClick={() => { setHandoffState("idle"); resetResult() }}
+                          className="w-full mc-btn py-2.5 text-sm"
+                        >
+                          Try again
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {handoffState === "error" && (
+                  <div className="flex flex-col gap-2">
+                    <p className="text-xs text-red-500 font-medium">
+                      {errorMessage || "Something went wrong."}
                     </p>
                     <button
-                      onClick={handleOpenCart}
-                      className="w-full mc-btn mc-btn-primary py-2.5 text-sm"
-                    >
-                      Open cart on Discogs ↗
-                    </button>
-                    <button
-                      onClick={() => setCartState("idle")}
+                      onClick={() => { setHandoffState("idle"); resetResult() }}
                       className="w-full mc-btn py-2.5 text-sm"
                     >
-                      Keep browsing
+                      Try again
                     </button>
                   </div>
-                ) : (
-                  <>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-mc-text-dim uppercase tracking-wider">Total</span>
-                      <span className="text-sm font-semibold">{formatPriceValue(total.toFixed(2), pile[0]?.currency)}</span>
-                    </div>
+                )}
+
+                {/* Wantlist handoff action (only when not showing results) */}
+                {showWantlistAction && handoffState === "idle" && (
+                  <div className="flex flex-col gap-2">
+                    <p className="text-[11px] text-mc-text-dim leading-relaxed">
+                      Add these releases to your Wantlist to find them — or similar records — from {store?.name ?? "this store"} on Discogs. Wantlist entries are permanent.
+                    </p>
                     <button
-                      onClick={handleAddAllToCart}
-                      disabled={cartState === "adding"}
+                      onClick={handleSendToWantlist}
+                      className="w-full mc-btn mc-btn-primary py-2.5 text-sm"
+                    >
+                      Send to Discogs Wantlist
+                    </button>
+                  </div>
+                )}
+
+                {/* In-progress state */}
+                {handoffState === "creating" && (
+                  <div className="flex flex-col gap-2">
+                    <button
+                      disabled
                       className="w-full mc-btn mc-btn-primary py-2.5 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
                     >
-                      {cartState === "adding" ? "Adding to cart…" : "Add all to Discogs cart"}
+                      Adding to Wantlist…
                     </button>
-                    {cartState === "adding" && (
-                      <p className="text-[11px] text-mc-text-dim text-center">
-                        Adding {pile.length} items to your cart…
-                      </p>
-                    )}
-                  </>
+                    <p className="text-[11px] text-mc-text-dim text-center">
+                      Adding {pile.length} {pile.length === 1 ? "release" : "releases"} to your Wantlist
+                    </p>
+                  </div>
+                )}
+
+                {/* Disconnected state — show connect CTA when handoff is available */}
+                {handoffAvailable && !isConnected && handoffState === "idle" && (
+                  <div className="flex flex-col gap-2">
+                    <p className="text-[11px] text-mc-text-dim leading-relaxed">
+                      Connect with Discogs to send these releases to your Wantlist and shop from {store?.name ?? "this store"}.
+                    </p>
+                    <form method="POST" action="/auth/discogs/shopper/authorize">
+                      <input type="hidden" name="store_slug" value={storeSlug ?? ""} />
+                      <button
+                        type="submit"
+                        className="w-full mc-btn mc-btn-primary py-2.5 text-sm"
+                      >
+                        Connect with Discogs
+                      </button>
+                    </form>
+                  </div>
+                )}
+
+                {/* Total + exact listing links (always shown when idle) */}
+                {handoffState === "idle" && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-mc-text-dim uppercase tracking-wider">Total</span>
+                    <span className="text-sm font-semibold">{formatPriceValue(total.toFixed(2), pile[0]?.currency)}</span>
+                  </div>
                 )}
               </div>
             )}
