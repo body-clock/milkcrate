@@ -70,12 +70,11 @@ export default function PileSheet({ open, onClose }: Props) {
     const interval = setInterval(() => {
       if (i >= ids.length || popup.closed) {
         clearInterval(interval)
-        // Wait for the last add to settle before redirecting to cart
+        // Wait for the last add to settle, then open cart in a fresh tab
         setTimeout(() => {
           setAddingToCart(false)
-          if (!popup.closed) {
-            popup.location.href = DISCOGS_CART_BASE
-          }
+          if (!popup.closed) popup.close()
+          window.open(DISCOGS_CART_BASE, "_blank")
         }, CART_REDIRECT_DELAY_MS)
         return
       }
