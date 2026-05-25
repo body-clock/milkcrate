@@ -58,22 +58,20 @@ export function AppLayoutContent({ children, compactLocation }: AppLayoutProps) 
           </>
         ) : storeName ? (
           <div className="flex min-w-0 flex-col">
-            <>
-              <Link
-                href={`/${discogsUsername}`}
-                className="rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
-              >
-                <span className="mc-brand-title block truncate text-base font-bold mc-text">{storeName}</span>
-              </Link>
-              <Link
-                href="/"
-                className="rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
-              >
-                <span className="text-[10px] tracking-widest uppercase text-mc-text-dim">
-                  {isCompact ? "on MC" : "on Milkcrate"}
-                </span>
-              </Link>
-            </>
+            <Link
+              href={`/${discogsUsername}`}
+              className="rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
+            >
+              <span className="mc-brand-title block truncate text-base font-bold mc-text">{storeName}</span>
+            </Link>
+            <Link
+              href="/"
+              className="rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
+            >
+              <span className="text-[10px] tracking-widest uppercase text-mc-text-dim">
+                {isCompact ? "on MC" : "on Milkcrate"}
+              </span>
+            </Link>
           </div>
         ) : (
           <Link
