@@ -30,7 +30,7 @@ features:
   # Seller-scoped Wantlist handoff — off by default until seller-facet
   # validation and Discogs commercial permission are confirmed.
   seller_wantlist_handoff:
-    enabled: false
+    enabled: true
   # When true, these strategies are excluded from experiment crate generation.
   # The live storefront is unaffected.
   disable_desirability: false

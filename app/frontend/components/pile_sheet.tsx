@@ -289,7 +289,7 @@ export default function PileSheet({ open, onClose }: Props) {
                 {showWantlistAction && handoffState === "idle" && (
                   <div className="flex flex-col gap-2">
                     <p className="text-[11px] text-mc-text-dim leading-relaxed">
-                      Add these releases to your Wantlist to find them — or similar records — from {store?.name ?? "this store"} on Discogs. Wantlist entries are permanent.
+                      Get these records from {store?.name ?? "this store"} on Discogs.
                     </p>
                     <button
                       onClick={handleSendToWantlist}
