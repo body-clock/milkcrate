@@ -77,12 +77,17 @@ export default function PileSheet({ open, onClose }: Props) {
         return
       }
 
-      // Create a hidden form that submits to the add URL, targeting the iframe
+      // Hidden form with `add` as a form field — browser appends to URL properly
       const form = document.createElement("form")
       form.method = "GET"
-      form.action = `${DISCOGS_CART_BASE}/?add=${ids[i]}`
+      form.action = DISCOGS_CART_BASE
       form.target = "cart-iframe"
       form.style.display = "none"
+      const input = document.createElement("input")
+      input.type = "hidden"
+      input.name = "add"
+      input.value = String(ids[i])
+      form.appendChild(input)
       document.body.appendChild(form)
       form.submit()
       document.body.removeChild(form)
