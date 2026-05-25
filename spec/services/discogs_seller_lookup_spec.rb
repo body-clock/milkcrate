@@ -20,7 +20,10 @@ RSpec.describe DiscogsSellerLookup do
         expect(lookup.call).to eq(
           found: true,
           seller_name: "Real Seller",
-          avatar_url: "https://example.com/avatar.jpg"
+          avatar_url: "https://example.com/avatar.jpg",
+          slug: "realseller",
+          store_status: "none",
+          store_storefront_path: nil
         )
       end
 

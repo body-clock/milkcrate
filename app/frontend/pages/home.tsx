@@ -3,6 +3,7 @@ import { motion } from "framer-motion"
 import type { Variants } from "framer-motion"
 import MarketingLayout from "@/layouts/marketing_layout"
 import CrateView from "@/components/crate_view"
+import DiscogsSellerLookupInput from "@/components/discogs_seller_lookup_input"
 import { PileProvider } from "@/contexts/pile_context"
 import type { HomepagePreview } from "@/types/inertia"
 
@@ -11,8 +12,7 @@ interface Props {
     headline: string
     subhead: string
     cta_demo: string
-    cta_apply: string
-    footnote: string
+    hero_subhead: string
     steps: {
       step1_title: string
       step1_body: string
@@ -22,9 +22,20 @@ interface Props {
       step3_body: string
     }
     preview_label: string
-    record_fair_title: string
-    record_fair_body: string
     store_character_title: string
+    seller_section_title: string
+    seller_section_body: string
+    seller_input_label: string
+    seller_input_placeholder: string
+    seller_submit: string
+    seller_preview_claim: string
+    seller_not_found: string
+    seller_already_active: string
+    seller_applicant_exists: string
+    seller_waitlist_fallback: string
+    seller_min_listings: string
+    seller_lookup_error: string
+    bottom_signoff: string
   }
   preview: HomepagePreview
 }
@@ -49,7 +60,7 @@ const fadeIn: Variants = {
 }
 
 const ctaBase =
-  "w-full sm:flex-1 sm:min-w-0 min-h-11 px-6 sm:px-4 py-3 rounded-lg font-semibold text-sm sm:text-xs leading-5 tracking-wide text-center whitespace-nowrap inline-flex items-center justify-center transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
+  "w-full sm:w-auto min-h-11 px-6 py-3 rounded-lg font-semibold text-sm leading-5 tracking-wide text-center inline-flex items-center justify-center transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
 
 export default function Home({ copy, preview }: Props) {
   const hasPreview = preview.sections.length > 0
@@ -58,7 +69,7 @@ export default function Home({ copy, preview }: Props) {
 
   return (
     <MarketingLayout>
-      {/* ── Hero — vendor-first ────────────────────── */}
+      {/* ── Hero — shopper-first ───────────────────── */}
       <motion.section
         initial="hidden"
         animate="visible"
@@ -75,15 +86,12 @@ export default function Home({ copy, preview }: Props) {
 
         <motion.p
           variants={fadeUp}
-          className="text-sm sm:text-base text-mc-text-dim mb-10 leading-relaxed max-w-md"
+          className="text-sm sm:text-base text-mc-text-dim mb-8 leading-relaxed max-w-md"
         >
           {copy.subhead}
         </motion.p>
 
-        <motion.div
-          variants={fadeUp}
-          className="flex flex-col sm:flex-row items-center gap-3 w-full max-w-md"
-        >
+        <motion.div variants={fadeUp}>
           {hasPreview && preview.store_slug ? (
             <Link
               href={`/${preview.store_slug}`}
@@ -99,20 +107,7 @@ export default function Home({ copy, preview }: Props) {
               {copy.cta_demo}
             </Link>
           )}
-          <Link
-            href="/apply"
-            className={`${ctaBase} border border-mc-border mc-text hover:border-mc-accent hover:text-mc-accent`}
-          >
-            {copy.cta_apply}
-          </Link>
         </motion.div>
-
-        <motion.p
-          variants={fadeUp}
-          className="mt-5 text-xs text-mc-text-dim"
-        >
-          {copy.footnote}
-        </motion.p>
       </motion.section>
 
       {/* ── Storefront Preview — curation proof ─────── */}
@@ -236,7 +231,59 @@ export default function Home({ copy, preview }: Props) {
         </div>
       </motion.section>
 
-      {/* ── Onboarding Steps — how it works ────────── */}
+      {/* ── Seller OAuth — self-serve Discogs onboarding ── */}
+      <motion.section
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-80px" }}
+        aria-labelledby="home-seller-heading"
+        className="border-t border-mc-border py-10 sm:py-16"
+      >
+        <div className="max-w-lg mx-auto">
+          <motion.h2
+            variants={fadeUp}
+            id="home-seller-heading"
+            className="text-lg sm:text-xl font-semibold mc-text text-center mb-3"
+          >
+            {copy.seller_section_title}
+          </motion.h2>
+          <motion.p
+            variants={fadeUp}
+            className="text-sm text-mc-text-dim text-center leading-relaxed mb-8 max-w-md mx-auto"
+          >
+            {copy.seller_section_body}
+          </motion.p>
+          <motion.div variants={fadeUp}>
+            <DiscogsSellerLookupInput
+              copy={{
+                seller_input_label: copy.seller_input_label,
+                seller_input_placeholder: copy.seller_input_placeholder,
+                seller_submit: copy.seller_submit,
+                seller_preview_claim: copy.seller_preview_claim,
+                seller_not_found: copy.seller_not_found,
+                seller_already_active: copy.seller_already_active,
+                seller_applicant_exists: copy.seller_applicant_exists,
+                seller_waitlist_fallback: copy.seller_waitlist_fallback,
+                seller_min_listings: copy.seller_min_listings,
+                seller_lookup_error: copy.seller_lookup_error,
+              }}
+            />
+          </motion.div>
+          <motion.div
+            variants={fadeUp}
+            className="text-center mt-4"
+          >
+            <Link
+              href="/apply"
+              className="text-xs text-mc-text-dim hover:text-mc-accent transition-colors"
+            >
+              {copy.seller_waitlist_fallback}
+            </Link>
+          </motion.div>
+        </div>
+      </motion.section>
+
+      {/* ── How It Works — OAuth-first steps ───────── */}
       <motion.section
         initial="hidden"
         whileInView="visible"
@@ -294,54 +341,20 @@ export default function Home({ copy, preview }: Props) {
         </div>
       </motion.section>
 
-      {/* ── Record-Fair Callout ────────────────────── */}
+      {/* ── Lean Bottom ─────────────────────────────── */}
       <motion.section
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, margin: "-80px" }}
-        aria-labelledby="home-fair-heading"
-        className="border-t border-mc-border py-10 sm:py-14"
-      >
-        <div className="max-w-lg mx-auto text-center">
-          <motion.h2
-            variants={fadeUp}
-            id="home-fair-heading"
-            className="text-base sm:text-lg font-semibold mc-text mb-3"
-          >
-            {copy.record_fair_title}
-          </motion.h2>
-          <motion.p
-            variants={fadeUp}
-            className="text-sm text-mc-text-dim leading-relaxed mb-4"
-          >
-            {copy.record_fair_body}
-          </motion.p>
-        </div>
-      </motion.section>
-
-      {/* ── Final CTA ──────────────────────────────── */}
-      <motion.section
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-80px" }}
-        className="border-t border-mc-border py-10 sm:py-16"
+        className="border-t border-mc-border py-8 sm:py-10"
       >
         <div className="max-w-md mx-auto text-center">
           <motion.p
             variants={fadeUp}
-            className="text-sm text-mc-text-dim mb-6 leading-relaxed"
+            className="text-sm text-mc-text-dim leading-relaxed"
           >
-            We&rsquo;re onboarding stores one at a time. Tell us about yours and we&rsquo;ll be in
-            touch.
+            {copy.bottom_signoff}
           </motion.p>
-          <motion.div variants={fadeUp}>
-            <Link
-              href="/apply"
-              className="inline-block px-8 py-3 rounded-lg bg-mc-accent text-mc-on-accent font-semibold text-sm tracking-wide hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
-            >
-              {copy.cta_apply}
-            </Link>
-          </motion.div>
         </div>
       </motion.section>
     </MarketingLayout>

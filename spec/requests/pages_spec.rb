@@ -12,9 +12,9 @@ RSpec.describe "Pages", type: :request do
       expect(inertia).to render_component("home")
     end
 
-    it "renders the vendor-facing headline" do
+    it "renders the shopper-facing headline" do
       get "/"
-      expect(inertia.props["copy"]["headline"]).to include("now a storefront")
+      expect(inertia.props["copy"]["headline"]).to include("Browse Discogs like a record store")
     end
 
     it "does not include retired dig-session content in copy values" do
