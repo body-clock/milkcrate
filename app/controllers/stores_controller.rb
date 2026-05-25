@@ -71,15 +71,6 @@ class StoresController < ApplicationController
     }
   end
 
-  def seller_wantlist_handoff_enabled?
-    return false unless Settings.respond_to?(:features)
-    return false unless Settings.features.respond_to?(:seller_wantlist_handoff)
-
-    ActiveModel::Type::Boolean.new.cast(
-      ENV.fetch("SELLER_WANTLIST_HANDOFF_ENABLED", Settings.features.seller_wantlist_handoff.enabled.to_s)
-    )
-  end
-
   def shopper_props
     shopper = DiscogsShopper.find_by(id: session[:shopper_id])
     return nil unless shopper&.authenticated?
