@@ -14,7 +14,7 @@ import {
   type RiffleDirection,
 } from "../lib/riffle_navigation"
 import { useViewport } from "@/hooks/use_viewport"
-import { SCALE_PRESS, springPress, springTactile, transitionCrate, transitionCrateDesktop, reducedMotionTransition } from "@/lib/motion_tokens"
+import { SCALE_PRESS, springPress, transitionCrate, transitionCrateDesktop, reducedMotionTransition } from "@/lib/motion_tokens"
 import { useReducedMotionContext } from "./storefront_motion_config"
 import { isLessonEligible, markLessonLearned, isLessonLearned } from "../lib/first_swipe_lesson"
 import { usePreload } from "@/hooks/use_preload"
@@ -25,6 +25,7 @@ interface Props {
   activeSlug: string
   startIndex?: number
   hideTabs?: boolean
+  compactHeaderOwnedByLayout?: boolean
   onSelectCrate: (slug: string, startIndex?: number) => void
   onBack?: () => void
 }
@@ -43,7 +44,15 @@ const activeLayerStyle: React.CSSProperties = {
   WebkitBackfaceVisibility: "hidden",
 }
 
-export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs = false, onSelectCrate, onBack }: Props) {
+export default function CrateView({
+  crates,
+  activeSlug,
+  startIndex = 0,
+  hideTabs = false,
+  compactHeaderOwnedByLayout = false,
+  onSelectCrate,
+  onBack,
+}: Props) {
   const { isCompact } = useViewport()
   const activeCrate = crates.find((c) => c.slug === activeSlug) ?? crates[0]
   const records = activeCrate?.records ?? []
@@ -113,35 +122,40 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
   const progress = total > 0 ? ((index + 1) / total) * 100 : 0
   const activeRecord = records[index]
 
-  const crateHeader = (
-    <div className={isCompact ? "mb-3" : "mb-4"}>
-      {isCompact ? (
+  const crateHeader = isCompact ? (
+    !compactHeaderOwnedByLayout || !hideTabs ? (
+      <div className="mb-3">
         <>
-          <div className="flex items-center gap-3">
-            {onBack && (
-              <button
-                type="button"
-                onClick={onBack}
-                className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-mc-border bg-mc-bg-raised text-lg leading-none text-mc-text-dim transition-[color,border-color,transform] hover:border-mc-accent hover:text-mc-accent active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
-                aria-label="Back to store"
-              >
-                <span aria-hidden="true" className="-translate-y-px">←</span>
-              </button>
-            )}
-            <div className="min-w-0 flex-1">
-              <h1 className="truncate text-base font-semibold leading-tight">{activeCrate?.name}</h1>
-              <div className="text-[11px] uppercase tracking-[0.12em] text-mc-text-dim">
-                {total === 1 ? "1 record" : `${total} records`}
+          {!compactHeaderOwnedByLayout && (
+            <div className="flex items-center gap-3">
+              {onBack && (
+                <button
+                  type="button"
+                  onClick={onBack}
+                  className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-mc-border bg-mc-bg-raised text-lg leading-none text-mc-text-dim transition-[color,border-color,transform] hover:border-mc-accent hover:text-mc-accent active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
+                  aria-label="Back to store"
+                >
+                  <span aria-hidden="true" className="-translate-y-px">←</span>
+                </button>
+              )}
+              <div className="min-w-0 flex-1">
+                <h1 className="truncate text-base font-semibold leading-tight">{activeCrate?.name}</h1>
+                <div className="text-[11px] uppercase tracking-[0.12em] text-mc-text-dim">
+                  {total === 1 ? "1 record" : `${total} records`}
+                </div>
               </div>
             </div>
-          </div>
+          )}
           {!hideTabs && (
-            <div className="mt-2 -mx-1">
+            <div className={`${compactHeaderOwnedByLayout ? "" : "mt-2 "} -mx-1`}>
               <CrateTabs crates={crates} activeSlug={activeSlug} onSelect={onSelectCrate} compact />
             </div>
           )}
         </>
-      ) : (
+      </div>
+    ) : null
+  ) : (
+    <div className="mb-4">
         <>
           <div className="flex items-center gap-3 border-b border-mc-border pb-2 mb-3">
             {onBack && (
@@ -166,7 +180,6 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
             <CrateTabs crates={crates} activeSlug={activeSlug} onSelect={onSelectCrate} />
           )}
         </>
-      )}
     </div>
   )
 
@@ -429,7 +442,7 @@ export default function CrateView({ crates, activeSlug, startIndex = 0, hideTabs
         {/* Desktop details panel */}
         {activeRecord && (
           <div className="hidden md:flex md:flex-col md:pt-7">
-            <RecordDetails listing={activeRecord} direction={direction.current} isCompact={isCompact} />
+            <RecordDetails listing={activeRecord} direction={direction.current} />
           <ScoreBreakdown listing={activeRecord} />
           </div>
         )}

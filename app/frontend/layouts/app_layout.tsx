@@ -8,11 +8,22 @@ import { ViewportProvider } from "@/contexts/viewport_context"
 import { useViewport } from "@/hooks/use_viewport"
 import BrandMark from "@/components/brand_mark"
 import MilkcrateShell from "@/layouts/milkcrate_shell"
-import { ShopperProvider } from "@/contexts/shopper_context"
-import DiscogsAuthIcon from "@/components/discogs_auth_icon"
+import { ShopperProvider, useShopperContext } from "@/contexts/shopper_context"
+import { DiscogsDisconnectForm } from "@/components/discogs_connection_controls"
 import type { Store } from "@/types/inertia"
 
-function AppLayoutInner({ children }: { children: React.ReactNode }) {
+export interface CompactStoreLocation {
+  name: string
+  count: number
+  onBack: () => void
+}
+
+interface AppLayoutProps {
+  children: React.ReactNode
+  compactLocation?: CompactStoreLocation
+}
+
+export function AppLayoutContent({ children, compactLocation }: AppLayoutProps) {
   const page = usePage<{ notice?: string; alert?: string; store?: Pick<Store, "name" | "discogs_username">; shopper?: { discogs_username: string } | null }>()
   const notice = page.props.notice
   const alertMsg = page.props.alert
@@ -21,18 +32,39 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
   const { theme, toggle } = useTheme()
   const { isCompact } = useViewport()
   const { pile } = usePileContext()
+  const { shopper } = useShopperContext()
   const [pileOpen, setPileOpen] = useState(false)
+  const handleClosePile = React.useCallback(() => setPileOpen(false), [])
+  const compactCrateLocation = isCompact ? compactLocation : undefined
+  const contextFocusRef = React.useRef<HTMLElement>(null)
 
   const header = (
-    <header className="mc-header flex items-center justify-between px-4 py-2 sm:py-3 border-b mc-border sticky top-0 z-30 bg-mc-bg-raised/95 backdrop-blur-sm">
-      <div className="flex flex-col leading-none min-w-0">
-        {storeName ? (
+    <header ref={contextFocusRef} tabIndex={-1} className="mc-header flex items-center justify-between px-4 py-2 sm:py-3 border-b mc-border sticky top-0 z-30 bg-mc-bg-raised/95 backdrop-blur-sm">
+      <div className="flex min-w-0 items-center leading-none">
+        {compactCrateLocation ? (
           <>
+            <button
+              type="button"
+              onClick={compactCrateLocation.onBack}
+              className="mr-3 flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-mc-border bg-mc-bg-raised text-lg leading-none text-mc-text-dim transition-[color,border-color,transform] hover:border-mc-accent hover:text-mc-accent active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
+              aria-label="Back to store"
+            >
+              <span aria-hidden="true" className="-translate-y-px">←</span>
+            </button>
+            <div className="min-w-0">
+              <span className="mc-brand-title block truncate text-base font-bold mc-text">{compactCrateLocation.name}</span>
+              <span className="block text-[10px] tracking-widest uppercase text-mc-text-dim">
+                {compactCrateLocation.count === 1 ? "1 record" : `${compactCrateLocation.count} records`}
+              </span>
+            </div>
+          </>
+        ) : storeName ? (
+          <div className="flex min-w-0 flex-col">
             <Link
               href={`/${discogsUsername}`}
               className="rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
             >
-              <span className="mc-brand-title text-base font-bold mc-text truncate">{storeName}</span>
+              <span className="mc-brand-title block truncate text-base font-bold mc-text">{storeName}</span>
             </Link>
             <Link
               href="/"
@@ -42,7 +74,7 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
                 {isCompact ? "on MC" : "on Milkcrate"}
               </span>
             </Link>
-          </>
+          </div>
         ) : (
           <Link
             href="/"
@@ -53,35 +85,40 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
         )}
       </div>
       <div className="flex items-center gap-2.5 sm:gap-3 flex-shrink-0">
-
-        <DiscogsAuthIcon />
         {pile.length > 0 && (
           <button
             type="button"
             onClick={() => setPileOpen(true)}
-            className="text-xs text-mc-accent hover:opacity-80 transition-opacity select-none font-medium rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
-            aria-label={`Open pile with ${pile.length} records`}
+            className="inline-flex min-h-11 items-center rounded px-3 text-xs font-medium text-mc-accent transition-opacity hover:opacity-80 select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
+            aria-label={`Pile (${pile.length})`}
             aria-expanded={pileOpen}
             aria-controls="pile-sheet"
           >
-            {pile.length} <span className="hidden sm:inline">in pile</span>
-            <span className="sm:hidden">pile</span>
+            Pile ({pile.length})
           </button>
         )}
-        <button
-          type="button"
-          onClick={toggle}
-          className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full text-lg sm:text-xl text-mc-text-dim hover:text-mc-text hover:bg-mc-bg-raised transition-colors select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
-          aria-label="Toggle light/dark mode"
-        >
-          {theme === "dark" ? "☀︎" : "☾"}
-        </button>
+        {!isCompact && (
+          <button
+            type="button"
+            onClick={toggle}
+            className="w-10 h-10 flex items-center justify-center rounded-full text-xl text-mc-text-dim hover:text-mc-text hover:bg-mc-bg-raised transition-colors select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
+            aria-label="Toggle light/dark mode"
+          >
+            {theme === "dark" ? "☀︎" : "☾"}
+          </button>
+        )}
       </div>
     </header>
   )
 
   const footer = (
-    <footer className="px-4 py-4 border-t mc-border text-center">
+    <footer className="flex flex-col items-center gap-3 px-4 py-4 border-t mc-border text-center">
+      {shopper && (
+        <div className="flex flex-wrap items-center justify-center gap-3 text-[11px] text-mc-text-dim">
+          <span>Connected to Discogs as @{shopper.discogs_username}</span>
+          <DiscogsDisconnectForm />
+        </div>
+      )}
       <span className="text-[11px] text-mc-text-dim tracking-wide">
         Powered by <span className="font-semibold tracking-widest uppercase">Milkcrate</span>
       </span>
@@ -97,27 +134,29 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <MilkcrateShell
-        header={header}
-        afterHeader={afterHeader}
-        footer={footer}
-        contentWidth="max-w-6xl"
-        contentPadding="px-4 sm:px-6 lg:px-8 py-4 sm:py-8"
-      >
-        {children}
-      </MilkcrateShell>
-      <PileSheet open={pileOpen} onClose={() => setPileOpen(false)} />
+      <div inert={pileOpen} data-testid="storefront-background">
+        <MilkcrateShell
+          header={header}
+          afterHeader={afterHeader}
+          footer={footer}
+          contentWidth="max-w-6xl"
+          contentPadding="px-4 sm:px-6 lg:px-8 py-4 sm:py-8"
+        >
+          {children}
+        </MilkcrateShell>
+      </div>
+      <PileSheet open={pileOpen} onClose={handleClosePile} returnFocusRef={contextFocusRef} />
     </>
   )
 }
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+export default function AppLayout({ children, compactLocation }: AppLayoutProps) {
   return (
     <StorefrontMotionConfig>
       <ViewportProvider>
         <PileProvider>
           <ShopperProvider>
-            <AppLayoutInner>{children}</AppLayoutInner>
+            <AppLayoutContent compactLocation={compactLocation}>{children}</AppLayoutContent>
           </ShopperProvider>
         </PileProvider>
       </ViewportProvider>

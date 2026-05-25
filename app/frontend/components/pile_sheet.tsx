@@ -1,21 +1,24 @@
 import React from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 import { usePage } from "@inertiajs/react"
 import { usePileContext } from "../contexts/pile_context"
 import { useViewport } from "@/hooks/use_viewport"
 import { springDrawer } from "@/lib/motion_tokens"
 import { formatPriceValue } from "@/lib/format_price"
 import { useShopperContext } from "../contexts/shopper_context"
+import { DiscogsConnectForm, DiscogsDisconnectForm } from "./discogs_connection_controls"
 import type { Store } from "../types/inertia"
 import type { Listing } from "../types/inertia"
 
 interface PageProps {
+  [key: string]: unknown
   store?: Store
 }
 
 interface Props {
   open: boolean
   onClose: () => void
+  returnFocusRef?: React.RefObject<HTMLElement | null>
 }
 
 // ── Sub-components ──────────────────────────────────────────────
@@ -48,7 +51,7 @@ function PileRecordItem({ listing, onRemove }: { listing: Listing; onRemove: (id
       </a>
       <button
         onClick={() => onRemove(listing.id)}
-        className="text-mc-text-dim hover:text-mc-text transition-colors text-sm leading-none flex-shrink-0 ml-2"
+        className="ml-2 inline-flex h-11 w-11 flex-shrink-0 items-center justify-center text-sm leading-none text-mc-text-dim transition-colors hover:text-mc-text"
         aria-label={`Remove ${listing.title ?? "record"} from pile`}
       >
         ×
@@ -63,7 +66,7 @@ function WantlistResultView({ result, storeName, onDismiss }: {
   onDismiss: () => void
 }) {
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2" role="status" aria-live="polite">
       <p className="text-xs text-emerald-500 font-medium">
         {result.skipped > 0
           ? `${result.added} of ${result.added + result.skipped} releases added to your Wantlist`
@@ -75,25 +78,25 @@ function WantlistResultView({ result, storeName, onDismiss }: {
           : <>Added to your Wantlist. Shop from this store on Discogs by selecting their seller filter.</>}
       </p>
       {result.wantlist_url
-        ? <a href={result.wantlist_url} target="_blank" rel="noopener noreferrer" className="w-full mc-btn mc-btn-primary py-2.5 text-sm text-center">Shop My Wants ↗</a>
-        : <button onClick={onDismiss} className="w-full mc-btn py-2.5 text-sm">Keep browsing</button>}
+        ? <a href={result.wantlist_url} target="_blank" rel="noopener noreferrer" className="w-full mc-btn mc-btn-primary min-h-11 py-2.5 text-sm text-center">Shop My Wants ↗</a>
+        : <button onClick={onDismiss} className="w-full mc-btn min-h-11 py-2.5 text-sm">Keep browsing</button>}
     </div>
   )
 }
 
 function WantlistErrorView({ message, onRetry }: { message: string | null; onRetry: () => void }) {
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2" role="status" aria-live="polite">
       <p className="text-xs text-red-500 font-medium">{message || "Something went wrong."}</p>
-      <button onClick={onRetry} className="w-full mc-btn py-2.5 text-sm">Try again</button>
+      <button onClick={onRetry} className="w-full mc-btn min-h-11 py-2.5 text-sm">Try again</button>
     </div>
   )
 }
 
 function WantlistInProgressView({ count }: { count: number }) {
   return (
-    <div className="flex flex-col gap-2">
-      <button disabled className="w-full mc-btn mc-btn-primary py-2.5 text-sm disabled:opacity-40 disabled:cursor-not-allowed">
+    <div className="flex flex-col gap-2" role="status" aria-live="polite">
+      <button disabled className="w-full mc-btn mc-btn-primary min-h-11 py-2.5 text-sm disabled:opacity-40 disabled:cursor-not-allowed">
         Adding to Wantlist…
       </button>
       <p className="text-[11px] text-mc-text-dim text-center">
@@ -109,7 +112,7 @@ function WantlistHandoffAction({ storeName, onSend }: { storeName: string | null
       <p className="text-[11px] text-mc-text-dim leading-relaxed">
         Get these records from {storeName ?? "this store"} on Discogs.
       </p>
-      <button onClick={onSend} className="w-full mc-btn mc-btn-primary py-2.5 text-sm">
+      <button onClick={onSend} className="w-full mc-btn mc-btn-primary min-h-11 py-2.5 text-sm">
         Send to Discogs Wantlist
       </button>
     </div>
@@ -117,31 +120,36 @@ function WantlistHandoffAction({ storeName, onSend }: { storeName: string | null
 }
 
 function DisconnectedCta({ storeName, storeSlug }: { storeName: string | null; storeSlug: string }) {
-  const csrf = document.querySelector<HTMLMetaElement>("meta[name='csrf-token']")?.content ?? ""
-
   return (
     <div className="flex flex-col gap-2">
       <p className="text-[11px] text-mc-text-dim leading-relaxed">
         Connect with Discogs to send these releases to your Wantlist and shop from {storeName ?? "this store"}.
       </p>
-      <form method="POST" action="/auth/discogs/shopper/authorize">
-        <input type="hidden" name="authenticity_token" value={csrf} />
-        <input type="hidden" name="store_slug" value={storeSlug} />
-        <button type="submit" className="w-full mc-btn mc-btn-primary py-2.5 text-sm">
-          Connect with Discogs
-        </button>
-      </form>
+      <DiscogsConnectForm
+        storeSlug={storeSlug}
+        buttonClassName="w-full mc-btn mc-btn-primary min-h-11 py-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
+      />
+    </div>
+  )
+}
+
+function ConnectedAccount({ username }: { username: string }) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-mc-text-dim">
+      <span>Connected to Discogs as @{username}</span>
+      <DiscogsDisconnectForm />
     </div>
   )
 }
 
 // ── Main component ──────────────────────────────────────────────
 
-export default function PileSheet({ open, onClose }: Props) {
+export default function PileSheet({ open, onClose, returnFocusRef }: Props) {
   const { pile, removeFromPile, clearPile } = usePileContext()
   const { isCompact } = useViewport()
   const [confirmClear, setConfirmClear] = React.useState(false)
   const dialogRef = React.useRef<HTMLDivElement>(null)
+  const titleRef = React.useRef<HTMLSpanElement>(null)
   const previousFocusRef = React.useRef<HTMLElement | null>(null)
 
   const page = usePage<PageProps>()
@@ -149,7 +157,7 @@ export default function PileSheet({ open, onClose }: Props) {
   const storeSlug = store?.discogs_username
   const handoffAvailable = store?.handoff_available ?? false
 
-  const { isConnected, state, addToWantlist, wantlistResult, errorMessage, resetResult } = useShopperContext()
+  const { shopper, isConnected, state, addToWantlist, wantlistResult, errorMessage, resetResult } = useShopperContext()
 
   const total = pile.reduce((sum, l) => sum + (parseFloat(l.price) || 0), 0)
   const isInProgress = state === "creating"
@@ -162,12 +170,41 @@ export default function PileSheet({ open, onClose }: Props) {
     if (!open) return
 
     previousFocusRef.current = document.activeElement as HTMLElement | null
-    dialogRef.current?.focus()
+    titleRef.current?.focus()
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
+        event.preventDefault()
         setConfirmClear(false)
         onClose()
+        return
+      }
+
+      if (event.key !== "Tab") return
+
+      const dialog = dialogRef.current
+      if (!dialog) return
+
+      const focusable = Array.from(dialog.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ))
+
+      if (focusable.length === 0) {
+        event.preventDefault()
+        titleRef.current?.focus()
+        return
+      }
+
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+      const active = document.activeElement
+
+      if (event.shiftKey && (active === first || active === titleRef.current || !dialog.contains(active))) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && (active === last || !dialog.contains(active))) {
+        event.preventDefault()
+        first.focus()
       }
     }
 
@@ -175,13 +212,23 @@ export default function PileSheet({ open, onClose }: Props) {
 
     return () => {
       document.removeEventListener("keydown", handleKeyDown)
-      previousFocusRef.current?.focus?.()
+      if (previousFocusRef.current?.isConnected) {
+        previousFocusRef.current.focus()
+      } else {
+        returnFocusRef?.current?.focus()
+      }
     }
-  }, [open, onClose])
+  }, [open, onClose, returnFocusRef])
 
   React.useEffect(() => {
     if (!open) resetResult()
   }, [open, resetResult])
+
+  React.useEffect(() => {
+    if (!open || dialogRef.current?.contains(document.activeElement)) return
+
+    titleRef.current?.focus()
+  }, [open, pile.length, confirmClear, state])
 
   const handleSendToWantlist = async () => {
     if (!isConnected || !storeSlug) return
@@ -189,113 +236,104 @@ export default function PileSheet({ open, onClose }: Props) {
     await addToWantlist(items, storeSlug)
   }
 
+  if (!open) return null
+
   return (
-    <AnimatePresence>
-      {open && (
-        <>
-          <motion.div
-            className="fixed inset-0 bg-black/50 z-40"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            aria-hidden="true"
-          />
+    <>
+      <motion.div
+        className="fixed inset-0 bg-black/50 z-40"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        onClick={onClose}
+        aria-hidden="true"
+      />
 
-          <motion.div
-            ref={dialogRef}
-            id="pile-sheet"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="pile-sheet-title"
-            tabIndex={-1}
-            className={
-              isCompact
-                ? "fixed bottom-0 left-0 right-0 z-50 bg-mc-bg border-t border-mc-border rounded-t-2xl max-h-[85vh] flex flex-col"
-                : "fixed top-0 right-0 bottom-0 z-50 bg-mc-bg border-l border-mc-border w-96 flex flex-col"
-            }
-            initial={isCompact ? { y: "100%" } : { x: "100%" }}
-            animate={isCompact ? { y: 0 } : { x: 0 }}
-            exit={isCompact ? { y: "100%" } : { x: "100%" }}
-            transition={springDrawer}
-          >
-            {isCompact && (
-              <div className="w-12 h-1.5 bg-mc-border rounded-full mx-auto my-3 flex-shrink-0" />
-            )}
-
-            {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-mc-border flex-shrink-0">
-              <div className="flex items-center gap-3">
-                <span id="pile-sheet-title" className="text-sm font-semibold">
-                  Your pile {pile.length > 0 && <span className="text-mc-text-dim font-normal">· {pile.length} records</span>}
-                </span>
-                {pile.length > 0 && (
-                  confirmClear
-                    ? (
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-mc-text-dim">Sure?</span>
-                        <button onClick={() => { clearPile(); setConfirmClear(false) }} className="text-xs text-mc-accent hover:opacity-80 transition-opacity">Yes</button>
-                        <button onClick={() => setConfirmClear(false)} className="text-xs text-mc-text-dim hover:text-mc-text transition-colors">No</button>
-                      </div>
-                    )
-                    : (
-                      <button onClick={() => setConfirmClear(true)} className="text-xs text-mc-text-dim hover:text-mc-text transition-colors" aria-label={`Clear ${pile.length} records from pile`}>
-                        Clear
-                      </button>
-                    )
-                )}
-              </div>
-              <button onClick={() => { setConfirmClear(false); onClose() }} className="text-mc-text-dim hover:text-mc-text transition-colors text-lg leading-none" aria-label="Close pile">×</button>
-            </div>
-
-            {/* Records list */}
-            <div className="flex-1 overflow-y-auto">
-              {pile.length === 0
-                ? <div className="py-16 text-center text-sm text-mc-text-dim">No records in your pile yet.</div>
-                : (
-                  <ul>
-                    {pile.map((listing) => (
-                      <PileRecordItem key={listing.id} listing={listing} onRemove={removeFromPile} />
-                    ))}
-                  </ul>
-                )
-              }
-            </div>
-
-            {/* Footer */}
+      <motion.div
+        ref={dialogRef}
+        id="pile-sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="pile-sheet-title"
+        className={
+          isCompact
+            ? "fixed inset-0 z-50 h-dvh bg-mc-bg flex flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
+            : "fixed top-0 right-0 bottom-0 z-50 bg-mc-bg border-l border-mc-border w-96 flex flex-col"
+        }
+        initial={isCompact ? { y: "100%" } : { x: "100%" }}
+        animate={isCompact ? { y: 0 } : { x: 0 }}
+        transition={springDrawer}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-mc-border flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <span ref={titleRef} id="pile-sheet-title" tabIndex={-1} className="text-sm font-semibold outline-none">
+              Your pile {pile.length > 0 && <span className="text-mc-text-dim font-normal">· {pile.length} records</span>}
+            </span>
             {pile.length > 0 && (
-              <div className="flex-shrink-0 px-4 py-4 border-t border-mc-border flex flex-col gap-3">
-                {showResult && (
-                  <WantlistResultView
-                    result={wantlistResult!}
-                    storeName={store?.name ?? null}
-                    onDismiss={resetResult}
-                  />
-                )}
-                {showError && (
-                  <WantlistErrorView message={errorMessage} onRetry={resetResult} />
-                )}
-                {isInProgress && (
-                  <WantlistInProgressView count={pile.length} />
-                )}
-                {showHandoffAction && (
-                  <WantlistHandoffAction storeName={store?.name ?? null} onSend={handleSendToWantlist} />
-                )}
-                {showDisconnectedCta && storeSlug && (
-                  <DisconnectedCta storeName={store?.name ?? null} storeSlug={storeSlug} />
-                )}
-
-                {state === "idle" && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-mc-text-dim uppercase tracking-wider">Total</span>
-                    <span className="text-sm font-semibold">{formatPriceValue(total.toFixed(2), pile[0]?.currency)}</span>
+              confirmClear
+                ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-mc-text-dim">Sure?</span>
+                    <button onClick={() => { clearPile(); setConfirmClear(false) }} className="inline-flex min-h-11 min-w-11 items-center justify-center px-2 text-xs text-mc-accent transition-opacity hover:opacity-80">Yes</button>
+                    <button onClick={() => setConfirmClear(false)} className="inline-flex min-h-11 min-w-11 items-center justify-center px-2 text-xs text-mc-text-dim transition-colors hover:text-mc-text">No</button>
                   </div>
-                )}
-              </div>
+                )
+                : (
+                  <button onClick={() => setConfirmClear(true)} className="inline-flex min-h-11 min-w-11 items-center justify-center px-2 text-xs text-mc-text-dim transition-colors hover:text-mc-text" aria-label={`Clear ${pile.length} records from pile`}>
+                    Clear
+                  </button>
+                )
             )}
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+          </div>
+          <button onClick={() => { setConfirmClear(false); onClose() }} className="inline-flex h-11 w-11 items-center justify-center text-lg leading-none text-mc-text-dim transition-colors hover:text-mc-text" aria-label="Close pile">×</button>
+        </div>
+
+        {/* Records list */}
+        <div className="flex-1 overflow-y-auto">
+          {pile.length === 0
+            ? <div className="py-16 text-center text-sm text-mc-text-dim">No records in your pile yet.</div>
+            : (
+              <ul>
+                {pile.map((listing) => (
+                  <PileRecordItem key={listing.id} listing={listing} onRemove={removeFromPile} />
+                ))}
+              </ul>
+            )
+          }
+        </div>
+
+        {/* Footer */}
+        {pile.length > 0 && (
+          <div className="flex-shrink-0 px-4 py-4 border-t border-mc-border flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-mc-text-dim uppercase tracking-wider">Total</span>
+              <span className="text-sm font-semibold">{formatPriceValue(total.toFixed(2), pile[0]?.currency)}</span>
+            </div>
+            {isConnected && shopper && (
+              <ConnectedAccount username={shopper.discogs_username} />
+            )}
+            {showResult && (
+              <WantlistResultView
+                result={wantlistResult!}
+                storeName={store?.name ?? null}
+                onDismiss={resetResult}
+              />
+            )}
+            {showError && (
+              <WantlistErrorView message={errorMessage} onRetry={resetResult} />
+            )}
+            {isInProgress && (
+              <WantlistInProgressView count={pile.length} />
+            )}
+            {showHandoffAction && (
+              <WantlistHandoffAction storeName={store?.name ?? null} onSend={handleSendToWantlist} />
+            )}
+            {showDisconnectedCta && storeSlug && (
+              <DisconnectedCta storeName={store?.name ?? null} storeSlug={storeSlug} />
+            )}
+          </div>
+        )}
+      </motion.div>
+    </>
   )
 }

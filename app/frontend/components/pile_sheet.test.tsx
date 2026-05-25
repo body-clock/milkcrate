@@ -1,5 +1,5 @@
 import React from "react"
-import { describe, expect, it, vi, beforeEach } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import PileSheet from "./pile_sheet"
@@ -8,6 +8,10 @@ import { ViewportProvider } from "../contexts/viewport_context"
 import { ShopperProvider } from "../contexts/shopper_context"
 import { renderWithTier } from "../test/viewport-test-utils"
 import type { Listing } from "../types/inertia"
+
+const mockedPage = vi.hoisted(() => ({
+  shopper: { discogs_username: "shopper1" } as { discogs_username: string } | null,
+}))
 
 // Mock usePage to provide store context
 vi.mock("@inertiajs/react", async () => {
@@ -21,7 +25,7 @@ vi.mock("@inertiajs/react", async () => {
           name: "Test Store",
           handoff_available: true,
         },
-        shopper: { discogs_username: "shopper1" },
+        shopper: mockedPage.shopper,
       },
     }),
   }
@@ -29,6 +33,11 @@ vi.mock("@inertiajs/react", async () => {
 
 beforeEach(() => {
   localStorage.clear()
+  mockedPage.shopper = { discogs_username: "shopper1" }
+})
+
+afterEach(() => {
+  vi.unstubAllGlobals()
 })
 
 let nextId = 1000
@@ -95,6 +104,29 @@ describe("PileSheet", () => {
       expect(dialog).toHaveAttribute("aria-labelledby", "pile-sheet-title")
       const title = document.getElementById("pile-sheet-title")
       expect(title).toBeInTheDocument()
+    })
+
+    it("focuses the static pile title when the dialog opens", async () => {
+      renderPileSheet([makeListing()])
+
+      const title = document.getElementById("pile-sheet-title")
+      await waitFor(() => expect(title).toHaveFocus())
+      expect(title).toHaveAttribute("tabindex", "-1")
+    })
+
+    it("contains forward and reverse tab navigation inside the dialog", async () => {
+      const user = userEvent.setup()
+      renderPileSheet([makeListing()])
+
+      const dialog = screen.getByRole("dialog")
+      const focusable = Array.from(dialog.querySelectorAll<HTMLElement>("a[href], button:not([disabled])"))
+      focusable.at(-1)?.focus()
+      await user.tab()
+      expect(dialog).toContainElement(document.activeElement as HTMLElement)
+
+      focusable[0]?.focus()
+      await user.tab({ shift: true })
+      expect(dialog).toContainElement(document.activeElement as HTMLElement)
     })
 
     it("closes on Escape key", async () => {
@@ -222,6 +254,17 @@ describe("PileSheet", () => {
         expect(screen.getByText(/no records in your pile yet/i)).toBeInTheDocument()
       })
     })
+
+    it("keeps focus inside the modal after removing the focused final record", async () => {
+      const user = userEvent.setup()
+      renderPileSheet([makeListing({ title: "Last Record" })])
+
+      await user.click(await screen.findByRole("button", { name: "Remove Last Record from pile" }))
+
+      const dialog = screen.getByRole("dialog")
+      await waitFor(() => expect(dialog).toContainElement(document.activeElement as HTMLElement))
+      expect(document.getElementById("pile-sheet-title")).toHaveFocus()
+    })
   })
 
   describe("total calculation", () => {
@@ -258,6 +301,15 @@ describe("PileSheet", () => {
       await waitFor(() => {
         expect(screen.getByText("Total")).toBeInTheDocument()
       })
+    })
+
+    it("places the total before the Discogs handoff action", async () => {
+      renderPileSheet([makeListing()])
+
+      const totalLabel = await screen.findByText("Total")
+      const action = await screen.findByRole("button", { name: "Send to Discogs Wantlist" })
+
+      expect(totalLabel.compareDocumentPosition(action) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     })
   })
 
@@ -320,11 +372,26 @@ describe("PileSheet", () => {
       renderPileSheet([])
       expect(screen.queryByText("Clear")).toBeNull()
     })
+
+    it("uses touch-sized targets for remove, clear confirmation, and close actions", async () => {
+      const user = userEvent.setup()
+      renderPileSheet([makeListing()])
+
+      expect(await screen.findByRole("button", { name: /remove.*pile/i })).toHaveClass("h-11", "w-11")
+      expect(screen.getByRole("button", { name: "Close pile" })).toHaveClass("h-11", "w-11")
+
+      const clear = screen.getByRole("button", { name: /clear.*pile/i })
+      expect(clear).toHaveClass("min-h-11", "min-w-11")
+      await user.click(clear)
+
+      expect(screen.getByRole("button", { name: "Yes" })).toHaveClass("min-h-11", "min-w-11")
+      expect(screen.getByRole("button", { name: "No" })).toHaveClass("min-h-11", "min-w-11")
+    })
   })
 
   describe("responsive layout", () => {
-    it("renders as bottom-sheet in compact tier", () => {
-      const { container } = renderWithTier(
+    it("renders as a full-screen safe-area workflow in compact tier", () => {
+      renderWithTier(
         "compact",
         <ShopperProvider>
           <PileProvider>
@@ -334,7 +401,10 @@ describe("PileSheet", () => {
       )
 
       const dialog = screen.getByRole("dialog")
-      expect(dialog.className).toContain("bottom-0")
+      expect(dialog).toHaveClass("inset-0", "h-dvh")
+      expect(dialog).not.toHaveClass("max-h-[85vh]", "rounded-t-2xl")
+      expect(dialog.className).toContain("pt-[env(safe-area-inset-top)]")
+      expect(dialog.className).toContain("pb-[env(safe-area-inset-bottom)]")
     })
 
     it("renders as side-panel in wide tier", () => {
@@ -351,8 +421,8 @@ describe("PileSheet", () => {
       expect(dialog.className).toContain("right-0")
     })
 
-    it("shows drag handle bar in compact tier", () => {
-      const { container } = renderWithTier(
+    it("does not show the obsolete bottom-sheet drag handle in compact tier", () => {
+      renderWithTier(
         "compact",
         <ShopperProvider>
           <PileProvider>
@@ -363,7 +433,7 @@ describe("PileSheet", () => {
 
       const dialog = screen.getByRole("dialog")
       const handle = dialog.querySelector(".w-12")
-      expect(handle).toBeInTheDocument()
+      expect(handle).toBeNull()
     })
 
     it("does not show drag handle in wide tier", () => {
@@ -419,6 +489,44 @@ describe("PileSheet", () => {
       await waitFor(() => {
         expect(screen.getByText(/Get these records from/)).toBeInTheDocument()
       })
+    })
+
+    it("shows connected account status and an explicit disconnect action in a populated pile", async () => {
+      renderPileSheet([makeListing()])
+
+      await waitFor(() => {
+        expect(screen.getByText(/Connected to Discogs as @shopper1/)).toBeInTheDocument()
+        expect(screen.getByRole("button", { name: "Disconnect" })).toBeInTheDocument()
+      })
+    })
+
+    it("announces the Wantlist result without making record review live", async () => {
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ wantlist_url: null, added: 1, skipped: 0 }),
+      }))
+      const user = userEvent.setup()
+      renderPileSheet([makeListing()])
+
+      await user.click(await screen.findByRole("button", { name: "Send to Discogs Wantlist" }))
+
+      const result = await screen.findByRole("status")
+      expect(result).toHaveAttribute("aria-live", "polite")
+      expect(result).toHaveTextContent("1 release added to your Wantlist")
+      expect(screen.getByRole("list")).not.toHaveAttribute("aria-live")
+    })
+
+    it("only presents the connect form for a populated eligible disconnected pile", async () => {
+      mockedPage.shopper = null
+      renderPileSheet([makeListing()])
+
+      await waitFor(() => {
+        expect(screen.getByRole("button", { name: "Connect with Discogs" })).toBeInTheDocument()
+      })
+
+      const form = screen.getByRole("button", { name: "Connect with Discogs" }).closest("form")
+      expect(form?.querySelector("input[name='store_slug']")).toHaveAttribute("value", "test-store")
+      expect(screen.queryByRole("button", { name: "Disconnect" })).not.toBeInTheDocument()
     })
 
     it("does not show old cart button", async () => {
