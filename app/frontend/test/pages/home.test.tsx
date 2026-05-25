@@ -28,25 +28,34 @@ vi.mock("@inertiajs/react", () => ({
 }))
 
 const copy = {
-  headline: "Your Discogs inventory, now a storefront.",
+  headline: "Browse Discogs like a record store, not an inventory.",
   subhead:
-    "Milkcrate turns your existing Discogs listings into a warm, browsable record shop that you can share in seconds.",
+    "Curated crates from real record stores. Flip through picks, explore genre bins, and discover records you won't find through search alone.",
   cta_demo: "See the demo \u2192",
-  cta_apply: "Get your store on Milkcrate",
-  footnote: "Early access. We handle the setup.",
+  hero_subhead: "Browse curated crates from real record stores. No account needed.",
   steps: {
-    step1_title: "Share your Discogs",
-    step1_body: "Tell us your Discogs username. That\u2019s it.",
-    step2_title: "We sync & curate",
-    step2_body: "Your inventory becomes curated crates \u2014 picks, featured, genre bins.",
+    step1_title: "Connect with Discogs",
+    step1_body: "Authorize with Discogs to claim your storefront. We'll sync your full inventory automatically.",
+    step2_title: "We curate & organize",
+    step2_body: "Your inventory becomes curated crates \u2014 picks, featured, genre bins. A browsable storefront in minutes.",
     step3_title: "Share your store",
-    step3_body: "One link. Your customers browse like they\u2019re in the shop.",
+    step3_body: "One link. Your customers browse like they\u2019re in the shop. Share it anywhere.",
   },
   preview_label: "Flip Through Milkcrate Picks",
-  record_fair_title: "Bring your store to the next record fair",
-  record_fair_body:
-    "QR codes on cards, bags, and signage turn foot traffic into return visitors \u2014 long after the fair ends.",
-  store_character_title: "Your inventory, curated like a real shop",
+  store_character_title: "Your shop. Crated for browsing.",
+  seller_section_title: "Want this for your store?",
+  seller_section_body: "Enter your Discogs username to see if your store is eligible.",
+  seller_input_label: "Discogs username",
+  seller_input_placeholder: "philadelphiamusic",
+  seller_submit: "Check availability",
+  seller_preview_claim: "Claim with Discogs",
+  seller_not_found: "We couldn't find this username on Discogs.",
+  seller_already_active: "This store is already on Milkcrate!",
+  seller_applicant_exists: "This seller has already applied.",
+  seller_waitlist_fallback: "Or apply via waitlist",
+  seller_min_listings: "Milkcrate requires at least 500 listings to create a storefront.",
+  seller_lookup_error: "Something went wrong. Please try again.",
+  bottom_signoff: "Start browsing or claim your store.",
 }
 
 function makePreview(overrides: Partial<HomepagePreview> = {}): HomepagePreview {
@@ -61,9 +70,9 @@ function makePreview(overrides: Partial<HomepagePreview> = {}): HomepagePreview 
 // ── Emoji regression characters ──────────────────────────────
 const emojiChars = ["🥛", "📀", "👀", "📦"]
 
-describe("Home page — vendor-facing rebuild", () => {
+describe("Home page — shopper-first redesign", () => {
   describe("hero section", () => {
-    it("renders a vendor-first H1 heading", () => {
+    it("renders a shopper-first H1 heading", () => {
       render(<Home copy={copy} preview={makePreview()} />)
 
       expect(
@@ -74,7 +83,6 @@ describe("Home page — vendor-facing rebuild", () => {
     it("does not render the milk emoji in the hero", () => {
       render(<Home copy={copy} preview={makePreview()} />)
 
-      // The hero area must not include any emoji glyphs
       const hero = document.querySelector("[aria-labelledby]")
       const textContent = hero?.textContent ?? ""
       for (const emoji of emojiChars) {
@@ -82,27 +90,23 @@ describe("Home page — vendor-facing rebuild", () => {
       }
     })
 
-    it("renders the primary CTA linking to /apply", () => {
-      render(<Home copy={copy} preview={makePreview()} />)
-
-      // There are multiple CTAs with the same text (hero + final section).
-      const ctas = screen.getAllByRole("link", { name: copy.cta_apply })
-      expect(ctas.length).toBeGreaterThanOrEqual(1)
-      expect(ctas[0]).toHaveAttribute("href", "/apply")
-    })
-
     it("renders the demo CTA linking to the demo store", () => {
       render(<Home copy={copy} preview={makePreview()} />)
 
-      // With a real store slug, the demo CTA should link to that store
       const demoLink = screen.getByRole("link", { name: copy.cta_demo })
       expect(demoLink).toHaveAttribute("href", "/philadelphiamusic")
     })
 
-    it("renders the footnote", () => {
+    it("does not render a 'Get your store' button in the hero", () => {
       render(<Home copy={copy} preview={makePreview()} />)
 
-      expect(screen.getByText(copy.footnote)).toBeInTheDocument()
+      expect(screen.queryByText("Get your store on Milkcrate")).not.toBeInTheDocument()
+    })
+
+    it("does not render the old footnote", () => {
+      render(<Home copy={copy} preview={makePreview()} />)
+
+      expect(screen.queryByText("Early access. We handle the setup.")).not.toBeInTheDocument()
     })
   })
 
@@ -152,8 +156,6 @@ describe("Home page — vendor-facing rebuild", () => {
         <Home copy={copy} preview={preview} />
       )
 
-      // The picks crate name should appear in the preview section.
-      // (It also appears in the store character section; getAllByText avoids ambiguity.)
       expect(screen.getAllByText("Milkcrate Picks").length).toBeGreaterThanOrEqual(1)
     })
 
@@ -162,27 +164,7 @@ describe("Home page — vendor-facing rebuild", () => {
 
       render(<Home copy={copy} preview={preview} />)
 
-      // When there's no preview data, the section should still render
-      // with a CTA instead of crate shelves
       expect(screen.getByText(copy.preview_label)).toBeInTheDocument()
-    })
-  })
-
-  describe("onboarding steps", () => {
-    it("renders all three onboarding step titles", () => {
-      render(<Home copy={copy} preview={makePreview()} />)
-
-      expect(screen.getByText(copy.steps.step1_title)).toBeInTheDocument()
-      expect(screen.getByText(copy.steps.step2_title)).toBeInTheDocument()
-      expect(screen.getByText(copy.steps.step3_title)).toBeInTheDocument()
-    })
-
-    it("renders onboarding step body text", () => {
-      render(<Home copy={copy} preview={makePreview()} />)
-
-      expect(screen.getByText(copy.steps.step1_body)).toBeInTheDocument()
-      expect(screen.getByText(copy.steps.step2_body)).toBeInTheDocument()
-      expect(screen.getByText(copy.steps.step3_body)).toBeInTheDocument()
     })
   })
 
@@ -195,7 +177,7 @@ describe("Home page — vendor-facing rebuild", () => {
       ).toBeInTheDocument()
     })
 
-    it("does not use emoji as decorative icons in the store character section", () => {
+    it("does not use emoji as decorative icons", () => {
       render(<Home copy={copy} preview={makePreview()} />)
 
       const body = document.body.textContent ?? ""
@@ -217,17 +199,70 @@ describe("Home page — vendor-facing rebuild", () => {
     })
   })
 
-  describe("record-fair callout", () => {
-    it("renders the record-fair title near the final CTA", () => {
+  describe("seller OAuth section", () => {
+    it("renders the seller section title", () => {
       render(<Home copy={copy} preview={makePreview()} />)
 
-      expect(screen.getByText(copy.record_fair_title)).toBeInTheDocument()
+      expect(screen.getByText(copy.seller_section_title)).toBeInTheDocument()
     })
 
-    it("renders the record-fair body text", () => {
+    it("renders the Discogs username input", () => {
       render(<Home copy={copy} preview={makePreview()} />)
 
-      expect(screen.getByText(copy.record_fair_body)).toBeInTheDocument()
+      expect(screen.getByLabelText(copy.seller_input_label)).toBeInTheDocument()
+    })
+
+    it("renders the submit button", () => {
+      render(<Home copy={copy} preview={makePreview()} />)
+
+      expect(screen.getByRole("button", { name: copy.seller_submit })).toBeInTheDocument()
+    })
+
+    it("renders a waitlist fallback link", () => {
+      render(<Home copy={copy} preview={makePreview()} />)
+
+      const fallback = screen.getByRole("link", { name: copy.seller_waitlist_fallback })
+      expect(fallback).toHaveAttribute("href", "/apply")
+    })
+  })
+
+  describe("onboarding steps", () => {
+    it("renders all three updated step titles", () => {
+      render(<Home copy={copy} preview={makePreview()} />)
+
+      expect(screen.getByText(copy.steps.step1_title)).toBeInTheDocument()
+      expect(screen.getByText(copy.steps.step2_title)).toBeInTheDocument()
+      expect(screen.getByText(copy.steps.step3_title)).toBeInTheDocument()
+    })
+
+    it("renders updated step body text", () => {
+      render(<Home copy={copy} preview={makePreview()} />)
+
+      expect(screen.getByText(copy.steps.step1_body)).toBeInTheDocument()
+      expect(screen.getByText(copy.steps.step2_body)).toBeInTheDocument()
+      expect(screen.getByText(copy.steps.step3_body)).toBeInTheDocument()
+    })
+  })
+
+  describe("bottom section", () => {
+    it("renders the bottom sign-off text", () => {
+      render(<Home copy={copy} preview={makePreview()} />)
+
+      expect(screen.getByText(copy.bottom_signoff)).toBeInTheDocument()
+    })
+
+    it("does not render the old final CTA section", () => {
+      render(<Home copy={copy} preview={makePreview()} />)
+
+      expect(screen.queryByText("We\u2019re onboarding stores one at a time. Tell us about yours and we\u2019ll be in touch.")).not.toBeInTheDocument()
+    })
+  })
+
+  describe("removed sections", () => {
+    it("does not render the record fair callout", () => {
+      render(<Home copy={copy} preview={makePreview()} />)
+
+      expect(screen.queryByText("Bring your store to the next record fair")).not.toBeInTheDocument()
     })
   })
 
@@ -245,7 +280,6 @@ describe("Home page — vendor-facing rebuild", () => {
     it("does not use the milk emoji as a hero icon", () => {
       render(<Home copy={copy} preview={makePreview()} />)
 
-      // The milk emoji glyph (🥛) must not appear anywhere in the DOM
       expect(document.body.innerHTML).not.toContain("🥛")
     })
   })
@@ -257,7 +291,6 @@ describe("Home page — vendor-facing rebuild", () => {
         <Home copy={copy} preview={makePreview()} />
       )
 
-      // The page should render without crashing at compact
       expect(container).toBeInTheDocument()
       expect(screen.getByRole("heading", { name: copy.headline })).toBeInTheDocument()
     })
@@ -290,8 +323,8 @@ describe("Home page — vendor-facing rebuild", () => {
       const demoLinks = screen.getAllByRole("link", { name: copy.cta_demo })
       expect(demoLinks.length).toBeGreaterThanOrEqual(1)
 
-      const applyLinks = screen.getAllByRole("link", { name: copy.cta_apply })
-      expect(applyLinks.length).toBeGreaterThanOrEqual(1)
+      const fallbackLink = screen.getByRole("link", { name: copy.seller_waitlist_fallback })
+      expect(fallbackLink).toBeInTheDocument()
     })
 
     it("sections have meaningful headings", () => {
@@ -300,16 +333,22 @@ describe("Home page — vendor-facing rebuild", () => {
       const headings = screen.getAllByRole("heading")
       expect(headings.length).toBeGreaterThan(1)
 
-      // The H1 (hero) should be the first heading
       expect(headings[0]).toHaveTextContent(copy.headline)
     })
 
-    it("focus order follows visual order (CTA links are keyboard reachable)", () => {
+    it("focus order follows visual order (links are keyboard reachable)", () => {
       render(<Home copy={copy} preview={makePreview()} />)
 
-      // All CTA links must be in the document and reachable
-      const ctaLinks = screen.getAllByRole("link")
-      expect(ctaLinks.length).toBeGreaterThanOrEqual(2)
+      const links = screen.getAllByRole("link")
+      expect(links.length).toBeGreaterThanOrEqual(2)
+    })
+
+    it("seller input has an associated label", () => {
+      render(<Home copy={copy} preview={makePreview()} />)
+
+      const input = screen.getByLabelText(copy.seller_input_label)
+      expect(input).toHaveAttribute("type", "text")
+      expect(input).toHaveAttribute("id", "seller-discogs-username")
     })
   })
 })
