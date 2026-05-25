@@ -7,7 +7,9 @@ import { formatPriceValue } from "@/lib/format_price"
 
 const DISCOGS_CART_BASE = "https://www.discogs.com/sell/cart"
 const ADD_INTERVAL_MS = 800
-const CART_REDIRECT_DELAY_MS = 2000
+const SETTLE_DELAY_MS = 2000
+
+type CartState = "idle" | "adding" | "done"
 
 interface Props {
   open: boolean
@@ -18,7 +20,7 @@ export default function PileSheet({ open, onClose }: Props) {
   const { pile, removeFromPile, clearPile } = usePileContext()
   const { isCompact } = useViewport()
   const [confirmClear, setConfirmClear] = React.useState(false)
-  const [addingToCart, setAddingToCart] = React.useState(false)
+  const [cartState, setCartState] = React.useState<CartState>("idle")
   const dialogRef = React.useRef<HTMLDivElement>(null)
   const previousFocusRef = React.useRef<HTMLElement | null>(null)
 
@@ -45,23 +47,28 @@ export default function PileSheet({ open, onClose }: Props) {
     }
   }, [open, onClose])
 
+  // Reset cart state when pile changes or sheet closes
+  React.useEffect(() => {
+    if (!open || pile.length === 0) setCartState("idle")
+  }, [open, pile.length])
+
   const handleAddAllToCart = () => {
     const ids = pile.map((l) => l.discogs_listing_id)
     if (ids.length === 0) return
 
-    setAddingToCart(true)
+    setCartState("adding")
 
-    // Open a single popup that navigates through each add URL
+    // Open an offscreen popup that cycles through each add URL
+    // The adds work because the popup shares the browser's Discogs session cookie
     const popup = window.open(
       `${DISCOGS_CART_BASE}/?add=${ids[0]}`,
       "discogs-cart",
-      "width=500,height=600,left=100,top=100"
+      "width=1,height=1,left=-1000,top=-1000"
     )
 
     if (!popup) {
-      // Popup blocked — fall back: open the cart so user can add manually
       window.open(DISCOGS_CART_BASE, "_blank")
-      setAddingToCart(false)
+      setCartState("idle")
       return
     }
 
@@ -70,17 +77,19 @@ export default function PileSheet({ open, onClose }: Props) {
     const interval = setInterval(() => {
       if (i >= ids.length || popup.closed) {
         clearInterval(interval)
-        // Wait for the last add to settle, then open cart in a fresh tab
         setTimeout(() => {
-          setAddingToCart(false)
           if (!popup.closed) popup.close()
-          window.open(DISCOGS_CART_BASE, "_blank")
-        }, CART_REDIRECT_DELAY_MS)
+          setCartState("done")
+        }, SETTLE_DELAY_MS)
         return
       }
       popup.location.href = `${DISCOGS_CART_BASE}/?add=${ids[i]}`
       i++
     }, ADD_INTERVAL_MS)
+  }
+
+  const handleOpenCart = () => {
+    window.open(DISCOGS_CART_BASE, "_blank")
   }
 
   return (
@@ -212,21 +221,43 @@ export default function PileSheet({ open, onClose }: Props) {
             {/* Footer */}
             {pile.length > 0 && (
               <div className="flex-shrink-0 px-4 py-4 border-t border-mc-border flex flex-col gap-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-mc-text-dim uppercase tracking-wider">Total</span>
-                  <span className="text-sm font-semibold">{formatPriceValue(total.toFixed(2), pile[0]?.currency)}</span>
-                </div>
-                <button
-                  onClick={handleAddAllToCart}
-                  disabled={addingToCart}
-                  className="w-full mc-btn mc-btn-primary py-2.5 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  {addingToCart ? "Adding to cart…" : "Add all to Discogs cart"}
-                </button>
-                {addingToCart && (
-                  <p className="text-[11px] text-mc-text-dim text-center">
-                    Adding {pile.length} items to your cart on Discogs…
-                  </p>
+                {cartState === "done" ? (
+                  <div className="flex flex-col gap-2">
+                    <p className="text-xs text-emerald-500 font-medium">
+                      ✓ {pile.length} items added to your cart
+                    </p>
+                    <button
+                      onClick={handleOpenCart}
+                      className="w-full mc-btn mc-btn-primary py-2.5 text-sm"
+                    >
+                      Open cart on Discogs ↗
+                    </button>
+                    <button
+                      onClick={() => setCartState("idle")}
+                      className="w-full mc-btn py-2.5 text-sm"
+                    >
+                      Keep browsing
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-mc-text-dim uppercase tracking-wider">Total</span>
+                      <span className="text-sm font-semibold">{formatPriceValue(total.toFixed(2), pile[0]?.currency)}</span>
+                    </div>
+                    <button
+                      onClick={handleAddAllToCart}
+                      disabled={cartState === "adding"}
+                      className="w-full mc-btn mc-btn-primary py-2.5 text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      {cartState === "adding" ? "Adding to cart…" : "Add all to Discogs cart"}
+                    </button>
+                    {cartState === "adding" && (
+                      <p className="text-[11px] text-mc-text-dim text-center">
+                        Adding {pile.length} items to your cart…
+                      </p>
+                    )}
+                  </>
                 )}
               </div>
             )}
