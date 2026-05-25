@@ -1,6 +1,6 @@
 import React from "react"
 import { describe, expect, it, vi } from "vitest"
-import { render, screen, waitFor } from "@testing-library/react"
+import { render, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import Home from "../../pages/home"
 import Apply from "../../pages/apply"
@@ -227,6 +227,10 @@ describe("page smoke tests", () => {
 
   it("hides store description after entering a crate", async () => {
     const user = userEvent.setup()
+    Object.defineProperty(window, "innerWidth", {
+      configurable: true,
+      value: 390,
+    })
     const props: StoreShowProps = {
       ...storeShowProps,
       crates: [
@@ -296,6 +300,8 @@ describe("page smoke tests", () => {
 
     expect(screen.queryByText("Independent record store in South Philly.")).not.toBeInTheDocument()
     expect(screen.queryByText("120 vinyl listings")).not.toBeInTheDocument()
+    expect(within(screen.getByRole("banner")).getByRole("button", { name: "Back to store" })).toBeInTheDocument()
+    expect(within(screen.getByRole("main")).queryByRole("button", { name: "Back to store" })).not.toBeInTheDocument()
   })
 
   describe("invitation page", () => {

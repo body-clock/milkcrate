@@ -7,6 +7,9 @@ demo_store:
 
 discogs:
   username_pattern: "[a-zA-Z0-9][a-zA-Z0-9_-]*[a-zA-Z0-9]"
+  # Bypass the minimum listing requirement for testing accounts.
+  minimum_listing_exemptions:
+    - lil_blizzard
 
 mail:
   from: patrick@milkcrate.fm
@@ -22,6 +25,8 @@ honeybadger:
 
 experiments:
   crate_size: 40
+
+features:
   # When true, these strategies are excluded from experiment crate generation.
   # The live storefront is unaffected.
   disable_desirability: false

@@ -14,6 +14,34 @@ import { PileProvider } from "../contexts/pile_context"
 import { ViewportProvider } from "../contexts/viewport_context"
 import type { Listing, Crate } from "../types/inertia"
 
+// PileSheet now uses usePage for the store slug; provide a default mock
+vi.mock("@inertiajs/react", async () => {
+  const actual = await vi.importActual("@inertiajs/react")
+  return {
+    ...actual,
+    usePage: () => ({
+      props: {
+        store: { discogs_username: "test-store" },
+        shopper: null,
+      },
+    }),
+  }
+})
+
+// PileSheet uses useShopperContext; provide a default mock
+vi.mock("../contexts/shopper_context", () => ({
+  useShopperContext: () => ({
+    shopper: null,
+    isConnected: false,
+    state: "idle",
+    addToWantlist: vi.fn(),
+    wantlistResult: null,
+    errorMessage: null,
+    resetResult: vi.fn(),
+  }),
+  ShopperProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}))
+
 const makeListing = (overrides: Partial<Listing> = {}): Listing => ({
   id: 1,
   discogs_listing_id: "abc",

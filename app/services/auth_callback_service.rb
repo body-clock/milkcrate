@@ -1,3 +1,4 @@
+# Handles the OAuth callback from Discogs after a user authorizes the application.
 class AuthCallbackService
   Result = Data.define(:store, :error) do
     def success? = error.nil?
@@ -66,7 +67,8 @@ class AuthCallbackService
   def create_store(slug, store_owner)
     profile = DiscogsClient.new.seller_profile(slug)
     name = profile["name"].presence || slug
-    Store.create!(discogs_username: slug, name:, store_owner:)
+    discogs_id = profile["id"] if profile["id"].is_a?(Integer)
+    Store.create!(discogs_username: slug, name:, store_owner:, discogs_user_id: discogs_id)
   rescue DiscogsClient::ApiError
     nil
   end

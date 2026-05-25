@@ -85,6 +85,15 @@ describe("CrateView", () => {
     expect(screen.queryByText("Independent record store in South Philly.")).not.toBeInTheDocument()
   })
 
+  it("leaves compact tabs and browsing controls in content when the storefront header owns crate identity", () => {
+    renderCrateView("compact", { compactHeaderOwnedByLayout: true })
+
+    expect(screen.queryByRole("button", { name: "Back to store" })).not.toBeInTheDocument()
+    expect(screen.queryByRole("heading", { name: "Jazz" })).not.toBeInTheDocument()
+    expect(screen.getByRole("tablist", { name: "Crates" })).toBeInTheDocument()
+    expect(screen.getByRole("progressbar", { name: "Record 1 of 3, front to deeper" })).toBeInTheDocument()
+  })
+
   it("keeps desktop details visible on wide viewports", () => {
     renderCrateView("wide")
 
@@ -260,6 +269,28 @@ describe("CrateView", () => {
     expect(screen.queryByRole("tablist", { name: "Crates" })).not.toBeInTheDocument()
   })
 
+  it("preserves compact empty-state tab guards when the storefront header owns crate identity", () => {
+    const emptyCrates: Crate[] = [
+      {
+        slug: "empty",
+        name: "Empty Crate",
+        count: 0,
+        records: [],
+      },
+    ]
+
+    renderCrateView("compact", {
+      crates: emptyCrates,
+      activeSlug: "empty",
+      compactHeaderOwnedByLayout: true,
+      hideTabs: true,
+    })
+
+    expect(screen.queryByRole("heading", { name: "Empty Crate" })).not.toBeInTheDocument()
+    expect(screen.getByText("No records in this crate yet.")).toBeInTheDocument()
+    expect(screen.queryByRole("tablist", { name: "Crates" })).not.toBeInTheDocument()
+  })
+
   it("renders no riffle controls in compact empty-crate state", () => {
     const emptyCrates: Crate[] = [
       {
@@ -281,6 +312,14 @@ describe("CrateView", () => {
   it("renders active crate heading and record count on wide viewports", () => {
     renderCrateView("wide")
 
+    expect(screen.getByRole("heading", { name: "Jazz" })).toBeInTheDocument()
+    expect(screen.getByText("3 records")).toBeInTheDocument()
+  })
+
+  it("keeps wide crate context in content even when compact identity is layout-owned", () => {
+    renderCrateView("wide", { compactHeaderOwnedByLayout: true })
+
+    expect(screen.getByRole("button", { name: "Back to store" })).toBeInTheDocument()
     expect(screen.getByRole("heading", { name: "Jazz" })).toBeInTheDocument()
     expect(screen.getByText("3 records")).toBeInTheDocument()
   })

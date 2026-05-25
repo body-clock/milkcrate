@@ -1,3 +1,4 @@
+# Manages the sync status lifecycle for a store (syncing, idle, failed).
 class StoreSync::StatusManager
   STALE_THRESHOLD = 23.hours
 

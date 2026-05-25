@@ -1,5 +1,8 @@
+# Namespace for crate selection strategies that power storefront crates.
 module CrateStrategies
   class NewArrivals
+    include SelectionPipeline
+
     WINDOWS     = [ 7, 14, 30, 90, 365 ].freeze
     MIN_RECORDS = 4
 
@@ -14,19 +17,12 @@ module CrateStrategies
       WINDOWS.each do |days|
         cutoff = days.days.ago
         recent = candidates.select { |listing| listing.listed_at.present? && listing.listed_at >= cutoff }
-        return scored_sorted(recent) if recent.size >= MIN_RECORDS
+        next if recent.size < MIN_RECORDS
+
+        return score_and_sort(recent, excluded_ids: Set.new, scorer: @scorer) { |c| c }
       end
 
-      scored_sorted(candidates)
-    end
-
-    private
-
-    def scored_sorted(listings)
-      listings
-        .map { |listing| [ listing, @scorer.score(listing) ] }
-        .sort_by { |_, s| -s }
-        .map(&:first)
+      score_and_sort(candidates, excluded_ids: Set.new, scorer: @scorer) { |c| c }
     end
   end
 end

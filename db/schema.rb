@@ -10,19 +10,19 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_23_003636) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_24_220452) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
-  create_table "daily_selections", force: :cascade do |t|
+  create_table "discogs_shoppers", force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.integer "listing_ids", default: [], array: true
-    t.date "selected_on", null: false
-    t.bigint "store_id", null: false
+    t.string "discogs_username", null: false
+    t.datetime "last_used_at"
+    t.text "oauth_token"
+    t.text "oauth_token_secret"
+    t.string "store_slug"
     t.datetime "updated_at", null: false
-    t.index ["listing_ids"], name: "index_daily_selections_on_listing_ids", using: :gin
-    t.index ["store_id", "selected_on"], name: "index_daily_selections_on_store_id_and_selected_on", unique: true
-    t.index ["store_id"], name: "index_daily_selections_on_store_id"
+    t.index ["discogs_username"], name: "index_discogs_shoppers_on_discogs_username", unique: true
   end
 
   create_table "listings", force: :cascade do |t|
@@ -230,7 +230,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_23_003636) do
     t.string "catalog_coverage", default: "unknown", null: false
     t.datetime "created_at", null: false
     t.text "description"
+    t.bigint "discogs_user_id"
     t.string "discogs_username"
+    t.integer "enrichment_progress_pct"
     t.string "enrichment_status", default: "idle", null: false
     t.integer "inventory_page_count", default: 0, null: false
     t.datetime "last_enriched_at"
@@ -239,10 +241,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_23_003636) do
     t.datetime "last_synced_at"
     t.string "name"
     t.bigint "store_owner_id"
+    t.integer "sync_progress_pct"
     t.string "sync_source", default: "public_api", null: false
     t.string "sync_status"
     t.integer "total_listings"
     t.datetime "updated_at", null: false
+    t.index ["discogs_user_id"], name: "index_stores_on_discogs_user_id", unique: true, where: "(discogs_user_id IS NOT NULL)"
     t.index ["discogs_username"], name: "index_stores_on_discogs_username", unique: true
     t.index ["store_owner_id"], name: "index_stores_on_store_owner_id"
   end
@@ -258,7 +262,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_23_003636) do
     t.index ["discogs_username"], name: "index_waitlists_on_discogs_username", unique: true
   end
 
-  add_foreign_key "daily_selections", "stores"
   add_foreign_key "listings", "stores"
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_claimed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade

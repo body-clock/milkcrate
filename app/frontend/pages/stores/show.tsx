@@ -20,6 +20,9 @@ export default function StoreShow({ store, crates, storefront_sections }: StoreS
     if (!storefront_sections?.length) return []
     return storefront_sections.flatMap((s) => ("crate" in s ? [s.crate] : s.crates))
   }, [crates, storefront_sections])
+  const activeCrate = activeSlug === null
+    ? null
+    : (allCrates.find((crate) => crate.slug === activeSlug) ?? allCrates[0])
 
   const handleSelectCrate = (slug: string, index = 0) => {
     setStartIndex(index)
@@ -44,7 +47,13 @@ export default function StoreShow({ store, crates, storefront_sections }: StoreS
   }, [])
 
   return (
-    <AppLayout>
+    <AppLayout
+      compactLocation={activeCrate ? {
+        name: activeCrate.name,
+        count: activeCrate.records.length,
+        onBack: () => history.back(),
+      } : undefined}
+    >
       {activeSlug === null && (store.description || store.total_listings) && (
         <motion.div
           initial={{ opacity: 0, y: -6 }}
@@ -134,6 +143,7 @@ export default function StoreShow({ store, crates, storefront_sections }: StoreS
           crates={allCrates}
           activeSlug={activeSlug}
           startIndex={startIndex}
+          compactHeaderOwnedByLayout
           onSelectCrate={handleSelectCrate}
           onBack={() => history.back()}
         />

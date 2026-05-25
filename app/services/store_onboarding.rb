@@ -1,3 +1,4 @@
+# Orchestrates the full store onboarding flow: OAuth, sync, and initial setup.
 class StoreOnboarding
   Result = Data.define(:store)
   Error = Class.new(StandardError)
@@ -16,7 +17,8 @@ class StoreOnboarding
 
     profile = client.seller_profile(discogs_username)
     name = profile["name"].presence || discogs_username
-    store = Store.create!(discogs_username:, name:)
+    discogs_id = profile["id"] if profile["id"].is_a?(Integer)
+    store = Store.create!(discogs_username:, name:, discogs_user_id: discogs_id)
 
     FullStoreSyncJob.perform_later(store.id)
 

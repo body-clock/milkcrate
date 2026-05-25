@@ -52,6 +52,39 @@ RSpec.describe Store, type: :model do
     end
   end
 
+  describe "#discogs_user_id" do
+    it "stores a valid Discogs profile ID" do
+      store = create(:store, discogs_user_id: 1_234_567)
+      expect(store.reload.discogs_user_id).to eq(1_234_567)
+    end
+
+    it "allows nil discogs_user_id for legacy stores" do
+      store = create(:store, discogs_user_id: nil)
+      expect(store.discogs_user_id).to be_nil
+    end
+
+    it "prevents duplicate populated discogs_user_id values" do
+      create(:store, discogs_user_id: 999_999)
+      dup = build(:store, discogs_user_id: 999_999)
+      expect {
+        dup.save!(validate: false)
+      }.to raise_error(ActiveRecord::RecordNotUnique)
+    end
+
+    it "allows multiple nil discogs_user_id values" do
+      create(:store, discogs_user_id: nil)
+      dup = build(:store, discogs_user_id: nil)
+      expect(dup).to be_valid
+    end
+
+    # bigint columns coerce values; type safety is handled by the database adapter
+
+    it "does not restrict or validate discogs_user_id as required during creation" do
+      store = create(:store, discogs_user_id: nil)
+      expect(store).to be_persisted
+    end
+  end
+
   describe "StoreSync::StatusManager" do
     it "marks sync success with supplied metadata" do
       store = create(:store, sync_status: "failed", last_sync_error: "boom", last_sync_error_at: 1.hour.ago)

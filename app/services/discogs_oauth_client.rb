@@ -1,3 +1,4 @@
+# Manages the Discogs OAuth 1.0a token flow (request, exchange, verify identity).
 class DiscogsOauthClient
   RequestTokenResult = Data.define(:request_token, :authorize_url)
   AccessTokenResult = Data.define(:access_token, :access_token_secret)

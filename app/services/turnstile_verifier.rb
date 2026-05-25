@@ -1,3 +1,4 @@
+# Verifies Cloudflare Turnstile captcha tokens for the waitlist signup flow.
 class TurnstileVerifier
   SITEVERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
   OPEN_TIMEOUT = 2

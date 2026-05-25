@@ -1,3 +1,4 @@
+# HTTP client for the MusicBrainz API (music metadata, release lookups).
 class MusicBrainzClient
   SEARCH_URL      = "https://musicbrainz.org/ws/2/"
   CAA_URL         = "https://coverartarchive.org"

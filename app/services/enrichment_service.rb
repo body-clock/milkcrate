@@ -1,9 +1,11 @@
+# Enriches listing metadata (genres, styles, images) from MusicBrainz and Discogs APIs.
 class EnrichmentService
   BATCH_SIZE = 50
 
-  def initialize(discogs: DiscogsClient.new, musicbrainz: MusicBrainzClient.new)
+  def initialize(discogs: DiscogsClient.new, musicbrainz: MusicBrainzClient.new, progress: nil)
     @discogs = discogs
     @musicbrainz = musicbrainz
+    @progress = progress
   end
 
   def enrich_store(store, listing_ids: nil)
@@ -48,9 +50,12 @@ class EnrichmentService
 
     Rails.logger.info "[EnrichmentService] #{enrich_ids.size} releases to enrich for store #{store.name} (stale: #{stale_release_ids.size}, downgraded: #{downgraded_release_ids.size}, overwritten: #{overwritten_release_ids.size})"
 
+    @progress&.total = enrich_ids.size
+
     enrich_ids.each_slice(BATCH_SIZE) do |batch|
       batch.each do |release_id|
         enrich_release(release_id, store)
+        @progress&.increment
       rescue DiscogsClient::ApiError => e
         Rails.logger.warn "[EnrichmentService] API error for release #{release_id}: #{e.message}"
       end

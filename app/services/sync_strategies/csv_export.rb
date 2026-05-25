@@ -1,4 +1,6 @@
+# Namespace for sync strategies (public API, CSV export).
 module SyncStrategies
+  # Sync strategy that imports listings from a Discogs CSV export via OAuth.
   class CsvExport
     class NotAuthorizedError < StandardError; end
 
@@ -6,7 +8,7 @@ module SyncStrategies
       @client = client
     end
 
-    def call(store, max_pages: nil)
+    def call(store, max_pages: nil, progress: nil)
       raise NotAuthorizedError, "Store #{store.discogs_username} has no store owner" unless store.store_owner
 
       client = @client || build_client(store)

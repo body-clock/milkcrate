@@ -1,3 +1,4 @@
+# Public-facing pages (home, about, waitlist).
 class PagesController < ApplicationController
   layout "inertia_application"
 

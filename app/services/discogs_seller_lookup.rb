@@ -1,3 +1,4 @@
+# Looks up a Discogs seller by username to verify they exist before onboarding.
 class DiscogsSellerLookup
   ROUTE_USERNAME_REGEX = /#{Settings.discogs.username_pattern}/
   VALID_USERNAME_REGEX = /\A#{Settings.discogs.username_pattern}\z/
@@ -51,12 +52,26 @@ class DiscogsSellerLookup
 
   def lookup_discogs
     profile = client.seller_profile(normalized_username)
+    slug = normalized_username
 
     {
       found: true,
       seller_name: profile["name"] || profile["username"],
-      avatar_url: profile["avatar_url"]
+      avatar_url: profile["avatar_url"],
+      slug: slug,
+      store_status: local_store_status(slug),
+      store_storefront_path: (store_path(slug) if Store.with_discogs_username(slug).exists?)
     }
+  end
+
+  def local_store_status(slug)
+    return "active_store" if Store.with_discogs_username(slug).exists?
+    return "active_applicant" if Waitlist.with_discogs_username(slug).exists?
+    "none"
+  end
+
+  def store_path(slug)
+    "/#{slug}"
   end
 
   def cache_key

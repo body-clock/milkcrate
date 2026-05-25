@@ -1,3 +1,4 @@
+# Builds the OAuth consumer for Discogs API authentication.
 class DiscogsOauthConsumer
   class ConfigurationError < StandardError; end
 

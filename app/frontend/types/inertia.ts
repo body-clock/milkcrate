@@ -9,6 +9,7 @@ export interface Store {
   enrichment_status: string
   last_enriched_at: string | null
   oauth_authorized?: boolean
+  handoff_available?: boolean
 }
 
 export interface Listing {
@@ -88,7 +89,9 @@ export interface AdminStoreSummary {
   total_listings: number | null
   inventory_page_count: number
   sync_status: string
+  sync_progress_pct: number | null
   enrichment_status: string
+  enrichment_progress_pct: number | null
   catalog_coverage: string
   last_synced_at: string | null
   last_enriched_at: string | null
@@ -129,6 +132,24 @@ export interface DashboardStore {
 export interface DashboardProps {
   store: DashboardStore
 }
+
+export type DiscogsLookupStoreStatus = "none" | "active_store" | "active_applicant"
+
+export interface DiscogsLookupSuccess {
+  found: true
+  seller_name: string
+  avatar_url: string
+  slug: string
+  store_status: DiscogsLookupStoreStatus
+  store_storefront_path?: string
+}
+
+export interface DiscogsLookupFailure {
+  found: false
+  reason: "invalid_slug" | "api_error"
+}
+
+export type DiscogsLookupResult = DiscogsLookupSuccess | DiscogsLookupFailure
 
 export interface AdminDashboardProps {
   active_stores: AdminStoreSummary[]

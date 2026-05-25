@@ -1,11 +1,13 @@
+# Fetches a store inventory from the Discogs API with pagination handling.
 class StoreSync::InventoryFetcher
   Result = Data.define(:listings, :pages_fetched, :total_pages)
 
   DISCOGS_PAGE_LIMIT_ERROR = "Pagination above 100"
 
-  def initialize(store, client: nil)
+  def initialize(store, client: nil, progress: nil)
     @store = store
     @client = client || DiscogsClient.new
+    @progress = progress
   end
 
   def fetch(sort_order: "desc", max_pages: nil)
@@ -32,6 +34,7 @@ class StoreSync::InventoryFetcher
       break if empty_page?(data)
 
       yield data, @pages_fetched
+      @progress&.increment
 
       break if last_page?(data, max_pages)
     end

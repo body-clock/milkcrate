@@ -1,3 +1,4 @@
+# Job that runs daily curation for a store (surfacing, cache pre-warm).
 class DailyCurationJob < ApplicationJob
   queue_as :default
 

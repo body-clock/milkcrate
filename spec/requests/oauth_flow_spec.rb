@@ -174,6 +174,16 @@ RSpec.describe "Discogs OAuth flow", type: :request do
         expect(store.discogs_oauth_token_secret).to eq("ats_456")
       end
 
+      it "persists the Discogs profile ID when seller profile has an id" do
+        allow(discogs_client).to receive(:seller_profile).with(slug)
+          .and_return({ "id" => 4_616_786, "name" => "Record Store" })
+
+        get "/auth/discogs/callback", params: { oauth_verifier: "v1" }
+
+        store = Store.find_by!(discogs_username: slug)
+        expect(store.discogs_user_id).to eq(4_616_786)
+      end
+
       it "marks the store as OAuth authorized" do
         get "/auth/discogs/callback", params: { oauth_verifier: "v1" }
 

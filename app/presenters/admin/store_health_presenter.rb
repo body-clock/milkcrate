@@ -1,4 +1,6 @@
+# Namespace for admin controllers and presenters.
 module Admin
+  # Serializes store health metrics for the admin monitoring view.
   class StoreHealthPresenter
     def initialize(store)
       @store = store
@@ -12,7 +14,9 @@ module Admin
         total_listings: store.total_listings,
         inventory_page_count: store.inventory_page_count,
         sync_status: store.sync_status,
+        sync_progress_pct: store.sync_progress_pct,
         enrichment_status: store.enrichment_status,
+        enrichment_progress_pct: store.enrichment_progress_pct,
         catalog_coverage: store.catalog_coverage,
         last_synced_at: iso_time(store.last_synced_at),
         last_enriched_at: iso_time(store.last_enriched_at),

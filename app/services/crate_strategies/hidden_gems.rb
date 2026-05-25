@@ -1,5 +1,8 @@
+# Namespace for crate selection strategies that power storefront crates.
 module CrateStrategies
   class HiddenGems
+    include SelectionPipeline
+
     MIN_RECORDS     = 4
     PER_GENRE_CAP   = 3
     MAX_ENGAGEMENT  = 100
@@ -11,25 +14,17 @@ module CrateStrategies
     end
 
     def select(pool, excluded_ids:)
-      candidates = pool.reject { |listing| excluded_ids.include?(listing.id) }
-      return [] if candidates.empty?
-
-      obscure = candidates.select { |listing|
-        whr = WantHaveRatio.new(listing.want_count.to_i, listing.have_count.to_i)
-        next false unless listing.cover_image_url.present? || listing.thumbnail_url.present?
-        whr.want >= MIN_WANTS && whr.total <= MAX_ENGAGEMENT && whr.want > whr.have
-      }
+      obscure = pool
+        .reject { |listing| excluded_ids.include?(listing.id) }
+        .select { |listing|
+          whr = WantHaveRatio.new(listing.want_count.to_i, listing.have_count.to_i)
+          next false unless listing.cover_image_url.present? || listing.thumbnail_url.present?
+          whr.want >= MIN_WANTS && whr.total <= MAX_ENGAGEMENT && whr.want > whr.have
+        }
       return [] if obscure.size < MIN_RECORDS
 
-      # Rank by pure RecordScorer score. The strategy selects candidates
-      # (low engagement, wants > haves, has image), then the scorer determines
-      # ordering just like every other crate strategy.
-      scored = obscure
-        .map { |listing| [ listing, @scorer.score(listing) ] }
-        .sort_by { |_, s| -s }
-        .map(&:first)
-
-      apply_genre_cap(scored)
+      score_and_sort(obscure, excluded_ids: Set.new, scorer: @scorer) { |candidates| candidates }
+        .then { |ranked| apply_genre_cap(ranked) }
     end
 
     private

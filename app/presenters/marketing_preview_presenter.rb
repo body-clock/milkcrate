@@ -1,3 +1,4 @@
+# Serializes marketing preview data for the storefront signup page.
 class MarketingPreviewPresenter
   # Caps to keep the homepage preview payload bounded — it must never ship
   # a full store payload or expensive unbounded curation result.

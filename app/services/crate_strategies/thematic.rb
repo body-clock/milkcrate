@@ -1,6 +1,7 @@
 require "digest"
 require "digest/md5"
 
+# Namespace for crate selection strategies that power storefront crates.
 module CrateStrategies
   class Thematic
     MIN_RECORDS = 4

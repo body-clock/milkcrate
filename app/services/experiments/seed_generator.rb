@@ -1,4 +1,6 @@
+# Namespace for A/B experiment support utilities.
 module Experiments
+  # Generates deterministic random seeds for A/B experiments based on user and date.
   class SeedGenerator
     class Error < StandardError; end
 

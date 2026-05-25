@@ -53,7 +53,7 @@ describe("oauth claim forms", () => {
     expect(form?.querySelector("input[name='authenticity_token']")).toHaveAttribute("value", "csrf-token-test")
   })
 
-  it("includes an authenticity token on the storefront claim form", () => {
+  it("renders the store view without persistent Discogs authentication controls", () => {
     render(
       <StoreShow
         store={{
@@ -71,10 +71,10 @@ describe("oauth claim forms", () => {
       />
     )
 
-    const claimButton = screen.getByRole("button", { name: "Is this your store?" })
-    const form = claimButton.closest("form")
+    expect(screen.queryByRole("button", { name: /Connect with Discogs/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: /Claim with Discogs/ })).not.toBeInTheDocument()
 
-    expect(form).toBeInTheDocument()
-    expect(form?.querySelector("input[name='authenticity_token']")).toHaveAttribute("value", "csrf-token-test")
+    const storeLink = screen.getByText("Philadelphia Music")
+    expect(storeLink.closest("a")).toHaveAttribute("href", "/philadelphiamusic")
   })
 })

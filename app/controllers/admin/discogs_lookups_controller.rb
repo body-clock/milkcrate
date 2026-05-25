@@ -1,3 +1,4 @@
+# Admin endpoint for looking up Discogs releases by ID or URL.
 class Admin::DiscogsLookupsController < Admin::BaseController
   def show
     result = Admin::DiscogsSignupAvailability.new(params[:username]).call

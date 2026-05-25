@@ -1,3 +1,4 @@
+# Orchestrates daily curation for a store: surfaces listings and pre-warms the storefront cache.
 class DailyCurationService
   def curate(store)
     curation = StorefrontCuration.new(store)
@@ -15,7 +16,7 @@ class DailyCurationService
       sections: presenter.build_storefront_sections(curation.storefront_groups),
       crates:   presenter.build_crates(curation.crates)
     }
-    StorefrontCuration.write_curation_cache(store, payload)
+    StorefrontCuration::CacheManager.write_curation_cache(store, payload)
 
     Rails.logger.info "[DailyCurationJob] store=#{store.name} surfaced=#{surfaced.size} picks=#{picks_count}"
   end
