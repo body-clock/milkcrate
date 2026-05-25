@@ -58,13 +58,8 @@ export default function PileSheet({ open, onClose }: Props) {
 
     setCartState("adding")
 
-    // Open an offscreen popup that cycles through each add URL
-    // The adds work because the popup shares the browser's Discogs session cookie
-    const popup = window.open(
-      `${DISCOGS_CART_BASE}/?add=${ids[0]}`,
-      "discogs-cart",
-      "width=1,height=1,left=-1000,top=-1000"
-    )
+    // Open blank popup first — avoids triggering Discogs app intercept on open
+    const popup = window.open("about:blank", "discogs-cart", "width=1,height=1,left=-1000,top=-1000")
 
     if (!popup) {
       window.open(DISCOGS_CART_BASE, "_blank")
@@ -72,8 +67,8 @@ export default function PileSheet({ open, onClose }: Props) {
       return
     }
 
-    // Chain through remaining items
-    let i = 1
+    // Navigate through each add URL — discogs app won't intercept JS-driven navigations
+    let i = 0
     const interval = setInterval(() => {
       if (i >= ids.length || popup.closed) {
         clearInterval(interval)
