@@ -37,4 +37,4 @@ Three words: warm, curious, tactile.
 
 ## Accessibility & Inclusion
 
-Target WCAG 2.1 AA minimum across all surfaces. Full keyboard navigation, screen reader support, reduced motion hooks via `prefers-reduced-motion`, sufficient color contrast in both light and dark themes.
+Target WCAG 2.2 AA minimum across all surfaces. Full keyboard navigation, screen reader support, reduced motion hooks via `prefers-reduced-motion`, sufficient color contrast in both light and dark themes. Compact primary controls provide at least a 44 by 44 CSS pixel touch target.
