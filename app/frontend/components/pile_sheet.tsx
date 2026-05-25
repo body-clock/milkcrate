@@ -58,33 +58,36 @@ export default function PileSheet({ open, onClose }: Props) {
 
     setCartState("adding")
 
-    // Open the cart page first — that's where we want to end up
-    const popup = window.open(DISCOGS_CART_BASE, "discogs-cart", "width=1,height=1,left=-1000,top=-1000")
+    // Use hidden form submissions to a tiny iframe — form submits are top-level
+    // navigations that send Discogs session cookies, but the iframe is invisible
+    const iframe = document.createElement("iframe")
+    iframe.name = "cart-iframe"
+    iframe.style.display = "none"
+    document.body.appendChild(iframe)
 
-    if (!popup) {
-      window.open(DISCOGS_CART_BASE, "_blank")
-      setCartState("idle")
-      return
-    }
+    let i = 0
+    const interval = setInterval(() => {
+      if (i >= ids.length) {
+        clearInterval(interval)
+        // Give the last submit time to settle, then show success
+        setTimeout(() => {
+          document.body.removeChild(iframe)
+          setCartState("done")
+        }, SETTLE_DELAY_MS)
+        return
+      }
 
-    // Wait for cart page to settle, then cycle through each add
-    // Adds navigate within the popup while it's already on Discogs,
-    // so the app doesn't re-intercept
-    setTimeout(() => {
-      let i = 0
-      const interval = setInterval(() => {
-        if (i >= ids.length || popup.closed) {
-          clearInterval(interval)
-          setTimeout(() => {
-            if (!popup.closed) popup.close()
-            setCartState("done")
-          }, SETTLE_DELAY_MS)
-          return
-        }
-        popup.location.href = `${DISCOGS_CART_BASE}/?add=${ids[i]}`
-        i++
-      }, ADD_INTERVAL_MS)
-    }, 1500)
+      // Create a hidden form that submits to the add URL, targeting the iframe
+      const form = document.createElement("form")
+      form.method = "GET"
+      form.action = `${DISCOGS_CART_BASE}/?add=${ids[i]}`
+      form.target = "cart-iframe"
+      form.style.display = "none"
+      document.body.appendChild(form)
+      form.submit()
+      document.body.removeChild(form)
+      i++
+    }, ADD_INTERVAL_MS)
   }
 
   const handleOpenCart = () => {
