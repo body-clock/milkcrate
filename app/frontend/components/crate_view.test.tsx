@@ -115,6 +115,7 @@ describe("CrateView", () => {
 
     expect(screen.getByText("+2.0")).toHaveClass("text-mc-feedback-success")
     expect(screen.getByText("-1.0")).toHaveClass("text-mc-feedback-danger")
+    expect(screen.getByText(/^\+?1\.0$/)).toHaveClass("text-mc-feedback-success")
   })
 
   it("calls onBack from the compact back control", async () => {

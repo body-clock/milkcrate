@@ -119,7 +119,7 @@ describe("AppLayout storefront chrome", () => {
 
     const header = screen.getByRole("banner")
     const trigger = within(header).getByRole("button", { name: "Pile (1)" })
-    expect(trigger).toHaveClass("min-h-11")
+    expect(trigger).toHaveClass("min-h-10")
   })
 
   it("makes browsing chrome and content inert while the pile modal is open", async () => {

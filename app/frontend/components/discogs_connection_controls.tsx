@@ -1,3 +1,5 @@
+import { actionClassName } from "./ui/action"
+
 interface FormProps {
   className?: string
   buttonClassName?: string
@@ -44,4 +46,3 @@ export function DiscogsDisconnectForm({
     </form>
   )
 }
-import { actionClassName } from "./ui/action"

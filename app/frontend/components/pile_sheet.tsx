@@ -277,18 +277,18 @@ export default function PileSheet({ open, onClose, returnFocusRef }: Props) {
                 ? (
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-mc-text-dim">Sure?</span>
-                    <button onClick={() => { clearPile(); setConfirmClear(false) }} className="inline-flex min-h-11 min-w-11 items-center justify-center rounded px-2 text-xs text-mc-accent transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus">Yes</button>
-                    <button onClick={() => setConfirmClear(false)} className="inline-flex min-h-11 min-w-11 items-center justify-center rounded px-2 text-xs text-mc-text-dim transition-colors hover:text-mc-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus">No</button>
+                    <button onClick={() => { clearPile(); setConfirmClear(false) }} className={`${actionClassName({ variant: "danger", size: "sm" })} min-w-11 justify-center`}>Yes</button>
+                    <button onClick={() => setConfirmClear(false)} className={`${actionClassName({ variant: "ghost", size: "sm" })} min-w-11 justify-center`}>No</button>
                   </div>
                 )
                 : (
-                  <button onClick={() => setConfirmClear(true)} className="inline-flex min-h-11 min-w-11 items-center justify-center rounded px-2 text-xs text-mc-text-dim transition-colors hover:text-mc-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus" aria-label={`Clear ${pile.length} records from pile`}>
+                  <button onClick={() => setConfirmClear(true)} className={`${actionClassName({ variant: "ghost", size: "sm" })} min-w-11 justify-center`} aria-label={`Clear ${pile.length} records from pile`}>
                     Clear
                   </button>
                 )
             )}
           </div>
-          <button onClick={() => { setConfirmClear(false); onClose() }} className="inline-flex h-11 w-11 items-center justify-center rounded text-lg leading-none text-mc-text-dim transition-colors hover:text-mc-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus" aria-label="Close pile">×</button>
+          <button onClick={() => { setConfirmClear(false); onClose() }} className="inline-flex h-11 w-11 items-center justify-center rounded text-lg leading-none text-mc-text-dim transition-colors hover:bg-mc-bg-raised hover:text-mc-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus" aria-label="Close pile">×</button>
         </div>
 
         {/* Records list */}

@@ -24,10 +24,10 @@ export default function FeedbackMessage({
 }) {
   return (
     <div
+      {...props}
       className={cn("rounded-md border px-3 py-2 text-sm", tones[tone], className)}
       role={role ?? (live === "assertive" ? "alert" : live ? "status" : undefined)}
       aria-live={live}
-      {...props}
     >
       {children}
     </div>

@@ -320,6 +320,12 @@ describe("PileSheet", () => {
       await waitFor(() => {
         expect(screen.getByText("Clear")).toBeInTheDocument()
       })
+
+      const clear = screen.getByRole("button", { name: /Clear/ })
+      expect(clear).toHaveClass("focus-visible:ring-mc-focus")
+
+      const close = screen.getByRole("button", { name: "Close pile" })
+      expect(close).toHaveClass("focus-visible:ring-mc-focus")
     })
 
     it("shows confirmation after clicking Clear", async () => {
@@ -381,11 +387,11 @@ describe("PileSheet", () => {
       expect(screen.getByRole("button", { name: "Close pile" })).toHaveClass("h-11", "w-11")
 
       const clear = screen.getByRole("button", { name: /clear.*pile/i })
-      expect(clear).toHaveClass("min-h-11", "min-w-11")
+      expect(clear).toHaveClass("min-h-9", "min-w-11")
       await user.click(clear)
 
-      expect(screen.getByRole("button", { name: "Yes" })).toHaveClass("min-h-11", "min-w-11")
-      expect(screen.getByRole("button", { name: "No" })).toHaveClass("min-h-11", "min-w-11")
+      expect(screen.getByRole("button", { name: "Yes" })).toHaveClass("min-h-9", "min-w-11")
+      expect(screen.getByRole("button", { name: "No" })).toHaveClass("min-h-9", "min-w-11")
     })
   })
 
@@ -517,6 +523,26 @@ describe("PileSheet", () => {
       expect(result).toHaveClass("text-mc-feedback-success")
       expect(result).toHaveTextContent("1 release added to your Wantlist")
       expect(screen.getByRole("list")).not.toHaveAttribute("aria-live")
+    })
+
+    it("shows progress state while Wantlist handoff is in flight", async () => {
+      let resolveFetch: (value: unknown) => void
+      const fetchPromise = new Promise((resolve) => { resolveFetch = resolve })
+      vi.stubGlobal("fetch", vi.fn().mockReturnValue(fetchPromise))
+      const user = userEvent.setup()
+      renderPileSheet([makeListing()])
+
+      await user.click(await screen.findByRole("button", { name: "Send to Discogs Wantlist" }))
+
+      const progress = await screen.findByText(/Adding to Wantlist/)
+      expect(progress.closest("[class*=mc-feedback-progress]")).toBeInTheDocument()
+
+      const inFlightButton = screen.getByRole("button", { name: /Adding to Wantlist…/ })
+      expect(inFlightButton).toBeDisabled()
+      expect(inFlightButton).toHaveAttribute("aria-busy", "true")
+
+      resolveFetch!({ ok: true, json: async () => ({ wantlist_url: null, added: 1, skipped: 0 }) })
+      await screen.findByRole("status")
     })
 
     it("announces Wantlist handoff errors through semantic danger feedback and recovery action", async () => {

@@ -58,6 +58,46 @@ describe("UI primitives", () => {
     expect(link).toHaveAttribute("tabindex", "-1")
   })
 
+  it("renders action variants and sizes with shared canonical styling", () => {
+    render(
+      <>
+        <Button size="sm">Small</Button>
+        <Button size="lg">Large</Button>
+        <Button variant="secondary">Secondary</Button>
+        <Button variant="ghost">Ghost</Button>
+        <ActionLink href="/apply" variant="ghost" size="sm">Ghost Link</ActionLink>
+      </>,
+    )
+
+    const small = screen.getByRole("button", { name: "Small" })
+    expect(small.className).toContain("ring-mc-focus")
+    expect(small.className).toContain("rounded-md")
+
+    const large = screen.getByRole("button", { name: "Large" })
+    expect(large.className).toContain("ring-mc-focus")
+
+    const secondary = screen.getByRole("button", { name: "Secondary" })
+    expect(secondary.className).toContain("ring-mc-focus")
+    expect(secondary.className).not.toMatch(/red-|amber-|emerald-|sky-/)
+
+    const ghost = screen.getByRole("button", { name: "Ghost" })
+    expect(ghost.className).toContain("ring-mc-focus")
+    expect(ghost.className).toContain("rounded-md")
+
+    const ghostLink = screen.getByRole("link", { name: "Ghost Link" })
+    expect(ghostLink.className).toContain("ring-mc-focus")
+    expect(ghostLink).toHaveAttribute("href", "/apply")
+  })
+
+  it("renders ActionLink disabled (non-busy) as aria-disabled with tabindex -1", () => {
+    render(<ActionLink href="/apply" disabled>Disabled Link</ActionLink>)
+
+    const link = screen.getByRole("link", { name: "Disabled Link" })
+    expect(link).toHaveAttribute("aria-disabled", "true")
+    expect(link).toHaveAttribute("tabindex", "-1")
+    expect(link).not.toHaveAttribute("aria-busy")
+  })
+
   it("renders card structure without forcing nested interactive markup", () => {
     render(
       <Card>
@@ -94,16 +134,53 @@ describe("UI primitives", () => {
     expect(screen.getByRole("alert")).toHaveClass("text-mc-feedback-danger")
   })
 
+  it("auto-generates field id from useId when no id prop is given", () => {
+    render(
+      <Field label="Name">
+        <input />
+      </Field>,
+    )
+
+    const input = screen.getByRole("textbox", { name: "Name" })
+    expect(input).toHaveAttribute("id")
+    expect(input.getAttribute("id")).toBeTruthy()
+    expect(input).not.toHaveAttribute("aria-describedby")
+    expect(screen.getByText("Name").closest("label")).toHaveAttribute("for", input.id)
+  })
+
+  it("propagates disabled and busy state to child control through Field", () => {
+    const { rerender } = render(
+      <Field label="Email" disabled>
+        <input />
+      </Field>,
+    )
+
+    const input = screen.getByRole("textbox", { name: "Email" })
+    expect(input).toBeDisabled()
+
+    rerender(
+      <Field label="Email" busy>
+        <input />
+      </Field>,
+    )
+
+    expect(input).toBeDisabled()
+    expect(input).toHaveAttribute("aria-busy", "true")
+  })
+
   it("renders semantic feedback and status without raw palette ownership", () => {
     const { container } = render(
       <>
         <FeedbackMessage tone="danger" live="assertive">Sync failed</FeedbackMessage>
+        <FeedbackMessage tone="success" live="polite">Saved</FeedbackMessage>
         <StatusDot variant="working" label="Processing" />
         <JobProgressBar label="Sync" status="completed" />
       </>,
     )
 
     expect(screen.getByRole("alert")).toHaveTextContent("Sync failed")
+    expect(screen.getByRole("status")).toHaveTextContent("Saved")
+    expect(screen.getByRole("status")).toHaveAttribute("aria-live", "polite")
     expect(screen.getByText("Processing")).toBeInTheDocument()
     expect(container.innerHTML).toContain("mc-feedback-danger")
     expect(container.innerHTML).toContain("mc-feedback-progress")
@@ -125,5 +202,12 @@ describe("UI primitives", () => {
     expect(screen.getByText("12 listings")).toBeInTheDocument()
     expect(screen.getByText("No stores online yet.")).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Retry" })).toBeInTheDocument()
+  })
+
+  it("renders empty state without action slot when no action provided", () => {
+    const { container } = render(<EmptyState>No items</EmptyState>)
+
+    expect(screen.getByText("No items")).toBeInTheDocument()
+    expect(container.querySelector("button")).not.toBeInTheDocument()
   })
 })
