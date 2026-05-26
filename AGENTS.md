@@ -1,5 +1,14 @@
 project_tracker: github
 
+# Cardinal Rules
+
+**Never merge into `main` without explicit user permission.** Merging to
+production is a human decision. The agent may propose a merge, describe what
+would ship, and ask for confirmation, but must never execute `git checkout
+main && git merge` or `git push origin main` unless the user has explicitly
+authorized that specific merge. Pushing to `main` triggers an automatic
+deploy — treat it as a production deployment gate.
+
 # ce-work Branching
 
 This project uses `development` as its integration branch (not `main`). When
