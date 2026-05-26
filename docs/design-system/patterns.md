@@ -61,6 +61,19 @@ record, crate, score, connection, and pile behavior. Dialog lifecycle, shopper
 connection, browsing, Wantlist handoff, and tactile interaction remain owned by
 their existing domain-facing components.
 
+Implemented composition:
+
+- `AppLayout` and the store route render flash and sync lifecycle states with
+  semantic feedback while retaining providers, pile focus return, and route
+  state ownership.
+- Record cards/details and Discogs connect/disconnect forms use canonical
+  action styling without changing links, POST destinations, or CSRF inputs.
+- Pile Wantlist progress, success, and failure states wrap existing shopper
+  transitions with semantic feedback and recovery actions; its dialog focus
+  trap and compact/wide panel behavior remain specialized.
+- Score breakdown direction uses semantic success/danger roles while its
+  scoring inputs and visibility rules remain unchanged.
+
 ## Responsive And Motion Checks
 
 - Branching topology must preserve the same data/permission/visibility guards

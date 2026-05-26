@@ -7,8 +7,8 @@ interface ConnectFormProps extends FormProps {
   storeSlug: string
 }
 
-const defaultButtonClassName =
-  "mc-btn inline-flex min-h-11 items-center justify-center px-3 py-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
+const defaultConnectButtonClassName = actionClassName({ size: "lg" })
+const defaultDisconnectButtonClassName = actionClassName({ variant: "ghost", size: "sm", className: "min-h-11" })
 
 function csrfToken() {
   return document.querySelector<HTMLMetaElement>("meta[name='csrf-token']")?.content ?? ""
@@ -17,7 +17,7 @@ function csrfToken() {
 export function DiscogsConnectForm({
   storeSlug,
   className,
-  buttonClassName = `${defaultButtonClassName} mc-btn-primary`,
+  buttonClassName = defaultConnectButtonClassName,
 }: ConnectFormProps) {
   return (
     <form method="POST" action="/auth/discogs/shopper/authorize" className={className}>
@@ -32,7 +32,7 @@ export function DiscogsConnectForm({
 
 export function DiscogsDisconnectForm({
   className,
-  buttonClassName = defaultButtonClassName,
+  buttonClassName = defaultDisconnectButtonClassName,
 }: FormProps) {
   return (
     <form method="POST" action="/auth/discogs/shopper/disconnect" className={className}>
@@ -44,3 +44,4 @@ export function DiscogsDisconnectForm({
     </form>
   )
 }
+import { actionClassName } from "./ui/action"

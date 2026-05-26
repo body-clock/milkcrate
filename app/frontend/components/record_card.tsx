@@ -3,6 +3,8 @@ import { motion } from "framer-motion"
 import { usePileContext } from "../contexts/pile_context"
 import { springFlip } from "@/lib/motion_tokens"
 import { formatPrice } from "@/lib/format_price"
+import Button from "@/components/ui/button"
+import { ActionLink } from "@/components/ui/action"
 import type { Listing } from "../types/inertia"
 
 interface Props {
@@ -144,17 +146,17 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
             </div>
             <div className="flex gap-1 mt-1" onClick={(e) => e.stopPropagation()}>
               {inPile(listing.id) ? (
-                <button onClick={() => removeFromPile(listing.id)} className="mc-btn text-xs">
+                <Button variant="secondary" size="sm" onClick={() => removeFromPile(listing.id)}>
                   ✓ In pile
-                </button>
+                </Button>
               ) : (
-                <button onClick={() => addToPile(listing)} className="mc-btn mc-btn-primary text-xs">
+                <Button size="sm" onClick={() => addToPile(listing)}>
                   + Pile
-                </button>
+                </Button>
               )}
-              <a href={listing.discogs_url} target="_blank" rel="noopener noreferrer" className="mc-btn text-xs">
+              <ActionLink variant="secondary" size="sm" href={listing.discogs_url} target="_blank" rel="noopener noreferrer">
                 Discogs ↗
-              </a>
+              </ActionLink>
             </div>
           </div>
         </div>

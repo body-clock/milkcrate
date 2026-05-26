@@ -19,8 +19,8 @@ same change that migrates a surface or documents a justified exception.
 | Home | `root "pages#home"` | `pages/home.tsx`, `MarketingLayout` | Migrated | Shared action and seller lookup feedback/field contracts; existing motion retained |
 | Seller application | `GET/POST /apply` | `pages/apply.tsx`, `MarketingLayout` | Migrated | Field, validation/feedback, and action contracts; Turnstile unchanged |
 | Store invitation | Catch-all `GET /:slug` with missing store in `StoresController#show` | `pages/stores/invitation.tsx`, `MarketingLayout` | Migrated | Canonical actions and progress feedback; probing/OAuth unchanged |
-| Storefront | Catch-all `GET /:slug` with existing store | `pages/stores/show.tsx`, `AppLayout` | Foundation consumer | Flash/sync feedback and shared action use around domain UI |
-| Pile workflow | Storefront child; `POST /pile/add_to_wantlist` | `components/pile_sheet.tsx` | Pending migration | Actions and handoff feedback without dialog/state change |
+| Storefront | Catch-all `GET /:slug` with existing store | `pages/stores/show.tsx`, `AppLayout` | Migrated | Semantic flash/sync feedback and shared record/Discogs actions; providers and crate navigation unchanged |
+| Pile workflow | Storefront child; `POST /pile/add_to_wantlist` | `components/pile_sheet.tsx` | Migrated | Canonical handoff actions and feedback; dialog/state transitions unchanged |
 | Seller dashboard | `GET /dashboard` and dashboard POST actions | `pages/dashboard/index.tsx` | Migrated | Shell, semantic status/feedback and canonical resync action; router actions unchanged |
 | Admin dashboard | `GET /admin` and admin onboarding/lookup actions | `pages/admin/dashboard.tsx` | Migrated | Shell, fields, semantic feedback/status, metrics and empty state; polling/onboarding unchanged |
 

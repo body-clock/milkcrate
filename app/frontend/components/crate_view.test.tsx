@@ -99,7 +99,22 @@ describe("CrateView", () => {
 
     expect(screen.getByRole("button", { name: "Back to store" })).toBeInTheDocument()
     expect(screen.getAllByText("One").length).toBeGreaterThan(1)
-    expect(screen.getAllByRole("link", { name: /Discogs/ }).length).toBeGreaterThan(1)
+    const discogsLinks = screen.getAllByRole("link", { name: /Discogs/ })
+    expect(discogsLinks.length).toBeGreaterThan(1)
+    discogsLinks.forEach((link) => expect(link).toHaveClass("focus-visible:ring-mc-focus"))
+  })
+
+  it("renders score direction using semantic success and danger roles", () => {
+    const crates = makeCrates()
+    crates[0].records[0] = makeListing({
+      id: 1,
+      score_breakdown: { freshness: 2, noise: -1 },
+    })
+
+    renderCrateView("wide", { crates })
+
+    expect(screen.getByText("+2.0")).toHaveClass("text-mc-feedback-success")
+    expect(screen.getByText("-1.0")).toHaveClass("text-mc-feedback-danger")
   })
 
   it("calls onBack from the compact back control", async () => {

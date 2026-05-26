@@ -13,6 +13,8 @@ const mockedPage = vi.hoisted(() => ({
       handoff_available: true,
     },
     shopper: null as { discogs_username: string } | null,
+    notice: undefined as string | undefined,
+    alert: undefined as string | undefined,
   },
 }))
 
@@ -61,6 +63,8 @@ describe("AppLayout storefront chrome", () => {
     localStorage.clear()
     document.head.innerHTML = '<meta name="csrf-token" content="csrf-token-test" />'
     mockedPage.props.shopper = null
+    mockedPage.props.notice = undefined
+    mockedPage.props.alert = undefined
   })
 
   afterEach(() => {
@@ -81,8 +85,22 @@ describe("AppLayout storefront chrome", () => {
     renderLayout(1280)
 
     const header = screen.getByRole("banner")
-    expect(within(header).getByRole("button", { name: "Toggle light/dark mode" })).toBeInTheDocument()
+    expect(within(header).getByRole("button", { name: "Toggle light/dark mode" })).toHaveClass("focus-visible:ring-mc-focus")
     expect(within(header).queryByRole("button", { name: "Connect with Discogs" })).not.toBeInTheDocument()
+  })
+
+  it("renders storefront notices and alerts through semantic feedback roles", () => {
+    mockedPage.props.notice = "Inventory updated"
+    const { unmount } = renderLayout(1280)
+
+    expect(screen.getByRole("status")).toHaveClass("text-mc-feedback-success")
+
+    unmount()
+    mockedPage.props.notice = undefined
+    mockedPage.props.alert = "Sync unavailable"
+    renderLayout(1280)
+
+    expect(screen.getByRole("alert")).toHaveClass("text-mc-feedback-danger")
   })
 
   it("offers connected shoppers an explicit footer disconnect path with an empty pile", () => {

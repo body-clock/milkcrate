@@ -10,6 +10,7 @@ import BrandMark from "@/components/brand_mark"
 import MilkcrateShell from "@/layouts/milkcrate_shell"
 import { ShopperProvider, useShopperContext } from "@/contexts/shopper_context"
 import { DiscogsDisconnectForm } from "@/components/discogs_connection_controls"
+import FeedbackMessage from "@/components/ui/feedback_message"
 import type { Store } from "@/types/inertia"
 
 export interface CompactStoreLocation {
@@ -39,20 +40,20 @@ export function AppLayoutContent({ children, compactLocation }: AppLayoutProps) 
   const contextFocusRef = React.useRef<HTMLElement>(null)
 
   const header = (
-    <header ref={contextFocusRef} tabIndex={-1} className="mc-header flex items-center justify-between px-4 py-2 sm:py-3 border-b mc-border sticky top-0 z-30 bg-mc-bg-raised/95 backdrop-blur-sm">
+    <header ref={contextFocusRef} tabIndex={-1} className="mc-header flex items-center justify-between px-4 py-2 sm:py-3 border-b border-mc-border sticky top-0 z-30 bg-mc-bg-raised/95 backdrop-blur-sm">
       <div className="flex min-w-0 items-center leading-none">
         {compactCrateLocation ? (
           <>
             <button
               type="button"
               onClick={compactCrateLocation.onBack}
-              className="mr-3 flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-mc-border bg-mc-bg-raised text-lg leading-none text-mc-text-dim transition-[color,border-color,transform] hover:border-mc-accent hover:text-mc-accent active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
+              className="mr-3 flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-mc-border bg-mc-bg-raised text-lg leading-none text-mc-text-dim transition-[color,border-color,transform] hover:border-mc-accent hover:text-mc-accent active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
               aria-label="Back to store"
             >
               <span aria-hidden="true" className="-translate-y-px">←</span>
             </button>
             <div className="min-w-0">
-              <span className="mc-brand-title block truncate text-base font-bold mc-text">{compactCrateLocation.name}</span>
+              <span className="mc-brand-title block truncate text-base font-bold text-mc-text">{compactCrateLocation.name}</span>
               <span className="block text-[10px] tracking-widest uppercase text-mc-text-dim">
                 {compactCrateLocation.count === 1 ? "1 record" : `${compactCrateLocation.count} records`}
               </span>
@@ -62,13 +63,13 @@ export function AppLayoutContent({ children, compactLocation }: AppLayoutProps) 
           <div className="flex min-w-0 flex-col">
             <Link
               href={`/${discogsUsername}`}
-              className="rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
+              className="rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
             >
-              <span className="mc-brand-title block truncate text-base font-bold mc-text">{storeName}</span>
+              <span className="mc-brand-title block truncate text-base font-bold text-mc-text">{storeName}</span>
             </Link>
             <Link
               href="/"
-              className="rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
+              className="rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
             >
               <span className="text-[10px] tracking-widest uppercase text-mc-text-dim">
                 {isCompact ? "on MC" : "on Milkcrate"}
@@ -78,7 +79,7 @@ export function AppLayoutContent({ children, compactLocation }: AppLayoutProps) 
         ) : (
           <Link
             href="/"
-            className="rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
+            className="rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
           >
             <BrandMark size="small" />
           </Link>
@@ -89,7 +90,7 @@ export function AppLayoutContent({ children, compactLocation }: AppLayoutProps) 
           <button
             type="button"
             onClick={() => setPileOpen(true)}
-            className="inline-flex min-h-11 items-center rounded px-3 text-xs font-medium text-mc-accent transition-opacity hover:opacity-80 select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
+            className="inline-flex min-h-11 items-center rounded px-3 text-xs font-medium text-mc-accent transition-opacity hover:opacity-80 select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
             aria-label={`Pile (${pile.length})`}
             aria-expanded={pileOpen}
             aria-controls="pile-sheet"
@@ -101,7 +102,7 @@ export function AppLayoutContent({ children, compactLocation }: AppLayoutProps) 
           <button
             type="button"
             onClick={toggle}
-            className="w-10 h-10 flex items-center justify-center rounded-full text-xl text-mc-text-dim hover:text-mc-text hover:bg-mc-bg-raised transition-colors select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
+            className="w-10 h-10 flex items-center justify-center rounded-full text-xl text-mc-text-dim hover:text-mc-text hover:bg-mc-bg-raised transition-colors select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
             aria-label="Toggle light/dark mode"
           >
             {theme === "dark" ? "☀︎" : "☾"}
@@ -112,7 +113,7 @@ export function AppLayoutContent({ children, compactLocation }: AppLayoutProps) 
   )
 
   const footer = (
-    <footer className="flex flex-col items-center gap-3 px-4 py-4 border-t mc-border text-center">
+    <footer className="flex flex-col items-center gap-3 px-4 py-4 border-t border-mc-border text-center">
       {shopper && (
         <div className="flex flex-wrap items-center justify-center gap-3 text-[11px] text-mc-text-dim">
           <span>Connected to Discogs as @{shopper.discogs_username}</span>
@@ -127,9 +128,13 @@ export function AppLayoutContent({ children, compactLocation }: AppLayoutProps) 
 
   const flashMsg = notice || alertMsg
   const afterHeader = flashMsg ? (
-    <div className="px-4 py-2 text-sm mc-notice" role="alert" aria-live="polite">
+    <FeedbackMessage
+      tone={notice ? "success" : "danger"}
+      live={notice ? "polite" : "assertive"}
+      className="rounded-none border-x-0 px-4 py-2"
+    >
       {flashMsg}
-    </div>
+    </FeedbackMessage>
   ) : undefined
 
   return (

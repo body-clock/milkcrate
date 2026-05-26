@@ -402,6 +402,22 @@ describe("responsive surface matrix", () => {
     expect(screen.getByText("Milkcrate Picks")).toBeInTheDocument()
   })
 
+  it("store sync failure exposes semantic danger feedback without hiding fallback content", () => {
+    const failedStoreProps: StoreShowProps = {
+      ...storeShowProps,
+      store: {
+        ...storeShowProps.store,
+        sync_status: "failed",
+        last_sync_error_at: "2026-05-25T12:00:00Z",
+      },
+    }
+
+    renderWithTier("wide", <StoreShow {...failedStoreProps} />)
+
+    expect(screen.getByText(/Sync failed/).closest("[role='alert']")).toHaveClass("text-mc-feedback-danger")
+    expect(screen.getByText(/No vinyl found yet/)).toBeInTheDocument()
+  })
+
   // ── U4: Regression coverage for Picks surface and CrateView header ───
 
   it("populated store page renders Picks surface at all viewport tiers", () => {

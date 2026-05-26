@@ -181,6 +181,13 @@ describe("no nested interactive controls", () => {
     })
   })
 
+  it("keeps record actions keyboard-focusable through the canonical focus role", () => {
+    renderWithPile(<RecordCard listing={makeListing({ title: "Focusable Actions" })} />)
+
+    expect(screen.getByRole("button", { name: "+ Pile" })).toHaveClass("focus-visible:ring-mc-focus")
+    expect(screen.getByRole("link", { name: /Discogs/ })).toHaveClass("focus-visible:ring-mc-focus")
+  })
+
   it("CrateShelf interactive mode does not nest button elements inside button elements", () => {
     const crate = makeCrate()
     render(
