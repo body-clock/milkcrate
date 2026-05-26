@@ -28,7 +28,7 @@ The catalog flow:
 5. Run curation to build crates and stamp surfacing fields.
 6. Render the storefront in the React frontend.
 
-The domain models are `Store`, `Listing`, `Release`, `CuratedCrate`, `RecordScorer`, `DailySelection` (daily curated picks), `StorefrontTheme` (per-store visual theming), and `Waitlist` (store applications).
+The domain models are `Store`, `Listing`, `Release`, `CuratedCrate`, `RecordScorer`, `StorefrontTheme` (per-store visual theming), `DiscogsShopper` (Discogs-authenticated shoppers), `StoreOwner` (store admins with OAuth sessions), and `Waitlist` (store applications).
 
 The storefront shows a layered browsing experience:
 
@@ -49,19 +49,23 @@ The curation layer is organized around a strategy pattern in `CrateStrategies`:
 | `CrateStrategies::Picks` | Scores the full inventory, applies genre-diversity caps, returns top N |
 | `CrateStrategies::NewArrivals` | Finds the best recency window, scores matching records |
 | `CrateStrategies::Thematic` | Picks a random style or genre theme, filters to matches, scores |
+| `CrateStrategies::Genre` | Builds one crate per primary genre, capped by genre |
+| `CrateStrategies::HiddenGems` | Surfaces high-score records from underrepresented genres |
 
-Each strategy implements `select(pool, excluded_ids:) -> [Listing]`. Results are scored via `RecordScorer`, sorted best-first, and uncapped — the caller applies `CuratedCrate::CRATE_SIZE`.
+Each strategy includes `CrateStrategies::SelectionPipeline` (shared score-sort-take logic with ID exclusion and domain filtering) and implements `select(pool, excluded_ids:) -> [Listing]`. Results are scored via `RecordScorer`, sorted best-first, and uncapped — the caller applies `CuratedCrate::CRATE_SIZE`.
 
-`RecordScorer` scores every listing on seven dimensions:
+`RecordScorer` delegates to eight scoring strategies as service objects, each in `app/services/score_strategies/`:
 
-- vintage year bonus
-- condition bonus (mint / NM / VG+)
-- small-genre section boost
-- Discogs want / have desirability signals
-- sparse metadata penalty
-- freshness and recently-surfaced penalties
-- cover quality (deranks listings where `cover_image_url == thumbnail_url`)
-- deterministic daily noise
+| Strategy | What it does |
+|----------|-------------|
+| `VintageStrategy` | Year-based bonus (older records score higher) |
+| `ConditionStrategy` | Bonus for mint / NM / VG+ condition |
+| `DesirabilityStrategy` | Discogs want/have ratio and total signal |
+| `CoverQualityStrategy` | Deranks listings where `cover_image_url == thumbnail_url` |
+| `MetadataStrategy` | Penalizes sparse tracklist or missing metadata |
+| `FreshnessStrategy` | Penalizes recently-surfaced records, boosts new inventory |
+| `NoiseStrategy` | Deterministic daily noise for rotation variety |
+| `PriceStrategy` | Small boost for records priced $5+ (commercial value signal) |
 
 `StorefrontCuration` orchestrates the strategies, builds `CuratedCrate` containers, and handles top-down deduplication. `CratePresenter` serializes crates into the frontend props.
 
@@ -71,6 +75,7 @@ For documented solutions and patterns, see `docs/solutions/`.
 
 - Ruby `3.4.8`
 - Rails `~> 8.1`
+- Node `23.11.0`
 - PostgreSQL
 - Inertia Rails + React + TypeScript
 - Vite via `vite_rails`
@@ -180,8 +185,16 @@ Useful local routes:
 | `/:slug/authorize` | Start Discogs OAuth claim flow for a store |
 | `/auth/discogs/callback` | Discogs OAuth callback (internal, no direct visit) |
 | `/dashboard` | Store owner dashboard (requires OAuth session) |
+| `/dashboard/resync` | Trigger store re-sync from dashboard |
+| `/dashboard/signup` | Begin store onboarding from dashboard |
+| `/api/discogs/lookup/:username` | API endpoint for Discogs username lookup |
+| `/auth/discogs/shopper/authorize` | Shopper Discogs authorization |
+| `/auth/discogs/shopper/disconnect` | Disconnect shopper Discogs account |
+| `/pile/add_to_wantlist` | Add pile items to Discogs wantlist |
 | `/admin` | Admin dashboard — store onboarding, Discogs lookup |
 | `/admin/discogs_lookup` | Discogs username lookup for store onboarding |
+| `/admin/onboarding` | Direct store onboarding |
+| `/admin/waitlists/:waitlist_id/onboarding` | Onboard a waitlisted store |
 | `/jobs` | Mission Control jobs dashboard (development only) |
 | `/dev/login-as/:id` | Dev tool — set store owner session (development only) |
 
@@ -215,19 +228,36 @@ The main jobs:
 - **`EnrichmentJob`** — fetches Discogs release metadata and MusicBrainz images for imageless releases.
 - **`DailyCurationJob`** — builds picks, featured crates, and genre crates, then stamps surfacing fields.
 
-Useful rake tasks:
+Per-store operations (replaces the deprecated `milkcrate:` namespace):
 
 ```bash
-bin/rails milkcrate:sync                    # Full inventory sync, queue enrichment and curation
-bin/rails milkcrate:sync:quick              # Sync first Discogs page, enrich synchronously, curate
-bin/rails milkcrate:setup                   # Bootstrap: full sync + synchronous enrichment + curation
-bin/rails milkcrate:curate                  # Run daily curation for the configured store
-bin/rails milkcrate:enrich                  # Enrich releases: Discogs metadata + MusicBrainz images
-bin/rails milkcrate:add_store[username]     # Onboard a new store (create Store + full sync)
-bin/rails milkcrate:normalize_usernames     # Normalize existing discogs_username values to lowercase
-bin/rails milkcrate:reset_surfacing         # Reset surfacing data (dev/testing only)
-bin/rails milkcrate:stats                   # Print curation and enrichment stats for the current store
-bin/rails milkcrate:score[ID]               # Print a score breakdown for one listing
+bin/rails stores:sync[username]              # Full inventory sync from Discogs
+bin/rails stores:enrich[username]            # Enrich releases: Discogs metadata + MusicBrainz images
+bin/rails stores:curate[username]            # Run daily curation (stamp last_surfaced_at, compute picks)
+bin/rails stores:score[username,listing_id]  # Score breakdown for a listing
+bin/rails stores:stats[username]             # Print curation and enrichment stats
+bin/rails stores:add[username]               # Onboard a new store (create Store + kick off sync)
+bin/rails stores:reset_surfacing[username]   # Reset surfacing data (dev/testing only)
+bin/rails stores:discogs_identity[username]  # Refresh a store's stored Discogs profile ID
+```
+
+Experiment tools for curation research:
+
+```bash
+bin/rails experiment:generate[crate-name]    # Generate a crate of top-scored records for labeling
+bin/rails experiment:serve[crate-name]       # Start a local labeling page server
+bin/rails experiment:report[crate-name]      # Generate experiment report from labels
+bin/rails experiment:analyze                 # Cross-crate pattern analysis
+```
+
+Dev environment lifecycle:
+
+```bash
+bin/rails tools:start                        # Start Docker, create DB, load sample data
+bin/rails tools:stop                         # Stop Docker services (preserves data)
+bin/rails tools:clean                        # Stop Docker and remove volumes (destroys data)
+bin/rails tools:load                         # Load sample data from db/sample/listings.jsonl
+bin/rails tools:capture                      # Capture sample data from a synced store
 ```
 
 Production recurring jobs are configured in `config/recurring.yml`.
@@ -242,6 +272,7 @@ Key pages:
 - `app/frontend/pages/apply.tsx` — waitlist form
 - `app/frontend/pages/stores/show.tsx` — store page, switches between `StoreFloor` (home) and `CrateView` (crate browser)
 - `app/frontend/pages/stores/invitation.tsx` — store invitation page (shown pre-sync)
+- `app/frontend/pages/dashboard/index.tsx` — store owner dashboard (sync status, re-sync, stats)
 - `app/frontend/pages/admin/dashboard.tsx` — admin dashboard for store management
 
 Key components:
@@ -262,11 +293,20 @@ Key components:
 | `BrandMark` | Milkcrate logo component |
 | `GhostFingerCue` | Animated tutorial cue for first-time visitors |
 | `StorefrontMotionConfig` | Shared Framer Motion configuration for store animations |
+| `ui/Action` | Action trigger with loading state |
 | `ui/Badge` | Reusable badge component |
 | `ui/Button` | Reusable button component |
 | `ui/Card` | Reusable card component |
+| `ui/EmptyState` | Empty state placeholder with icon and message |
+| `ui/FeedbackMessage` | Success/error/info feedback message |
+| `ui/Field` | Form field wrapper with label and errors |
+| `ui/JobProgressBar` | Job progress indicator |
+| `ui/Metric` | Metric display with label and value |
 | `ui/SectionHeader` | Section header with optional description |
 | `ui/StatusDot` | Status indicator dot |
+| `discogs_connection_controls` | Discogs OAuth connection UI for store dashboard |
+| `discogs_seller_lookup_input` | Discogs username lookup for store onboarding |
+| `score_breakdown` | Detailed score breakdown display |
 
 Run frontend tests:
 
@@ -288,11 +328,11 @@ bundle exec bundler-audit   # Dependency vulnerability scan
 bin/ci                      # Project CI script (setup, RuboCop, bundler-audit, Brakeman)
 ```
 
-## Corpus Tools
+## Experiments & Sample Data
 
-Corpus import/export tasks and specs for repeatable local curation experiments against a stored Discogs inventory snapshot:
+Experiment generator and analysis tools for curation research:
 
-- `lib/tasks/corpus.rake`
-- `app/services/corpus/*`
-- `db/corpus/discogs_store_snapshot.json`
-- `spec/fixtures/files/discogs_store_snapshot.json`
+- `lib/tasks/experiment.rake` — `experiment:generate`, `experiment:serve`, `experiment:report`, `experiment:analyze`
+- `app/services/experiments/seed_generator.rb` — generates scored record sets for labeling
+- `db/sample/listings.jsonl` — sample data captured from a synced store (1000 listings)
+- `lib/tasks/tools.rake` — dev lifecycle: `tools:start`, `tools:stop`, `tools:load`, `tools:capture`
