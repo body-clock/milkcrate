@@ -3,6 +3,9 @@ import { Link } from "@inertiajs/react"
 import { motion } from "framer-motion"
 import MarketingLayout from "@/layouts/marketing_layout"
 import BrandMark from "@/components/brand_mark"
+import Button from "@/components/ui/button"
+import FeedbackMessage from "@/components/ui/feedback_message"
+import { actionClassName } from "@/components/ui/action"
 import { springTactile } from "@/lib/motion_tokens"
 import type { InvitationProps } from "@/types/inertia"
 
@@ -52,7 +55,7 @@ export default function Invitation({ waitlist_present, slug, oauth_available }: 
           >
             <Link
               href="/"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-mc-accent text-mc-on-accent font-semibold text-sm tracking-wide hover:opacity-90 transition-opacity"
+              className={actionClassName({ size: "lg", className: "tracking-wide" })}
             >
               Browse storefronts
             </Link>
@@ -143,10 +146,10 @@ function InvitationContent({ slug, oauth_available }: { slug: string; oauth_avai
 
         {/* Loading state */}
         {probeState === "loading" && (
-          <>
+          <FeedbackMessage tone="progress" live="polite" className="flex flex-col items-center border-0 bg-transparent">
             <div className="w-8 h-8 mb-4 border-2 border-mc-accent border-t-transparent rounded-full motion-safe:animate-spin" />
-            <p className="text-sm text-mc-text-dim">Checking if this URL is available...</p>
-          </>
+            <p>Checking if this URL is available...</p>
+          </FeedbackMessage>
         )}
 
         {/* Seller found — personalized invitation */}
@@ -183,17 +186,14 @@ function InvitationContent({ slug, oauth_available }: { slug: string; oauth_avai
               {oauth_available ? (
                 <form action={`/${slug}/authorize`} method="POST" className="inline">
                   {csrfToken && <input type="hidden" name="authenticity_token" value={csrfToken} />}
-                  <button
-                    type="submit"
-                    className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-mc-accent text-mc-on-accent font-semibold text-sm tracking-wide hover:opacity-90 transition-opacity"
-                  >
+                  <Button type="submit" size="lg" className="tracking-wide">
                     Claim with Discogs
-                  </button>
+                  </Button>
                 </form>
               ) : (
                 <Link
                   href={`/apply?discogs_username=${encodeURIComponent(slug)}`}
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-mc-accent text-mc-on-accent font-semibold text-sm tracking-wide hover:opacity-90 transition-opacity"
+                  className={actionClassName({ size: "lg", className: "tracking-wide" })}
                 >
                   Claim this storefront
                 </Link>
@@ -240,9 +240,9 @@ function InvitationContent({ slug, oauth_available }: { slug: string; oauth_avai
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.3 }}
             >
-              <Link
-                href="/apply"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-mc-accent text-mc-on-accent font-semibold text-sm tracking-wide hover:opacity-90 transition-opacity"
+                <Link
+                  href="/apply"
+                  className={actionClassName({ size: "lg", className: "tracking-wide" })}
               >
                 Apply to join
               </Link>

@@ -4,6 +4,7 @@ import type { Variants } from "framer-motion"
 import MarketingLayout from "@/layouts/marketing_layout"
 import CrateView from "@/components/crate_view"
 import DiscogsSellerLookupInput from "@/components/discogs_seller_lookup_input"
+import { actionClassName } from "@/components/ui/action"
 import { PileProvider } from "@/contexts/pile_context"
 import type { HomepagePreview } from "@/types/inertia"
 
@@ -59,13 +60,11 @@ const fadeIn: Variants = {
   },
 }
 
-const ctaBase =
-  "w-full sm:w-auto min-h-11 px-6 py-3 rounded-lg font-semibold text-sm leading-5 tracking-wide text-center inline-flex items-center justify-center transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
-
 export default function Home({ copy, preview }: Props) {
   const hasPreview = preview.sections.length > 0
   const picksSection = preview.sections.find((section) => section.key === "picks_wall")
   const picksCrate = picksSection?.key === "picks_wall" ? picksSection.crate : undefined
+  const demoHref = hasPreview && preview.store_slug ? `/${preview.store_slug}` : "/philadelphiamusic"
 
   return (
     <MarketingLayout>
@@ -92,21 +91,12 @@ export default function Home({ copy, preview }: Props) {
         </motion.p>
 
         <motion.div variants={fadeUp}>
-          {hasPreview && preview.store_slug ? (
-            <Link
-              href={`/${preview.store_slug}`}
-              className={`${ctaBase} bg-mc-accent text-mc-on-accent hover:opacity-90`}
-            >
-              {copy.cta_demo}
-            </Link>
-          ) : (
-            <Link
-              href="/philadelphiamusic"
-              className={`${ctaBase} bg-mc-accent text-mc-on-accent hover:opacity-90`}
-            >
-              {copy.cta_demo}
-            </Link>
-          )}
+          <Link
+            href={demoHref}
+            className={actionClassName({ size: "lg", className: "w-full text-center tracking-wide sm:w-auto" })}
+          >
+            {copy.cta_demo}
+          </Link>
         </motion.div>
       </motion.section>
 
@@ -140,14 +130,14 @@ export default function Home({ copy, preview }: Props) {
               {preview.store_slug ? (
                 <Link
                   href={`/${preview.store_slug}`}
-                  className="text-xs font-semibold uppercase tracking-widest text-mc-accent hover:opacity-80 transition-opacity"
+                  className={actionClassName({ variant: "ghost", size: "sm", className: "uppercase tracking-widest text-mc-accent" })}
                 >
                   See the full store →
                 </Link>
               ) : (
                 <Link
                   href="/philadelphiamusic"
-                  className="text-xs font-semibold uppercase tracking-widest text-mc-accent hover:opacity-80 transition-opacity"
+                  className={actionClassName({ variant: "ghost", size: "sm", className: "uppercase tracking-widest text-mc-accent" })}
                 >
                   See the full store →
                 </Link>
@@ -162,7 +152,7 @@ export default function Home({ copy, preview }: Props) {
             </p>
             <Link
               href="/philadelphiamusic"
-              className="text-sm font-semibold uppercase tracking-widest text-mc-accent hover:opacity-80 transition-opacity"
+              className={actionClassName({ variant: "ghost", size: "sm", className: "uppercase tracking-widest text-mc-accent" })}
             >
               Philadelphia Music →
             </Link>
@@ -275,7 +265,7 @@ export default function Home({ copy, preview }: Props) {
           >
             <Link
               href="/apply"
-              className="text-xs text-mc-text-dim hover:text-mc-accent transition-colors"
+              className={actionClassName({ variant: "ghost", size: "sm" })}
             >
               {copy.seller_waitlist_fallback}
             </Link>

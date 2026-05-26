@@ -25,6 +25,17 @@ and feedback treatment. Their existing seller lookup requests, OAuth POST
 actions, waitlist behavior, and Turnstile lifecycle stay in the current page
 or component owner.
 
+Implemented composition:
+
+- Marketing flash messages use semantic success/danger feedback while
+  `MarketingLayout` keeps shell and viewport ownership.
+- Seller lookup uses `Field`, `Button`, and `FeedbackMessage`; the successful
+  result still submits to `/:slug/authorize`.
+- Application validation uses `Field` relationships and danger feedback; its
+  Inertia submission and Turnstile setup/cleanup remain page-owned.
+- Invitation actions use canonical action styling without changing async
+  probing or OAuth/waitlist destinations.
+
 ## Operational Status
 
 Seller and admin dashboards share semantic feedback, status, progress, metric,

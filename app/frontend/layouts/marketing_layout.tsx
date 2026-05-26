@@ -2,6 +2,8 @@ import React from "react"
 import { Link, usePage } from "@inertiajs/react"
 import { useTheme } from "@/hooks/use_theme"
 import BrandMark from "@/components/brand_mark"
+import FeedbackMessage from "@/components/ui/feedback_message"
+import { actionClassName } from "@/components/ui/action"
 import MilkcrateShell from "@/layouts/milkcrate_shell"
 import StorefrontMotionConfig from "@/components/storefront_motion_config"
 import { ViewportProvider } from "@/contexts/viewport_context"
@@ -18,7 +20,7 @@ export function MarketingLayoutContent({ children }: { children: React.ReactNode
       <div className="flex items-center justify-between px-4 py-3 mx-auto w-full max-w-6xl">
         <Link
           href="/"
-          className="flex items-center gap-2 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
+          className="flex items-center gap-2 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
           aria-label="Milkcrate home"
         >
           <BrandMark />
@@ -27,20 +29,20 @@ export function MarketingLayoutContent({ children }: { children: React.ReactNode
           <div className="flex items-center gap-2 sm:gap-3">
             <Link
               href="/philadelphiamusic"
-              className="text-xs text-mc-text-dim hover:text-mc-text transition-colors rounded px-2 py-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
+              className={actionClassName({ variant: "ghost", size: "sm" })}
             >
               Demo
             </Link>
             <Link
               href="/apply"
-              className="text-xs text-mc-text-dim hover:text-mc-text transition-colors rounded px-2 py-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
+              className={actionClassName({ variant: "ghost", size: "sm" })}
             >
               Apply
             </Link>
             <button
               type="button"
               onClick={toggle}
-              className="w-10 h-10 flex items-center justify-center rounded-full text-xl text-mc-text-dim hover:text-mc-text hover:bg-mc-bg-raised transition-colors select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
+              className="w-10 h-10 flex items-center justify-center rounded-full text-xl text-mc-text-dim hover:text-mc-text hover:bg-mc-bg-raised transition-colors select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
               aria-label="Toggle light/dark mode"
             >
               {theme === "dark" ? "☀︎" : "☾"}
@@ -55,9 +57,13 @@ export function MarketingLayoutContent({ children }: { children: React.ReactNode
     <MilkcrateShell
       header={header}
       afterHeader={flashMsg ? (
-        <div className="px-4 py-2 text-sm mc-notice" role="alert" aria-live="polite">
+        <FeedbackMessage
+          tone={noticeMsg ? "success" : "danger"}
+          live={noticeMsg ? "polite" : "assertive"}
+          className="rounded-none border-x-0 px-4 py-2"
+        >
           {flashMsg}
-        </div>
+        </FeedbackMessage>
       ) : undefined}
       contentWidth="max-w-6xl"
     >

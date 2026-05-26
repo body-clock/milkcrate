@@ -16,9 +16,9 @@ same change that migrates a surface or documents a justified exception.
 
 | Surface | Route evidence | Current presentation owner | Initial-wave status | Migration target |
 | --- | --- | --- | --- | --- |
-| Home | `root "pages#home"` | `pages/home.tsx`, `MarketingLayout` | Foundation consumer | Shared action, panel, lookup feedback, permitted motion |
-| Seller application | `GET/POST /apply` | `pages/apply.tsx`, `MarketingLayout` | Pending migration | Field, validation/feedback, action contracts |
-| Store invitation | Catch-all `GET /:slug` with missing store in `StoresController#show` | `pages/stores/invitation.tsx`, `MarketingLayout` | Pending migration | Actions and async feedback |
+| Home | `root "pages#home"` | `pages/home.tsx`, `MarketingLayout` | Migrated | Shared action and seller lookup feedback/field contracts; existing motion retained |
+| Seller application | `GET/POST /apply` | `pages/apply.tsx`, `MarketingLayout` | Migrated | Field, validation/feedback, and action contracts; Turnstile unchanged |
+| Store invitation | Catch-all `GET /:slug` with missing store in `StoresController#show` | `pages/stores/invitation.tsx`, `MarketingLayout` | Migrated | Canonical actions and progress feedback; probing/OAuth unchanged |
 | Storefront | Catch-all `GET /:slug` with existing store | `pages/stores/show.tsx`, `AppLayout` | Foundation consumer | Flash/sync feedback and shared action use around domain UI |
 | Pile workflow | Storefront child; `POST /pile/add_to_wantlist` | `components/pile_sheet.tsx` | Pending migration | Actions and handoff feedback without dialog/state change |
 | Seller dashboard | `GET /dashboard` and dashboard POST actions | `pages/dashboard/index.tsx` | Pending migration | Shell, status, feedback and actions |
