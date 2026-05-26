@@ -1,18 +1,21 @@
-# Base controller for admin routes with authentication and admin-scoped layout.
+# Base controller for admin routes with session-based authentication and TOTP 2FA.
 class Admin::BaseController < ApplicationController
-  before_action :http_basic_auth_admin
+  before_action :require_admin_authentication
 
   private
 
-  def http_basic_auth_admin
-    creds_user = Rails.application.credentials.dig(:http_basic_auth, :user)
-    creds_pass = Rails.application.credentials.dig(:http_basic_auth, :password)
+  def current_admin
+    @current_admin ||= AdminUser.find_by(id: session[:admin_id])
+  end
 
-    return request_http_basic_authentication("Admin") unless creds_user && creds_pass
+  def require_admin_authentication
+    unless current_admin
+      redirect_to admin_login_path, alert: "Please sign in first."
+      return
+    end
 
-    authenticate_or_request_with_http_basic("Admin") do |username, password|
-      ActiveSupport::SecurityUtils.secure_compare(username, creds_user) &
-        ActiveSupport::SecurityUtils.secure_compare(password, creds_pass)
+    unless session[:totp_verified]
+      redirect_to admin_totp_path, alert: "Complete two-factor authentication."
     end
   end
 end

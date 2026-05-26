@@ -47,13 +47,18 @@ unstructured and must be synthesized into the final report (same treatment as
 | `layered-rails` | Architecture layer violations, reverse dependencies, Current in models, fat controllers, anemic models, mis-layered abstractions. Pass `task: "Review this diff for layered architecture violations per the layered-rails skill. Check for: reverse dependencies between layers, domain code in presentation layer, Current in models, business logic in controllers. Report findings with file:line references."` | Unstructured |
 | `ce-security-sentinel` | OWASP Top 10, hardcoded secrets, input validation gaps, auth/authz bypasses, SQL injection, XSS. Pass `task: "Audit this diff for security vulnerabilities. Check: input validation on all params, SQL injection via raw queries, XSS in views, hardcoded secrets/keys, missing auth on endpoints, unsafe redirects. Report findings with file:line references and severity (Critical/High/Medium/Low)."` | Unstructured |
 
+### Always-on extension reviewers (continued)
+
+| Agent | Focus | Output |
+|-------|-------|--------|
+| `ce-sandi-metz-reviewer` | Ruby/Rails classes, methods, parameters, object composition, dependency injection patterns, or any OO design choices. Pass `task: "Review this diff through Sandi Metz's POODR lens. Check: small objects, small methods, dependency injection, duck typing, composition over inheritance, message-based design. Report findings with file:line references."` | Unstructured |
+
 ### Conditional extension reviewers
 
 | Agent | Select when diff touches... |
 |-------|---------------------------|
 | `ce-dhh-rails-reviewer` | Rails architecture, service objects, session/auth choices, Hotwire-vs-SPA boundaries, abstractions that fight Rails conventions |
 | `ce-kieran-rails-reviewer` | Rails controllers, models, views, jobs, components, routes, or other application-layer Ruby code where clarity and conventions matter |
-| `ce-sandi-metz-reviewer` | Ruby/Rails classes, methods, parameters, object composition, dependency injection patterns, or any OO design choices |
 
 For on-demand Sandi Metz review (outside the code review pipeline), use the `/ce-sandi-metz-review` skill — dispatches the same reviewer to analyze a specific file, directory, or the current diff.
 

@@ -1,26 +1,28 @@
 require "rails_helper"
 
 RSpec.describe "Jobs dashboard", type: :request do
-  around do |example|
-    original_enabled = MissionControl::Jobs.http_basic_auth_enabled
-    original_user = MissionControl::Jobs.http_basic_auth_user
-    original_password = MissionControl::Jobs.http_basic_auth_password
+  describe "authentication" do
+    it "redirects to admin login when not authenticated" do
+      get "/jobs"
 
-    MissionControl::Jobs.http_basic_auth_enabled = false
-    MissionControl::Jobs.http_basic_auth_user = nil
-    MissionControl::Jobs.http_basic_auth_password = nil
+      expect(response).to redirect_to("/admin/login")
+    end
 
-    example.run
-  ensure
-    MissionControl::Jobs.http_basic_auth_enabled = original_enabled
-    MissionControl::Jobs.http_basic_auth_user = original_user
-    MissionControl::Jobs.http_basic_auth_password = original_password
-  end
+    it "serves the jobs dashboard when authenticated" do
+      admin = create(:admin_user, :with_totp)
 
-  it "routes /jobs to mission control instead of the store slug route" do
-    get "/jobs"
+      # Sign in fully (password + TOTP)
+      post admin_login_path, params: { session: { email: admin.email, password: admin.password } }
+      follow_redirect!
 
-    expect(response).not_to have_http_status(:not_found)
-    expect(response.body).not_to include("No stores")
+      code = ROTP::TOTP.new(admin.totp_secret, issuer: "Milkcrate").now
+      post admin_totp_path, params: { code: }
+      follow_redirect! # to admin dashboard
+
+      get "/jobs"
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).not_to include("Sign in as admin")
+    end
   end
 end

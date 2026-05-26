@@ -1,30 +1,22 @@
 require "rails_helper"
 
 RSpec.describe "Admin::Onboardings", type: :request do
-  around do |example|
-    ENV["ADMIN_HTTP_BASIC_USER"] = "admin"
-    ENV["ADMIN_HTTP_BASIC_PASSWORD"] = "secret"
-    example.run
-  ensure
-    ENV.delete("ADMIN_HTTP_BASIC_USER")
-    ENV.delete("ADMIN_HTTP_BASIC_PASSWORD")
-  end
-
   describe "POST /admin/waitlists/:waitlist_id/onboarding" do
-    it "requires admin credentials" do
+    it "redirects to login when not authenticated" do
       waitlist = create(:waitlist)
 
       post "/admin/waitlists/#{waitlist.id}/onboarding"
 
-      expect(response).to have_http_status(:unauthorized)
+      expect(response).to redirect_to(admin_login_path)
     end
 
     it "calls store onboarding and redirects to admin" do
+      sign_in_admin
       waitlist = create(:waitlist, discogs_username: "new-store")
       result = StoreOnboarding::Result.new(store: build_stubbed(:store, discogs_username: "new-store"))
       allow(StoreOnboarding).to receive(:call).and_return(result)
 
-      post "/admin/waitlists/#{waitlist.id}/onboarding", headers: auth_headers("admin", "secret")
+      post "/admin/waitlists/#{waitlist.id}/onboarding"
 
       expect(StoreOnboarding).to have_received(:call).with(discogs_username: "new-store", waitlist:)
       expect(response).to redirect_to("/admin")
@@ -32,11 +24,12 @@ RSpec.describe "Admin::Onboardings", type: :request do
     end
 
     it "does not call onboarding when matching store already exists" do
+      sign_in_admin
       waitlist = create(:waitlist, discogs_username: "existing-store")
       create(:store, discogs_username: "existing-store")
       allow(StoreOnboarding).to receive(:call)
 
-      post "/admin/waitlists/#{waitlist.id}/onboarding", headers: auth_headers("admin", "secret")
+      post "/admin/waitlists/#{waitlist.id}/onboarding"
 
       expect(StoreOnboarding).not_to have_received(:call)
       expect(response).to redirect_to("/admin")
@@ -44,10 +37,11 @@ RSpec.describe "Admin::Onboardings", type: :request do
     end
 
     it "shows an alert when onboarding fails" do
+      sign_in_admin
       waitlist = create(:waitlist, discogs_username: "broken-store")
       allow(StoreOnboarding).to receive(:call).and_raise(StoreOnboarding::Error, "Discogs username is required")
 
-      post "/admin/waitlists/#{waitlist.id}/onboarding", headers: auth_headers("admin", "secret")
+      post "/admin/waitlists/#{waitlist.id}/onboarding"
 
       expect(response).to redirect_to("/admin")
       expect(flash[:alert]).to include("Discogs username is required")
@@ -55,19 +49,18 @@ RSpec.describe "Admin::Onboardings", type: :request do
   end
 
   describe "POST /admin/onboarding" do
-    it "requires admin credentials" do
+    it "redirects to login when not authenticated" do
       post "/admin/onboarding", params: { discogs_username: "new-store" }
 
-      expect(response).to have_http_status(:unauthorized)
+      expect(response).to redirect_to(admin_login_path)
     end
 
     it "calls store onboarding with no waitlist and redirects to admin" do
+      sign_in_admin
       result = StoreOnboarding::Result.new(store: build_stubbed(:store, name: "New Store", discogs_username: "new-store"))
       allow(StoreOnboarding).to receive(:call).and_return(result)
 
-      post "/admin/onboarding",
-        params: { discogs_username: " New-Store " },
-        headers: auth_headers("admin", "secret")
+      post "/admin/onboarding", params: { discogs_username: " New-Store " }
 
       expect(StoreOnboarding).to have_received(:call).with(discogs_username: "new-store", waitlist: nil)
       expect(response).to redirect_to("/admin")
@@ -75,12 +68,11 @@ RSpec.describe "Admin::Onboardings", type: :request do
     end
 
     it "does not call onboarding when matching store already exists" do
+      sign_in_admin
       create(:store, discogs_username: "existing-store")
       allow(StoreOnboarding).to receive(:call)
 
-      post "/admin/onboarding",
-        params: { discogs_username: "Existing-Store" },
-        headers: auth_headers("admin", "secret")
+      post "/admin/onboarding", params: { discogs_username: "Existing-Store" }
 
       expect(StoreOnboarding).not_to have_received(:call)
       expect(response).to redirect_to("/admin")
@@ -88,12 +80,11 @@ RSpec.describe "Admin::Onboardings", type: :request do
     end
 
     it "does not call onboarding when matching applicant already exists" do
+      sign_in_admin
       create(:waitlist, discogs_username: "applicant-store")
       allow(StoreOnboarding).to receive(:call)
 
-      post "/admin/onboarding",
-        params: { discogs_username: "Applicant-Store" },
-        headers: auth_headers("admin", "secret")
+      post "/admin/onboarding", params: { discogs_username: "Applicant-Store" }
 
       expect(StoreOnboarding).not_to have_received(:call)
       expect(response).to redirect_to("/admin")
@@ -101,11 +92,10 @@ RSpec.describe "Admin::Onboardings", type: :request do
     end
 
     it "does not call onboarding when username is blank" do
+      sign_in_admin
       allow(StoreOnboarding).to receive(:call)
 
-      post "/admin/onboarding",
-        params: { discogs_username: " " },
-        headers: auth_headers("admin", "secret")
+      post "/admin/onboarding", params: { discogs_username: " " }
 
       expect(StoreOnboarding).not_to have_received(:call)
       expect(response).to redirect_to("/admin")
@@ -113,25 +103,23 @@ RSpec.describe "Admin::Onboardings", type: :request do
     end
 
     it "shows an alert when direct onboarding fails" do
+      sign_in_admin
       allow(StoreOnboarding).to receive(:call).and_raise(StoreOnboarding::Error, "Discogs lookup failed")
 
-      post "/admin/onboarding",
-        params: { discogs_username: "broken-store" },
-        headers: auth_headers("admin", "secret")
+      post "/admin/onboarding", params: { discogs_username: "broken-store" }
 
       expect(response).to redirect_to("/admin")
       expect(flash[:alert]).to include("Discogs lookup failed")
     end
 
     it "creates a store and queues sync work through the real onboarding operation" do
+      sign_in_admin
       client = instance_double(DiscogsClient)
       allow(DiscogsClient).to receive(:new).and_return(client)
       allow(client).to receive(:seller_profile).with("direct-store").and_return({ "name" => "Direct Store" })
 
       expect {
-        post "/admin/onboarding",
-          params: { discogs_username: "Direct-Store" },
-          headers: auth_headers("admin", "secret")
+        post "/admin/onboarding", params: { discogs_username: "Direct-Store" }
       }.to change(Store, :count).by(1)
         .and have_enqueued_job(FullStoreSyncJob)
 
@@ -141,13 +129,14 @@ RSpec.describe "Admin::Onboardings", type: :request do
     end
 
     it "keeps applicant approval as the path for waitlist records" do
+      sign_in_admin
       waitlist = create(:waitlist, discogs_username: "applicant-store")
       client = instance_double(DiscogsClient)
       allow(DiscogsClient).to receive(:new).and_return(client)
       allow(client).to receive(:seller_profile).with("applicant-store").and_return({ "name" => "Applicant Store" })
 
       expect {
-        post "/admin/waitlists/#{waitlist.id}/onboarding", headers: auth_headers("admin", "secret")
+        post "/admin/waitlists/#{waitlist.id}/onboarding"
       }.to change(Store, :count).by(1)
         .and have_enqueued_job(FullStoreSyncJob)
 
