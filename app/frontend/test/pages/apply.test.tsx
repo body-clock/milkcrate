@@ -107,7 +107,9 @@ describe("Apply", () => {
     it("renders the submit button with correct text", () => {
       render(<Apply copy={copy} turnstile={{ enabled: false, site_key: null }} />)
 
-      expect(screen.getByRole("button", { name: copy.submit })).toBeInTheDocument()
+      const submit = screen.getByRole("button", { name: copy.submit })
+      expect(submit).toBeInTheDocument()
+      expect(submit.className).toContain("ring-mc-focus")
     })
   })
 
@@ -123,6 +125,10 @@ describe("Apply", () => {
       expect(screen.getByText("There are 2 problems with your submission.")).toBeInTheDocument()
       expect(screen.getByText(`${copy.fields.name} can't be blank`)).toBeInTheDocument()
       expect(screen.getByText(`${copy.fields.email} is invalid`)).toBeInTheDocument()
+      expect(screen.getByLabelText(copy.fields.email)).toHaveAttribute(
+        "aria-describedby",
+        "apply-email-hint apply-email-error",
+      )
     })
 
     it("shows singular error message when 1 validation fails", () => {

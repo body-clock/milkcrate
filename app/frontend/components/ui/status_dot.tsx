@@ -3,11 +3,11 @@ import { cn } from "./class_names"
 type StatusVariant = "good" | "working" | "warning" | "danger" | "neutral"
 
 const variants: Record<StatusVariant, string> = {
-  good: "bg-emerald-400",
-  working: "bg-sky-400",
-  warning: "bg-amber-400",
-  danger: "bg-red-400",
-  neutral: "bg-mc-text-dim",
+  good: "bg-mc-feedback-success",
+  working: "bg-mc-feedback-progress",
+  warning: "bg-mc-feedback-warning",
+  danger: "bg-mc-feedback-danger",
+  neutral: "bg-mc-feedback-neutral",
 }
 
 export default function StatusDot({

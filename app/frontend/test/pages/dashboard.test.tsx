@@ -39,5 +39,30 @@ describe("owner dashboard", () => {
     expect(screen.getByRole("heading", { name: "Last sync error" })).toBeInTheDocument()
     expect(screen.getByText("Discogs timeout")).toBeInTheDocument()
     expect(document.querySelector("pre")).toBeNull()
+    expect(screen.getByText("Discogs timeout").closest("[role='alert']")).toHaveClass("text-mc-feedback-danger")
+    expect(screen.getByText("Sync failed").parentElement?.innerHTML).toContain("mc-feedback-danger")
+  })
+
+  it("uses the shared shell landmark and skip-navigation contract", () => {
+    render(
+      <Dashboard
+        store={{
+          id: 1,
+          name: "Philadelphia Music",
+          discogs_username: "philadelphiamusic",
+          storefront_url: "/philadelphiamusic",
+          total_listings: 120,
+          sync_status: "idle",
+          last_synced_at: null,
+          last_sync_error_summary: null,
+          last_sync_error_at: null,
+          owner_email: null,
+          oauth_authorized_at: null,
+        }}
+      />,
+    )
+
+    expect(screen.getAllByRole("main")).toHaveLength(1)
+    expect(screen.getByText("Skip to content")).toHaveAttribute("href", "#main-content")
   })
 })

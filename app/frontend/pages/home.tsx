@@ -4,6 +4,7 @@ import type { Variants } from "framer-motion"
 import MarketingLayout from "@/layouts/marketing_layout"
 import CrateView from "@/components/crate_view"
 import DiscogsSellerLookupInput from "@/components/discogs_seller_lookup_input"
+import { actionClassName } from "@/components/ui/action"
 import { PileProvider } from "@/contexts/pile_context"
 import type { HomepagePreview } from "@/types/inertia"
 
@@ -59,13 +60,11 @@ const fadeIn: Variants = {
   },
 }
 
-const ctaBase =
-  "w-full sm:w-auto min-h-11 px-6 py-3 rounded-lg font-semibold text-sm leading-5 tracking-wide text-center inline-flex items-center justify-center transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
-
 export default function Home({ copy, preview }: Props) {
   const hasPreview = preview.sections.length > 0
   const picksSection = preview.sections.find((section) => section.key === "picks_wall")
   const picksCrate = picksSection?.key === "picks_wall" ? picksSection.crate : undefined
+  const demoHref = hasPreview && preview.store_slug ? `/${preview.store_slug}` : "/philadelphiamusic"
 
   return (
     <MarketingLayout>
@@ -79,7 +78,7 @@ export default function Home({ copy, preview }: Props) {
         <motion.h1
           variants={fadeUp}
           id="home-headline"
-          className="text-2xl sm:text-3xl font-bold mc-text mb-3 leading-tight max-w-md"
+          className="text-2xl sm:text-3xl font-bold text-mc-text mb-3 leading-tight max-w-md"
         >
           {copy.headline}
         </motion.h1>
@@ -92,21 +91,12 @@ export default function Home({ copy, preview }: Props) {
         </motion.p>
 
         <motion.div variants={fadeUp}>
-          {hasPreview && preview.store_slug ? (
-            <Link
-              href={`/${preview.store_slug}`}
-              className={`${ctaBase} bg-mc-accent text-mc-on-accent hover:opacity-90`}
-            >
-              {copy.cta_demo}
-            </Link>
-          ) : (
-            <Link
-              href="/philadelphiamusic"
-              className={`${ctaBase} bg-mc-accent text-mc-on-accent hover:opacity-90`}
-            >
-              {copy.cta_demo}
-            </Link>
-          )}
+          <Link
+            href={demoHref}
+            className={actionClassName({ size: "lg", className: "w-full text-center tracking-wide sm:w-auto" })}
+          >
+            {copy.cta_demo}
+          </Link>
         </motion.div>
       </motion.section>
 
@@ -140,14 +130,14 @@ export default function Home({ copy, preview }: Props) {
               {preview.store_slug ? (
                 <Link
                   href={`/${preview.store_slug}`}
-                  className="text-xs font-semibold uppercase tracking-widest text-mc-accent hover:opacity-80 transition-opacity"
+                  className={actionClassName({ variant: "ghost", size: "sm", className: "uppercase tracking-widest text-mc-accent" })}
                 >
                   See the full store →
                 </Link>
               ) : (
                 <Link
                   href="/philadelphiamusic"
-                  className="text-xs font-semibold uppercase tracking-widest text-mc-accent hover:opacity-80 transition-opacity"
+                  className={actionClassName({ variant: "ghost", size: "sm", className: "uppercase tracking-widest text-mc-accent" })}
                 >
                   See the full store →
                 </Link>
@@ -162,7 +152,7 @@ export default function Home({ copy, preview }: Props) {
             </p>
             <Link
               href="/philadelphiamusic"
-              className="text-sm font-semibold uppercase tracking-widest text-mc-accent hover:opacity-80 transition-opacity"
+              className={actionClassName({ variant: "ghost", size: "sm", className: "uppercase tracking-widest text-mc-accent" })}
             >
               Philadelphia Music →
             </Link>
@@ -181,7 +171,7 @@ export default function Home({ copy, preview }: Props) {
         <motion.h2
           variants={fadeUp}
           id="home-character-heading"
-          className="text-lg sm:text-xl font-semibold mc-text text-center mb-10"
+          className="text-lg sm:text-xl font-semibold text-mc-text text-center mb-10"
         >
           {copy.store_character_title}
         </motion.h2>
@@ -191,7 +181,7 @@ export default function Home({ copy, preview }: Props) {
             variants={fadeIn}
             className="flex flex-col items-center text-center gap-3 p-4 rounded-xl bg-mc-bg-raised border border-mc-border"
           >
-            <h3 className="text-sm font-semibold mc-text">Milkcrate Picks</h3>
+            <h3 className="text-sm font-semibold text-mc-text">Milkcrate Picks</h3>
             <p className="text-xs text-mc-text-dim leading-relaxed">
               Our digger algorithm surfaces the most interesting records in your inventory —
               refreshed daily.
@@ -202,7 +192,7 @@ export default function Home({ copy, preview }: Props) {
             variants={fadeIn}
             className="flex flex-col items-center text-center gap-3 p-4 rounded-xl bg-mc-bg-raised border border-mc-border"
           >
-            <h3 className="text-sm font-semibold mc-text">Featured Crates</h3>
+            <h3 className="text-sm font-semibold text-mc-text">Featured Crates</h3>
             <p className="text-xs text-mc-text-dim leading-relaxed">
               We shape a front-of-store view that highlights strong entry points for browsing.
             </p>
@@ -212,7 +202,7 @@ export default function Home({ copy, preview }: Props) {
             variants={fadeIn}
             className="flex flex-col items-center text-center gap-3 p-4 rounded-xl bg-mc-bg-raised border border-mc-border"
           >
-            <h3 className="text-sm font-semibold mc-text">Genre Bins</h3>
+            <h3 className="text-sm font-semibold text-mc-text">Genre Bins</h3>
             <p className="text-xs text-mc-text-dim leading-relaxed">
               Records organized by genre, just like a real shop — jazz, soul, electronic,
               hip-hop, and more.
@@ -223,7 +213,7 @@ export default function Home({ copy, preview }: Props) {
             variants={fadeIn}
             className="flex flex-col items-center text-center gap-3 p-4 rounded-xl bg-mc-bg-raised border border-mc-border"
           >
-            <h3 className="text-sm font-semibold mc-text">Build Your Pile</h3>
+            <h3 className="text-sm font-semibold text-mc-text">Build Your Pile</h3>
             <p className="text-xs text-mc-text-dim leading-relaxed">
               Customers can collect records in a pile while they browse and compare finds.
             </p>
@@ -243,7 +233,7 @@ export default function Home({ copy, preview }: Props) {
           <motion.h2
             variants={fadeUp}
             id="home-seller-heading"
-            className="text-lg sm:text-xl font-semibold mc-text text-center mb-3"
+            className="text-lg sm:text-xl font-semibold text-mc-text text-center mb-3"
           >
             {copy.seller_section_title}
           </motion.h2>
@@ -275,7 +265,7 @@ export default function Home({ copy, preview }: Props) {
           >
             <Link
               href="/apply"
-              className="text-xs text-mc-text-dim hover:text-mc-accent transition-colors"
+              className={actionClassName({ variant: "ghost", size: "sm" })}
             >
               {copy.seller_waitlist_fallback}
             </Link>
@@ -300,7 +290,7 @@ export default function Home({ copy, preview }: Props) {
               <div className="w-10 h-10 rounded-full bg-mc-accent text-mc-on-accent flex items-center justify-center font-bold text-sm">
                 1
               </div>
-              <h3 className="text-sm font-semibold mc-text">
+              <h3 className="text-sm font-semibold text-mc-text">
                 {copy.steps.step1_title}
               </h3>
               <p className="text-xs text-mc-text-dim leading-relaxed max-w-[220px]">
@@ -315,7 +305,7 @@ export default function Home({ copy, preview }: Props) {
               <div className="w-10 h-10 rounded-full bg-mc-accent text-mc-on-accent flex items-center justify-center font-bold text-sm">
                 2
               </div>
-              <h3 className="text-sm font-semibold mc-text">
+              <h3 className="text-sm font-semibold text-mc-text">
                 {copy.steps.step2_title}
               </h3>
               <p className="text-xs text-mc-text-dim leading-relaxed max-w-[220px]">
@@ -330,7 +320,7 @@ export default function Home({ copy, preview }: Props) {
               <div className="w-10 h-10 rounded-full bg-mc-accent text-mc-on-accent flex items-center justify-center font-bold text-sm">
                 3
               </div>
-              <h3 className="text-sm font-semibold mc-text">
+              <h3 className="text-sm font-semibold text-mc-text">
                 {copy.steps.step3_title}
               </h3>
               <p className="text-xs text-mc-text-dim leading-relaxed max-w-[220px]">

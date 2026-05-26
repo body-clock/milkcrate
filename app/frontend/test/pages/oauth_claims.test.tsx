@@ -51,6 +51,7 @@ describe("oauth claim forms", () => {
 
     expect(form).toBeInTheDocument()
     expect(form?.querySelector("input[name='authenticity_token']")).toHaveAttribute("value", "csrf-token-test")
+    expect(claimButton.className).toContain("ring-mc-focus")
   })
 
   it("renders the store view without persistent Discogs authentication controls", () => {

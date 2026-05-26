@@ -51,7 +51,7 @@ export default function CrateTabs({ crates, activeSlug, onSelect, compact = fals
             ref={selected ? activeTabRef : null}
             onClick={() => onSelect(crate.slug)}
             onKeyDown={(e) => handleKeyDown(e, i)}
-            className={`whitespace-nowrap rounded cursor-pointer transition-[background-color,color,border-color,transform] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-1 focus-visible:ring-offset-mc-bg ${
+            className={`whitespace-nowrap rounded cursor-pointer transition-[background-color,color,border-color,transform] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus focus-visible:ring-offset-1 focus-visible:ring-offset-mc-bg ${
               compact ? "min-h-11 px-3 py-1.5 text-xs" : "px-2.5 py-1 text-xs sm:text-sm"
             } ${
               selected

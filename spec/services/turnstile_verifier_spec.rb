@@ -3,14 +3,9 @@ require "rails_helper"
 RSpec.describe TurnstileVerifier do
   around do |example|
     original_enabled = ENV["TURNSTILE_ENABLED"]
-    original_secret = ENV["TURNSTILE_SECRET_KEY"]
-    original_site_key = ENV["TURNSTILE_SITE_KEY"]
-
     example.run
   ensure
     ENV["TURNSTILE_ENABLED"] = original_enabled
-    ENV["TURNSTILE_SECRET_KEY"] = original_secret
-    ENV["TURNSTILE_SITE_KEY"] = original_site_key
   end
 
   describe ".enabled?" do
@@ -29,7 +24,7 @@ RSpec.describe TurnstileVerifier do
 
   describe ".site_key" do
     it "returns the configured site key" do
-      ENV["TURNSTILE_SITE_KEY"] = "site-key"
+      allow(Rails.application.credentials).to receive(:dig).with(:turnstile, :site_key).and_return("site-key")
 
       expect(described_class.site_key).to eq("site-key")
     end
@@ -37,33 +32,33 @@ RSpec.describe TurnstileVerifier do
 
   describe ".verify" do
     it "returns false without a token" do
-      ENV["TURNSTILE_SECRET_KEY"] = "secret"
+      allow(Rails.application.credentials).to receive(:dig).with(:turnstile, :secret_key).and_return("secret")
 
       expect(described_class.verify(token: "", remote_ip: "127.0.0.1")).to eq(false)
     end
 
     it "returns false without a secret key" do
-      ENV.delete("TURNSTILE_SECRET_KEY")
+      allow(Rails.application.credentials).to receive(:dig).with(:turnstile, :secret_key).and_return(nil)
 
       expect(described_class.verify(token: "token", remote_ip: "127.0.0.1")).to eq(false)
     end
 
     it "returns true when Cloudflare accepts the token" do
-      ENV["TURNSTILE_SECRET_KEY"] = "secret"
+      allow(Rails.application.credentials).to receive(:dig).with(:turnstile, :secret_key).and_return("secret")
       stub_turnstile_response("success" => true)
 
       expect(described_class.verify(token: "token", remote_ip: "127.0.0.1")).to eq(true)
     end
 
     it "returns false when Cloudflare rejects the token" do
-      ENV["TURNSTILE_SECRET_KEY"] = "secret"
+      allow(Rails.application.credentials).to receive(:dig).with(:turnstile, :secret_key).and_return("secret")
       stub_turnstile_response("success" => false)
 
       expect(described_class.verify(token: "token", remote_ip: "127.0.0.1")).to eq(false)
     end
 
     it "returns false and logs on connection failure" do
-      ENV["TURNSTILE_SECRET_KEY"] = "secret"
+      allow(Rails.application.credentials).to receive(:dig).with(:turnstile, :secret_key).and_return("secret")
       connection = instance_double(Faraday::Connection)
       allow(connection).to receive(:post).and_raise(Faraday::ConnectionFailed, "connection refused")
       allow(described_class).to receive(:connection).and_return(connection)
@@ -76,7 +71,7 @@ RSpec.describe TurnstileVerifier do
     end
 
     it "returns false and logs on timeout" do
-      ENV["TURNSTILE_SECRET_KEY"] = "secret"
+      allow(Rails.application.credentials).to receive(:dig).with(:turnstile, :secret_key).and_return("secret")
       connection = instance_double(Faraday::Connection)
       allow(connection).to receive(:post).and_raise(Faraday::TimeoutError, "timeout")
       allow(described_class).to receive(:connection).and_return(connection)

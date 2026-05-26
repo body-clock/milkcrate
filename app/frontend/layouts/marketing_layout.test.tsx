@@ -50,6 +50,7 @@ describe("MarketingLayout header policy", () => {
     expect(within(header).getByRole("link", { name: "Demo" })).toBeInTheDocument()
     expect(within(header).getByRole("link", { name: "Apply" })).toBeInTheDocument()
     expect(within(header).getByRole("button", { name: "Toggle light/dark mode" })).toBeInTheDocument()
+    expect(within(header).getByRole("link", { name: "Apply" }).className).toContain("ring-mc-focus")
   })
 
   it("renders only the Milkcrate home link in compact public header chrome", () => {

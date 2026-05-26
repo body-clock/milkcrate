@@ -7,6 +7,9 @@ import { springDrawer } from "@/lib/motion_tokens"
 import { formatPriceValue } from "@/lib/format_price"
 import { useShopperContext } from "../contexts/shopper_context"
 import { DiscogsConnectForm, DiscogsDisconnectForm } from "./discogs_connection_controls"
+import Button from "./ui/button"
+import FeedbackMessage from "./ui/feedback_message"
+import { ActionLink, actionClassName } from "./ui/action"
 import type { Store } from "../types/inertia"
 import type { Listing } from "../types/inertia"
 
@@ -51,7 +54,7 @@ function PileRecordItem({ listing, onRemove }: { listing: Listing; onRemove: (id
       </a>
       <button
         onClick={() => onRemove(listing.id)}
-        className="ml-2 inline-flex h-11 w-11 flex-shrink-0 items-center justify-center text-sm leading-none text-mc-text-dim transition-colors hover:text-mc-text"
+        className="ml-2 inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded text-sm leading-none text-mc-text-dim transition-colors hover:text-mc-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus"
         aria-label={`Remove ${listing.title ?? "record"} from pile`}
       >
         ×
@@ -66,8 +69,8 @@ function WantlistResultView({ result, storeName, onDismiss }: {
   onDismiss: () => void
 }) {
   return (
-    <div className="flex flex-col gap-2" role="status" aria-live="polite">
-      <p className="text-xs text-emerald-500 font-medium">
+    <FeedbackMessage tone="success" live="polite" className="flex flex-col gap-2">
+      <p className="text-xs font-medium">
         {result.skipped > 0
           ? `${result.added} of ${result.added + result.skipped} releases added to your Wantlist`
           : `${result.added} release${result.added === 1 ? "" : "s"} added to your Wantlist`}
@@ -78,31 +81,31 @@ function WantlistResultView({ result, storeName, onDismiss }: {
           : <>Added to your Wantlist. Shop from this store on Discogs by selecting their seller filter.</>}
       </p>
       {result.wantlist_url
-        ? <a href={result.wantlist_url} target="_blank" rel="noopener noreferrer" className="w-full mc-btn mc-btn-primary min-h-11 py-2.5 text-sm text-center">Shop My Wants ↗</a>
-        : <button onClick={onDismiss} className="w-full mc-btn min-h-11 py-2.5 text-sm">Keep browsing</button>}
-    </div>
+        ? <ActionLink href={result.wantlist_url} target="_blank" rel="noopener noreferrer" size="lg" className="w-full">Shop My Wants ↗</ActionLink>
+        : <Button onClick={onDismiss} variant="secondary" size="lg" className="w-full">Keep browsing</Button>}
+    </FeedbackMessage>
   )
 }
 
 function WantlistErrorView({ message, onRetry }: { message: string | null; onRetry: () => void }) {
   return (
-    <div className="flex flex-col gap-2" role="status" aria-live="polite">
-      <p className="text-xs text-red-500 font-medium">{message || "Something went wrong."}</p>
-      <button onClick={onRetry} className="w-full mc-btn min-h-11 py-2.5 text-sm">Try again</button>
-    </div>
+    <FeedbackMessage tone="danger" live="assertive" className="flex flex-col gap-2">
+      <p className="text-xs font-medium">{message || "Something went wrong."}</p>
+      <Button onClick={onRetry} variant="secondary" size="lg" className="w-full">Try again</Button>
+    </FeedbackMessage>
   )
 }
 
 function WantlistInProgressView({ count }: { count: number }) {
   return (
-    <div className="flex flex-col gap-2" role="status" aria-live="polite">
-      <button disabled className="w-full mc-btn mc-btn-primary min-h-11 py-2.5 text-sm disabled:opacity-40 disabled:cursor-not-allowed">
+    <FeedbackMessage tone="progress" live="polite" className="flex flex-col gap-2">
+      <Button busy size="lg" className="w-full">
         Adding to Wantlist…
-      </button>
+      </Button>
       <p className="text-[11px] text-mc-text-dim text-center">
         Adding {count} {count === 1 ? "release" : "releases"} to your Wantlist
       </p>
-    </div>
+    </FeedbackMessage>
   )
 }
 
@@ -112,9 +115,9 @@ function WantlistHandoffAction({ storeName, onSend }: { storeName: string | null
       <p className="text-[11px] text-mc-text-dim leading-relaxed">
         Get these records from {storeName ?? "this store"} on Discogs.
       </p>
-      <button onClick={onSend} className="w-full mc-btn mc-btn-primary min-h-11 py-2.5 text-sm">
+      <Button onClick={onSend} size="lg" className="w-full">
         Send to Discogs Wantlist
-      </button>
+      </Button>
     </div>
   )
 }
@@ -127,7 +130,7 @@ function DisconnectedCta({ storeName, storeSlug }: { storeName: string | null; s
       </p>
       <DiscogsConnectForm
         storeSlug={storeSlug}
-        buttonClassName="w-full mc-btn mc-btn-primary min-h-11 py-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
+        buttonClassName={actionClassName({ size: "lg", className: "w-full" })}
       />
     </div>
   )
@@ -274,18 +277,18 @@ export default function PileSheet({ open, onClose, returnFocusRef }: Props) {
                 ? (
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-mc-text-dim">Sure?</span>
-                    <button onClick={() => { clearPile(); setConfirmClear(false) }} className="inline-flex min-h-11 min-w-11 items-center justify-center px-2 text-xs text-mc-accent transition-opacity hover:opacity-80">Yes</button>
-                    <button onClick={() => setConfirmClear(false)} className="inline-flex min-h-11 min-w-11 items-center justify-center px-2 text-xs text-mc-text-dim transition-colors hover:text-mc-text">No</button>
+                    <button onClick={() => { clearPile(); setConfirmClear(false) }} className={`${actionClassName({ variant: "danger", size: "sm" })} min-w-11 justify-center`}>Yes</button>
+                    <button onClick={() => setConfirmClear(false)} className={`${actionClassName({ variant: "ghost", size: "sm" })} min-w-11 justify-center`}>No</button>
                   </div>
                 )
                 : (
-                  <button onClick={() => setConfirmClear(true)} className="inline-flex min-h-11 min-w-11 items-center justify-center px-2 text-xs text-mc-text-dim transition-colors hover:text-mc-text" aria-label={`Clear ${pile.length} records from pile`}>
+                  <button onClick={() => setConfirmClear(true)} className={`${actionClassName({ variant: "ghost", size: "sm" })} min-w-11 justify-center`} aria-label={`Clear ${pile.length} records from pile`}>
                     Clear
                   </button>
                 )
             )}
           </div>
-          <button onClick={() => { setConfirmClear(false); onClose() }} className="inline-flex h-11 w-11 items-center justify-center text-lg leading-none text-mc-text-dim transition-colors hover:text-mc-text" aria-label="Close pile">×</button>
+          <button onClick={() => { setConfirmClear(false); onClose() }} className="inline-flex h-11 w-11 items-center justify-center rounded text-lg leading-none text-mc-text-dim transition-colors hover:bg-mc-bg-raised hover:text-mc-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus" aria-label="Close pile">×</button>
         </div>
 
         {/* Records list */}

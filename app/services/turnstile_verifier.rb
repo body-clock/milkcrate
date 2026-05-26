@@ -10,7 +10,7 @@ class TurnstileVerifier
   end
 
   def self.site_key
-    ENV["TURNSTILE_SITE_KEY"]
+    Rails.application.credentials.dig(:turnstile, :site_key)
   end
 
   def self.verify(token:, remote_ip:)
@@ -37,7 +37,7 @@ class TurnstileVerifier
   end
 
   def self.secret_key
-    ENV["TURNSTILE_SECRET_KEY"]
+    Rails.application.credentials.dig(:turnstile, :secret_key)
   end
   private_class_method :secret_key
 

@@ -2,6 +2,8 @@ import { motion, AnimatePresence } from "framer-motion"
 import { usePileContext } from "@/contexts/pile_context"
 import { formatPrice } from "@/lib/format_price"
 import { type RiffleDirection } from "@/lib/riffle_navigation"
+import Button from "@/components/ui/button"
+import { ActionLink } from "@/components/ui/action"
 import type { Listing } from "@/types/inertia"
 
 interface RecordDetailsProps {
@@ -49,11 +51,11 @@ export default function RecordDetails({ listing, direction }: RecordDetailsProps
             </span>
             <div className="flex gap-2">
               {inPile(listing.id) ? (
-                <button onClick={() => removeFromPile(listing.id)} className="mc-btn">✓ In pile</button>
+                <Button variant="secondary" onClick={() => removeFromPile(listing.id)}>✓ In pile</Button>
               ) : (
-                <button onClick={() => addToPile(listing)} className="mc-btn mc-btn-primary">+ Pile</button>
+                <Button onClick={() => addToPile(listing)}>+ Pile</Button>
               )}
-              <a href={listing.discogs_url} target="_blank" rel="noopener noreferrer" className="mc-btn">Discogs ↗</a>
+              <ActionLink variant="secondary" href={listing.discogs_url} target="_blank" rel="noopener noreferrer">Discogs ↗</ActionLink>
             </div>
           </div>
         </div>
