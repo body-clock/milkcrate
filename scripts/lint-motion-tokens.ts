@@ -18,8 +18,27 @@
 import { readFileSync } from "node:fs"
 import { relative } from "node:path"
 import { globSync } from "node:fs"
+import {
+  LIFT_HOVER,
+  SCALE_HOVER,
+  SCALE_PRESS,
+  TILT_HOVER,
+  springTactile,
+} from "../app/frontend/lib/motion_tokens"
 
-const root = process.argv[2] || "app/frontend"
+const args = process.argv.slice(2)
+let root = "app/frontend"
+let cssPath = "app/assets/tailwind/application.css"
+
+for (let index = 0; index < args.length; index += 1) {
+  if (args[index] === "--css") {
+    cssPath = args[index + 1] ?? cssPath
+    index += 1
+  } else {
+    root = args[index]
+  }
+}
+
 const files = globSync(`${root}/**/*.{ts,tsx}`, {
   exclude: ["**/node_modules/**", "**/*.test.*"],
 })
@@ -58,6 +77,27 @@ for (const file of files) {
     if (/transition.*type:\s*"spring".*(stiffness|damping)/.test(line)) {
       VIOLATIONS.push(`${rel}:${ln}  inline spring transition — use transitionHover/Drawer/Flip from @/lib/motion_tokens`)
     }
+  }
+}
+
+const css = readFileSync(cssPath, "utf8")
+const cssMirrors = [
+  ["--mc-spring-stiffness", `${springTactile.stiffness}`],
+  ["--mc-spring-damping", `${springTactile.damping}`],
+  ["--mc-scale-press", `${SCALE_PRESS}`],
+  ["--mc-scale-hover", `${SCALE_HOVER}`],
+  ["--mc-tilt-hover", `${TILT_HOVER}deg`],
+  ["--mc-lift-hover", `${LIFT_HOVER}px`],
+] as const
+
+for (const [property, expected] of cssMirrors) {
+  const match = css.match(new RegExp(`${property}:\\s*([^;]+);`))
+  const actual = match?.[1]?.trim()
+
+  if (actual !== expected) {
+    VIOLATIONS.push(
+      `${relative(process.cwd(), cssPath)}  CSS motion mirror ${property} is ${actual ?? "missing"}; expected ${expected} from motion_tokens`,
+    )
   }
 }
 

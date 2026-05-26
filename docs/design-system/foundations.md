@@ -22,6 +22,12 @@ palette choice.
 Status presentation must include readable text or an accessible label. Color
 is reinforcement, not the only communicated state.
 
+Components use Tailwind utilities generated from `@theme inline` semantic
+mappings: for example, `text-mc-feedback-danger`,
+`bg-mc-feedback-danger-bg`, `border-mc-feedback-danger-border`, and
+`ring-mc-focus`. The underlying CSS variables supply theme-specific values;
+components do not select raw palette colors.
+
 ## Identity
 
 `BrandMark` is the active Milkcrate identity contract. Until a separately
@@ -61,6 +67,8 @@ through the existing provider/hooks/component path. CSS-only mirrors may
 expose matching values for CSS effects and inspection, but they are not a
 second source of interaction decisions.
 
+- Current interaction mirror values are press scale `0.985`, hover scale
+  `1.025`, lift `2px`, and tilt `1.5deg`; update the TypeScript owner first.
 - Use named motion tokens rather than inline spring, scale, lift, or duration
   decisions in active consumers.
 - Keep `StorefrontMotionConfig` as the reduced-motion boundary.

@@ -7,6 +7,7 @@ import {
   springDrawer,
   SCALE_PRESS,
   SCALE_HOVER,
+  SCALE_INNER_HOVER,
   LIFT_HOVER,
   TILT_HOVER,
   transitionCrate,
@@ -37,9 +38,17 @@ test("SCALE_HOVER matches the documented hover scale", () => {
   assert.equal(SCALE_HOVER, 1.025)
 })
 
-test("lift and tilt magnitudes are positive numbers", () => {
-  assert.equal(LIFT_HOVER, 2)
-  assert.equal(TILT_HOVER, 1.5)
+test("interaction magnitudes are the documented CSS mirror authority", () => {
+  assert.deepEqual(
+    {
+      press: SCALE_PRESS,
+      hover: SCALE_HOVER,
+      innerHover: SCALE_INNER_HOVER,
+      lift: LIFT_HOVER,
+      tilt: TILT_HOVER,
+    },
+    { press: 0.985, hover: 1.025, innerHover: 1.015, lift: 2, tilt: 1.5 },
+  )
 })
 
 test("transitionCrate is a spring-based crate-navigation preset", () => {

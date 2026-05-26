@@ -1,16 +1,32 @@
 @import "tailwindcss";
 
-@theme {
-  --color-mc-bg:         var(--mc-bg);
-  --color-mc-bg-raised:  var(--mc-bg-raised);
-  --color-mc-bg-card:    var(--mc-bg-card);
-  --color-mc-text:       var(--mc-text);
-  --color-mc-text-dim:   var(--mc-text-dim);
-  --color-mc-accent:     var(--mc-accent);
-  --color-mc-accent-dim: var(--mc-accent-dim);
-  --color-mc-on-accent:  var(--mc-on-accent);
-  --color-mc-border:     var(--mc-border);
-  --color-mc-notice:     var(--mc-notice);
+@theme inline {
+  --color-mc-bg:                      var(--mc-bg);
+  --color-mc-bg-raised:               var(--mc-bg-raised);
+  --color-mc-bg-card:                 var(--mc-bg-card);
+  --color-mc-text:                    var(--mc-text);
+  --color-mc-text-dim:                var(--mc-text-dim);
+  --color-mc-accent:                  var(--mc-accent);
+  --color-mc-accent-dim:              var(--mc-accent-dim);
+  --color-mc-on-accent:               var(--mc-on-accent);
+  --color-mc-border:                  var(--mc-border);
+  --color-mc-notice:                  var(--mc-notice);
+  --color-mc-focus:                   var(--mc-focus);
+  --color-mc-feedback-neutral:        var(--mc-feedback-neutral);
+  --color-mc-feedback-neutral-bg:     var(--mc-feedback-neutral-bg);
+  --color-mc-feedback-neutral-border: var(--mc-feedback-neutral-border);
+  --color-mc-feedback-success:        var(--mc-feedback-success);
+  --color-mc-feedback-success-bg:     var(--mc-feedback-success-bg);
+  --color-mc-feedback-success-border: var(--mc-feedback-success-border);
+  --color-mc-feedback-warning:        var(--mc-feedback-warning);
+  --color-mc-feedback-warning-bg:     var(--mc-feedback-warning-bg);
+  --color-mc-feedback-warning-border: var(--mc-feedback-warning-border);
+  --color-mc-feedback-danger:         var(--mc-feedback-danger);
+  --color-mc-feedback-danger-bg:      var(--mc-feedback-danger-bg);
+  --color-mc-feedback-danger-border:  var(--mc-feedback-danger-border);
+  --color-mc-feedback-progress:       var(--mc-feedback-progress);
+  --color-mc-feedback-progress-bg:    var(--mc-feedback-progress-bg);
+  --color-mc-feedback-progress-border: var(--mc-feedback-progress-border);
 }
 
 /* ─── Milkcrate Design Tokens ────────────────────────────────────────────── */
@@ -26,15 +42,31 @@
   --mc-accent-dim:  #8a3020;
   --mc-on-accent:   #f5f0e8;
   --mc-border:      #352a20;
-  --mc-notice:      #352020;
+  --mc-focus:       #efb263;
+  --mc-feedback-neutral:        #d4c6b2;
+  --mc-feedback-neutral-bg:     #211d18;
+  --mc-feedback-neutral-border: #594a38;
+  --mc-feedback-success:        #7ed7a5;
+  --mc-feedback-success-bg:     #172a20;
+  --mc-feedback-success-border: #326244;
+  --mc-feedback-warning:        #f0c47b;
+  --mc-feedback-warning-bg:     #302417;
+  --mc-feedback-warning-border: #76532d;
+  --mc-feedback-danger:         #f3a29b;
+  --mc-feedback-danger-bg:      #321a19;
+  --mc-feedback-danger-border:  #733a34;
+  --mc-feedback-progress:       #8acfea;
+  --mc-feedback-progress-bg:    #152732;
+  --mc-feedback-progress-border: #31596b;
+  --mc-notice: var(--mc-feedback-neutral-bg);
 
   /* Motion tokens — inspectable in DevTools, usable by non-React CSS */
   --mc-spring-stiffness: 300;
   --mc-spring-damping: 26;
-  --mc-scale-press: 0.97;
-  --mc-scale-hover: 1.05;
+  --mc-scale-press: 0.985;
+  --mc-scale-hover: 1.025;
   --mc-tilt-hover: 1.5deg;
-  --mc-lift-hover: 3px;
+  --mc-lift-hover: 2px;
   --mc-duration-hover: 0.2s;
   --mc-duration-press: 0.12s;
 }
@@ -49,7 +81,23 @@
   --mc-accent-dim:  #d4a870;
   --mc-on-accent:   #1a1410;
   --mc-border:      #c8bca8;
-  --mc-notice:      #f0e8d0;
+  --mc-focus:       #8a411f;
+  --mc-feedback-neutral:        #4f4236;
+  --mc-feedback-neutral-bg:     #eee7db;
+  --mc-feedback-neutral-border: #bdaf99;
+  --mc-feedback-success:        #17623d;
+  --mc-feedback-success-bg:     #e4f2e8;
+  --mc-feedback-success-border: #5b966d;
+  --mc-feedback-warning:        #774c0c;
+  --mc-feedback-warning-bg:     #faeed5;
+  --mc-feedback-warning-border: #bf8a39;
+  --mc-feedback-danger:         #8f3028;
+  --mc-feedback-danger-bg:      #fae7e4;
+  --mc-feedback-danger-border:  #c87870;
+  --mc-feedback-progress:       #155775;
+  --mc-feedback-progress-bg:    #e0f0f7;
+  --mc-feedback-progress-border: #6197b0;
+  --mc-notice: var(--mc-feedback-neutral-bg);
 }
 
 /* ─── Base ───────────────────────────────────────────────────────────────── */
