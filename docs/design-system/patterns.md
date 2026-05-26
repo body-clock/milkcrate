@@ -43,6 +43,17 @@ field, and action presentation. They may use different density and information
 hierarchy. Polling, resync, onboarding, and store status decisions remain
 outside primitives.
 
+Implemented composition:
+
+- Both operational routes use `MilkcrateShell` for one primary landmark and
+  skip navigation while retaining route-owned headers and information density.
+- The seller dashboard renders flash messages, sync states, sync failures, and
+  resync actions through semantic primitives; its router callbacks remain
+  page-owned.
+- The admin dashboard composes `Field`, `FeedbackMessage`, `Metric`,
+  `EmptyState`, and status primitives around existing lookup, onboarding, and
+  polling behavior.
+
 ## Storefront And Pile
 
 The buyer experience composes shared actions and feedback around specialized

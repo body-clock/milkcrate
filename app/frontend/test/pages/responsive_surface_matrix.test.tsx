@@ -37,6 +37,10 @@ vi.mock("@inertiajs/react", () => ({
       },
     },
   }),
+  router: {
+    post: vi.fn(),
+    visit: vi.fn(),
+  },
 }))
 
 // ── Mock AppLayout for store page — strip providers so renderWithTier ──────
@@ -57,8 +61,9 @@ vi.mock("@/components/storefront_motion_config", () => ({
 import Home from "../../pages/home"
 import Apply from "../../pages/apply"
 import StoreShow from "../../pages/stores/show"
-import Dashboard from "../../pages/admin/dashboard"
-import type { AdminDashboardProps, StoreShowProps, HomepagePreview } from "../../types/inertia"
+import SellerDashboard from "../../pages/dashboard"
+import AdminDashboard from "../../pages/admin/dashboard"
+import type { AdminDashboardProps, DashboardProps, StoreShowProps, HomepagePreview } from "../../types/inertia"
 
 // ── Shared test data ────────────────────────────────────────────
 
@@ -175,6 +180,22 @@ const adminProps: AdminDashboardProps = {
   ],
 }
 
+const sellerDashboardProps: DashboardProps = {
+  store: {
+    id: 2,
+    name: "Seller Records",
+    discogs_username: "seller-records",
+    storefront_url: "/seller-records",
+    total_listings: 92,
+    sync_status: "idle",
+    last_synced_at: "2026-05-16T10:00:00Z",
+    last_sync_error_summary: null,
+    last_sync_error_at: null,
+    owner_email: "seller@example.com",
+    oauth_authorized_at: "2026-05-16T09:00:00Z",
+  },
+}
+
 // ── Tier list shared across all surfaces ───────────────────────
 const tiers: ViewportTier[] = ["compact", "comfy", "wide"]
 
@@ -217,11 +238,21 @@ describe("responsive surface matrix", () => {
     it("renders the admin dashboard without crashing", () => {
       const { container } = renderWithTier(
         tier,
-        <Dashboard {...adminProps} />
+        <AdminDashboard {...adminProps} />
       )
       expect(container).toBeTruthy()
       expect(screen.getByRole("heading", { name: "Store operations" })).toBeInTheDocument()
       expect(screen.getByText("Applicant Records")).toBeInTheDocument()
+    })
+
+    it("renders the seller dashboard with its operational controls", () => {
+      const { container } = renderWithTier(
+        tier,
+        <SellerDashboard {...sellerDashboardProps} />
+      )
+      expect(container).toBeTruthy()
+      expect(screen.getByRole("heading", { name: "Store Dashboard" })).toBeInTheDocument()
+      expect(screen.getByRole("button", { name: "Re-sync inventory" })).toBeInTheDocument()
     })
   })
 

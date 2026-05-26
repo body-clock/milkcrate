@@ -21,8 +21,8 @@ same change that migrates a surface or documents a justified exception.
 | Store invitation | Catch-all `GET /:slug` with missing store in `StoresController#show` | `pages/stores/invitation.tsx`, `MarketingLayout` | Migrated | Canonical actions and progress feedback; probing/OAuth unchanged |
 | Storefront | Catch-all `GET /:slug` with existing store | `pages/stores/show.tsx`, `AppLayout` | Foundation consumer | Flash/sync feedback and shared action use around domain UI |
 | Pile workflow | Storefront child; `POST /pile/add_to_wantlist` | `components/pile_sheet.tsx` | Pending migration | Actions and handoff feedback without dialog/state change |
-| Seller dashboard | `GET /dashboard` and dashboard POST actions | `pages/dashboard/index.tsx` | Pending migration | Shell, status, feedback and actions |
-| Admin dashboard | `GET /admin` and admin onboarding/lookup actions | `pages/admin/dashboard.tsx` | Pending migration | Fields, feedback, status, metrics and shell composition |
+| Seller dashboard | `GET /dashboard` and dashboard POST actions | `pages/dashboard/index.tsx` | Migrated | Shell, semantic status/feedback and canonical resync action; router actions unchanged |
+| Admin dashboard | `GET /admin` and admin onboarding/lookup actions | `pages/admin/dashboard.tsx` | Migrated | Shell, fields, semantic feedback/status, metrics and empty state; polling/onboarding unchanged |
 
 ## Shared Contract Adoption
 
