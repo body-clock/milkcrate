@@ -5,8 +5,8 @@ class Admin::BaseController < ApplicationController
   private
 
   def http_basic_auth_admin
-    creds_user = admin_credential("user")
-    creds_pass = admin_credential("password")
+    creds_user = Rails.application.credentials.dig(:http_basic_auth, :user)
+    creds_pass = Rails.application.credentials.dig(:http_basic_auth, :password)
 
     return request_http_basic_authentication("Admin") unless creds_user && creds_pass
 
@@ -14,10 +14,5 @@ class Admin::BaseController < ApplicationController
       ActiveSupport::SecurityUtils.secure_compare(username, creds_user) &
         ActiveSupport::SecurityUtils.secure_compare(password, creds_pass)
     end
-  end
-
-  def admin_credential(name)
-    ENV["ADMIN_HTTP_BASIC_#{name.upcase}"].presence ||
-      Rails.application.credentials.dig(:admin, :"http_basic_auth_#{name}").presence
   end
 end
