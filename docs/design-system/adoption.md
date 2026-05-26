@@ -38,14 +38,27 @@ same change that migrates a surface or documents a justified exception.
 | Mailer styling | Excluded by plan boundary | Deferred | Assess after in-application contracts settle |
 | Static/PWA identity assets | Brand visual approval not part of this migration | Deferred | Align only after approved identity direction |
 
-## Known Starting Drift
+## Enforcement And Compatibility
 
-- Motion interaction values are represented in CSS and TypeScript with
-  disagreement; foundation normalization must select and enforce one owner.
-- Existing pages/components still own duplicated CTA, field, status, and
-  feedback recipes.
-- Active React consumers still use legacy `.mc-btn`, `.mc-input`, or local
-  palette-based status treatments where canonical contracts will apply.
+- `npm run lint:design-system` scans active `app/frontend` TypeScript/React
+  sources and rejects deprecated recipe classes, raw status palette utilities,
+  and `focus-visible:ring-mc-accent` in place of the focus role.
+- `npm run test:frontend` exercises the guard against a synthetic regression
+  and requires the active source tree to pass it.
+
+| Exception | Evidence | Disposition |
+| --- | --- | --- |
+| Server-rendered compatibility classes in `app/views/layouts/application.html.erb` and `app/views/stores/new.html.erb` | Routed presentation controllers explicitly select `inertia_application`; `config/routes.rb` exposes no store `new` route and `StoresController` exposes only `show`/`authorize` | CSS recipes remain deprecated compatibility only; remove with residual Rails template/layout cleanup, not from new React work |
+| Dynamic crate/record styling through semantic CSS variables such as `var(--mc-border)` | Specialized tactile/stack visuals need runtime style values but still consume a semantic role rather than raw status palettes | Allowed domain-local visual composition; motion decisions remain guarded by `lint-motion-tokens.ts` |
+
+## Resolved Starting Drift
+
+- Motion interaction mirrors now agree with the TypeScript authority and are
+  protected by `lint-motion-tokens.ts`.
+- Migrated active routes consume canonical action, field, feedback, status,
+  metric, and empty-state contracts for the initial-wave scope.
+- Active React consumers no longer use deprecated recipe classes, raw
+  semantic-status palettes, or the superseded accent focus-ring utility.
 
 ## Adoption Rules
 

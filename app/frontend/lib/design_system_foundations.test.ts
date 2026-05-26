@@ -88,3 +88,38 @@ test("motion lint rejects a CSS mirror that disagrees with the TypeScript author
     rmSync(directory, { recursive: true, force: true })
   }
 })
+
+test("design-system lint rejects deprecated recipes and raw semantic role drift", () => {
+  const directory = mkdtempSync(join(tmpdir(), "milkcrate-design-system-"))
+  const sourcePath = join(directory, "bad_surface.tsx")
+
+  try {
+    writeFileSync(
+      sourcePath,
+      'export const BadSurface = () => <button className="mc-btn text-red-400 focus-visible:ring-mc-accent">Bad</button>\n',
+    )
+
+    const result = spawnSync(
+      process.execPath,
+      ["--import", "tsx", "scripts/lint-design-system-tokens.ts", directory],
+      { cwd: process.cwd(), encoding: "utf8" },
+    )
+
+    assert.equal(result.status, 1)
+    assert.match(result.stderr, /mc-btn/)
+    assert.match(result.stderr, /text-red-400/)
+    assert.match(result.stderr, /focus-visible:ring-mc-accent/)
+  } finally {
+    rmSync(directory, { recursive: true, force: true })
+  }
+})
+
+test("active React surfaces satisfy the design-system drift guard", () => {
+  const result = spawnSync(
+    process.execPath,
+    ["--import", "tsx", "scripts/lint-design-system-tokens.ts", "app/frontend"],
+    { cwd: process.cwd(), encoding: "utf8" },
+  )
+
+  assert.equal(result.status, 0, result.stderr)
+})

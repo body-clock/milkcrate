@@ -128,7 +128,7 @@ export default function Apply({ submitted = false, errors = {}, turnstile, copy,
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1, duration: 0.3 }}
-            className="text-2xl font-bold mc-text mb-3"
+            className="text-2xl font-bold text-mc-text mb-3"
           >
             {copy.confirmation_headline}
           </motion.h1>
@@ -151,7 +151,7 @@ export default function Apply({ submitted = false, errors = {}, turnstile, copy,
   return (
     <MarketingLayout>
       <div className="max-w-md mx-auto">
-        <h1 className="text-2xl font-bold mc-text mb-2">{copy.headline}</h1>
+        <h1 className="text-2xl font-bold text-mc-text mb-2">{copy.headline}</h1>
         <p className="text-sm text-mc-text-dim mb-6 leading-relaxed">
           {copy.subhead}
         </p>

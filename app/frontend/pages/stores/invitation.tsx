@@ -34,7 +34,7 @@ export default function Invitation({ waitlist_present, slug, oauth_available }: 
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1, duration: 0.3 }}
-            className="text-2xl font-bold mc-text mb-3"
+            className="text-2xl font-bold text-mc-text mb-3"
           >
             This URL has been claimed
           </motion.h1>
@@ -164,7 +164,7 @@ function InvitationContent({ slug, oauth_available }: { slug: string; oauth_avai
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1, duration: 0.3 }}
-              className="text-2xl font-bold mc-text mb-3"
+              className="text-2xl font-bold text-mc-text mb-3"
             >
               We found <span className="text-mc-accent">{sellerName}</span> on Discogs
             </motion.h1>
@@ -222,7 +222,7 @@ function InvitationContent({ slug, oauth_available }: { slug: string; oauth_avai
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1, duration: 0.3 }}
-              className="text-2xl font-bold mc-text mb-3"
+              className="text-2xl font-bold text-mc-text mb-3"
             >
               This page is available
             </motion.h1>

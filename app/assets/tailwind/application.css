@@ -104,6 +104,8 @@
 
 .mc-body        { background: var(--mc-bg); color: var(--mc-text); font-family: ui-serif, Georgia, serif; transition: background 0.2s, color 0.2s; }
 .mc-header      { background: var(--mc-bg-raised); }
+/* Deprecated compatibility recipes for the residual server-rendered layout/form.
+   Active React surfaces are rejected by scripts/lint-design-system-tokens.ts. */
 .mc-border      { border-color: var(--mc-border); }
 .mc-wordmark    { color: var(--mc-text); font-family: ui-sans-serif, system-ui, sans-serif; letter-spacing: 0.15em; }
 .mc-brand-title { color: var(--mc-text); font-family: ui-sans-serif, system-ui, sans-serif; letter-spacing: 0.08em; text-transform: uppercase; }
@@ -149,6 +151,7 @@
   color: var(--mc-text-dim);
 }
 
+/* Deprecated compatibility control recipe; do not consume from React code. */
 .mc-btn {
   font-size: 0.65rem;
   padding: 0.25rem 0.5rem;
@@ -167,6 +170,7 @@
 
 /* ─── Forms ──────────────────────────────────────────────────────────────── */
 
+/* Deprecated compatibility form recipe; do not consume from React code. */
 .mc-form { max-width: 480px; display: flex; flex-direction: column; gap: 1.25rem; }
 .mc-label { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mc-text-dim); display: block; margin-bottom: 0.4rem; }
 .mc-input {

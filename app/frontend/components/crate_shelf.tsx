@@ -112,7 +112,7 @@ export default function CrateShelf({
             tabIndex={0}
             onClick={handleSelectCrate}
             onKeyDown={handleKeyDown}
-            className="cursor-pointer rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-1 focus-visible:ring-offset-mc-bg-card"
+            className="cursor-pointer rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus focus-visible:ring-offset-1 focus-visible:ring-offset-mc-bg-card"
             aria-label={`Open ${crate.name}`}
           >
             {headerContent}
@@ -133,7 +133,7 @@ export default function CrateShelf({
               <button
                 key={record.id}
                 type="button"
-                className="cursor-pointer rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-1 focus-visible:ring-offset-mc-bg-card"
+                className="cursor-pointer rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus focus-visible:ring-offset-1 focus-visible:ring-offset-mc-bg-card"
                 onClick={(e) => handleSelectRecord(i, e)}
                 aria-label={`Open ${crate.name} at ${record.title ?? "record"}`}
               >
@@ -154,7 +154,7 @@ export default function CrateShelf({
           )}
         </div>
       ) : (
-        <div className="aspect-square flex items-center justify-center mc-dim text-xs px-3 pb-3">
+        <div className="aspect-square flex items-center justify-center text-mc-text-dim text-xs px-3 pb-3">
           No records yet
         </div>
       )}

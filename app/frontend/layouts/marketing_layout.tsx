@@ -16,7 +16,7 @@ export function MarketingLayoutContent({ children }: { children: React.ReactNode
   const { isCompact } = useViewport()
 
   const header = (
-    <header className="mc-header border-b mc-border sticky top-0 z-30 bg-mc-bg-raised/95 backdrop-blur-sm">
+    <header className="mc-header border-b border-mc-border sticky top-0 z-30 bg-mc-bg-raised/95 backdrop-blur-sm">
       <div className="flex items-center justify-between px-4 py-3 mx-auto w-full max-w-6xl">
         <Link
           href="/"

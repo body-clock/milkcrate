@@ -48,7 +48,9 @@ documents to understand why a rule exists.
 
 ## Replacement Direction
 
-Active React surfaces are migrating away from page-owned status palettes,
-duplicate CTA/field/feedback recipes, and legacy `.mc-btn`, `.mc-input`, and
-`.mc-notice` use. See [Adoption](./adoption.md) for the current migration
-status and any documented exceptions.
+Active React surfaces must not use page-owned status palettes, duplicate
+CTA/field/feedback recipes, deprecated `.mc-btn`, `.mc-input`, `.mc-notice`,
+`.mc-text`, `.mc-dim`, or `.mc-border` helpers, or accent-colored focus rings.
+Run `npm run lint:design-system` to enforce this boundary. See
+[Adoption](./adoption.md) for the compatibility exception that remains outside
+active React routes.
