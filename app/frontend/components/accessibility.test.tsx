@@ -181,6 +181,13 @@ describe("no nested interactive controls", () => {
     })
   })
 
+  it("keeps record actions keyboard-focusable through the canonical focus role", () => {
+    renderWithPile(<RecordCard listing={makeListing({ title: "Focusable Actions" })} />)
+
+    expect(screen.getByRole("button", { name: "+ Pile" })).toHaveClass("focus-visible:ring-mc-focus")
+    expect(screen.getByRole("link", { name: /Discogs/ })).toHaveClass("focus-visible:ring-mc-focus")
+  })
+
   it("CrateShelf interactive mode does not nest button elements inside button elements", () => {
     const crate = makeCrate()
     render(
@@ -252,6 +259,14 @@ describe("focusable CTAs have discernible text", () => {
     // When wordmark is hidden, the SVG must carry an aria-label.
     const img = screen.getByRole("img", { name: "Milkcrate" })
     expect(img).toBeInTheDocument()
+  })
+
+  it("keeps icon-only identity discernible at hero size", () => {
+    render(<BrandMark size="large" showWordmark={false} />)
+
+    const img = screen.getByRole("img", { name: "Milkcrate" })
+    expect(img).toHaveAttribute("width", "40")
+    expect(img).toHaveClass("text-mc-text")
   })
 
   it("BrandMark wordmark text is accessible by default", () => {

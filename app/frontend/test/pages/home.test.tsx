@@ -1,6 +1,7 @@
 import React from "react"
-import { describe, expect, it, vi } from "vitest"
-import { render, screen } from "@testing-library/react"
+import { afterEach, describe, expect, it, vi } from "vitest"
+import { render, screen, waitFor } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import Home from "../../pages/home"
 import { renderWithTier } from "../viewport-test-utils"
 import type { HomepagePreview } from "../../types/inertia"
@@ -70,6 +71,10 @@ function makePreview(overrides: Partial<HomepagePreview> = {}): HomepagePreview 
 // ── Emoji regression characters ──────────────────────────────
 const emojiChars = ["🥛", "📀", "👀", "📦"]
 
+afterEach(() => {
+  vi.unstubAllGlobals()
+})
+
 describe("Home page — shopper-first redesign", () => {
   describe("hero section", () => {
     it("renders a shopper-first H1 heading", () => {
@@ -95,6 +100,7 @@ describe("Home page — shopper-first redesign", () => {
 
       const demoLink = screen.getByRole("link", { name: copy.cta_demo })
       expect(demoLink).toHaveAttribute("href", "/philadelphiamusic")
+      expect(demoLink.className).toContain("ring-mc-focus")
     })
 
     it("does not render a 'Get your store' button in the hero", () => {
@@ -223,6 +229,29 @@ describe("Home page — shopper-first redesign", () => {
 
       const fallback = screen.getByRole("link", { name: copy.seller_waitlist_fallback })
       expect(fallback).toHaveAttribute("href", "/apply")
+    })
+
+    it("keeps successful lookup claim submission on the existing OAuth path", async () => {
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          found: true,
+          seller_name: "Philadelphia Music",
+          avatar_url: "",
+          slug: "philadelphiamusic",
+          store_status: "none",
+        }),
+      }))
+      const user = userEvent.setup()
+
+      render(<Home copy={copy} preview={makePreview()} />)
+      await user.type(screen.getByLabelText(copy.seller_input_label), "philadelphiamusic")
+      await user.click(screen.getByRole("button", { name: copy.seller_submit }))
+
+      const claim = await screen.findByRole("button", { name: copy.seller_preview_claim })
+      expect(claim.closest("form")).toHaveAttribute("action", "/philadelphiamusic/authorize")
+      expect(claim.className).toContain("ring-mc-focus")
+      await waitFor(() => expect(screen.getByText("Philadelphia Music")).toBeInTheDocument())
     })
   })
 

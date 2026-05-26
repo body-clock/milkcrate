@@ -4,9 +4,14 @@ import type { AdminApplicantSummary, AdminDashboardProps, AdminHealthSeverity, A
 import Badge from "@/components/ui/badge"
 import Button from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import EmptyState from "@/components/ui/empty_state"
+import FeedbackMessage, { type FeedbackTone } from "@/components/ui/feedback_message"
+import Field from "@/components/ui/field"
 import SectionHeader from "@/components/ui/section_header"
 import StatusDot from "@/components/ui/status_dot"
 import JobProgressBar from "@/components/ui/job_progress_bar"
+import Metric from "@/components/ui/metric"
+import MilkcrateShell from "@/layouts/milkcrate_shell"
 
 function formatTime(value: string | null) {
   if (!value) return "Not yet"
@@ -75,71 +80,82 @@ export default function Dashboard({ active_stores, applicants, discogs_onboardin
     return () => clearInterval(interval)
   }, [hasActiveJobs])
 
-  return (
-    <main className="min-h-screen bg-mc-bg px-4 py-6 text-mc-text sm:px-6 lg:px-8">
-      <div className="mx-auto flex max-w-7xl flex-col gap-8">
-        <header className="flex flex-col gap-4 border-b border-mc-border pb-5 md:flex-row md:items-end md:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-mc-text-dim">Milkcrate admin</p>
-            <h1 className="mt-2 text-2xl font-bold mc-text sm:text-3xl">Store operations</h1>
-          </div>
-          <div className="grid grid-cols-3 gap-2 sm:min-w-80">
-            <Stat label="Healthy" value={healthyCount} />
-            <Stat label="Processing" value={processingCount} />
-            <Stat label="Attention" value={attentionCount} />
-          </div>
-        </header>
+  const header = (
+    <header className="border-b border-mc-border px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto flex max-w-7xl flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-widest text-mc-text-dim">Milkcrate admin</p>
+          <h1 className="mt-2 text-2xl font-bold text-mc-text sm:text-3xl">Store operations</h1>
+        </div>
+        <dl className="grid grid-cols-3 gap-2 sm:min-w-80">
+          <Metric label="Healthy" value={healthyCount} className="rounded-lg border border-mc-border bg-mc-bg-card px-3 py-2" />
+          <Metric label="Processing" value={processingCount} className="rounded-lg border border-mc-border bg-mc-bg-card px-3 py-2" />
+          <Metric label="Attention" value={attentionCount} className="rounded-lg border border-mc-border bg-mc-bg-card px-3 py-2" />
+        </dl>
+      </div>
+    </header>
+  )
 
-        {(notice || alert) && (
-          <div className="grid gap-2" aria-live="polite">
+  return (
+    <div className="min-h-screen bg-mc-bg text-mc-text">
+      <MilkcrateShell
+        header={header}
+        afterHeader={(notice || alert) ? (
+          <div className="mx-auto grid w-full max-w-7xl gap-2 px-4 pt-6 sm:px-6 lg:px-8">
             {notice && (
-              <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
+              <FeedbackMessage tone="success" live="polite">
                 {notice}
-              </div>
+              </FeedbackMessage>
             )}
             {alert && (
-              <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-100">
+              <FeedbackMessage tone="danger" live="assertive">
                 {alert}
-              </div>
+              </FeedbackMessage>
             )}
           </div>
-        )}
+        ) : undefined}
+        contentWidth="max-w-7xl"
+        contentPadding="px-4 py-6 sm:px-6 lg:px-8"
+      >
+        <div className="flex flex-col gap-8">
+          <DiscogsOnboardingPanel lookupPath={discogs_onboarding.lookup_path} createPath={discogs_onboarding.create_path} />
 
-        <DiscogsOnboardingPanel lookupPath={discogs_onboarding.lookup_path} createPath={discogs_onboarding.create_path} />
+          <section aria-labelledby="active-stores-heading">
+            <SectionHeader
+              id="active-stores-heading"
+              title="Active stores"
+              description="Quick health, sync, enrichment, and inventory coverage for stores in Milkcrate."
+            />
+            {active_stores.length === 0 ? (
+              <EmptyState>No stores online yet.</EmptyState>
+            ) : (
+              <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+                {active_stores.map((store) => (
+                  <StoreCard key={store.id} store={store} />
+                ))}
+              </div>
+            )}
+          </section>
 
-        <section aria-labelledby="active-stores-heading">
-          <SectionHeader
-            title="Active stores"
-            description="Quick health, sync, enrichment, and inventory coverage for stores in Milkcrate."
-          />
-          {active_stores.length === 0 ? (
-            <EmptyState>No stores online yet.</EmptyState>
-          ) : (
-            <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
-              {active_stores.map((store) => (
-                <StoreCard key={store.id} store={store} />
-              ))}
-            </div>
-          )}
-        </section>
-
-        <section aria-labelledby="applicants-heading">
-          <SectionHeader
-            title="Applicants"
-            description="Stores waiting to be onboarded into Milkcrate."
-          />
-          {applicants.length === 0 ? (
-            <EmptyState>No applicants waiting.</EmptyState>
-          ) : (
-            <div className="grid gap-4 lg:grid-cols-2">
-              {applicants.map((applicant) => (
-                <ApplicantCard key={applicant.id} applicant={applicant} />
-              ))}
-            </div>
-          )}
-        </section>
-      </div>
-    </main>
+          <section aria-labelledby="applicants-heading">
+            <SectionHeader
+              id="applicants-heading"
+              title="Applicants"
+              description="Stores waiting to be onboarded into Milkcrate."
+            />
+            {applicants.length === 0 ? (
+              <EmptyState>No applicants waiting.</EmptyState>
+            ) : (
+              <div className="grid gap-4 lg:grid-cols-2">
+                {applicants.map((applicant) => (
+                  <ApplicantCard key={applicant.id} applicant={applicant} />
+                ))}
+              </div>
+            )}
+          </section>
+        </div>
+      </MilkcrateShell>
+    </div>
   )
 }
 
@@ -202,22 +218,18 @@ function DiscogsOnboardingPanel({ lookupPath, createPath }: { lookupPath: string
         </CardHeader>
         <CardContent className="space-y-4">
           <form className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto]" onSubmit={handleLookup}>
-            <label className="min-w-0">
-              <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-mc-text-dim">
-                Discogs username
-              </span>
+            <Field id="admin-discogs-username" label="Discogs username" className="min-w-0">
               <input
                 type="text"
                 name="discogs_username_lookup"
                 value={username}
                 onChange={handleUsernameChange}
-                className="min-h-10 w-full rounded-md border border-mc-border bg-mc-bg px-3 py-2 text-sm text-mc-text outline-none transition-colors placeholder:text-mc-text-dim focus:border-mc-accent focus:ring-2 focus:ring-mc-accent/40"
                 placeholder="seller-name"
                 autoComplete="off"
               />
-            </label>
+            </Field>
             <div className="flex items-end">
-              <Button type="submit" variant="secondary" className="w-full md:w-auto" disabled={state === "loading"}>
+              <Button type="submit" variant="secondary" className="w-full md:w-auto" busy={state === "loading"}>
                 {state === "loading" ? "Checking..." : "Lookup"}
               </Button>
             </div>
@@ -230,7 +242,7 @@ function DiscogsOnboardingPanel({ lookupPath, createPath }: { lookupPath: string
           )}
 
           {state === "loading" && (
-            <LookupMessage tone="neutral">
+            <LookupMessage tone="progress">
               Checking Discogs and current admin records...
             </LookupMessage>
           )}
@@ -253,18 +265,18 @@ function LookupResult({
 }) {
   if (lookup.status === "creatable") {
     return (
-      <div className="rounded-md border border-emerald-500/30 bg-emerald-500/10 p-3">
+      <FeedbackMessage tone="success" className="p-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 items-center gap-3">
             {lookup.avatar_url && (
               <img
                 src={lookup.avatar_url}
                 alt=""
-                className="h-12 w-12 shrink-0 rounded-md border border-emerald-500/30 object-cover"
+                className="h-12 w-12 shrink-0 rounded-md border border-mc-feedback-success-border object-cover"
               />
             )}
             <div className="min-w-0">
-              <p className="font-semibold mc-text">{lookup.seller_name || lookup.username}</p>
+              <p className="font-semibold text-mc-text">{lookup.seller_name || lookup.username}</p>
               <p className="break-all text-sm text-mc-text-dim">@{lookup.username}</p>
             </div>
           </div>
@@ -274,7 +286,7 @@ function LookupResult({
             <Button type="submit" className="w-full sm:w-auto">Onboard storefront</Button>
           </form>
         </div>
-      </div>
+      </FeedbackMessage>
     )
   }
 
@@ -309,26 +321,11 @@ function LookupResult({
   )
 }
 
-function LookupMessage({ tone, children }: { tone: "neutral" | "warning" | "danger"; children: React.ReactNode }) {
-  const classes = {
-    neutral: "border-mc-border bg-mc-bg-raised text-mc-text-dim",
-    warning: "border-amber-500/30 bg-amber-500/10 text-amber-100",
-    danger: "border-red-500/30 bg-red-500/10 text-red-100",
-  }
-
+function LookupMessage({ tone, children }: { tone: FeedbackTone; children: React.ReactNode }) {
   return (
-    <p className={`rounded-md border px-3 py-2 text-sm ${classes[tone]}`}>
+    <FeedbackMessage tone={tone} live={tone === "danger" ? "assertive" : tone === "progress" ? "polite" : undefined}>
       {children}
-    </p>
-  )
-}
-
-function Stat({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="rounded-lg border border-mc-border bg-mc-bg-card px-3 py-2">
-      <div className="text-xl font-bold mc-text">{value}</div>
-      <div className="text-xs text-mc-text-dim">{label}</div>
-    </div>
+    </FeedbackMessage>
   )
 }
 
@@ -357,9 +354,9 @@ function StoreCard({ store }: { store: AdminStoreSummary }) {
         </dl>
 
         {store.health.last_sync_error_summary && (
-          <p className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-100">
+          <FeedbackMessage tone="danger" live="assertive">
             {store.health.last_sync_error_summary}
-          </p>
+          </FeedbackMessage>
         )}
       </CardContent>
     </Card>
@@ -392,22 +389,5 @@ function ApplicantCard({ applicant }: { applicant: AdminApplicantSummary }) {
         {applicant.notes && <p className="whitespace-pre-wrap break-words">{applicant.notes}</p>}
       </CardContent>
     </Card>
-  )
-}
-
-function Metric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="min-w-0">
-      <dt className="text-xs uppercase tracking-wide text-mc-text-dim">{label}</dt>
-      <dd className="mt-1 break-words font-medium mc-text">{value}</dd>
-    </div>
-  )
-}
-
-function EmptyState({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="rounded-lg border border-dashed border-mc-border px-4 py-8 text-center text-sm text-mc-text-dim">
-      {children}
-    </div>
   )
 }

@@ -3,6 +3,7 @@ import { motion } from "framer-motion"
 import AppLayout from "@/layouts/app_layout"
 import CrateView from "@/components/crate_view"
 import StoreFloor from "@/components/store_floor"
+import FeedbackMessage from "@/components/ui/feedback_message"
 import type { StoreShowProps } from "@/types/inertia"
 
 export default function StoreShow({ store, crates, storefront_sections }: StoreShowProps) {
@@ -62,12 +63,12 @@ export default function StoreShow({ store, crates, storefront_sections }: StoreS
           className="mb-6"
         >
           {store.description && (
-            <p className="text-sm mc-text leading-relaxed max-w-prose">
+            <p className="text-sm text-mc-text leading-relaxed max-w-prose">
               {store.description}
             </p>
           )}
           {store.total_listings && (
-            <p className="text-xs mc-dim mt-1.5">
+            <p className="text-xs text-mc-text-dim mt-1.5">
               {store.total_listings.toLocaleString()} vinyl listings
             </p>
           )}
@@ -75,11 +76,8 @@ export default function StoreShow({ store, crates, storefront_sections }: StoreS
       )}
 
       {store.sync_status === "failed" && (
-        <div
-          role="alert"
-          className="mb-6 rounded border border-mc-accent/30 bg-mc-notice px-4 py-3"
-        >
-          <p className="text-sm mc-text font-medium">
+        <FeedbackMessage tone="danger" live="assertive" className="mb-6 px-4 py-3">
+          <p className="text-sm font-medium">
             Sync failed
             {store.last_sync_error_at
               ? ` on ${new Date(store.last_sync_error_at).toLocaleString()}`
@@ -88,15 +86,11 @@ export default function StoreShow({ store, crates, storefront_sections }: StoreS
           <p className="text-xs text-mc-text-dim mt-1">
             Inventory may be stale. Try running the sync again from the Rails console.
           </p>
-        </div>
+        </FeedbackMessage>
       )}
 
       {(store.sync_status === "syncing" || store.enrichment_status === "enriching") ? (
-        <div
-          role="status"
-          aria-live="polite"
-          className="py-16 text-center"
-        >
+        <FeedbackMessage tone="progress" live="polite" className="border-0 bg-transparent py-16 text-center">
           <svg
             className="motion-safe:animate-spin h-8 w-8 mx-auto mb-4 text-mc-accent"
             xmlns="http://www.w3.org/2000/svg"
@@ -118,18 +112,18 @@ export default function StoreShow({ store, crates, storefront_sections }: StoreS
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
             />
           </svg>
-          <p className="text-sm mc-dim">
+          <p className="text-sm">
             {store.sync_status === "syncing"
               ? "Syncing inventory… check back in a moment."
               : "Setting up your store… check back in a moment."}
           </p>
-        </div>
+        </FeedbackMessage>
       ) : crates.length === 0 ? (
         <div className="py-16 text-center">
           <span className="text-4xl mb-4 block" aria-hidden="true">
             🎵
           </span>
-          <p className="text-sm mc-dim">
+          <p className="text-sm text-mc-text-dim">
             No vinyl found yet. Once the store syncs, curated crates will appear here.
           </p>
         </div>

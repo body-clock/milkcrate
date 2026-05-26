@@ -32,6 +32,15 @@ describe("BrandMark", () => {
       // SVG should have a viewBox for scalability
       expect(svg).toHaveAttribute("viewBox")
     })
+
+    it("uses theme-safe identity color instead of hardcoded icon paint", () => {
+      render(<BrandMark />)
+
+      const svg = document.querySelector("svg")
+      expect(svg).toHaveClass("text-mc-text")
+      expect(svg?.innerHTML).not.toContain('stroke="white"')
+      expect(svg?.innerHTML).not.toContain('fill="white"')
+    })
   })
 
   describe("emoji regression", () => {
@@ -86,18 +95,16 @@ describe("BrandMark", () => {
       render(<BrandMark size="small" showWordmark={false} />)
 
       const svg = document.querySelector("svg")
-      expect(svg).toBeInTheDocument()
-      // Small should be smaller — check for size class or width/height attribute
-      const wrapper = svg?.closest("span,div")
-      expect(wrapper).toBeInTheDocument()
+      expect(svg).toHaveAttribute("width", "24")
+      expect(svg).toHaveAttribute("height", "24")
     })
 
     it("renders large variant without clipping", () => {
       render(<BrandMark size="large" />)
 
       const svg = document.querySelector("svg")
-      expect(svg).toBeInTheDocument()
-      // Large should still have a viewBox for scalability
+      expect(svg).toHaveAttribute("width", "40")
+      expect(svg).toHaveAttribute("height", "40")
       expect(svg).toHaveAttribute("viewBox")
     })
   })

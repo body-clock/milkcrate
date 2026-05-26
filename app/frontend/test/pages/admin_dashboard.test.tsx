@@ -140,15 +140,24 @@ describe("Admin dashboard", () => {
   it("renders admin flash notices and alerts", () => {
     render(<Dashboard {...props} active_stores={[]} applicants={[]} notice="Onboarding queued" alert="Store already exists" />)
 
-    expect(screen.getByText("Onboarding queued")).toBeInTheDocument()
-    expect(screen.getByText("Store already exists")).toBeInTheDocument()
+    expect(screen.getByText("Onboarding queued").closest("[role='status']")).toHaveClass("text-mc-feedback-success")
+    expect(screen.getByText("Store already exists").closest("[role='alert']")).toHaveClass("text-mc-feedback-danger")
+  })
+
+  it("uses shared shell landmarks for operational presentation", () => {
+    render(<Dashboard {...props} />)
+
+    expect(screen.getAllByRole("main")).toHaveLength(1)
+    expect(screen.getByText("Skip to content")).toHaveAttribute("href", "#main-content")
+    expect(screen.getByRole("heading", { name: "Active stores" })).toHaveAttribute("id", "active-stores-heading")
+    expect(screen.getByRole("heading", { name: "Applicants" })).toHaveAttribute("id", "applicants-heading")
   })
 
   it("renders the admin-created storefront lookup panel", () => {
     render(<Dashboard {...props} />)
 
     expect(screen.getByRole("heading", { name: "Add Discogs storefront" })).toBeInTheDocument()
-    expect(screen.getByLabelText("Discogs username")).toBeInTheDocument()
+    expect(screen.getByLabelText("Discogs username")).toHaveClass("focus:border-mc-focus")
     expect(screen.getByRole("button", { name: "Lookup" })).toBeInTheDocument()
   })
 

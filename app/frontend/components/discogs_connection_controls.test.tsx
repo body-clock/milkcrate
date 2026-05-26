@@ -20,6 +20,8 @@ describe("Discogs connection controls", () => {
     expect(form).toHaveAttribute("action", "/auth/discogs/shopper/authorize")
     expect(form?.querySelector("input[name='authenticity_token']")).toHaveAttribute("value", "csrf-token-test")
     expect(form?.querySelector("input[name='store_slug']")).toHaveAttribute("value", "philadelphiamusic")
+    expect(screen.getByRole("button", { name: "Connect with Discogs" })).toHaveClass("focus-visible:ring-mc-focus")
+    expect(screen.getByRole("button", { name: "Connect with Discogs" })).not.toHaveClass("mc-btn")
   })
 
   it("submits the existing shopper disconnect contract without hover interaction", () => {
@@ -30,5 +32,7 @@ describe("Discogs connection controls", () => {
     expect(form).toHaveAttribute("action", "/auth/discogs/shopper/disconnect")
     expect(form?.querySelector("input[name='authenticity_token']")).toHaveAttribute("value", "csrf-token-test")
     expect(form?.querySelector("input[name='_method']")).toHaveAttribute("value", "delete")
+    expect(screen.getByRole("button", { name: "Disconnect" })).toHaveClass("focus-visible:ring-mc-focus")
+    expect(screen.getByRole("button", { name: "Disconnect" })).not.toHaveClass("mc-btn")
   })
 })

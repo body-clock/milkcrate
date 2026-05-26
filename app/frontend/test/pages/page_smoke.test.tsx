@@ -223,6 +223,11 @@ describe("page smoke tests", () => {
       expect(text).not.toContain("👀")
       expect(text).not.toContain("📦")
     })
+
+    it("does not render deprecated control or feedback recipe classes", () => {
+      const { container } = renderPage()
+      expect(container.innerHTML).not.toMatch(/\bmc-(?:btn|input|notice)\b/)
+    })
   })
 
   it("hides store description after entering a crate", async () => {
@@ -323,6 +328,7 @@ describe("page smoke tests", () => {
       await waitFor(() => {
         expect(screen.getByRole("heading", { name: /This URL has been claimed/i })).toBeInTheDocument()
       })
+      expect(screen.getByRole("img", { name: "Milkcrate" })).toBeInTheDocument()
     })
 
     it("handles fetch error gracefully for valid slugs", async () => {

@@ -1,15 +1,20 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { springTactile } from "@/lib/motion_tokens"
+import Button from "@/components/ui/button"
+import FeedbackMessage from "@/components/ui/feedback_message"
+import Field from "@/components/ui/field"
 import type { DiscogsLookupResult } from "@/types/inertia"
+
+type SuccessfulLookup = DiscogsLookupResult & { found: true }
 
 type LookupState =
   | { status: "idle" }
   | { status: "loading" }
-  | { status: "preview"; result: DiscogsLookupResult & { found: true } }
+  | { status: "preview"; result: SuccessfulLookup }
   | { status: "error_not_found" }
-  | { status: "error_active_store" }
-  | { status: "error_applicant" }
+  | { status: "error_active_store"; result: SuccessfulLookup }
+  | { status: "error_applicant"; result: SuccessfulLookup }
   | { status: "error_api" }
 
 interface Props {
@@ -152,31 +157,29 @@ export default function DiscogsSellerLookupInput({ copy }: Props) {
 
       {/* Input form */}
       <form onSubmit={handleSubmit} className="flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-3">
-        <label className="flex flex-col gap-1.5 min-w-0 flex-1">
-          <span className="text-xs font-normal uppercase tracking-widest text-mc-text-dim">
-            {copy.seller_input_label}
-          </span>
+        <Field
+          id="seller-discogs-username"
+          label={copy.seller_input_label}
+          error={validationError ?? undefined}
+          busy={isSubmitting}
+          className="min-w-0 flex-1"
+        >
           <input
             ref={inputRef}
-            id="seller-discogs-username"
             type="text"
             value={username}
             onChange={handleUsernameChange}
             placeholder={copy.seller_input_placeholder}
-            disabled={isSubmitting}
-            aria-describedby={validationError ? "seller-input-error" : undefined}
-            aria-invalid={validationError ? true : undefined}
-            aria-busy={isSubmitting}
-            className="min-h-11 w-full rounded-lg border border-mc-border bg-mc-bg px-3 py-2 text-sm text-mc-text outline-none transition-colors placeholder:text-mc-text-dim/50 focus:border-mc-accent focus:ring-2 focus:ring-mc-accent/40 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="min-h-11"
             autoComplete="off"
             spellCheck={false}
           />
-        </label>
-        <button
+        </Field>
+        <Button
           type="submit"
-          disabled={isSubmitting}
-          aria-busy={isSubmitting}
-          className="inline-flex items-center justify-center gap-2 min-h-11 px-6 py-2.5 rounded-lg bg-mc-accent text-mc-on-accent font-semibold text-sm tracking-wide transition-all duration-150 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
+          busy={isSubmitting}
+          size="lg"
+          className="tracking-wide"
         >
           {isSubmitting ? (
             <>
@@ -195,15 +198,8 @@ export default function DiscogsSellerLookupInput({ copy }: Props) {
           ) : (
             <span>{copy.seller_submit}</span>
           )}
-        </button>
+        </Button>
       </form>
-
-      {/* Inline validation error */}
-      {validationError && (
-        <p id="seller-input-error" role="alert" className="mt-2 text-xs text-mc-accent font-medium">
-          {validationError}
-        </p>
-      )}
 
       {/* Result area */}
       <div
@@ -220,10 +216,11 @@ export default function DiscogsSellerLookupInput({ copy }: Props) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
               transition={{ duration: 0.2, ease: easeOut }}
-              className="flex items-center gap-3 px-4 py-3 rounded-lg border border-mc-border bg-mc-bg-raised"
             >
-              <div className="w-5 h-5 border-2 border-mc-accent border-t-transparent rounded-full motion-safe:animate-spin" />
-              <span className="text-sm text-mc-text-dim">Checking Discogs...</span>
+              <FeedbackMessage tone="progress" className="flex items-center gap-3 px-4 py-3">
+                <div className="w-5 h-5 border-2 border-mc-feedback-progress border-t-transparent rounded-full motion-safe:animate-spin" />
+                <span>Checking Discogs...</span>
+              </FeedbackMessage>
             </motion.div>
           )}
 
@@ -234,30 +231,28 @@ export default function DiscogsSellerLookupInput({ copy }: Props) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
               transition={springTactile}
-              className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-4 py-4 rounded-lg border border-emerald-500/30 bg-emerald-500/10"
             >
-              <div className="flex items-center gap-3 min-w-0">
-                {state.result.avatar_url && (
-                  <img
-                    src={state.result.avatar_url}
-                    alt=""
-                    className="h-12 w-12 shrink-0 rounded-md border border-emerald-500/30 object-cover"
-                  />
-                )}
-                <div className="min-w-0">
-                  <p className="font-semibold text-sm mc-text">{state.result.seller_name}</p>
-                  <p className="text-xs text-mc-text-dim">@{state.result.slug}</p>
+              <FeedbackMessage tone="success" className="flex flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-3 min-w-0">
+                  {state.result.avatar_url && (
+                    <img
+                      src={state.result.avatar_url}
+                      alt=""
+                      className="h-12 w-12 shrink-0 rounded-md border border-mc-feedback-success-border object-cover"
+                    />
+                  )}
+                  <div className="min-w-0">
+                    <p className="font-semibold text-sm text-mc-text">{state.result.seller_name}</p>
+                    <p className="text-xs text-mc-text-dim">@{state.result.slug}</p>
+                  </div>
                 </div>
-              </div>
-              <form action={`/${state.result.slug}/authorize`} method="POST" className="shrink-0">
-                <input type="hidden" name="authenticity_token" value={csrfToken()} />
-                <button
-                  type="submit"
-                  className="inline-flex items-center justify-center min-h-11 px-5 py-2.5 rounded-lg bg-mc-accent text-mc-on-accent font-semibold text-sm tracking-wide hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-accent focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
-                >
-                  {copy.seller_preview_claim}
-                </button>
-              </form>
+                <form action={`/${state.result.slug}/authorize`} method="POST" className="shrink-0">
+                  <input type="hidden" name="authenticity_token" value={csrfToken()} />
+                  <Button type="submit" size="lg">
+                    {copy.seller_preview_claim}
+                  </Button>
+                </form>
+              </FeedbackMessage>
             </motion.div>
           )}
 
@@ -268,9 +263,8 @@ export default function DiscogsSellerLookupInput({ copy }: Props) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
               transition={{ duration: 0.2, ease: easeOut }}
-              className="px-4 py-3 rounded-lg border border-red-500/30 bg-red-500/10"
             >
-              <p className="text-sm text-red-100" role="alert">{copy.seller_not_found}</p>
+              <FeedbackMessage tone="danger" live="assertive">{copy.seller_not_found}</FeedbackMessage>
             </motion.div>
           )}
 
@@ -281,9 +275,8 @@ export default function DiscogsSellerLookupInput({ copy }: Props) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
               transition={{ duration: 0.2, ease: easeOut }}
-              className="px-4 py-3 rounded-lg border border-amber-500/30 bg-amber-500/10"
             >
-              <p className="text-sm text-amber-100" role="alert">
+              <FeedbackMessage tone="warning" live="assertive">
                 {copy.seller_already_active}{" "}
                 {state.result?.store_storefront_path && (
                   <a
@@ -293,7 +286,7 @@ export default function DiscogsSellerLookupInput({ copy }: Props) {
                     Visit store →
                   </a>
                 )}
-              </p>
+              </FeedbackMessage>
             </motion.div>
           )}
 
@@ -304,9 +297,8 @@ export default function DiscogsSellerLookupInput({ copy }: Props) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
               transition={{ duration: 0.2, ease: easeOut }}
-              className="px-4 py-3 rounded-lg border border-amber-500/30 bg-amber-500/10"
             >
-              <p className="text-sm text-amber-100" role="alert">{copy.seller_applicant_exists}</p>
+              <FeedbackMessage tone="warning" live="assertive">{copy.seller_applicant_exists}</FeedbackMessage>
             </motion.div>
           )}
 
@@ -317,18 +309,17 @@ export default function DiscogsSellerLookupInput({ copy }: Props) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
               transition={{ duration: 0.2, ease: easeOut }}
-              className="px-4 py-3 rounded-lg border border-red-500/30 bg-red-500/10"
             >
-              <p className="text-sm text-red-100" role="alert">
+              <FeedbackMessage tone="danger" live="assertive">
                 {copy.seller_lookup_error}{" "}
                 <button
                   type="button"
                   onClick={() => setState({ status: "idle" })}
-                  className="underline hover:no-underline font-medium"
+                  className="rounded font-medium underline hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus"
                 >
                   Try again
                 </button>
-              </p>
+              </FeedbackMessage>
             </motion.div>
           )}
         </AnimatePresence>

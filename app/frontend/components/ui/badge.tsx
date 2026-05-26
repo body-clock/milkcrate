@@ -4,11 +4,11 @@ import { cn } from "./class_names"
 type BadgeVariant = "good" | "working" | "warning" | "danger" | "neutral"
 
 const variants: Record<BadgeVariant, string> = {
-  good: "border-emerald-500/40 bg-emerald-500/10 text-emerald-200",
-  working: "border-sky-500/40 bg-sky-500/10 text-sky-200",
-  warning: "border-amber-500/40 bg-amber-500/10 text-amber-200",
-  danger: "border-red-500/40 bg-red-500/10 text-red-200",
-  neutral: "border-mc-border bg-mc-bg-raised text-mc-text-dim",
+  good: "border-mc-feedback-success-border bg-mc-feedback-success-bg text-mc-feedback-success",
+  working: "border-mc-feedback-progress-border bg-mc-feedback-progress-bg text-mc-feedback-progress",
+  warning: "border-mc-feedback-warning-border bg-mc-feedback-warning-bg text-mc-feedback-warning",
+  danger: "border-mc-feedback-danger-border bg-mc-feedback-danger-bg text-mc-feedback-danger",
+  neutral: "border-mc-feedback-neutral-border bg-mc-feedback-neutral-bg text-mc-feedback-neutral",
 }
 
 export default function Badge({

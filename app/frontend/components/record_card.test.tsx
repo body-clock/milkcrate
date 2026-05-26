@@ -138,6 +138,17 @@ describe("RecordCard", () => {
       expect(link).toHaveAttribute("href", "https://www.discogs.com/sell/item/1")
     })
 
+    it("uses canonical action treatment for pile and external record actions", () => {
+      renderCard()
+
+      const pileButton = screen.getByRole("button", { name: "+ Pile" })
+      const discogsLink = screen.getByRole("link", { name: /Discogs/ })
+      expect(pileButton).toHaveClass("focus-visible:ring-mc-focus")
+      expect(discogsLink).toHaveClass("focus-visible:ring-mc-focus")
+      expect(pileButton).not.toHaveClass("mc-btn")
+      expect(discogsLink).not.toHaveClass("mc-btn")
+    })
+
     it("does not flip when pile button is clicked", async () => {
       const user = userEvent.setup()
       const listing = makeListing({ title: "No Flip on Pile" })
