@@ -323,6 +323,7 @@ describe("page smoke tests", () => {
       await waitFor(() => {
         expect(screen.getByRole("heading", { name: /This URL has been claimed/i })).toBeInTheDocument()
       })
+      expect(screen.getByRole("img", { name: "Milkcrate" })).toBeInTheDocument()
     })
 
     it("handles fetch error gracefully for valid slugs", async () => {

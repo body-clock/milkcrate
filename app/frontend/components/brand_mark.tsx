@@ -8,8 +8,8 @@ export interface BrandMarkProps {
 }
 
 /**
- * Temporary Milkcrate brand mark — a simple record icon plus optional
- * wordmark text. This intentionally stays minimal while the brand evolves.
+ * Interim Milkcrate identity contract: the current record icon plus optional
+ * wordmark. Geometry remains stable until a separately reviewed brand update.
  */
 export default function BrandMark({
   size = "small",
@@ -35,15 +35,15 @@ export default function BrandMark({
         aria-hidden={showWordmark ? "true" : undefined}
         aria-label={showWordmark ? undefined : "Milkcrate"}
         role={showWordmark ? undefined : "img"}
-        className="flex-shrink-0"
+        className="flex-shrink-0 text-mc-text"
       >
-        {/* White record silhouette */}
+        {/* Current record silhouette; color follows the active theme role. */}
         <circle
           cx="32"
           cy="32"
           r="24"
           fill="none"
-          stroke="white"
+          stroke="currentColor"
           strokeWidth="3"
         />
         <circle
@@ -51,7 +51,7 @@ export default function BrandMark({
           cy="32"
           r="16"
           fill="none"
-          stroke="white"
+          stroke="currentColor"
           strokeWidth="2"
           strokeOpacity="0.9"
         />
@@ -59,7 +59,7 @@ export default function BrandMark({
           cx="32"
           cy="32"
           r="6"
-          fill="white"
+          fill="currentColor"
         />
       </svg>
 

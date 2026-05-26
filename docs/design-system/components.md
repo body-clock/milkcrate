@@ -27,6 +27,11 @@ domain interaction components.
 | `badge.tsx`, `status_dot.tsx`, `job_progress_bar.tsx` | Compact state displays mapped to semantic feedback utilities |
 | `metric.tsx`, `empty_state.tsx`, `card.tsx`, `section_header.tsx` | Small composable surface structure contracts |
 
+`BrandMark` is the interim active identity component: wordmark-visible mode
+makes the SVG decorative, while icon-only mode exposes the `Milkcrate`
+accessible name. Its `small` and `large` variants inherit theme-safe identity
+color and do not authorize a logo redesign.
+
 ## Action Rules
 
 - Share styling and states across native buttons and action-like links without

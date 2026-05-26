@@ -24,6 +24,12 @@ same change that migrates a surface or documents a justified exception.
 | Seller dashboard | `GET /dashboard` and dashboard POST actions | `pages/dashboard/index.tsx` | Pending migration | Shell, status, feedback and actions |
 | Admin dashboard | `GET /admin` and admin onboarding/lookup actions | `pages/admin/dashboard.tsx` | Pending migration | Fields, feedback, status, metrics and shell composition |
 
+## Shared Contract Adoption
+
+| Contract | Owner | Status | Evidence |
+| --- | --- | --- | --- |
+| Interim product identity | `components/brand_mark.tsx` | Migrated | Wordmark/icon-only accessible naming and theme-safe `small`/`large` rendering covered by component, page smoke, and accessibility tests |
+
 ## Residual And Deferred Surfaces
 
 | Surface | Evidence | Status | Disposition |

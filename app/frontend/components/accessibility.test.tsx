@@ -254,6 +254,14 @@ describe("focusable CTAs have discernible text", () => {
     expect(img).toBeInTheDocument()
   })
 
+  it("keeps icon-only identity discernible at hero size", () => {
+    render(<BrandMark size="large" showWordmark={false} />)
+
+    const img = screen.getByRole("img", { name: "Milkcrate" })
+    expect(img).toHaveAttribute("width", "40")
+    expect(img).toHaveClass("text-mc-text")
+  })
+
   it("BrandMark wordmark text is accessible by default", () => {
     render(<BrandMark />)
 

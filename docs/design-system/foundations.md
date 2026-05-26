@@ -37,6 +37,8 @@ reviewed visual direction is approved:
 - allow wordmark-visible usage in product-level headers and attribution;
 - allow icon-only usage only with an accessible identity supplied by the
   surrounding labeled control or explicit component contract;
+- use the supported `small` (`24px`) and `large` (`40px`) mark sizes, with
+  icon paint inheriting the semantic `text-mc-text` theme role;
 - keep theme legibility and header placement covered by tests.
 
 Final logo art direction and static/PWA asset alignment are deferred; a
