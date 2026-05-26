@@ -27,8 +27,8 @@ vi.mock("@/layouts/marketing_layout", () => ({
 }))
 
 vi.mock("@/components/brand_mark", () => ({
-  default: ({ size, showWordmark }: { size?: string; showWordmark?: boolean }) => (
-    <span data-testid="brand-mark" data-size={size} data-show-wordmark={showWordmark ? "true" : "false"}>
+  default: ({ size }: { size?: string }) => (
+    <span data-testid="brand-mark" data-size={size}>
       BrandMark
     </span>
   ),

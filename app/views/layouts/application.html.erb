@@ -8,18 +8,20 @@
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <%= yield :head %>
-    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
 
-
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 
   </head>
 
   <body class="mc-body min-h-screen">
     <header class="mc-header flex items-center justify-between px-4 py-3 border-b mc-border">
-      <%= link_to root_path, class: "mc-wordmark text-xl font-bold tracking-widest uppercase", "aria-label" => "Milkcrate home" do %>
-        Milkcrate
+      <%= link_to root_path, class: "mc-wordmark text-xl font-semibold", "aria-label" => "Milkcrate. home" do %>
+        Milkcrate.
       <% end %>
 
       <button data-action="click->theme#toggle" class="mc-nav-link text-sm" title="Toggle light/dark">

@@ -1,19 +1,5 @@
-<svg width="512" height="512" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Milkcrate brand mark — Crate-Sun Record -->
-  <!-- Crate front panel -->
-  <rect x="6" y="34" width="52" height="26" rx="2" fill="#807060"/>
-  <!-- Crate top rail -->
-  <rect x="6" y="34" width="52" height="4" rx="1" fill="#352a20"/>
-  <!-- Crate slats -->
-  <line x1="6" y1="44" x2="58" y2="44" stroke="#352a20" stroke-width="1.5" stroke-opacity="0.6"/>
-  <line x1="6" y1="52" x2="58" y2="52" stroke="#352a20" stroke-width="1.5" stroke-opacity="0.6"/>
-  <!-- Record disc -->
-  <circle cx="32" cy="28" r="18" fill="#26211b" stroke="#e6ddd0" stroke-width="1.5"/>
-  <!-- Record grooves -->
-  <circle cx="32" cy="28" r="12" fill="none" stroke="#352a20" stroke-width="1" stroke-opacity="0.7"/>
-  <circle cx="32" cy="28" r="14.5" fill="none" stroke="#352a20" stroke-width="0.5" stroke-opacity="0.4"/>
-  <!-- Center label -->
-  <circle cx="32" cy="28" r="6" fill="#c84830"/>
-  <!-- Spindle hole -->
-  <circle cx="32" cy="28" r="1.5" fill="#15120e"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="8" fill="#1e1a15"/>
+  <!-- Stylized "M" drawn as a path — serif-inspired, warm, no font dependency -->
+  <path d="M14 48V16h8l10 20 10-20h8v32h-7V27L32 44 21 27v21z" fill="#e6ddd0"/>
 </svg>

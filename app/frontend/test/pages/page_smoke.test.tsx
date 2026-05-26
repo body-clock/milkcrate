@@ -156,7 +156,7 @@ describe("page smoke tests", () => {
     // The layout header link should use BrandMark, not the old emoji wordmark.
     // The wordmark text is plain "Milkcrate" without emoji prefix.
     const header = document.querySelector("header")
-    expect(header?.textContent).toContain("Milkcrate")
+    expect(header?.textContent).toContain("Milkcrate.")
     expect(header?.textContent).not.toContain("🥛")
   })
 
@@ -195,7 +195,7 @@ describe("page smoke tests", () => {
     const footer = document.querySelector("footer")
     expect(footer).toBeInTheDocument()
     expect(footer?.textContent).not.toContain("🥛")
-    expect(footer?.textContent).toContain("Milkcrate")
+    expect(footer?.textContent).toContain("Milkcrate.")
   })
 
   // Cross-surface emoji regression matrix — guards against any page
@@ -328,7 +328,8 @@ describe("page smoke tests", () => {
       await waitFor(() => {
         expect(screen.getByRole("heading", { name: /This URL has been claimed/i })).toBeInTheDocument()
       })
-      expect(screen.getByRole("img", { name: "Milkcrate" })).toBeInTheDocument()
+      // BrandMark wordmark appears at least once (header + possibly hero area)
+      expect(screen.getAllByText("Milkcrate.").length).toBeGreaterThanOrEqual(1)
     })
 
     it("handles fetch error gracefully for valid slugs", async () => {

@@ -121,7 +121,7 @@ export function AppLayoutContent({ children, compactLocation }: AppLayoutProps) 
         </div>
       )}
       <span className="text-[11px] text-mc-text-dim tracking-wide">
-        Powered by <span className="font-semibold tracking-widest uppercase">Milkcrate</span>
+        Powered by <span className="font-medium">Milkcrate.</span>
       </span>
     </footer>
   )

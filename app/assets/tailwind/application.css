@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 @theme inline {
+  --font-mc: "Spectral", Georgia, serif;
   --color-mc-bg:                      var(--mc-bg);
   --color-mc-bg-raised:               var(--mc-bg-raised);
   --color-mc-bg-card:                 var(--mc-bg-card);
@@ -102,13 +103,13 @@
 
 /* ─── Base ───────────────────────────────────────────────────────────────── */
 
-.mc-body        { background: var(--mc-bg); color: var(--mc-text); font-family: ui-serif, Georgia, serif; transition: background 0.2s, color 0.2s; }
+.mc-body        { background: var(--mc-bg); color: var(--mc-text); font-family: var(--font-mc); transition: background 0.2s, color 0.2s; }
 .mc-header      { background: var(--mc-bg-raised); }
 /* Deprecated compatibility recipes for the residual server-rendered layout/form.
    Active React surfaces are rejected by scripts/lint-design-system-tokens.ts. */
 .mc-border      { border-color: var(--mc-border); }
-.mc-wordmark    { color: var(--mc-text); font-family: ui-sans-serif, system-ui, sans-serif; letter-spacing: 0.15em; }
-.mc-brand-title { color: var(--mc-text); font-family: ui-sans-serif, system-ui, sans-serif; letter-spacing: 0.08em; text-transform: uppercase; }
+.mc-wordmark    { color: var(--mc-text); font-family: var(--font-mc); }
+.mc-brand-title { color: var(--mc-text); font-family: var(--font-mc); }
 .mc-nav-link    { color: var(--mc-text-dim); text-decoration: none; transition: color 0.15s; cursor: pointer; background: none; border: none; font: inherit; }
 .mc-nav-link:hover { color: var(--mc-text); }
 .mc-input {
@@ -138,15 +139,15 @@
   padding-bottom: 0.5rem;
 }
 .mc-section-name {
-  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-mc);
   font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.2em;
+  font-weight: 600;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--mc-accent);
 }
 .mc-section-count {
-  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-mc);
   font-size: 0.65rem;
   color: var(--mc-text-dim);
 }
