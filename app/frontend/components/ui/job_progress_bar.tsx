@@ -5,13 +5,13 @@ interface JobProgressBarConfig {
 }
 
 const STATUS_CONFIG: Record<string, JobProgressBarConfig> = {
-  idle: { barColor: "bg-mc-text-dim/20", label: "Idle", animate: false },
-  completed: { barColor: "bg-emerald-400", label: "Complete", animate: false },
-  syncing: { barColor: "bg-sky-400", label: "Syncing", animate: true },
-  processing: { barColor: "bg-sky-400", label: "Processing", animate: true },
-  enriching: { barColor: "bg-sky-400", label: "Enriching", animate: true },
-  pending: { barColor: "bg-amber-400", label: "Pending", animate: false },
-  failed: { barColor: "bg-red-400", label: "Failed", animate: false },
+  idle: { barColor: "bg-mc-feedback-neutral-border", label: "Idle", animate: false },
+  completed: { barColor: "bg-mc-feedback-success", label: "Complete", animate: false },
+  syncing: { barColor: "bg-mc-feedback-progress", label: "Syncing", animate: true },
+  processing: { barColor: "bg-mc-feedback-progress", label: "Processing", animate: true },
+  enriching: { barColor: "bg-mc-feedback-progress", label: "Enriching", animate: true },
+  pending: { barColor: "bg-mc-feedback-warning", label: "Pending", animate: false },
+  failed: { barColor: "bg-mc-feedback-danger", label: "Failed", animate: false },
 }
 
 function resolveConfig(status: string): JobProgressBarConfig {
@@ -37,7 +37,7 @@ export default function JobProgressBar({
         <dd className="mt-1">
           <div className="h-2 w-full overflow-hidden rounded-full bg-mc-bg-raised">
             <div
-              className={`h-full rounded-full transition-all duration-700 ${config.animate ? "bg-sky-400" : config.barColor}`}
+              className={`h-full rounded-full transition-all duration-700 ${config.barColor}`}
               style={{ width: `${progressPct}%` }}
               role="progressbar"
               aria-label={`${label}: ${progressPct}%`}
@@ -62,7 +62,7 @@ export default function JobProgressBar({
         <div className="h-2 w-full overflow-hidden rounded-full bg-mc-bg-raised">
           {config.animate ? (
             <div
-              className="h-full w-full animate-pulse rounded-full bg-sky-400/60"
+              className="h-full w-full animate-pulse rounded-full bg-mc-feedback-progress/60"
               role="progressbar"
               aria-label={`${label} in progress`}
               aria-valuetext="processing"

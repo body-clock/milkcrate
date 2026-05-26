@@ -17,6 +17,16 @@ domain interaction components.
 | Empty state | Clear absence/recovery presentation, optionally composing an action | Whether results exist |
 | Brand mark | Documented active wordmark/icon usage and accessible identity | New brand art direction |
 
+## React Entry Points
+
+| Entry point | API shape |
+| --- | --- |
+| `action.tsx` | `actionClassName`, `ActionLink`, shared `ActionVariant`/`ActionSize`; `Button` consumes the same contract |
+| `field.tsx` | `Field` wraps one native control and supplies ID, description, invalid, disabled/busy, and focus treatment |
+| `feedback_message.tsx` | `FeedbackMessage` with `neutral`, `success`, `warning`, `danger`, or `progress` tones and opt-in live announcements |
+| `badge.tsx`, `status_dot.tsx`, `job_progress_bar.tsx` | Compact state displays mapped to semantic feedback utilities |
+| `metric.tsx`, `empty_state.tsx`, `card.tsx`, `section_header.tsx` | Small composable surface structure contracts |
+
 ## Action Rules
 
 - Share styling and states across native buttons and action-like links without
