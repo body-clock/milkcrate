@@ -84,7 +84,7 @@ export default function Dashboard({ active_stores, applicants, discogs_onboardin
     <header className="border-b border-mc-border px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto flex max-w-7xl flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-mc-text-dim">Milkcrate admin</p>
+          <p className="text-xs font-medium tracking-wide text-mc-text-dim">Milkcrate admin</p>
           <h1 className="mt-2 text-2xl font-bold text-mc-text sm:text-3xl">Store operations</h1>
         </div>
         <dl className="grid grid-cols-3 gap-2 sm:min-w-80">

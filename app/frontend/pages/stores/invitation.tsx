@@ -28,7 +28,7 @@ export default function Invitation({ waitlist_present, slug, oauth_available }: 
             transition={springTactile}
             className="mb-6"
           >
-            <BrandMark size="large" showWordmark={false} />
+            <BrandMark size="large" />
           </motion.div>
           <motion.h1
             initial={{ opacity: 0, y: 8 }}
@@ -141,7 +141,7 @@ function InvitationContent({ slug, oauth_available }: { slug: string; oauth_avai
           transition={springTactile}
           className="mb-6"
         >
-          <BrandMark size="large" showWordmark={false} />
+          <BrandMark size="large" />
         </motion.div>
 
         {/* Loading state */}

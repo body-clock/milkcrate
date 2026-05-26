@@ -122,7 +122,7 @@ export default function Apply({ submitted = false, errors = {}, turnstile, copy,
             transition={springTactile}
             className="mb-6"
           >
-            <BrandMark size="large" showWordmark={false} />
+            <BrandMark size="large" />
           </motion.div>
           <motion.h1
             initial={{ opacity: 0, y: 8 }}

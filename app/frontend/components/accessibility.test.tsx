@@ -253,29 +253,18 @@ describe("no nested interactive controls", () => {
 })
 
 describe("focusable CTAs have discernible text", () => {
-  it("BrandMark renders accessible text when wordmark is hidden", () => {
-    render(<BrandMark showWordmark={false} />)
-
-    // When wordmark is hidden, the SVG must carry an aria-label.
-    const img = screen.getByRole("img", { name: "Milkcrate" })
-    expect(img).toBeInTheDocument()
-  })
-
-  it("keeps icon-only identity discernible at hero size", () => {
-    render(<BrandMark size="large" showWordmark={false} />)
-
-    const img = screen.getByRole("img", { name: "Milkcrate" })
-    expect(img).toHaveAttribute("width", "40")
-    expect(img).toHaveClass("text-mc-text")
-  })
-
-  it("BrandMark wordmark text is accessible by default", () => {
+  it("BrandMark wordmark text is visible and accessible", () => {
     render(<BrandMark />)
 
-    // Default: wordmark provides the name, SVG is decorative.
-    expect(screen.getByText("Milkcrate")).toBeInTheDocument()
-    const svg = document.querySelector("svg")
-    expect(svg).toHaveAttribute("aria-hidden", "true")
+    // Text-only identity mark — the visible wordmark provides the name.
+    expect(screen.getByText("Milkcrate.")).toBeInTheDocument()
+    expect(document.querySelector("svg")).not.toBeInTheDocument()
+  })
+
+  it("BrandMark wordmark remains accessible at hero size", () => {
+    render(<BrandMark size="large" />)
+
+    expect(screen.getByText("Milkcrate.")).toBeInTheDocument()
   })
 
   it("discernible text: all links have accessible names", () => {
