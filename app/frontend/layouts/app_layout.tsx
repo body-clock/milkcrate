@@ -39,9 +39,9 @@ export function AppLayoutContent({ children, compactLocation }: AppLayoutProps) 
   const { isCompact } = useViewport();
   const { pile } = usePileContext();
   const { shopper } = useShopperContext();
-  const [pileOpen, setPileOpen] = useState(
-    typeof window !== "undefined" && new URLSearchParams(window.location.search).has("open_pile"),
-  );
+  const autoOpenPile =
+    typeof window !== "undefined" && new URLSearchParams(window.location.search).has("open_pile");
+  const [pileOpen, setPileOpen] = useState(autoOpenPile);
   const handleClosePile = React.useCallback(() => setPileOpen(false), []);
   const compactCrateLocation = isCompact ? compactLocation : undefined;
   const contextFocusRef = React.useRef<HTMLElement>(null);
@@ -169,7 +169,12 @@ export function AppLayoutContent({ children, compactLocation }: AppLayoutProps) 
           {children}
         </MilkcrateShell>
       </div>
-      <PileSheet open={pileOpen} onClose={handleClosePile} returnFocusRef={contextFocusRef} />
+      <PileSheet
+        open={pileOpen}
+        onClose={handleClosePile}
+        returnFocusRef={contextFocusRef}
+        highlightOnMount={autoOpenPile}
+      />
     </>
   );
 }

@@ -22,6 +22,7 @@ interface Props {
   open: boolean;
   onClose: () => void;
   returnFocusRef?: React.RefObject<HTMLElement | null>;
+  highlightOnMount?: boolean;
 }
 
 // ── Sub-components ──────────────────────────────────────────────
@@ -147,16 +148,26 @@ function WantlistInProgressView({ count }: { count: number }) {
 function WantlistHandoffAction({
   storeName,
   onSend,
+  highlight,
 }: {
   storeName: string | null;
   onSend: () => void;
+  highlight?: boolean;
 }) {
+  const [pulsing, setPulsing] = React.useState(highlight);
+
+  React.useEffect(() => {
+    if (!pulsing) return;
+    const timer = setTimeout(() => setPulsing(false), 3000);
+    return () => clearTimeout(timer);
+  }, [pulsing]);
+
   return (
     <div className="flex flex-col gap-2">
       <p className="text-[11px] text-mc-text-dim leading-relaxed">
         Get these records from {storeName ?? "this store"} on Discogs.
       </p>
-      <Button onClick={onSend} size="lg" className="w-full">
+      <Button onClick={onSend} size="lg" className={pulsing ? "animate-pulse" : "w-full"}>
         Send to Discogs Wantlist
       </Button>
     </div>
@@ -198,7 +209,7 @@ function ConnectedAccount({ username }: { username: string }) {
 
 // ── Main component ──────────────────────────────────────────────
 
-export default function PileSheet({ open, onClose, returnFocusRef }: Props) {
+export default function PileSheet({ open, onClose, returnFocusRef, highlightOnMount }: Props) {
   const { pile, removeFromPile, clearPile } = usePileContext();
   const { isCompact } = useViewport();
   const [confirmClear, setConfirmClear] = React.useState(false);
@@ -420,6 +431,7 @@ export default function PileSheet({ open, onClose, returnFocusRef }: Props) {
               <WantlistHandoffAction
                 storeName={store?.name ?? null}
                 onSend={handleSendToWantlist}
+                highlight={highlightOnMount}
               />
             )}
             {showDisconnectedCta && storeSlug && (
