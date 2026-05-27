@@ -19,8 +19,6 @@ class StorefrontCuration::CacheManager
       cache.write(key, curation_payload, expires_in: CURATION_CACHE_TTL)
     end
 
-    private
-
     def self.build_payload(store, filter_available:)
       curation  = StorefrontCuration.new(store, filter_available:)
       scorer    = dev_scorer(curation)
@@ -44,4 +42,6 @@ class StorefrontCuration::CacheManager
       return nil unless Rails.env.development?
       RecordScorer.new(genre_counts: curation.send(:genre_counts), today: Date.today)
     end
+
+    private_class_method :build_payload, :curation_cache_key, :dev_scorer
 end

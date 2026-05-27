@@ -12,40 +12,45 @@ class MusicBrainzClient
   end
 
   def search_release(artist:, title:)
-    response = @search_conn.get("release/") do |req|
-      req.params["query"] = "artist:\"#{artist}\" AND release:\"#{title}\""
-      req.params["fmt"]   = "json"
-      req.params["limit"] = 5
-    end
+    response = search(artist:, title:)
     raise ApiError, "MusicBrainz error: #{response.status}" unless response.status == 200
 
-    releases = response.body["releases"] || []
-    best = releases.first
-    return nil if best.nil? || best["score"].to_i < SCORE_THRESHOLD
-
-    best["id"]
+    matching_release_id(response.body["releases"]&.first)
   end
 
   def front_cover_url(mbid)
     response = @caa_conn.get("/release/#{mbid}/front")
-    case response.status
-    when 307, 302
-      response.headers["Location"]
-    when 404
-      nil
-    else
-      raise ApiError, "CAA error: #{response.status}"
-    end
+    return response.headers["Location"] if [ 307, 302 ].include?(response.status)
+    return if response.status == 404
+
+    raise ApiError, "CAA error: #{response.status}"
   end
 
   private
 
+  def search(artist:, title:)
+    @search_conn.get("release/") { |request| configure_search(request, artist:, title:) }
+  end
+
+  def configure_search(request, artist:, title:)
+    request.params["query"] = "artist:\"#{artist}\" AND release:\"#{title}\""
+    request.params["fmt"]   = "json"
+    request.params["limit"] = 5
+  end
+
+  def matching_release_id(release)
+    return if release.nil? || release["score"].to_i < SCORE_THRESHOLD
+    release["id"]
+  end
+
   def build_connection(url)
-    Faraday.new(url: url) do |f|
-      f.options.timeout = 10
-      f.options.open_timeout = 5
-      f.response :json
-      f.headers["User-Agent"] = "Milkcrate/1.0 +https://milkcrate.fm"
-    end
+    Faraday.new(url:) { |connection| configure_connection(connection) }
+  end
+
+  def configure_connection(connection)
+    connection.options.timeout = 10
+    connection.options.open_timeout = 5
+    connection.response :json
+    connection.headers["User-Agent"] = "Milkcrate/1.0 +https://milkcrate.fm"
   end
 end

@@ -42,7 +42,6 @@ class TurnstileVerifier
   def self.secret_key
     Rails.application.credentials.dig(:turnstile, :secret_key)
   end
-  private_class_method :secret_key
 
   def self.connection
     Faraday.new(url: SITEVERIFY_URL) do |f|
@@ -61,5 +60,7 @@ class TurnstileVerifier
     f.options.timeout = READ_TIMEOUT
     f.options.write_timeout = WRITE_TIMEOUT
   end
-  private_class_method :connection
+
+  private_class_method :verify_token, :log_faraday_error, :error_class_prefix,
+    :secret_key, :connection, :faraday_defaults, :set_faraday_timeouts
 end

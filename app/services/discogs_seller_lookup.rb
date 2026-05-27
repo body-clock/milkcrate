@@ -29,13 +29,13 @@ class DiscogsSellerLookup
     api_error
   end
 
+  private
+
   def fetch_and_cache
     result = lookup_discogs
     cache_result(result)
     result
   end
-
-  private
 
   def cache_result(result)
     return if result[:reason] == "api_error"

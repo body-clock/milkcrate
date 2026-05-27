@@ -24,4 +24,6 @@ class DiscogsOauthConsumer
       access_token_path: "/oauth/access_token"
     )
   end
+
+  private_class_method :validate_credentials!, :build_consumer
 end

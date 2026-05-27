@@ -14,17 +14,6 @@ Metrics/MethodLength:
     - "spec/**/*.rb"
     - "lib/**/*.rake"
     - "lib/tasks/**/*.rb"
-    - "app/services/authorize_store_service.rb"
-    - "app/services/daily_curation_service.rb"
-    - "app/services/discogs/shopper_wantlist_client.rb"
-    - "app/services/enrichment_service.rb"
-    - "app/services/experiments/seed_generator.rb"
-    - "app/services/music_brainz_client.rb"
-    - "app/services/music_brainz_enricher.rb"
-    - "app/services/shopper_auth_callback_service.rb"
-    - "app/services/store_discogs_identity_refresh.rb"
-    - "app/services/store_sync_service.rb"
-    - "app/services/waitlist_registration.rb"
 
 Metrics/ClassLength:
   Enabled: true

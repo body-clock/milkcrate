@@ -18,36 +18,21 @@ module Discogs
     # Adds a release to the authenticated user's Discogs wantlist.
     # Retries up to MAX_RETRIES on 429 rate limits with exponential backoff.
     def add_want(username:, release_id:)
-      retries = 0
-      begin
-        response = oauth_access_token.put(
-          "#{BASE_URL}/users/#{username}/wants/#{release_id.to_i}",
-          "",  # PUT with empty body
-          "Content-Type" => "application/json"
-        )
-
-        parse_oauth_response(response)
-      rescue Errors::RateLimitError
-        if retries < MAX_RETRIES
-          retries += 1
-          sleep(RETRY_DELAY * retries)
-          retry
-        end
-        raise
-      rescue Net::OpenTimeout, Net::ReadTimeout, Errno::ECONNREFUSED, Errno::ECONNRESET, SocketError => e
-        raise Errors::ApiError, "Discogs connection error: #{e.class}: #{e.message}"
-      end
+      with_rate_limit_retries { submit_want(username:, release_id:) }
+    rescue Net::OpenTimeout, Net::ReadTimeout, Errno::ECONNREFUSED, Errno::ECONNRESET, SocketError => e
+      raise Errors::ApiError, "Discogs connection error: #{e.class}: #{e.message}"
     end
 
     private
 
     def oauth_access_token
-      @oauth_access_token ||= begin
-        consumer = DiscogsOauthConsumer.build
-        token = OAuth::AccessToken.new(consumer, @access_token, @access_token_secret)
-        configure_http_timeouts(token)
-        token
-      end
+      @oauth_access_token ||= configured_access_token
+    end
+
+    def configured_access_token
+      token = OAuth::AccessToken.new(DiscogsOauthConsumer.build, @access_token, @access_token_secret)
+      configure_http_timeouts(token)
+      token
     end
 
     def configure_http_timeouts(token)
@@ -56,23 +41,39 @@ module Discogs
       http.read_timeout = READ_TIMEOUT
     end
 
+    def submit_want(username:, release_id:)
+      response = oauth_access_token.put(want_url(username, release_id), "", "Content-Type" => "application/json")
+      parse_oauth_response(response)
+    end
+
+    def want_url(username, release_id)
+      "#{BASE_URL}/users/#{username}/wants/#{release_id.to_i}"
+    end
+
+    def with_rate_limit_retries(retries = 0, &block)
+      yield
+    rescue Errors::RateLimitError
+      raise if retries >= MAX_RETRIES
+      sleep(RETRY_DELAY * (retries + 1))
+      with_rate_limit_retries(retries + 1, &block)
+    end
+
     def parse_oauth_response(response)
-      code = response.code.to_i
-      body = response.body
+      body = response.body.blank? ? {} : JSON.parse(response.body)
+      return success_result(body) if response.code.to_i.between?(200, 299)
 
-      parsed_body = body.blank? ? {} : JSON.parse(body)
-
-      case code
-      when 200..299
-        AddWantResult.new(item_id: parsed_body.is_a?(Hash) ? parsed_body.dig("want", "id") : nil)
-      when 429
-        raise Errors::RateLimitError, "Discogs rate limit hit"
-      else
-        error_message = parsed_body.is_a?(Hash) ? (parsed_body["message"] || response.body) : response.body
-        raise Errors::ApiError, "Discogs API error: #{code}"
-      end
+      raise_response_error(response)
     rescue JSON::ParserError
       raise Errors::ApiError, "Discogs API error: #{response.code}"
+    end
+
+    def raise_response_error(response)
+      raise Errors::RateLimitError, "Discogs rate limit hit" if response.code.to_i == 429
+      raise Errors::ApiError, "Discogs API error: #{response.code}"
+    end
+
+    def success_result(body)
+      AddWantResult.new(item_id: body.is_a?(Hash) ? body.dig("want", "id") : nil)
     end
   end
 end

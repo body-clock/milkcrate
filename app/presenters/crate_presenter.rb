@@ -31,6 +31,8 @@ class CratePresenter
     sections << { key: "genre_grid", crates: build_crates(groups[:genres]) }
   end
 
+  private
+
   def picks_section(groups)
     crate = crate_props(groups[:picks].slug, groups[:picks].name, groups[:picks].listings)
     { key: "picks_wall", crate: }
@@ -40,8 +42,6 @@ class CratePresenter
     return unless featured.present?
     sections << { key: "featured_crates", crates: build_crates(featured) }
   end
-
-  private
 
   def crate_props(slug, name, listings)
     {

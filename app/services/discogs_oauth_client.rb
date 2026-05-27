@@ -32,6 +32,8 @@ class DiscogsOauthClient
     verify_discogs_identity(token)
   end
 
+  private
+
   def verify_discogs_identity(token)
     response = token.get("/oauth/identity")
     raise OauthError, "Discogs identity verification failed: HTTP #{response.code}" unless response.code.to_i == 200

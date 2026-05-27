@@ -32,6 +32,8 @@ class ScoreStrategies::FreshnessStrategy
     staleness_penalty(listing) || 1.0
   end
 
+  private
+
   def staleness_penalty(listing)
     days_ago = (@today - listing.last_surfaced_at.to_date).to_i
     STALENESS_CURVE.each do |threshold, penalty|

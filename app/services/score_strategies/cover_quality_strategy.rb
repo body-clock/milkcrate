@@ -23,6 +23,8 @@ class ScoreStrategies::CoverQualityStrategy
     COVER_BOOST
   end
 
+  private
+
   def no_image?(listing)
     listing.cover_image_url.nil? && listing.thumbnail_url.nil?
   end

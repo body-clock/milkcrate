@@ -1,4 +1,4 @@
-class StorefrontCuration # rubocop:disable Metrics/ClassLength
+class StorefrontCuration
   def self.cached_curation(...) = CacheManager.cached_curation(...)
   def self.write_curation_cache(...) = CacheManager.write_curation_cache(...)
 
@@ -17,11 +17,6 @@ class StorefrontCuration # rubocop:disable Metrics/ClassLength
       *featured_crates,
       *build_genre_crates(excluded_ids: picks_ids | featured_ids)
     ]
-  end
-
-  def picks_setup
-    picks_list = picks_strategy.select(eligible_listings, excluded_ids: Set.new, count: 12)
-    [ picks_list, picks_list.map(&:id).to_set ]
   end
 
   def storefront_groups
@@ -48,6 +43,11 @@ class StorefrontCuration # rubocop:disable Metrics/ClassLength
   end
 
   private
+
+  def picks_setup
+    picks_list = picks_strategy.select(eligible_listings, excluded_ids: Set.new, count: 12)
+    [ picks_list, picks_list.map(&:id).to_set ]
+  end
 
   def build_featured_crates(excluded_ids:)
     seen = excluded_ids.dup
@@ -115,13 +115,9 @@ class StorefrontCuration # rubocop:disable Metrics/ClassLength
     strategy.select(eligible_listings, excluded_ids: seen_ids)
   end
   # Strategies
-  def picks_strategy
-    @picks_strategy ||= CrateStrategies::Picks.new(genre_counts:, today: Date.today)
-  end
+  def picks_strategy = @picks_strategy ||= CrateStrategies::Picks.new(genre_counts:, today: Date.today)
 
-  def new_arrivals_strategy
-    @new_arrivals_strategy ||= CrateStrategies::NewArrivals.new(genre_counts:, today: Date.today)
-  end
+  def new_arrivals_strategy = @new_arrivals_strategy ||= CrateStrategies::NewArrivals.new(genre_counts:, today: Date.today)
 
   def thematic_strategy
     @thematic_strategy ||= CrateStrategies::Thematic.new(
@@ -131,9 +127,7 @@ class StorefrontCuration # rubocop:disable Metrics/ClassLength
     )
   end
 
-  def hidden_gems_strategy
-    @hidden_gems_strategy ||= CrateStrategies::HiddenGems.new(genre_counts:, today: Date.today)
-  end
+  def hidden_gems_strategy = @hidden_gems_strategy ||= CrateStrategies::HiddenGems.new(genre_counts:, today: Date.today)
 
   def build_hidden_gems_crate(excluded_ids:)
     listings = hidden_gems_strategy.select(eligible_listings, excluded_ids:)
@@ -150,7 +144,5 @@ class StorefrontCuration # rubocop:disable Metrics/ClassLength
     end
   end
 
-  def genre_counts
-    @genre_counts ||= eligible_listings.map(&:primary_genre).compact.tally
-  end
+  def genre_counts = @genre_counts ||= eligible_listings.map(&:primary_genre).compact.tally
 end
