@@ -1,7 +1,7 @@
 import React from "react";
 import { cn } from "./class_names";
 
-export type ActionVariant = "primary" | "secondary" | "ghost" | "danger";
+export type ActionVariant = "primary" | "secondary" | "ghost" | "danger" | "success";
 export type ActionSize = "sm" | "md" | "lg";
 
 const variants: Record<ActionVariant, string> = {
@@ -10,6 +10,8 @@ const variants: Record<ActionVariant, string> = {
   ghost: "text-mc-text-dim hover:bg-mc-bg-raised hover:text-mc-text",
   danger:
     "border border-mc-feedback-danger-border bg-mc-feedback-danger-bg text-mc-feedback-danger hover:opacity-90",
+  success:
+    "border border-mc-feedback-success-border bg-mc-feedback-success-bg text-mc-feedback-success hover:opacity-90",
 };
 
 const sizes: Record<ActionSize, string> = {
