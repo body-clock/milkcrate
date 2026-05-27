@@ -2,17 +2,14 @@
 class AuthController < ApplicationController
   def callback
     oauth_verifier = params[:oauth_verifier]
-    log_conflicting_sessions
+    if session[:oauth_request_token].present? && session[:shopper_oauth_request_token].present?
+      Rails.logger.warn("[AuthController] Both store-owner and shopper session keys present — routing as store-owner")
+    end
     route_oauth_callback(oauth_verifier)
   end
 
   private
 
-  def log_conflicting_sessions
-    return unless session[:oauth_request_token].present? && session[:shopper_oauth_request_token].present?
-
-    Rails.logger.warn("[AuthController] Both store-owner and shopper session keys present — routing as store-owner")
-  end
 
   def route_oauth_callback(oauth_verifier)
     return handle_store_owner_callback(oauth_verifier) if session[:oauth_request_token].present?
@@ -117,7 +114,7 @@ class AuthController < ApplicationController
 
   def redirect_to_shopper_return(result, store_slug)
     session[:shopper_id] = result.shopper.id
-    path = session[:shopper_return_to].presence || store_path(store_slug)
+    path = session.delete(:shopper_open_pile) ? store_path(store_slug, open_pile: true) : session[:shopper_return_to].presence || store_path(store_slug)
     clear_shopper_oauth_session
     redirect_to path, notice: "Connected to Discogs as @#{result.shopper.discogs_username}!"
   end
@@ -145,5 +142,6 @@ class AuthController < ApplicationController
     session.delete(:shopper_oauth_request_token_secret)
     session.delete(:shopper_oauth_store_slug)
     session.delete(:shopper_return_to)
+    session.delete(:shopper_open_pile)
   end
 end
