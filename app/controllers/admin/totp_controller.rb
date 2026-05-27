@@ -18,9 +18,7 @@ class Admin::TotpController < ApplicationController
     end
 
     if current_admin.verify_totp!(code)
-      reset_session
-      session[:admin_id] = current_admin.id
-      session[:totp_verified] = true
+      establish_full_session!
       redirect_to admin_path, notice: "Signed in successfully."
     else
       render inertia: "admin/totp_challenge", props: { errors: { code: [ "Invalid code. Try again." ] } }
@@ -43,9 +41,7 @@ class Admin::TotpController < ApplicationController
     end
 
     if current_admin.verify_totp!(code)
-      reset_session
-      session[:admin_id] = current_admin.id
-      session[:totp_verified] = true
+      establish_full_session!
       redirect_to admin_path, notice: "Two-factor authentication is now active."
     else
       render inertia: "admin/totp_setup", props: totp_setup_props.merge(
@@ -61,36 +57,26 @@ class Admin::TotpController < ApplicationController
   end
 
   def require_admin_session
-    unless current_admin
-      redirect_to admin_login_path, alert: "Please sign in first."
-    end
+    redirect_to admin_login_path, alert: "Please sign in first." unless current_admin
   end
 
   def redirect_if_totp_verified
-    if session[:totp_verified]
-      redirect_to admin_path
-    end
+    redirect_to admin_path if session[:totp_verified]
   end
 
   def redirect_if_no_totp
-    unless current_admin.totp_enabled?
-      redirect_to admin_totp_setup_path
-    end
+    redirect_to admin_totp_setup_path unless current_admin.totp_enabled?
+  end
+
+  def establish_full_session!
+    reset_session
+    session[:admin_id] = current_admin.id
+    session[:totp_verified] = true
   end
 
   def totp_setup_props
-    uri = current_admin.totp_provisioning_uri
-    qrcode = RQRCode::QRCode.new(uri)
-    svg = qrcode.as_svg(
-      module_size: 4,
-      standalone: true,
-      use_path: true,
-      color: "#1c1917"
-    )
-    encoded_svg = Base64.strict_encode64(svg)
-
     {
-      qr_code: "data:image/svg+xml;base64,#{encoded_svg}",
+      qr_code: current_admin.totp_qr_code_data_uri,
       secret: current_admin.totp_secret,
       already_enabled: current_admin.totp_enabled?
     }

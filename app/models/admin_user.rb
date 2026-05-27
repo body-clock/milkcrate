@@ -9,37 +9,25 @@ class AdminUser < ApplicationRecord
 
   before_save :downcase_email
 
-  def downcase_email
-    self.email = email.strip.downcase
-  end
-
   LOCKOUT_PERIOD = 15.minutes
   MAX_ATTEMPTS = 5
 
-  def lockout_expired?
-    locked_at.nil? || locked_at < LOCKOUT_PERIOD.ago
-  end
-
   def locked?
-    return false if expired_clear_failures!
-
     !lockout_expired?
   end
 
-  def expired_clear_failures!
-    return false unless locked_at
-    return false unless lockout_expired?
+  def lockout_expired?
+    return true if locked_at.nil?
+    return false unless locked_at < LOCKOUT_PERIOD.ago
 
-    update!(failed_login_attempts: 0, locked_at: nil)
+    clear_lockout!
     true
   end
 
   def increment_failed_attempts!
     with_lock do
       increment!(:failed_login_attempts).tap do
-        if failed_login_attempts >= MAX_ATTEMPTS
-          update!(locked_at: Time.current)
-        end
+        update!(locked_at: Time.current) if failed_login_attempts >= MAX_ATTEMPTS
       end
     end
   end
@@ -48,12 +36,10 @@ class AdminUser < ApplicationRecord
     update!(failed_login_attempts: 0, locked_at: nil)
   end
 
+  # TOTP delegation
+
   def totp_enabled?
     admin_totp&.enabled?
-  end
-
-  def generate_totp_secret!
-    create_admin_totp!(secret: ROTP::Base32.random, enabled: false)
   end
 
   def totp_secret
@@ -61,29 +47,28 @@ class AdminUser < ApplicationRecord
   end
 
   def totp_provisioning_uri
-    return nil unless totp_secret
+    admin_totp&.provisioning_uri(email)
+  end
 
-    ROTP::TOTP.new(totp_secret, issuer: "Milkcrate").provisioning_uri(email)
+  def totp_qr_code_data_uri
+    admin_totp&.qr_code_data_uri
   end
 
   def verify_totp!(code)
-    return false unless totp_secret
+    admin_totp&.verify!(code)
+  end
 
-    begin
-      totp = ROTP::TOTP.new(totp_secret, issuer: "Milkcrate")
-      matched_at = totp.verify(code, drift_behind: 30, drift_ahead: 30, after: admin_totp&.last_used_at || 0)
-    rescue ROTP::Base32::Base32Error => e
-      Rails.logger.error "[AdminUser] Corrupted TOTP secret for #{email}: #{e.message}"
-      return false
-    end
+  def generate_totp_secret!
+    create_admin_totp!(secret: ROTP::Base32.random, enabled: false)
+  end
 
-    if matched_at
-      # Store the matched interval timestamp (integer epoch seconds from ROTP)
-      # so the `after:` filter prevents replay across drift windows
-      admin_totp&.update!(last_used_at: Time.at(matched_at), enabled: true)
-      true
-    else
-      false
-    end
+  private
+
+  def downcase_email
+    self.email = email.strip.downcase
+  end
+
+  def clear_lockout!
+    update!(failed_login_attempts: 0, locked_at: nil)
   end
 end
