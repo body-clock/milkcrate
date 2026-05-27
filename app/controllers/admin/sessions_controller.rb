@@ -1,7 +1,7 @@
 class Admin::SessionsController < ApplicationController
   layout "inertia_application"
 
-  before_action :redirect_if_authenticated, only: [:new, :create]
+  before_action :redirect_if_authenticated, only: [ :new, :create ]
 
   def new
     render inertia: "admin/login", props: {}
@@ -16,7 +16,7 @@ class Admin::SessionsController < ApplicationController
     end
 
     if admin.locked?
-      render inertia: "admin/login", props: { errors: { email: ["Too many failed attempts. Try again later."] } }
+      render inertia: "admin/login", props: { errors: { email: [ "Too many failed attempts. Try again later." ] } }
       return
     end
 
@@ -49,7 +49,7 @@ class Admin::SessionsController < ApplicationController
   end
 
   def generic_login_error
-    { errors: { password: ["Invalid email or password."] } }
+    { errors: { password: [ "Invalid email or password." ] } }
   end
 
   def redirect_if_authenticated

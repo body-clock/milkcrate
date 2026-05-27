@@ -7,6 +7,12 @@ class AdminUser < ApplicationRecord
   validates :email, presence: true, uniqueness: { case_sensitive: false },
             format: { with: URI::MailTo::EMAIL_REGEXP }
 
+  before_save :downcase_email
+
+  def downcase_email
+    self.email = email.strip.downcase
+  end
+
   LOCKOUT_PERIOD = 15.minutes
   MAX_ATTEMPTS = 5
 
@@ -15,7 +21,17 @@ class AdminUser < ApplicationRecord
   end
 
   def locked?
+    return false if expired_clear_failures!
+
     !lockout_expired?
+  end
+
+  def expired_clear_failures!
+    return false unless locked_at
+    return false unless lockout_expired?
+
+    update!(failed_login_attempts: 0, locked_at: nil)
+    true
   end
 
   def increment_failed_attempts!
@@ -55,14 +71,16 @@ class AdminUser < ApplicationRecord
 
     begin
       totp = ROTP::TOTP.new(totp_secret, issuer: "Milkcrate")
-      matched = totp.verify(code, drift_behind: 30, drift_ahead: 30, after: admin_totp&.last_used_at || 0)
+      matched_at = totp.verify(code, drift_behind: 30, drift_ahead: 30, after: admin_totp&.last_used_at || 0)
     rescue ROTP::Base32::Base32Error => e
       Rails.logger.error "[AdminUser] Corrupted TOTP secret for #{email}: #{e.message}"
       return false
     end
 
-    if matched
-      admin_totp&.update!(last_used_at: Time.current, enabled: true)
+    if matched_at
+      # Store the matched interval timestamp (integer epoch seconds from ROTP)
+      # so the `after:` filter prevents replay across drift windows
+      admin_totp&.update!(last_used_at: Time.at(matched_at), enabled: true)
       true
     else
       false
