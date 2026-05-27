@@ -27,7 +27,7 @@ class PileController < ApplicationController
 
   def find_store
     store_slug = params[:store_slug]
-    render(json: { error: "Store context is required." }, status: :unprocessable_entity) && return unless store_slug.present?
+    render(json: { error: "Store context is required." }, status: :unprocessable_content) && return unless store_slug.present?
 
     store = Store.with_discogs_username(store_slug).first
     render(json: { error: "Store not found." }, status: :not_found) && return unless store
@@ -43,7 +43,7 @@ class PileController < ApplicationController
         skipped: result.skipped_count
       }, status: :ok
     else
-      render json: { error: result.error }, status: :unprocessable_entity
+      render json: { error: result.error }, status: :unprocessable_content
     end
   end
 end

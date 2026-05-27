@@ -6,7 +6,7 @@
 # For per-store operations (sync, enrich, curate), see stores.rake.
 
 namespace :tools do
-  SAMPLE_DATA_FILE = Rails.root.join("db/sample/listings.jsonl")
+  SAMPLE_DATA_FILE = Rails.root.join("db/sample/listings.jsonl") unless defined?(SAMPLE_DATA_FILE)
 
   # ── Helpers ──────────────────────────────────────────────────
 

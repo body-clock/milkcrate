@@ -1,7 +1,7 @@
 require "rails_helper"
 require "rake"
 
-RSpec.describe "milkcrate:score" do
+RSpec.describe "stores:score" do
   let!(:store) { create(:store, discogs_username: "philadelphiamusic") }
   let!(:listing) do
     create(
@@ -30,26 +30,26 @@ RSpec.describe "milkcrate:score" do
   end
 
   after do
-    Rake::Task["milkcrate:score"].reenable
+    Rake::Task["stores:score"].reenable
   end
 
   it "prints a score breakdown for a valid listing" do
-    expect { Rake::Task["milkcrate:score"].invoke(listing.id.to_s) }
+    expect { Rake::Task["stores:score"].invoke(store.discogs_username, listing.id.to_s) }
       .to output(/TOTAL SCORE: #{Regexp.escape(expected_total.to_s)}/).to_stdout
   end
 
   it "prints the listing artist and title" do
-    expect { Rake::Task["milkcrate:score"].invoke(listing.id.to_s) }
+    expect { Rake::Task["stores:score"].invoke(store.discogs_username, listing.id.to_s) }
       .to output(/Test – Record/).to_stdout
   end
 
   it "prints the live scoring breakdown" do
-    expect { Rake::Task["milkcrate:score"].invoke(listing.id.to_s) }
+    expect { Rake::Task["stores:score"].invoke(store.discogs_username, listing.id.to_s) }
       .to output(/vintage:\s+#{Regexp.escape(expected_breakdown[:vintage].to_s)}/).to_stdout
   end
 
   it "raises without a listing ID" do
-    expect { Rake::Task["milkcrate:score"].invoke }
+    expect { Rake::Task["stores:score"].invoke(store.discogs_username) }
       .to raise_error(RuntimeError, /Usage/)
   end
 end

@@ -79,7 +79,7 @@ RSpec.describe "Discogs OAuth flow", type: :request do
     it "rejects requests without an authenticity token" do
       post "/#{slug}/authorize"
 
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
     end
 
     context "when inventory >= 500" do
