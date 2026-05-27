@@ -24,6 +24,16 @@ RSpec.describe Admin::StoreOnboardingChecks do
       expect(result.error_message).to include("already exists")
     end
 
+    it "returns the conflict record used for the store decision without querying again" do
+      existing_store = create(:store, discogs_username: "existing-store")
+      checks = described_class.new("existing-store")
+      allow(checks).to receive(:existing_store).and_return(existing_store, nil)
+
+      result = checks.call
+
+      expect(result.conflicting_record).to eq(existing_store)
+    end
+
     it "returns invalid when applicant exists and check_applicant is true" do
       create(:waitlist, discogs_username: "applicant-user")
       result = described_class.new("applicant-user", check_applicant: true).call

@@ -9,13 +9,21 @@ class Admin::StoreOnboardingChecks
 
   def call
     return blank_result if @normalized.blank?
-    return conflicting_store_result if (store = existing_store)
-    return conflicting_applicant_result if (applicant = existing_applicant)
 
-    valid_result
+    conflict_result || valid_result
   end
 
   private
+
+  def conflict_result
+    store = existing_store
+    return conflicting_store_result(store) if store
+
+    applicant = existing_applicant
+    return unless applicant
+
+    conflicting_applicant_result(applicant)
+  end
 
   def existing_store
     Store.with_discogs_username(@normalized).first
@@ -29,13 +37,11 @@ class Admin::StoreOnboardingChecks
     Result.new(valid: false, error_message: "Discogs username is required", conflicting_record: nil, normalized_username: @normalized)
   end
 
-  def conflicting_store_result
-    store = existing_store
+  def conflicting_store_result(store)
     Result.new(valid: false, error_message: "Store already exists for #{@normalized}", conflicting_record: store, normalized_username: @normalized)
   end
 
-  def conflicting_applicant_result
-    applicant = existing_applicant
+  def conflicting_applicant_result(applicant)
     Result.new(valid: false, error_message: "#{@normalized} already has an applicant. Use the applicant onboarding path.", conflicting_record: applicant, normalized_username: @normalized)
   end
 

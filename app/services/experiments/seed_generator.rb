@@ -16,15 +16,19 @@ module Experiments
     end
 
     def call
-      scored = fetch_and_score
+      scored, excluded_count = fetch_and_score
       top_n = scored.sort_by { |e| -e[:score] }.first(crate_size)
-      build_result(top_n, scored.size - top_n.size)
+      build_result(top_n, excluded_count)
     end
+
+    private
 
     def fetch_and_score
       listings = fetch_listings
       raise Error, "No LP listings found for store #{store_id}" if listings.empty?
-      filter_scored(listings)
+
+      excluded_ids = previously_labeled_ids
+      [ filter_scored(listings, excluded_ids), excluded_ids.size ]
     end
 
     def build_result(top_n, excluded_count)
@@ -32,12 +36,9 @@ module Experiments
       Result.new(seed_data:, total_records: seed_data.size, excluded_count:)
     end
 
-    def filter_scored(listings)
-      excluded_ids = previously_labeled_ids
+    def filter_scored(listings, excluded_ids)
       score_listings(listings).reject { |e| excluded_ids.include?(e[:listing].discogs_release_id) }
     end
-
-    private
 
     attr_reader :store_id, :crate_name
 

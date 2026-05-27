@@ -8,4 +8,8 @@ RSpec.describe "application operation public protocols" do
   it "keeps OAuth callback orchestration internal" do
     expect(AuthCallbackService.public_instance_methods(false)).to contain_exactly(:call)
   end
+
+  it "keeps experiment seed pipeline stages internal" do
+    expect(Experiments::SeedGenerator.public_instance_methods(false)).to contain_exactly(:call)
+  end
 end
