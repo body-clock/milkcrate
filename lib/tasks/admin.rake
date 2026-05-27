@@ -1,6 +1,6 @@
 namespace :admin do
   desc "Create a new admin user"
-  task :create, [:email] => :environment do |_t, args|
+  task :create, [ :email ] => :environment do |_t, args|
     email = args[:email] || Rails.application.credentials.dig(:admin, :email) || ENV["ADMIN_EMAIL"]
     abort "Usage: bin/rails admin:create[email@example.com] or set ADMIN_EMAIL" unless email
 
@@ -13,7 +13,7 @@ namespace :admin do
   end
 
   desc "Reset admin password"
-  task :reset_password, [:email] => :environment do |_t, args|
+  task :reset_password, [ :email ] => :environment do |_t, args|
     email = args[:email] || ENV["ADMIN_EMAIL"]
     abort "Usage: bin/rails admin:reset_password[email@example.com]" unless email
 
@@ -27,7 +27,7 @@ namespace :admin do
   end
 
   desc "Unlock a locked admin account"
-  task :unlock, [:email] => :environment do |_t, args|
+  task :unlock, [ :email ] => :environment do |_t, args|
     email = args[:email] || ENV["ADMIN_EMAIL"]
     abort "Usage: bin/rails admin:unlock[email@example.com]" unless email
 
@@ -47,7 +47,7 @@ namespace :admin do
   end
 
   desc "Disable TOTP for an admin (use only if authenticator is lost)"
-  task :disable_totp, [:email] => :environment do |_t, args|
+  task :disable_totp, [ :email ] => :environment do |_t, args|
     email = args[:email] || ENV["ADMIN_EMAIL"]
     abort "Usage: bin/rails admin:disable_totp[email@example.com]" unless email
 

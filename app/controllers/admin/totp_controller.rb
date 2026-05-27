@@ -3,7 +3,7 @@ class Admin::TotpController < ApplicationController
 
   before_action :require_admin_session
   before_action :redirect_if_totp_verified
-  before_action :redirect_if_no_totp, only: [:show]
+  before_action :redirect_if_no_totp, only: [ :show ]
 
   def show
     render inertia: "admin/totp_challenge", props: {}
@@ -13,7 +13,7 @@ class Admin::TotpController < ApplicationController
     code = params[:code]&.strip
 
     if code.blank?
-      render inertia: "admin/totp_challenge", props: { errors: { code: ["Enter your authentication code"] } }
+      render inertia: "admin/totp_challenge", props: { errors: { code: [ "Enter your authentication code" ] } }
       return
     end
 
@@ -23,7 +23,7 @@ class Admin::TotpController < ApplicationController
       session[:totp_verified] = true
       redirect_to admin_path, notice: "Signed in successfully."
     else
-      render inertia: "admin/totp_challenge", props: { errors: { code: ["Invalid code. Try again."] } }
+      render inertia: "admin/totp_challenge", props: { errors: { code: [ "Invalid code. Try again." ] } }
     end
   end
 
@@ -37,7 +37,7 @@ class Admin::TotpController < ApplicationController
 
     if code.blank?
       render inertia: "admin/totp_setup", props: totp_setup_props.merge(
-        errors: { code: ["Enter the code from your authenticator app"] }
+        errors: { code: [ "Enter the code from your authenticator app" ] }
       )
       return
     end
@@ -49,7 +49,7 @@ class Admin::TotpController < ApplicationController
       redirect_to admin_path, notice: "Two-factor authentication is now active."
     else
       render inertia: "admin/totp_setup", props: totp_setup_props.merge(
-        errors: { code: ["Invalid code. Make sure your authenticator app is set up correctly."] }
+        errors: { code: [ "Invalid code. Make sure your authenticator app is set up correctly." ] }
       )
     end
   end

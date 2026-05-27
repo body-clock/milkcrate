@@ -29,8 +29,6 @@ module AdminAuthHelpers
 
     admin
   end
-
-
 end
 
 RSpec.configure do |config|

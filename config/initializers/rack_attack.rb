@@ -30,13 +30,13 @@ class Rack::Attack
       [
         429,
         { "Content-Type" => "application/json", "Retry-After" => retry_after },
-        [{ error: "Too many requests. Try again later.", retry_after: retry_after.to_i }.to_json]
+        [ { error: "Too many requests. Try again later.", retry_after: retry_after.to_i }.to_json ]
       ]
     else
       [
         429,
         { "Content-Type" => "text/html" },
-        ["<html><body style='font-family:system-ui;padding:2rem;text-align:center'><h1>429 — Too many requests</h1><p>Try again in #{retry_after} seconds.</p></body></html>"]
+        [ "<html><body style='font-family:system-ui;padding:2rem;text-align:center'><h1>429 — Too many requests</h1><p>Try again in #{retry_after} seconds.</p></body></html>" ]
       ]
     end
   }
