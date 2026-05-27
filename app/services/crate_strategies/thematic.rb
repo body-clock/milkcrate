@@ -14,22 +14,38 @@ module CrateStrategies
 
     # Returns [ name, listings ] when a theme qualifies, or nil.
     def select(pool, excluded_ids:)
-      candidates = pool.reject { |listing| excluded_ids.include?(listing.id) }
-      return if candidates.empty?
+      candidates = reject_excluded(pool, excluded_ids)
+      return unless candidates.any?
 
-      themes = discover_themes(candidates)
-      return if themes.empty?
+      result = pick_theme(candidates)
+      return unless result
 
-      theme   = themes[seed % themes.size]
+      [ result[0], sort_by_score(result[1]) ]
+    end
+
+    def reject_excluded(pool, excluded_ids)
+      return pool if excluded_ids.empty?
+      pool.reject { |listing| excluded_ids.include?(listing.id) }
+    end
+
+    def pick_theme(candidates)
+      theme = best_theme(candidates) or return
       matched = theme.listings_for(candidates)
       return if matched.size < MIN_RECORDS
 
-      name = theme.name
-      scored = matched.map { |listing| [ listing, @scorer.score(listing) ] }
+      [ theme.name, matched ]
+    end
+
+    def best_theme(candidates)
+      themes = discover_themes(candidates)
+      themes[seed % themes.size] if themes.any?
+    end
+
+    def sort_by_score(records)
+      records
+        .map { |listing| [ listing, @scorer.score(listing) ] }
         .sort_by { |_, s| -s }
         .map(&:first)
-
-      [ name, scored ]
     end
 
     private

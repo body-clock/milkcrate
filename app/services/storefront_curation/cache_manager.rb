@@ -10,14 +10,18 @@ class StorefrontCuration::CacheManager
     def self.cached_curation(store, filter_available: true, cache: Rails.cache)
       key = curation_cache_key(store, filter_available:)
       cache.fetch(key, expires_in: CURATION_CACHE_TTL, race_condition_ttl: CURATION_CACHE_RACE_TTL) do
-        curation  = StorefrontCuration.new(store, filter_available:)
-        scorer    = dev_scorer(curation)
-        presenter = CratePresenter.new(store, scorer:)
-        {
-          sections: presenter.build_storefront_sections(curation.storefront_groups),
-          crates:   presenter.build_crates(curation.crates)
-        }
+        build_payload(store, filter_available:)
       end
+    end
+
+    def self.build_payload(store, filter_available:)
+      curation  = StorefrontCuration.new(store, filter_available:)
+      scorer    = dev_scorer(curation)
+      presenter = CratePresenter.new(store, scorer:)
+      {
+        sections: presenter.build_storefront_sections(curation.storefront_groups),
+        crates:   presenter.build_crates(curation.crates)
+      }
     end
 
     # Writes the fully-serialized curation payload to cache.

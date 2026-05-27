@@ -20,53 +20,68 @@ module StoreSync
     def call(listings)
       return [] if listings.empty?
 
-      records = listings.index_by { |r| r[:discogs_listing_id] }
-      existing = @store.listings
+      records = build_record_index(listings)
+      changed_ids = detect_changed_ids(records)
+      perform_upsert(records, changed_ids)
+    end
+
+    def build_record_index(listings)
+      listings.index_by { |r| r[:discogs_listing_id] }
+    end
+
+    def detect_changed_ids(records)
+      existing = existing_index(records)
+      records.keys.select { |id| record_changed?(id, records[id], existing) }
+    end
+
+    def existing_index(records)
+      @store.listings
         .where(discogs_listing_id: records.keys)
         .index_by(&:discogs_listing_id)
+    end
 
-      changed_ids = records.filter_map do |id, record|
-        existing_record = existing[id]
-        id if existing_record.nil? || materially_changed?(existing_record, record)
-      end
+    def record_changed?(id, record, existing)
+      existing_record = existing[id]
+      existing_record.nil? || materially_changed?(existing_record, record)
+    end
 
-      @store.listings.upsert_all(
-        records.values,
-        unique_by: :discogs_listing_id,
-        update_only: UPDATE_FIELDS
-      )
+    def perform_upsert(records, changed_ids)
+      upsert_records(records)
+      enrichment_ids(changed_ids)
+    end
 
-      @store.listings
-        .where(discogs_listing_id: changed_ids)
-        .pluck(:id)
+    def upsert_records(records)
+      @store.listings.upsert_all(records.values, unique_by: :discogs_listing_id, update_only: UPDATE_FIELDS)
+    end
+
+    def enrichment_ids(changed_ids)
+      @store.listings.where(discogs_listing_id: changed_ids).pluck(:id)
     end
 
     # Remove listings that were not returned by the current sync.
     def remove_stale(listings)
       current_ids = listings.map { |r| r[:discogs_listing_id] }
+      remove_absent_listings(current_ids)
+    end
 
-      if current_ids.empty?
-        @store.listings.delete_all
-      else
-        @store.listings
-          .where.not(discogs_listing_id: current_ids)
-          .delete_all
-      end
+    def remove_absent_listings(current_ids)
+      scope = current_ids.empty? ? @store.listings : @store.listings.where.not(discogs_listing_id: current_ids)
+      scope.delete_all
     end
 
     private
 
     def materially_changed?(existing, incoming)
-      differing?(
+      changed_fields(existing, incoming).any? { |a, b| a != b }
+    end
+
+    def changed_fields(existing, incoming)
+      [
         [ existing.discogs_release_id.to_s, incoming[:discogs_release_id].to_s ],
         [ normalized_price(existing.price), normalized_price(incoming[:price]) ],
         [ existing.condition, incoming[:condition] ],
         [ existing.notes, incoming[:notes] ]
-      )
-    end
-
-    def differing?(*pairs)
-      pairs.any? { |a, b| a != b }
+      ]
     end
 
     def normalized_price(value)

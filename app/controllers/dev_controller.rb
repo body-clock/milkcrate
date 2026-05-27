@@ -10,18 +10,25 @@ class DevController < ApplicationController
   end
 
   def admin_login
-    admin = AdminUser.first || AdminUser.create!(
-      email: "dev@milkcrate.fm",
-      password: "dev-password-123",
-      password_confirmation: "dev-password-123"
-    )
+    admin = find_or_create_dev_admin
     admin.generate_totp_secret! unless admin.admin_totp
     admin.admin_totp.update!(enabled: true, last_used_at: nil)
+    start_dev_session(admin)
+  end
 
+  def start_dev_session(admin)
     reset_session
     session[:admin_id] = admin.id
     session[:totp_verified] = true
     redirect_to admin_path, notice: "Dev sign-in as #{admin.email}"
+  end
+
+  def find_or_create_dev_admin
+    AdminUser.first || AdminUser.create!(
+      email: "dev@milkcrate.fm",
+      password: "dev-password-123",
+      password_confirmation: "dev-password-123"
+    )
   end
 
   private

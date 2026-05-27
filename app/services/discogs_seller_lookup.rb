@@ -23,19 +23,15 @@ class DiscogsSellerLookup
 
   def call
     return invalid_slug unless plausible_username?
-
-    cached_result = cache.read(cache_key)
-    return cached_result unless cached_result.nil?
-
-    result = lookup_discogs
-
-    unless result[:reason] == "api_error"
-      cache.write(cache_key, result, expires_in: result[:found] ? FOUND_TTL : NOT_FOUND_TTL)
-    end
-
-    result
+    cached = cache.read(cache_key) and return cached
+    cache_result(lookup_discogs)
   rescue DiscogsClient::RateLimitError, DiscogsClient::ApiError, Faraday::Error
     api_error
+  end
+
+  def cache_result(result)
+    return if result[:reason] == "api_error"
+    cache.write(cache_key, result, expires_in: result[:found] ? FOUND_TTL : NOT_FOUND_TTL)
   end
 
   private

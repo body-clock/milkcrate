@@ -14,13 +14,10 @@ module Discogs
     def inventory_export
       response = oauth_access_token.post("#{BASE_URL}/inventory/export")
       body = parse_oauth_response(response)
-      export_id = extract_export_id(body) || extract_location_export_id(response)
+      export_id = find_export_id(body, response)
+      raise Errors::ApiError, "Discogs API error: #{response.code} — #{response.body}" unless export_id
 
-      if export_id
-        { "id" => export_id }
-      else
-        raise Errors::ApiError, "Discogs API error: #{response.code} — #{response.body}"
-      end
+      { "id" => export_id }
     end
 
     def check_export_status(export_id)
@@ -37,11 +34,7 @@ module Discogs
     def recent_exports
       response = oauth_access_token.get("#{BASE_URL}/inventory/export")
       body = parse_oauth_response(response)
-      exports = case body
-      when Array then body
-      when Hash then body["exports"] || body["items"]
-      end
-      Array.wrap(exports).compact
+      Array.wrap(extract_exports(body)).compact
     end
 
     def list_orders(status: nil, page: 1)
@@ -59,29 +52,39 @@ module Discogs
       end
     end
 
+    def find_export_id(body, response)
+      extract_export_id(body) || extract_location_export_id(response)
+    end
+
+    def extract_exports(body)
+      case body
+      when Array then body
+      when Hash then body["exports"] || body["items"]
+      end
+    end
+
     def parse_oauth_response(response)
       code = response.code.to_i
       return { "status" => "not_modified" } if code == 304
 
-      body = response.body
-      parsed_body = case body
-      when Hash, Array
-        body
-      else
-        raw = body.to_s
-        raw.blank? ? {} : JSON.parse(raw)
-      end
-
-      case code
-      when 200..299
-        parsed_body
-      when 429
-        raise Errors::RateLimitError, "Discogs rate limit hit"
-      else
-        raise Errors::ApiError, "Discogs API error: #{code} — #{response.body}"
-      end
+      handle_status_code(code, parse_body(response.body), response)
     rescue JSON::ParserError
       raise Errors::ApiError, "Discogs API error: #{response.code} — #{response.body}"
+    end
+
+    def parse_body(raw_body)
+      case raw_body
+      when Hash, Array then raw_body
+      else raw_body.to_s.blank? ? {} : JSON.parse(raw_body.to_s)
+      end
+    end
+
+    def handle_status_code(code, parsed_body, response)
+      case code
+      when 200..299 then parsed_body
+      when 429 then raise Errors::RateLimitError, "Discogs rate limit hit"
+      else raise Errors::ApiError, "Discogs API error: #{code} — #{response.body}"
+      end
     end
 
     def extract_export_id(body)

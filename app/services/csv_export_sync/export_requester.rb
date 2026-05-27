@@ -23,41 +23,68 @@ module CsvExportSync
     private
 
     def trigger_or_find_export
+      trigger_new_export
+    rescue DiscogsClient::ApiError => e
+      handle_export_conflict(e)
+    end
+
+    def handle_export_conflict(e)
+      raise unless e.message.include?("409")
+      resolve_recent_export
+    end
+
+    def resolve_recent_export
+      export_id = extract_and_validate_export_id
+      Rails.logger.info("[ExportRequester] Using existing export: id=#{export_id}")
+      export_id
+    end
+
+    def extract_and_validate_export_id
+      recent = @client.recent_exports
+      raise ExportError, "No recent export found" if recent.blank?
+      validate_export_id(recent.first)
+    end
+
+    def validate_export_id(export_data)
+      export_id = extract_export_id(export_data)
+      raise ExportError, "Could not determine export ID from recent exports" unless export_id
+      export_id
+    end
+
+    def trigger_new_export
       response = @client.inventory_export
       export_id = extract_export_id(response)
       raise ExportError, "Could not determine export ID from export trigger response" unless export_id
       Rails.logger.info("[ExportRequester] Export triggered: id=#{export_id} response=#{response.inspect}")
       export_id
-    rescue DiscogsClient::ApiError => e
-      if e.message.include?("409")
-        Rails.logger.info("[ExportRequester] Export already in progress, checking recent exports")
-        recent = @client.recent_exports
-        raise ExportError, "No recent export found" if recent.blank?
-        export_id = extract_export_id(recent.first)
-        raise ExportError, "Could not determine export ID from recent exports" unless export_id
-        Rails.logger.info("[ExportRequester] Using existing export: id=#{export_id}")
-        export_id
-      else
-        raise
-      end
     end
+
+
 
     def wait_for_export(export_id)
       MAX_POLL_ATTEMPTS.times do |attempt|
-        response = @client.check_export_status(export_id)
-        Rails.logger.info("[ExportRequester] Poll attempt #{attempt + 1}: id=#{export_id} response=#{response.inspect}")
-
-        status = response["status"]
-        return if %w[completed success].include?(status)
-
-        if %w[failed error].include?(status)
-          raise ExportError, "Export failed with status: #{status}"
-        end
-
-        sleep(POLL_INTERVAL)
+        poll_attempt(export_id, attempt)
       end
 
       raise ExportError, "Export timed out after #{MAX_POLL_TIME / 60} minutes"
+    end
+
+    def poll_attempt(export_id, attempt)
+      response = fetch_export_status(export_id, attempt)
+      sleep(POLL_INTERVAL) unless export_finished?(response)
+    end
+
+    def fetch_export_status(export_id, attempt)
+      response = @client.check_export_status(export_id)
+      Rails.logger.info("[ExportRequester] Poll attempt #{attempt + 1}: id=#{export_id} response=#{response.inspect}")
+      response
+    end
+
+    def export_finished?(response)
+      status = response["status"]
+      return true if %w[completed success].include?(status)
+      raise ExportError, "Export failed with status: #{status}" if %w[failed error].include?(status)
+      false
     end
 
     def download_export(export_id)

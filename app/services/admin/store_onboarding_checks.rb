@@ -7,17 +7,39 @@ class Admin::StoreOnboardingChecks
     @check_applicant = check_applicant
   end
 
-  def call
-    return Result.new(valid: false, error_message: "Discogs username is required", conflicting_record: nil, normalized_username: @normalized) if @normalized.blank?
+  private
 
-    if (store = Store.with_discogs_username(@normalized).first)
-      return Result.new(valid: false, error_message: "Store already exists for #{@normalized}", conflicting_record: store, normalized_username: @normalized)
-    end
+  def existing_store
+    Store.with_discogs_username(@normalized).first
+  end
 
-    if @check_applicant && (applicant = Waitlist.with_discogs_username(@normalized).first)
-      return Result.new(valid: false, error_message: "#{@normalized} already has an applicant. Use the applicant onboarding path.", conflicting_record: applicant, normalized_username: @normalized)
-    end
+  def existing_applicant
+    Waitlist.with_discogs_username(@normalized).first if @check_applicant
+  end
 
+  def blank_result
+    Result.new(valid: false, error_message: "Discogs username is required", conflicting_record: nil, normalized_username: @normalized)
+  end
+
+  def conflicting_store_result
+    store = existing_store
+    Result.new(valid: false, error_message: "Store already exists for #{@normalized}", conflicting_record: store, normalized_username: @normalized)
+  end
+
+  def conflicting_applicant_result
+    applicant = existing_applicant
+    Result.new(valid: false, error_message: "#{@normalized} already has an applicant. Use the applicant onboarding path.", conflicting_record: applicant, normalized_username: @normalized)
+  end
+
+  def valid_result
     Result.new(valid: true, error_message: nil, conflicting_record: nil, normalized_username: @normalized)
+  end
+
+  def call
+    return blank_result if @normalized.blank?
+    return conflicting_store_result if (store = existing_store)
+    return conflicting_applicant_result if (applicant = existing_applicant)
+
+    valid_result
   end
 end

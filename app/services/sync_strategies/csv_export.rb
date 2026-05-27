@@ -11,13 +11,16 @@ module SyncStrategies
     def call(store, max_pages: nil, progress: nil)
       raise NotAuthorizedError, "Store #{store.discogs_username} has no store owner" unless store.store_owner
 
+      filtered = fetch_and_filter(store)
+      SyncStrategies::Result.new(listings: filtered, complete: true)
+    end
+
+    def fetch_and_filter(store)
       client = @client || build_client(store)
       export_result = CsvExportSync::ExportRequester.new(client:).call
       parsed = CsvExportSync::CsvParser.new.call(export_result.csv_body, store_id: store.id)
       filtered = CsvExportSync::RecordFilter.call(parsed.records)
       filtered.each { |r| r.delete(:_status) }
-
-      SyncStrategies::Result.new(listings: filtered, complete: true)
     end
 
     private

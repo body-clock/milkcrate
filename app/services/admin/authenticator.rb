@@ -7,15 +7,22 @@ class Admin::Authenticator
   end
 
   def call(email:, password:)
-    admin = AdminUser.find_by(email: email.strip.downcase)
+    admin = find_admin(email)
     return Result.new(status: :not_found) unless admin
     return Result.new(admin:, status: :locked) if admin.locked?
-
-    unless admin.authenticate(password)
-      admin.increment_failed_attempts!
-      return Result.new(admin:, status: :invalid_password)
-    end
+    return invalid_password_result(admin) unless admin.authenticate(password)
 
     Result.new(admin:, status: :authenticated)
+  end
+
+  private
+
+  def find_admin(email)
+    AdminUser.find_by(email: email.strip.downcase)
+  end
+
+  def invalid_password_result(admin)
+    admin.increment_failed_attempts!
+    Result.new(admin:, status: :invalid_password)
   end
 end

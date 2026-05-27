@@ -28,13 +28,15 @@ class DiscogsOauthClient
   end
 
   def verify_identity(access_token, access_token_secret)
-    at = OAuth::AccessToken.new(@consumer, access_token, access_token_secret)
-    response = at.get("/oauth/identity")
+    token = OAuth::AccessToken.new(@consumer, access_token, access_token_secret)
+    verify_discogs_identity(token)
+  end
 
+  def verify_discogs_identity(token)
+    response = token.get("/oauth/identity")
     raise OauthError, "Discogs identity verification failed: HTTP #{response.code}" unless response.code.to_i == 200
 
-    body = JSON.parse(response.body)
-    IdentityResult.new(username: body["username"])
+    IdentityResult.new(username: JSON.parse(response.body)["username"])
   rescue JSON::ParserError => e
     raise OauthError, "Discogs identity response parse failed: #{e.message}"
   end

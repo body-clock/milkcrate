@@ -3,21 +3,33 @@ class DailyCurationService
   def curate(store)
     curation = StorefrontCuration.new(store)
     surfaced = curation.surfaced_listings
-    picks_count = curation.crates.find { |crate| crate.slug == "picks" }&.listings&.size || 0
+    update_surface_timestamps(surfaced)
+    prewarm_cache(store, curation)
+    log_curation(store, surfaced, curation)
+  end
 
+  def log_curation(store, surfaced, curation)
+    picks_count = picks_crate_count(curation)
+    Rails.logger.info "[DailyCurationJob] store=#{store.name} surfaced=#{surfaced.size} picks=#{picks_count}"
+  end
+
+  def picks_crate_count(curation)
+    curation.crates.find { |crate| crate.slug == "picks" }&.listings&.size || 0
+  end
+
+  def update_surface_timestamps(surfaced)
     Listing.where(id: surfaced).update_all(
       last_surfaced_at: Time.current,
       surface_count: Arel.sql("surface_count + 1")
     )
+  end
 
-    # Pre-warm the cache with fully-serialized presenter output
+  def prewarm_cache(store, curation)
     presenter = CratePresenter.new(store)
     payload = {
       sections: presenter.build_storefront_sections(curation.storefront_groups),
       crates:   presenter.build_crates(curation.crates)
     }
     StorefrontCuration::CacheManager.write_curation_cache(store, payload)
-
-    Rails.logger.info "[DailyCurationJob] store=#{store.name} surfaced=#{surfaced.size} picks=#{picks_count}"
   end
 end

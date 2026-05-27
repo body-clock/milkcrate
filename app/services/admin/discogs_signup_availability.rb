@@ -9,18 +9,9 @@ class Admin::DiscogsSignupAvailability
 
   def call
     result = @lookup.call
-
-    unless result[:found]
-      return failed_result(result)
-    end
-
-    if (store = Store.with_discogs_username(@normalized).first)
-      return already_active_result(@normalized, store)
-    end
-
-    if (applicant = Waitlist.with_discogs_username(@normalized).first)
-      return existing_applicant_result(@normalized, applicant)
-    end
+    return failed_result(result) unless result[:found]
+    return already_active_result if (store = existing_store)
+    return existing_applicant_result if (applicant = existing_applicant)
 
     creatable_result(@normalized, result)
   end
@@ -51,7 +42,16 @@ class Admin::DiscogsSignupAvailability
     )
   end
 
-  def already_active_result(username, store)
+  def existing_store
+    Store.with_discogs_username(@normalized).first
+  end
+
+  def existing_applicant
+    Waitlist.with_discogs_username(@normalized).first
+  end
+
+  def already_active_result(username = nil, store = nil)
+    store ||= existing_store
     Result.new(
       status: "already_active",
       data: {

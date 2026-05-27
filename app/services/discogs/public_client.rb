@@ -14,13 +14,17 @@ module Discogs
 
     def seller_inventory(username, page: 1, sort: "listed", sort_order: "desc")
       response = @connection.get("/users/#{username}/inventory") do |req|
-        req.params["page"] = page
-        req.params["per_page"] = PER_PAGE
-        req.params["sort"] = sort
-        req.params["sort_order"] = sort_order
+        apply_inventory_params(req, page, sort, sort_order)
       end
 
       handle_response(response)
+    end
+
+    def apply_inventory_params(req, page, sort, sort_order)
+      req.params["page"] = page
+      req.params["per_page"] = PER_PAGE
+      req.params["sort"] = sort
+      req.params["sort_order"] = sort_order
     end
 
     def release(release_id)
@@ -45,25 +49,34 @@ module Discogs
 
     def build_connection
       Faraday.new(url: BASE_URL) do |f|
-        f.options.timeout = 10
-        f.options.open_timeout = 5
-        f.request :url_encoded
-        f.response :json
-        f.use DiscogsRateLimitMiddleware
-        f.request :retry, max: 3, interval: 2.0, retry_statuses: [ 503 ]
-        f.headers["Authorization"] = "Discogs token=#{@token}"
-        f.headers["User-Agent"] = "Milkcrate/1.0 +https://milkcrate.fm"
+        configure_faraday(f)
       end
+    end
+
+    def configure_faraday(f)
+      set_faraday_defaults(f)
+      f.use DiscogsRateLimitMiddleware
+      f.request :retry, max: 3, interval: 2.0, retry_statuses: [ 503 ]
+      f.headers.merge!(faraday_headers)
+    end
+
+    def set_faraday_defaults(f)
+      f.options.timeout = 10
+      f.options.open_timeout = 5
+      f.request :url_encoded
+      f.response :json
+    end
+
+    def faraday_headers
+      { "Authorization" => "Discogs token=#{@token}",
+        "User-Agent" => "Milkcrate/1.0 +https://milkcrate.fm" }
     end
 
     def handle_response(response)
       case response.status
-      when 200
-        response.body
-      when 429
-        raise Errors::RateLimitError, "Discogs rate limit hit"
-      else
-        raise Errors::ApiError, "Discogs API error: #{response.status} — #{response.body}"
+      when 200 then response.body
+      when 429 then raise Errors::RateLimitError, "Discogs rate limit hit"
+      else raise Errors::ApiError, "Discogs API error: #{response.status} — #{response.body}"
       end
     end
   end

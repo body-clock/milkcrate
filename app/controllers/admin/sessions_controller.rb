@@ -8,17 +8,23 @@ class Admin::SessionsController < ApplicationController
   end
 
   def create
-    result = Admin::Authenticator.new.call(
-      email: session_params[:email],
-      password: session_params[:password]
-    )
-
+    result = authenticate_admin
     return render inertia: "admin/login", props: locked_error if result.locked?
     return render inertia: "admin/login", props: generic_login_error if result.not_found? || result.invalid_password?
 
+    finalize_admin_login(result)
+  end
+
+  def authenticate_admin
+    Admin::Authenticator.new.call(
+      email: session_params[:email],
+      password: session_params[:password]
+    )
+  end
+
+  def finalize_admin_login(result)
     result.admin.reset_failed_attempts!
     start_session!(result.admin)
-
     redirect_to result.admin.totp_enabled? ? admin_totp_path : admin_totp_setup_path,
       notice: totp_prompt(result.admin)
   end
