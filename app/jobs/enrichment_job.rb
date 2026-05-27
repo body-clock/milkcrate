@@ -4,7 +4,7 @@ class EnrichmentJob < ApplicationJob
   queue_as :default
 
   def perform(store_id, listing_ids: nil)
-    store = find_store(store_id)
+    store = Store.find(store_id)
     run_with_progress(store, listing_ids:)
   rescue StandardError => error
     log_failure(store || store_id, error)
@@ -12,10 +12,6 @@ class EnrichmentJob < ApplicationJob
   end
 
   private
-
-  def find_store(store_id)
-    Store.find(store_id)
-  end
 
   def setup_progress(store)
     store.update!(enrichment_progress_pct: 0)
