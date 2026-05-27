@@ -51,8 +51,8 @@ class StorefrontCuration # rubocop:disable Metrics/ClassLength
 
   def build_featured_crates(excluded_ids:)
     seen = excluded_ids.dup
-    crates = add_crate(seen, build_new_arrivals_crate)
-    crates = add_crate(seen, build_thematic_crate(excluded_ids: seen))
+    crates = add_crate(seen, build_new_arrivals_crate(excluded_ids: seen))
+    crates += add_crate(seen, build_thematic_crate(excluded_ids: seen))
     crates
   end
 

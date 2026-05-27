@@ -18,18 +18,16 @@ module SyncStrategies
     # Returns SyncStrategies::Result with:
     #   listings  — array of normalized listing hashes (nil entries filtered out)
     #   complete? — false (public API is paginated and may be incomplete)
-    def fetch_all_pages(store, total_pages, max_pages:, progress:)
-      desc_result = fetch_listings(store, sort_order: "desc", max_pages:, progress:)
-      asc_result = fetch_asc_if_needed(store, total_pages, max_pages:, progress:)
-      build_result(desc_result, asc_result, store)
-    end
-
-    private
-
     def call(store, max_pages: nil, progress: nil)
       total_pages = probe_pages(store)
       setup_progress(progress, fetchable_pages(total_pages, max_pages), total_pages)
       fetch_all_pages(store, total_pages, max_pages:, progress:)
+    end
+
+    def fetch_all_pages(store, total_pages, max_pages:, progress:)
+      desc_result = fetch_listings(store, sort_order: "desc", max_pages:, progress:)
+      asc_result = fetch_asc_if_needed(store, total_pages, max_pages:, progress:)
+      build_result(desc_result, asc_result, store)
     end
 
     def probe_pages(store)
