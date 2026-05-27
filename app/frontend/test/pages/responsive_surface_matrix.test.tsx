@@ -71,7 +71,7 @@ const homeCopy = {
   headline: "Your Discogs inventory, now a storefront.",
   subhead:
     "Milkcrate turns your existing Discogs listings into a warm, browsable record shop that you can share in seconds.",
-  cta_demo: "See the demo →",
+  cta_demo: "Browse a store →",
   cta_apply: "Get your store on Milkcrate",
   footnote: "Early access. We handle the setup.",
   steps: {

@@ -32,7 +32,7 @@ const copy = {
   headline: "Browse Discogs like a record store, not an inventory.",
   subhead:
     "Curated crates from real record stores. Flip through picks, explore genre bins, and discover records you won't find through search alone.",
-  cta_demo: "See the demo \u2192",
+  cta_demo: "Browse a store \u2192",
   hero_subhead: "Browse curated crates from real record stores. No account needed.",
   steps: {
     step1_title: "Connect with Discogs",

@@ -204,7 +204,7 @@ export default function Home({ copy, preview }: Props) {
           >
             <h3 className="text-base font-semibold text-mc-text">Featured Crates</h3>
             <p className="text-sm text-mc-text-dim leading-relaxed">
-              Spotlight new arrivals, randomized sub-genre, and hidden gems.
+              Spotlight new arrivals, randomized sub-genres, and hidden gems.
             </p>
           </motion.div>
 
