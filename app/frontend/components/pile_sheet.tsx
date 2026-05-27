@@ -170,7 +170,7 @@ function WantlistHandoffAction({
       <Button
         onClick={onSend}
         size="lg"
-        variant="success"
+        variant="secondary"
         className={
           pulsing
             ? "animate-pulse transition-all duration-500"
@@ -201,7 +201,7 @@ function DisconnectedCta({
       <DiscogsConnectForm
         storeSlug={storeSlug}
         returnTo={returnTo}
-        buttonClassName={actionClassName({ size: "lg", className: "w-full" })}
+        buttonClassName={actionClassName({ variant: "secondary", size: "lg", className: "w-full" })}
       />
     </div>
   );
