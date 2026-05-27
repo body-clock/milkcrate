@@ -22,6 +22,10 @@ pre-commit:
       run: bundle exec rubocop --force-exclusion --autocorrect {staged_files}
       stage_fixed: true
 
+    sandi-metz:
+      glob: "*.rb"
+      run: bin/sandi-metz-check {staged_files}
+
 pre-push:
   commands:
     typecheck:

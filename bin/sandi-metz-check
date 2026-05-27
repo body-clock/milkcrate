@@ -1,0 +1,60 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Sandi Metz POODR principle checks beyond RuboCop metrics.
+# Run on changed Ruby files: bin/sandi-metz-check file1.rb file2.rb ...
+#
+# Currently checks:
+#   Rule 4: Controller actions should set at most one instance variable.
+
+files = ARGV
+exit 0 if files.empty?
+
+issues = []
+
+files.each do |file|
+  next unless file.match?(%r{app/controllers/.*\.rb$})
+
+  content = File.read(file)
+  basename = File.basename(file)
+  lines = content.lines
+
+  # Find method definitions and count instance variable assignments within each
+  current_method = nil
+  method_start = nil
+  ivar_assignments = {}
+
+  lines.each_with_index do |line, idx|
+    lineno = idx + 1
+
+    # Detect method definitions (public, private, protected)
+    if line.match?(/^\s*(public|private|protected)?\s*def\s+(self\.)?[a-z_?!]+/)
+      # Close previous method
+      current_method = line.match(/def\s+(self\.)?([a-z_?!]+)/)[2]
+      method_start = lineno
+      ivar_assignments[current_method] = { count: 0, lines: [], line: lineno, name: current_method }
+    end
+
+    # Count @ivar assignments (not just references)
+    if current_method && line.match?(/^\s*@\w+\s*=\s*/)
+      ivar_assignments[current_method][:count] += 1
+      ivar_assignments[current_method][:lines] << lineno
+    end
+  end
+
+  # Report violations
+  ivar_assignments.each do |method_name, info|
+    next if info[:count] <= 1
+
+    ivar_list = info[:lines].map { |l| lines[l - 1]&.strip&.gsub(/\s*=.*/, "") }.compact.uniq
+    issues << "#{file}:#{info[:line]}: SandiMetz/ControllerIvarCount: " \
+              "`#{info[:name]}` assigns #{info[:count]} instance variables " \
+              "(#{ivar_list.join(', ')}). " \
+              "Rule 4: each controller action should set at most one @ivar."
+  end
+end
+
+if issues.any?
+  puts issues.join("\n")
+  exit 1
+end
