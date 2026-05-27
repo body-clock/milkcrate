@@ -4,9 +4,14 @@ Quick-captured thoughts, ideas, and tasks collected during sessions.
 
 <!-- Entries are appended by /sn — newest first -->
 
+## 2026-05-27
+
+- **Freshness scoring shouldn't hard-code 3 points** — The current freshness value gives exactly 3 points. This should be a fine-tuned, emergent behavior instead. The model should learn to weigh recency appropriately based on data patterns, not a fixed multiplier. Needs experimentation to find the right approach (decay function, ML feature, etc.).
+- **Low-quality images must never reach the UI** — A shitty image (blurry, too small, wrong aspect ratio, Discogs placeholder) completely kills the vibe. We need a quality gate that filters out bad images before they get to the interface. Either reject them at import time or strip them from listings before rendering. A placeholder or no image is better than a bad image.
+- **Inventory export fixtures for OAuth sync testing** — Need to add a couple of fixture inventory exports that we can use to test the OAuth sync pipeline end-to-end. Options: create a dummy export from my single-listing store and pad it with synthetic data, or get a real export from an actual Discogs store. The fixture should cover edge cases (multiple conditions, sold items, images, etc.) so we can validate the full import pipeline without hitting the real Discogs API every time.
+
 ## 2026-05-24
 
-- **Checkout process / Discogs cart integration** — We need to thoroughly investigate the checkout flow. Whether via OAuth or another approach, there needs to be a way to send the user's entire pile directly to their Discogs cart. Without that, the user has to manually add everything, which makes the whole thing much harder to use.
 - **Pile scope — global vs per-store** — The pile is currently global (same pile across all stores). When you browse a different store, the pile carries over. This is either a bug or a feature. It could be confusing ("why are there records from Philadelphia Music on the betternowrecords page?") or it could be a useful cross-store collection feature ("I'm browsing everywhere and building one unified pile"). Need to decide: scope pile to the specific store, or lean into cross-store as a feature with appropriate UI to clarify what's in the pile and where it came from.
 
 ## 2026-05-23
