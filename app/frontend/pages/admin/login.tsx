@@ -14,9 +14,10 @@ interface LoginPageProps {
   errors?: LoginErrors
   notice?: string
   alert?: string
+  allow_dev_login?: boolean
 }
 
-export default function AdminLogin({ errors, notice, alert }: LoginPageProps) {
+export default function AdminLogin({ errors, notice, alert, allow_dev_login }: LoginPageProps) {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [submitting, setSubmitting] = useState(false)
@@ -101,6 +102,20 @@ export default function AdminLogin({ errors, notice, alert }: LoginPageProps) {
             {submitting ? "Signing in..." : "Sign in"}
           </Button>
         </form>
+
+        {allow_dev_login && (
+          <div className="mt-8 border-t border-mc-border pt-6 text-center">
+            <p className="mb-3 text-xs text-mc-text-dim">
+              Development environment
+            </p>
+            <Button
+              variant="secondary"
+              onClick={() => router.get("/dev/admin-login")}
+            >
+              Dev sign-in
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   )

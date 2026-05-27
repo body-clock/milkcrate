@@ -4,7 +4,7 @@ class Admin::SessionsController < ApplicationController
   before_action :redirect_if_authenticated, only: [ :new, :create ]
 
   def new
-    render inertia: "admin/login", props: {}
+    render inertia: "admin/login", props: { allow_dev_login: Rails.env.development? }
   end
 
   def create

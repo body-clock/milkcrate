@@ -43,6 +43,7 @@ Rails.application.routes.draw do
 
   if Rails.env.development? || Rails.env.test?
     get "/dev/login-as/:store_id", to: "dev#login_as"
+    get "/dev/admin-login", to: "dev#admin_login"
   end
 
   # OAuth flow — must be before the catch-all /:slug route
