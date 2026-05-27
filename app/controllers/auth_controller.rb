@@ -112,9 +112,14 @@ class AuthController < ApplicationController
 
     return redirect_shopper_error(result.error) unless result.success?
 
+    redirect_to_shopper_return(result, store_slug)
+  end
+
+  def redirect_to_shopper_return(result, store_slug)
     session[:shopper_id] = result.shopper.id
+    path = session[:shopper_return_to].presence || store_path(store_slug)
     clear_shopper_oauth_session
-    redirect_to store_path(store_slug), notice: "Connected to Discogs as @#{result.shopper.discogs_username}!"
+    redirect_to path, notice: "Connected to Discogs as @#{result.shopper.discogs_username}!"
   end
 
   def redirect_store_owner_error(message)
@@ -139,5 +144,6 @@ class AuthController < ApplicationController
     session.delete(:shopper_oauth_request_token)
     session.delete(:shopper_oauth_request_token_secret)
     session.delete(:shopper_oauth_store_slug)
+    session.delete(:shopper_return_to)
   end
 end
