@@ -101,8 +101,10 @@ class CreatePileWantlistService
   end
 
   def resolve_store_release_ids
-    @store.listings.where(discogs_listing_id: @item_ids)
-      .pluck(:discogs_release_id).compact.map(&:to_i).uniq
+    release_ids = @store.listings.where(discogs_listing_id: @item_ids)
+      .pluck(:discogs_listing_id, :discogs_release_id).to_h
+
+    @item_ids.filter_map { |item_id| release_ids[item_id]&.to_i }.uniq
   end
 
   def seller_wantlist_url
