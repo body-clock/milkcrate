@@ -12,4 +12,8 @@ RSpec.describe "store routes", type: :routing do
   it "does not route browser icon probes to store invitations" do
     expect(get: "/apple-touch-icon.png").not_to be_routable
   end
+
+  it "does not route the retired dashboard signup endpoint" do
+    expect(post: "/dashboard/signup").not_to be_routable
+  end
 end

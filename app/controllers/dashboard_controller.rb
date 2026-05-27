@@ -1,4 +1,4 @@
-# Store owner dashboard with sync controls, curation preview, and signup flow.
+# Store owner dashboard with sync controls and curation preview.
 class DashboardController < SessionAuthenticatedController
   layout "inertia_application"
 
@@ -12,14 +12,5 @@ class DashboardController < SessionAuthenticatedController
 
     FullStoreSyncJob.perform_later(current_store.id)
     redirect_to dashboard_path, notice: "Full inventory sync has been queued."
-  end
-
-  def signup
-    email = params[:email]&.strip
-    return redirect_to(dashboard_path, alert: "Email is required.") if email.blank?
-
-    current_store_owner.update!(owner_email: email)
-    session[:welcome_seen] = true
-    redirect_to dashboard_path, notice: "Thanks! We'll keep you updated."
   end
 end
