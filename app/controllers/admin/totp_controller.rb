@@ -10,19 +10,11 @@ class Admin::TotpController < ApplicationController
   end
 
   def create
-    code = params[:code]&.strip
+    code = extract_code
+    return render_totp_error(:challenge, "Enter your authentication code") if code.blank?
+    return render_totp_error(:challenge, "Invalid code. Try again.") unless current_admin.verify_totp!(code)
 
-    if code.blank?
-      render inertia: "admin/totp_challenge", props: { errors: { code: [ "Enter your authentication code" ] } }
-      return
-    end
-
-    if current_admin.verify_totp!(code)
-      establish_full_session!
-      redirect_to admin_path, notice: "Signed in successfully."
-    else
-      render inertia: "admin/totp_challenge", props: { errors: { code: [ "Invalid code. Try again." ] } }
-    end
+    complete_authentication!("Signed in successfully.")
   end
 
   def setup
@@ -31,23 +23,16 @@ class Admin::TotpController < ApplicationController
   end
 
   def confirm_setup
-    code = params[:code]&.strip
+    code = extract_code
+    return render_totp_error(:setup, "Enter the code from your authenticator app") if code.blank?
 
-    if code.blank?
-      render inertia: "admin/totp_setup", props: totp_setup_props.merge(
-        errors: { code: [ "Enter the code from your authenticator app" ] }
-      )
-      return
-    end
-
-    if current_admin.verify_totp!(code)
-      establish_full_session!
-      redirect_to admin_path, notice: "Two-factor authentication is now active."
-    else
-      render inertia: "admin/totp_setup", props: totp_setup_props.merge(
+    unless current_admin.verify_totp!(code)
+      return render inertia: "admin/totp_setup", props: totp_setup_props.merge(
         errors: { code: [ "Invalid code. Make sure your authenticator app is set up correctly." ] }
       )
     end
+
+    complete_authentication!("Two-factor authentication is now active.")
   end
 
   private
@@ -68,10 +53,20 @@ class Admin::TotpController < ApplicationController
     redirect_to admin_totp_setup_path unless current_admin.totp_enabled?
   end
 
-  def establish_full_session!
+  def extract_code
+    params[:code]&.strip
+  end
+
+  def render_totp_error(page, message)
+    props = page == :challenge ? {} : totp_setup_props
+    render inertia: "admin/totp_#{page}", props: props.merge(errors: { code: [ message ] })
+  end
+
+  def complete_authentication!(notice)
     reset_session
     session[:admin_id] = current_admin.id
     session[:totp_verified] = true
+    redirect_to admin_path, notice:
   end
 
   def totp_setup_props

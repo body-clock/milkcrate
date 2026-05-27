@@ -1,0 +1,192 @@
+{
+  "reviewer": "security",
+  "findings": [
+    {
+      "id": "SEC-01",
+      "title": "TOTP code replay — same code reusable within validity window",
+      "severity": "P0",
+      "confidence": {
+        "anchor": 100,
+        "justification": "ROTP::TOTP#verify is called without the `after:` parameter. The code records `last_used_at` but never passes it to limit replay. Code is directly observable."
+      },
+      "file": "app/models/admin_user.rb",
+      "line": 46,
+      "detail": "`AdminUser#verify_totp!` calls `totp.verify(code, drift_behind: 30, drift_ahead: 30)` without an `after:` argument. ROTP's verify returns the first matching timecode; without `after:`, the same code can match again within the same 30-second interval. An attacker who observes a TOTP code (shoulder-surfing, compromised device, network MITM if rendered insecurely) can reuse it for the remainder of the current time step. The drift window (±30s) means the effective replay window is up to 90 seconds (3 intervals).",
+      "fix": "Pass `after: admin_totp.last_used_at` to `totp.verify()`, and save `last_used_at` from the matched timestamp returned by verify rather than `Time.current`:\n\n```ruby\nmatched_at = totp.verify(code, drift_behind: 30, drift_ahead: 30, after: admin_totp&.last_used_at)\nif matched_at\n  admin_totp&.update!(last_used_at: Time.at(matched_at), enabled: true)\n  true\nend\n```\n\nThis ensures a code that was already used within its interval is rejected on subsequent attempts."
+    },
+    {
+      "id": "SEC-02",
+      "title": "Session not rotated on login — session fixation risk",
+      "severity": "P0",
+      "confidence": {
+        "anchor": 75,
+        "justification": "Code clearly shows session[:admin_id] and session[:totp_verified] are set without calling reset_session first. Rails CookieStore mitigates outright fixation via signed cookies, but the session ID (cookie value) is carried forward unrotated."
+      },
+      "file": "app/controllers/admin/sessions_controller.rb",
+      "line": 23,
+      "detail": "The `create` action sets `session[:admin_id]` and `session[:totp_verified]` without calling `reset_session` first. Rails best practice requires session rotation on privilege escalation (from unauthenticated → authenticated). Without it, if an attacker can pre-set a known session cookie (via XSS in another app on the same domain, or via a subdomain that sets cookies with `domain: .milkcrate.fm`), the admin authenticates into the attacker's known session. While CookieStore signs/encrypts content, the session ID itself is not rotated, so an old captured cookie remains valid until logout.",
+      "fix": "Add `reset_session` at the top of the `create` action, before setting session values:\n\n```ruby\ndef create\n  reset_session\n  admin = AdminUser.find_by(email: session_params[:email]&.strip&.downcase)\n  # ...\nend\n```"
+    },
+    {
+      "id": "SEC-03",
+      "title": "Session not rotated after TOTP completion — second factor downgrade attack",
+      "severity": "P0",
+      "confidence": {
+        "anchor": 75,
+        "justification": "The totp_verified flag is set on the existing session cookie. An attacker with a captured 'password-authenticated, TOTP-pending' session cookie can set totp_verified: false themselves and continue using it."
+      },
+      "file": "app/controllers/admin/totp_controller.rb",
+      "line": 19,
+      "detail": "When TOTP is successfully verified, `session[:totp_verified] = true` is set on the existing session without rotating the session ID. An attacker who captured the session cookie after password authentication (but before TOTP completion) holds a session with `totp_verified: false`. Since the session isn't rotated on TOTP success, the attacker's captured cookie is unaffected. Moreover, there's no `before_action` in `BaseController` that checks whether the session was *ever* fully authenticated — only that it currently has `totp_verified: true`. If an attacker can undo `totp_verified` (e.g., through XSS or cookie manipulation), they can repeatedly bypass 2FA.",
+      "fix": "Call `reset_session` in `totp_controller.rb#create` before setting the verified session:\n\n```ruby\ndef create\n  code = params[:code]&.strip\n  if code.blank?\n    # ...\n    return\n  end\n\n  if current_admin.verify_totp!(code)\n    reset_session\n    session[:admin_id] = current_admin.id\n    session[:totp_verified] = true\n    redirect_to admin_path, notice: \"Signed in successfully.\"\n  else\n    # ...\n  end\nend\n```\n\nSame pattern applies to `confirm_setup`."
+    },
+    {
+      "id": "SEC-04",
+      "title": "TOTP secrets stored in plaintext in the database",
+      "severity": "P0",
+      "confidence": {
+        "anchor": 100,
+        "justification": "The schema confirms `admin_totps.secret` is a plain `string` column with no encryption. Code shows the secret is read directly in totp_provisioning_uri and verify_totp!."
+      },
+      "file": "db/migrate/20260526000002_create_admin_totps.rb",
+      "line": 5,
+      "detail": "The `admin_totps.secret` column is a plain `string` with no encryption. A database compromise (SQL injection, backup leak, DBA access) exposes all TOTP seeds, allowing the attacker to generate valid 2FA codes for any admin account. TOTP secrets are functionally equivalent to passwords — they enable the second factor.",
+      "fix": "Use Rails Active Record encryption (`has_encrypted`) or lockbox to encrypt the TOTP secret at rest:\n\n```ruby\n# In AdminTotp model\nhas_encrypted :secret\n\n# Migration\ncreate_table :admin_totps do |t|\n  t.string :secret_ciphertext  # managed by has_encrypted\n  t.boolean :enabled, default: false, null: false\n  t.datetime :last_used_at\n  t.timestamps\nend\n```"
+    },
+    {
+      "id": "SEC-05",
+      "title": "No session timeout — admin sessions never expire",
+      "severity": "P1",
+      "confidence": {
+        "anchor": 100,
+        "justification": "No expire_after on the session cookie config, no idle timeout logic in any controller. Session endures until browser close or explicit logout."
+      },
+      "file": "config/application.rb",
+      "line": 0,
+      "detail": "The session cookie has no `expire_after` setting (session cookie = expires on browser close) and there is no application-level idle timeout. An admin who authenticates on a shared machine, then closes the tab without clicking 'Sign out', leaves a live session in the browser history. Browsers that restore sessions (Chrome, Safari) can resurrect the cookie. Combined with SEC-02 (no session rotation), a captured cookie from a hijacked session works indefinitely until the admin explicitly logs out.",
+      "fix": "Add an absolute session timeout (e.g., 24 hours) and a sliding idle timeout (e.g., 30 minutes). In an initializer or application controller:\n\n```ruby\n# config/initializers/session_timeout.rb\nSESSION_TIMEOUT = 30.minutes\nSESSION_ABSOLUTE_TIMEOUT = 24.hours\n\n# In ApplicationController\nbefore_action :check_session_timeout\n\ndef check_session_timeout\n  if session[:admin_id].present?\n    if session[:login_at].nil? || session[:login_at] < SESSION_ABSOLUTE_TIMEOUT.ago\n      reset_session\n      redirect_to admin_login_path, alert: \"Session expired. Please sign in again.\"\n    elsif session[:last_seen_at].nil? || session[:last_seen_at] < SESSION_TIMEOUT.ago\n      reset_session\n      redirect_to admin_login_path, alert: \"Session expired due to inactivity.\"\n    else\n      session[:last_seen_at] = Time.current\n    end\n  end\nend\n```\n\nSet `session[:login_at]` and `session[:last_seen_at]` on successful login."
+    },
+    {
+      "id": "SEC-06",
+      "title": "Session cookies not secured to HTTPS — sent over unencrypted connections",
+      "severity": "P1",
+      "confidence": {
+        "anchor": 100,
+        "justification": "config.force_ssl is commented out in production.rb. Session options show no secure: true. Cookie is sent over HTTP."
+      },
+      "file": "config/environments/production.rb",
+      "line": 30,
+      "detail": "`config.force_ssl` is commented out in production. `config.assume_ssl = true` tells Rails to assume upstream SSL termination, but it does NOT set the `Secure` flag on cookies. The session cookie `_milkcrate_session` is transmitted over plain HTTP if an admin visits the HTTP endpoint (e.g., via a typo or MiTM redirect). On a public Wi-Fi network, an attacker can sniff the session cookie and hijack the admin session. `SameSite=Lax` does not protect against network-level sniffing.",
+      "fix": "Uncomment `config.force_ssl = true` in config/environments/production.rb. This will:\n- Redirect HTTP to HTTPS\n- Set the `Secure` flag on all cookies\n- Enable HSTS\n\nIf upstream SSL termination is required, at minimum explicitly configure secure cookies:\n```ruby\nRails.application.config.session_store :cookie_store, key: '_milkcrate_session', secure: true, httponly: true\n```"
+    },
+    {
+      "id": "SEC-07",
+      "title": "Failed TOTP attempts don't trigger account lockout",
+      "severity": "P1",
+      "confidence": {
+        "anchor": 100,
+        "justification": "The lockout logic in AdminUser only runs in increment_failed_attempts!, which is called only from SessionsController#create. TotpController never calls it."
+      },
+      "file": "app/controllers/admin/totp_controller.rb",
+      "line": 18,
+      "detail": "Failed TOTP verification attempts (in `create` and `confirm_setup`) return an error message but never call `admin.increment_failed_attempts!`. An attacker who knows the admin's password (e.g., from a credential stuffing attack) can brute-force the TOTP code without triggering account lockout. The only protection is the IP-level Rack::Attack throttle (5 POSTs per 30 seconds per IP), which can be bypassed with distributed IPs. 6-digit TOTP has 1M possibilities; with 200 attacker IPs × 5 attempts per 30s × 90-second effective window = 30,000 guesses, the probability of hitting the correct code is ~3%.",
+      "fix": "Add failed TOTP attempts to the lockout counter:\n\n```ruby\n# In TotpController#create and confirm_setup\nif code.blank?\n  # ...\n  return\nend\n\nif current_admin.verify_totp!(code)\n  current_admin.reset_failed_attempts!\n  # ... proceed\nelse\n  current_admin.increment_failed_attempts!\n  # ... render error\nend\n```"
+    },
+    {
+      "id": "SEC-08",
+      "title": "TOTP setup endpoint not rate-limited",
+      "severity": "P1",
+      "confidence": {
+        "anchor": 75,
+        "justification": "rack_attack.rb only throttles POST /admin/login and POST /admin/totp, not POST /admin/totp/setup. The setup route exists and accepts codes."
+      },
+      "file": "config/initializers/rack_attack.rb",
+      "line": 13,
+      "detail": "The Rack::Attack configuration throttles POSTs to `/admin/login` (10/min) and `/admin/totp` (5/30s), but does NOT throttle POSTs to `/admin/totp/setup`. An attacker who passes password authentication but hasn't yet set up TOTP can brute-force the setup confirmation code with no per-user or per-IP rate limit beyond the default Rails/SafeBuffer behavior. The `confirm_setup` action in TotpController accepts an unbounded stream of code guesses.",
+      "fix": "Add a throttle for the TOTP setup endpoint:\n\n```ruby\nthrottle(\"admin/totp_setup/ip\", limit: 5, period: 30.seconds) do |req|\n  if req.path == \"/admin/totp/setup\" && req.post?\n    req.ip\n  end\nend\n```"
+    },
+    {
+      "id": "SEC-09",
+      "title": "User enumeration via distinct login error messages",
+      "severity": "P1",
+      "confidence": {
+        "anchor": 100,
+        "justification": "Code returns 'Account not found' for unknown emails and 'Invalid password' for known emails. This is directly observable."
+      },
+      "file": "app/controllers/admin/sessions_controller.rb",
+      "line": 12,
+      "detail": "The login endpoint returns `\"Account not found\"` when the email doesn't match any admin, but `\"Invalid password\"` when the email exists but the password is wrong. This difference allows attackers to enumerate valid admin email addresses. The `remaining_attempts` display on the password error also leaks whether the account exists.",
+      "fix": "Return a generic error message for both cases to eliminate the oracle:\n\n```ruby\ndef create\n  admin = AdminUser.find_by(email: session_params[:email]&.strip&.downcase)\n\n  if admin.nil? || admin.locked?\n    # Generic: don't reveal whether account exists\n    render inertia: \"admin/login\", props: { errors: { email: [\"Invalid email or password\"] } }\n    return\n  end\n\n  if admin.authenticate(session_params[:password])\n    # ... success path\n  else\n    admin.increment_failed_attempts!\n    remaining = AdminUser::MAX_ATTEMPTS - admin.reload.failed_login_attempts\n\n    if remaining <= 0\n      render inertia: \"admin/login\", props: { errors: { email: [\"Account locked. Try again later.\"] } }\n    else\n      render inertia: \"admin/login\", props: { errors: { email: [\"Invalid email or password\"] } }\n    end\n  end\nend\n```\n\nCombine the 'unknown email' and 'wrong password' paths into a single generic error."
+    },
+    {
+      "id": "SEC-10",
+      "title": "No minimum password strength validation in AdminUser model",
+      "severity": "P2",
+      "confidence": {
+        "anchor": 100,
+        "justification": "AdminUser model has has_secure_password but no length/complexity validations on the password field."
+      },
+      "file": "app/models/admin_user.rb",
+      "line": 1,
+      "detail": "The AdminUser model uses `has_secure_password` which validates password presence on create, but does not enforce a minimum length or complexity. The admin seed (`db/seeds/admins.rb`) can generate a random 24-char base64 password (secure), but the admin create rake task uses `ENV.fetch('ADMIN_PASSWORD')` which could be set to a weak value like \"password123\". An admin could set a very weak password, especially since there's no frontend validation either.",
+      "fix": "Add a minimum password length to the model:\n\n```ruby\nvalidates :password, length: { minimum: 12 }, if: -> { password.present? }\n```\n\nConsider also adding a password complexity validation or using a gem like `devise-security` or `strong_password`."
+    },
+    {
+      "id": "SEC-11",
+      "title": "No per-user TOTP rate limiting — only IP-level throttling",
+      "severity": "P2",
+      "confidence": {
+        "anchor": 50,
+        "justification": "Rack::Attack throttles by IP, not by session or user. An attacker with distributed IPs can bypass. However, the TOTP code space is 1M and the window is 90s, making brute force unlikely for most attackers."
+      },
+      "file": "config/initializers/rack_attack.rb",
+      "line": 9,
+      "detail": "The TOTP challenge throttle uses `req.ip` as the discriminator. An attacker controlling a botnet (even modest: 200 IPs × 5 req/30s) can make ~1,000 guesses per minute against the TOTP code. Combined with the lack of account lockout for TOTP failures (SEC-07), this raises the risk of brute-force. The 6-digit code space provides log₂(1,000,000) ≈ 20 bits of security, but the effective search space is reduced by the 90-second drift window (3 valid codes per window).",
+      "fix": "Consider adding per-session scoping to the throttle discriminator, or implementing server-side TOTP consumption tracking that reduces to a single valid attempt per 30-second window. Throttle key could include the session ID or admin_id (if available at the Rack level)."
+    }
+  ],
+  "residual_risks": [
+    {
+      "risk": "CookieStore sessions cannot be server-side invalidated",
+      "detail": "Because the app uses CookieStore (not an encrypted database or Redis session store), there is no way to invalidate all admin sessions on password reset, TOTP disable, or account deletion. If an admin's account is compromised, changing the password doesn't invalidate active session cookies. The attacker can continue using captured cookies until they expire (browser close). Migrating to `active_record_store` or a Redis-backed session store would allow server-side invalidation."
+    },
+    {
+      "risk": "Rack::Attack requires Redis or similar in production",
+      "detail": "The Rack::Attack rate limiter uses an in-memory store by default, which means throttling counters reset on server restart and don't work across multiple server processes. In production with Puma (multi-process) or multiple web servers, IP-level rate limiting may be ineffective unless a shared store (Redis, Memcached) is configured."
+    },
+    {
+      "risk": "AdminUser#generate_totp_secret! does not rotate existing secrets",
+      "detail": "If an existing TOTP secret is suspected compromised, there's no method to force-rotate it. The setup page reuses the existing secret if `totp_secret` is already set (line 42 of totp_controller.rb: `current_admin.generate_totp_secret! unless current_admin.totp_secret`). An admin would need a rake task to destroy their existing TOTP record to get a new secret."
+    },
+    {
+      "risk": "Seed file falls back to environment variable for admin password",
+      "detail": "`db/seeds/admins.rb` uses `ENV.fetch('ADMIN_PASSWORD')` as a fallback. An operator who sets `ADMIN_PASSWORD` in their shell profile as a convenience could inadvertently expose the admin password in process listings, logs, or shell history. Prefer reading from `credentials.yml.enc` only."
+    }
+  ],
+  "testing_gaps": [
+    {
+      "gap": "No test for TOTP code replay within the same 30-second interval",
+      "detail": "The `admin_auth_spec.rb` tests verify a valid TOTP code is accepted, but never tests that the SAME code is rejected on a subsequent request. This would catch the missing `after:` parameter (SEC-01)."
+    },
+    {
+      "gap": "No test that failed TOTP attempts increment the lockout counter",
+      "detail": "Tests cover password-based lockout but not TOTP-based lockout. Add a test that submits 5 invalid TOTP codes and asserts the account is locked."
+    },
+    {
+      "gap": "No test for session rotation on login or TOTP completion",
+      "detail": "After login and after TOTP verification, the session cookie should change (new value). A regression test would verify `reset_session` is called by comparing `request.session.id` before and after."
+    },
+    {
+      "gap": "No test for session timeout enforcement",
+      "detail": "Once session timeout is implemented, tests should verify that expired sessions redirect to login and preserve the absolute maximum lifetime."
+    },
+    {
+      "gap": "No test for admin user enumeration",
+      "detail": "A test should verify that unknown email and wrong password return the same generic error message to prevent email enumeration oracles."
+    },
+    {
+      "gap": "No test for rate limiting behavior on TOTP endpoints",
+      "detail": "Rack::Attack throttles are configured but no spec proves they apply to `/admin/totp` (POST) and `/admin/totp/setup` (POST) endpoints."
+    }
+  ]
+}
