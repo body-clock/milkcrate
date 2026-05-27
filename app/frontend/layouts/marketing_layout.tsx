@@ -3,7 +3,6 @@ import { Link, usePage } from "@inertiajs/react"
 import { useTheme } from "@/hooks/use_theme"
 import BrandMark from "@/components/brand_mark"
 import FeedbackMessage from "@/components/ui/feedback_message"
-import { actionClassName } from "@/components/ui/action"
 import MilkcrateShell from "@/layouts/milkcrate_shell"
 import StorefrontMotionConfig from "@/components/storefront_motion_config"
 import { ViewportProvider } from "@/contexts/viewport_context"
@@ -27,18 +26,6 @@ export function MarketingLayoutContent({ children }: { children: React.ReactNode
         </Link>
         {!isCompact && (
           <div className="flex items-center gap-2 sm:gap-3">
-            <Link
-              href="/philadelphiamusic"
-              className={actionClassName({ variant: "ghost", size: "sm" })}
-            >
-              Demo
-            </Link>
-            <Link
-              href="/apply"
-              className={actionClassName({ variant: "ghost", size: "sm" })}
-            >
-              Apply
-            </Link>
             <button
               type="button"
               onClick={toggle}

@@ -47,14 +47,15 @@ const homeCopy = {
     step1_title: "Share your Discogs",
     step1_body: "Tell us your Discogs username. That's it.",
     step2_title: "We sync & curate",
-    step2_body: "Your inventory becomes curated crates — picks, featured, genre bins.",
+    step2_body: "Your inventory becomes curated crates: picks, featured bins, and genre bins.",
     step3_title: "Share your store",
     step3_body: "One link. Your customers browse like they're in the shop.",
   },
-  preview_label: "Flip Through Milkcrate Picks",
+  preview_blurb: "The longer the store is up, the better the data becomes. Cycles daily.",
+  preview_label: "Flip Through Crates",
   record_fair_title: "Bring your store to the next record fair",
   record_fair_body:
-    "QR codes on cards, bags, and signage turn foot traffic into return visitors — long after the fair ends.",
+    "QR codes on cards, bags, and signage turn foot traffic into return visitors, long after the fair ends.",
   store_character_title: "Your shop. Crated for browsing.",
 }
 

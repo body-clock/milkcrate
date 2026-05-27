@@ -42,15 +42,12 @@ describe("MarketingLayout header policy", () => {
   it.each([
     "comfy",
     "wide",
-  ] as const)("preserves public utilities at the %s tier", (tier) => {
+  ] as const)("shows brand and theme toggle at the %s tier", (tier) => {
     renderContentAtTier(tier)
 
     const header = screen.getByRole("banner")
     expect(within(header).getByRole("link", { name: "Milkcrate home" })).toBeInTheDocument()
-    expect(within(header).getByRole("link", { name: "Demo" })).toBeInTheDocument()
-    expect(within(header).getByRole("link", { name: "Apply" })).toBeInTheDocument()
     expect(within(header).getByRole("button", { name: "Toggle light/dark mode" })).toBeInTheDocument()
-    expect(within(header).getByRole("link", { name: "Apply" }).className).toContain("ring-mc-focus")
   })
 
   it("renders only the Milkcrate home link in compact public header chrome", () => {
@@ -58,8 +55,6 @@ describe("MarketingLayout header policy", () => {
 
     const header = screen.getByRole("banner")
     expect(within(header).getByRole("link", { name: "Milkcrate home" })).toBeInTheDocument()
-    expect(within(header).queryByRole("link", { name: "Demo" })).not.toBeInTheDocument()
-    expect(within(header).queryByRole("link", { name: "Apply" })).not.toBeInTheDocument()
     expect(within(header).queryByRole("button", { name: "Toggle light/dark mode" })).not.toBeInTheDocument()
   })
 
@@ -67,6 +62,7 @@ describe("MarketingLayout header policy", () => {
     renderAtWidth(390)
 
     const header = screen.getByRole("banner")
-    expect(within(header).queryByRole("link", { name: "Demo" })).not.toBeInTheDocument()
+    expect(within(header).getByRole("link", { name: "Milkcrate home" })).toBeInTheDocument()
+    expect(within(header).queryByRole("button", { name: "Toggle light/dark mode" })).not.toBeInTheDocument()
   })
 })

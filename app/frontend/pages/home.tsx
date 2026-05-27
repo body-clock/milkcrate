@@ -22,6 +22,7 @@ interface Props {
       step3_title: string
       step3_body: string
     }
+    preview_blurb: string
     preview_label: string
     store_character_title: string
     seller_section_title: string
@@ -108,10 +109,20 @@ export default function Home({ copy, preview }: Props) {
         aria-labelledby="home-preview-heading"
         className="border-t border-mc-border py-10 sm:py-16"
       >
-        <div className="max-w-md mx-auto text-center mb-6 sm:mb-8">
-          <span className="mc-section-name text-sm" id="home-preview-heading">
+        <div className="max-w-lg mx-auto text-center mb-8 sm:mb-10">
+          <motion.h2
+            variants={fadeUp}
+            id="home-preview-heading"
+            className="text-xl sm:text-2xl font-bold text-mc-text leading-snug"
+          >
             {copy.preview_label}
-          </span>
+          </motion.h2>
+          <motion.p
+            variants={fadeUp}
+            className="text-sm sm:text-base text-mc-text-dim mt-4 leading-relaxed"
+          >
+            {copy.preview_blurb}
+          </motion.p>
         </div>
 
         {picksCrate && picksCrate.records.length > 0 ? (
@@ -171,7 +182,7 @@ export default function Home({ copy, preview }: Props) {
         <motion.h2
           variants={fadeUp}
           id="home-character-heading"
-          className="text-lg sm:text-xl font-semibold text-mc-text text-center mb-10"
+          className="text-xl sm:text-2xl font-bold text-mc-text text-center mb-10"
         >
           {copy.store_character_title}
         </motion.h2>
@@ -179,43 +190,41 @@ export default function Home({ copy, preview }: Props) {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-4xl mx-auto">
           <motion.div
             variants={fadeIn}
-            className="flex flex-col items-center text-center gap-3 p-4 rounded-xl bg-mc-bg-raised border border-mc-border"
+            className="flex flex-col items-center text-center gap-3 p-5 rounded-xl bg-mc-bg-raised border border-mc-border"
           >
-            <h3 className="text-sm font-semibold text-mc-text">Milkcrate Picks</h3>
-            <p className="text-xs text-mc-text-dim leading-relaxed">
-              Our digger algorithm surfaces the most interesting records in your inventory —
-              refreshed daily.
+            <h3 className="text-base font-semibold text-mc-text">Milkcrate Picks</h3>
+            <p className="text-sm text-mc-text-dim leading-relaxed">
+              Interesting finds from the whole collection.
             </p>
           </motion.div>
 
           <motion.div
             variants={fadeIn}
-            className="flex flex-col items-center text-center gap-3 p-4 rounded-xl bg-mc-bg-raised border border-mc-border"
+            className="flex flex-col items-center text-center gap-3 p-5 rounded-xl bg-mc-bg-raised border border-mc-border"
           >
-            <h3 className="text-sm font-semibold text-mc-text">Featured Crates</h3>
-            <p className="text-xs text-mc-text-dim leading-relaxed">
-              We shape a front-of-store view that highlights strong entry points for browsing.
+            <h3 className="text-base font-semibold text-mc-text">Featured Crates</h3>
+            <p className="text-sm text-mc-text-dim leading-relaxed">
+              Spotlight new arrivals, randomized sub-genre, and hidden gems.
             </p>
           </motion.div>
 
           <motion.div
             variants={fadeIn}
-            className="flex flex-col items-center text-center gap-3 p-4 rounded-xl bg-mc-bg-raised border border-mc-border"
+            className="flex flex-col items-center text-center gap-3 p-5 rounded-xl bg-mc-bg-raised border border-mc-border"
           >
-            <h3 className="text-sm font-semibold text-mc-text">Genre Bins</h3>
-            <p className="text-xs text-mc-text-dim leading-relaxed">
-              Records organized by genre, just like a real shop — jazz, soul, electronic,
-              hip-hop, and more.
+            <h3 className="text-base font-semibold text-mc-text">Genre Bins</h3>
+            <p className="text-sm text-mc-text-dim leading-relaxed">
+              Records organized by genre, just like a real shop.
             </p>
           </motion.div>
 
           <motion.div
             variants={fadeIn}
-            className="flex flex-col items-center text-center gap-3 p-4 rounded-xl bg-mc-bg-raised border border-mc-border"
+            className="flex flex-col items-center text-center gap-3 p-5 rounded-xl bg-mc-bg-raised border border-mc-border"
           >
-            <h3 className="text-sm font-semibold text-mc-text">Build Your Pile</h3>
-            <p className="text-xs text-mc-text-dim leading-relaxed">
-              Customers can collect records in a pile while they browse and compare finds.
+            <h3 className="text-base font-semibold text-mc-text">Start a Pile</h3>
+            <p className="text-sm text-mc-text-dim leading-relaxed">
+              Collect records as you browse, then carry them over to Discogs.
             </p>
           </motion.div>
         </div>
