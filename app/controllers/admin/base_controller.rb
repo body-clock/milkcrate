@@ -9,13 +9,7 @@ class Admin::BaseController < ApplicationController
   end
 
   def require_admin_authentication
-    unless current_admin
-      redirect_to admin_login_path, alert: "Please sign in first."
-      return
-    end
-
-    unless session[:totp_verified]
-      redirect_to admin_totp_path, alert: "Complete two-factor authentication."
-    end
+    return redirect_to admin_login_path, alert: "Please sign in first." unless current_admin
+    redirect_to admin_totp_path, alert: "Complete two-factor authentication." unless session[:totp_verified]
   end
 end

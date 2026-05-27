@@ -10,30 +10,26 @@ class Admin::SessionsController < ApplicationController
   def create
     admin = AdminUser.find_by(email: session_params[:email]&.strip&.downcase)
 
-    if admin.nil?
-      render inertia: "admin/login", props: generic_login_error
-      return
-    end
+    return render inertia: "admin/login", props: generic_login_error if admin.nil?
 
     if admin.locked?
-      render inertia: "admin/login", props: { errors: { email: [ "Too many failed attempts. Try again later." ] } }
-      return
+      return render inertia: "admin/login", props: { errors: { email: [ "Too many failed attempts. Try again later." ] } }
     end
 
-    if admin.authenticate(session_params[:password])
-      admin.reset_failed_attempts!
-      reset_session
-      session[:admin_id] = admin.id
-      session[:totp_verified] = false
-
-      if admin.totp_enabled?
-        redirect_to admin_totp_path, notice: "Enter your two-factor authentication code."
-      else
-        redirect_to admin_totp_setup_path, notice: "Set up two-factor authentication to secure your account."
-      end
-    else
+    unless admin.authenticate(session_params[:password])
       admin.increment_failed_attempts!
-      render inertia: "admin/login", props: generic_login_error
+      return render inertia: "admin/login", props: generic_login_error
+    end
+
+    admin.reset_failed_attempts!
+    reset_session
+    session[:admin_id] = admin.id
+    session[:totp_verified] = false
+
+    if admin.totp_enabled?
+      redirect_to admin_totp_path, notice: "Enter your two-factor authentication code."
+    else
+      redirect_to admin_totp_setup_path, notice: "Set up two-factor authentication to secure your account."
     end
   end
 
