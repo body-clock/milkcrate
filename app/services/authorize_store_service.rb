@@ -12,11 +12,15 @@ class AuthorizeStoreService
   end
 
   def call
-    return enforce_minimum_error(inventory_count) if enforce_minimum_listings?(inventory_count)
+    total_listings = inventory_count
+    return minimum_listings_error if enforce_minimum_listings?(total_listings)
+
     request_oauth_token
   rescue DiscogsClient::ApiError, DiscogsOauthClient::OauthError => e
     oauth_error(e)
   end
+
+  private
 
   def oauth_error(error)
     message = error.is_a?(DiscogsOauthClient::OauthError) ? error.message : "Could not verify this Discogs account. Please check the username and try again."
@@ -28,8 +32,7 @@ class AuthorizeStoreService
     inventory.dig("pagination", "items") || 0
   end
 
-  def enforce_minimum_error(total_listings)
-    return nil unless enforce_minimum_listings?(total_listings)
+  def minimum_listings_error
     error_result("We couldn't find enough inventory for this Discogs account. Milkcrate requires at least #{MINIMUM_LISTINGS} vinyl records to create a storefront.")
   end
 
@@ -43,8 +46,6 @@ class AuthorizeStoreService
       error: nil
     )
   end
-
-  private
 
   def enforce_minimum_listings?(total_listings)
     return false if Rails.env.development?

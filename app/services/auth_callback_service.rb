@@ -14,10 +14,18 @@ class AuthCallbackService
 
   def call
     perform_authorization
-  rescue DiscogsOauthClient::OauthError => e
-    oauth_error(e)
+  rescue CallbackError, DiscogsOauthClient::OauthError => error
+    authorization_error(error)
   rescue StandardError => e
     unexpected_error(e)
+  end
+
+  private
+
+  def authorization_error(error)
+    return error_result(error.message) if error.is_a?(CallbackError)
+
+    oauth_error(error)
   end
 
   def perform_authorization
@@ -36,13 +44,11 @@ class AuthCallbackService
     Result.new(store:, error: nil)
   end
 
-  private
-
   def verify_identity!(oauth_client, token_result)
     identity = oauth_client.verify_identity(token_result.access_token, token_result.access_token_secret)
     return if identity.username.downcase == @slug.downcase
 
-    raise StandardError, "Discogs identity mismatch. The Discogs account you authorized (#{identity.username}) does not match the store URL (#{@slug})."
+    raise CallbackError, "Discogs identity mismatch. The Discogs account you authorized (#{identity.username}) does not match the store URL (#{@slug})."
   end
 
   def create_store_in_transaction(token_result)
