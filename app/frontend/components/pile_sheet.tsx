@@ -158,7 +158,7 @@ function WantlistHandoffAction({
 
   React.useEffect(() => {
     if (!pulsing) return;
-    const timer = setTimeout(() => setPulsing(false), 3000);
+    const timer = setTimeout(() => setPulsing(false), 2500);
     return () => clearTimeout(timer);
   }, [pulsing]);
 
@@ -167,7 +167,16 @@ function WantlistHandoffAction({
       <p className="text-[11px] text-mc-text-dim leading-relaxed">
         Get these records from {storeName ?? "this store"} on Discogs.
       </p>
-      <Button onClick={onSend} size="lg" className={pulsing ? "animate-pulse" : "w-full"}>
+      <Button
+        onClick={onSend}
+        size="lg"
+        variant="success"
+        className={
+          pulsing
+            ? "animate-pulse transition-all duration-500"
+            : "transition-all duration-500 opacity-100"
+        }
+      >
         Send to Discogs Wantlist
       </Button>
     </div>
