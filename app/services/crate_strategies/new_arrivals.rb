@@ -18,6 +18,8 @@ module CrateStrategies
       selected || score_and_sort(candidates, excluded_ids: Set.new, scorer: @scorer) { |c| c }
     end
 
+    private
+
     def select_from_windows(candidates)
       WINDOWS.each { |days| return try_window(candidates, days) if window_qualifies?(candidates, days) }
       nil

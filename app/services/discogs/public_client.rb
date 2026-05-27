@@ -20,13 +20,6 @@ module Discogs
       handle_response(response)
     end
 
-    def apply_inventory_params(req, page, sort, sort_order)
-      req.params["page"] = page
-      req.params["per_page"] = PER_PAGE
-      req.params["sort"] = sort
-      req.params["sort_order"] = sort_order
-    end
-
     def release(release_id)
       response = @connection.get("/releases/#{release_id}")
       body = handle_response(response)
@@ -46,6 +39,13 @@ module Discogs
     end
 
     private
+
+    def apply_inventory_params(req, page, sort, sort_order)
+      req.params["page"] = page
+      req.params["per_page"] = PER_PAGE
+      req.params["sort"] = sort
+      req.params["sort_order"] = sort_order
+    end
 
     def build_connection
       Faraday.new(url: BASE_URL) do |f|

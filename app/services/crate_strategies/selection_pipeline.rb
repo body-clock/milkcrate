@@ -11,6 +11,8 @@ module CrateStrategies
   #   - Picks (genre-diversity sort + seed shuffle)
   #   - Thematic (tuple return + multi-step theme discovery)
   module SelectionPipeline
+    private
+
     def score_and_sort(pool, excluded_ids:, scorer:)
       candidates = exclude_and_filter(pool, excluded_ids) { |c| yield(c) }
       rank(candidates, scorer)

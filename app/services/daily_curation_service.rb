@@ -8,6 +8,8 @@ class DailyCurationService
     log_curation(store, surfaced, curation)
   end
 
+  private
+
   def log_curation(store, surfaced, curation)
     picks_count = picks_crate_count(curation)
     Rails.logger.info "[DailyCurationJob] store=#{store.name} surfaced=#{surfaced.size} picks=#{picks_count}"

@@ -16,19 +16,19 @@ module StoreSync
       persist_listings(records)
     end
 
-    def persist_listings(records)
-      existing = index_existing(records)
-      changed_ids = detect_changes(records, existing)
-      upsert_records(records)
-      enrichment_ids(changed_ids)
-    end
-
     def remove_stale(listings)
       current_ids = listings.map { |r| r[:discogs_listing_id] }
       current_ids.empty? ? @store.listings.delete_all : @store.listings.where.not(discogs_listing_id: current_ids).delete_all
     end
 
     private
+
+    def persist_listings(records)
+      existing = index_existing(records)
+      changed_ids = detect_changes(records, existing)
+      upsert_records(records)
+      enrichment_ids(changed_ids)
+    end
 
     def index_records(listings)
       listings.index_by { |r| r[:discogs_listing_id] }

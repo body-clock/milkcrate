@@ -23,6 +23,8 @@ module CrateStrategies
       [ result[0], sort_by_score(result[1]) ]
     end
 
+    private
+
     def reject_excluded(pool, excluded_ids)
       return pool if excluded_ids.empty?
       pool.reject { |listing| excluded_ids.include?(listing.id) }
@@ -49,8 +51,6 @@ module CrateStrategies
         .sort_by { |_, s| -s }
         .map(&:first)
     end
-
-    private
 
     def discover_themes(pool)
       (style_themes(pool) + genre_themes(pool))

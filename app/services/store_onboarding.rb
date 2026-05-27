@@ -18,6 +18,8 @@ class StoreOnboarding
     Result.new(store:)
   end
 
+  private
+
   def validate!
     raise Error, "Discogs username is required" if discogs_username.blank?
     raise Error, "Store already exists for #{discogs_username}" if Store.with_discogs_username(discogs_username).exists?
@@ -31,8 +33,6 @@ class StoreOnboarding
       discogs_user_id: profile["id"].is_a?(Integer) ? profile["id"] : nil
     )
   end
-
-  private
 
   attr_reader :discogs_username, :waitlist
 
