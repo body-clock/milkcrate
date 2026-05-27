@@ -17,28 +17,16 @@ module StoreSync
 
     def call
       records = normalized_records
-      return empty_result if records.empty?
+      return Result.new(listing_ids_for_enrichment: []) if records.empty?
       perform_sync(records)
     end
 
     private
 
-    def empty_result
-      Result.new(listing_ids_for_enrichment: [])
-    end
-
     def perform_sync(records)
-      enrichment = records_to_enrich(records, existing_records_index(records))
-      upsert_all_records(records); build_result(enrichment)
-    rescue StandardError => e; handle_upsert_error(e)
-    end
-
-    def handle_upsert_error(e)
-      Rails.logger.error("[StoreSync::ListingReconciler] upsert_all failed: #{e.message}")
-      raise
-    end
-
-    def build_result(enrichment)
+      existing_index = existing_records_index(records)
+      enrichment = records_to_enrich(records, existing_index)
+      upsert_all_records(records)
       ids = enrichment_ids(enrichment)
       Result.new(listing_ids_for_enrichment: ids)
     end

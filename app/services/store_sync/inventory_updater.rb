@@ -1,9 +1,4 @@
-# Namespace for store sync components (fetch, normalize, reconcile, status).
 module StoreSync
-  # Handles importing listings from a Discogs inventory fetch and removing
-  # listings that are no longer present. Extracted from FullStoreSyncJob so
-  # the job focuses on orchestration (concurrency limiting, status tracking,
-  # enrichment dispatch) while this object owns the data lifecycle.
   class InventoryUpdater
     UPDATE_FIELDS = %i[
       discogs_release_id artist title label year
@@ -15,67 +10,63 @@ module StoreSync
       @store = store
     end
 
-    # Import or update listings from the fetched Discogs records.
-    # Returns listing IDs that changed and need enrichment.
     def call(listings)
       return [] if listings.empty?
-
-      records = build_record_index(listings)
-      changed_ids = detect_changed_ids(records)
-      perform_upsert(records, changed_ids)
+      records = index_records(listings)
+      persist_listings(records)
     end
 
-    def build_record_index(listings)
+    def persist_listings(records)
+      existing = index_existing(records)
+      changed_ids = detect_changes(records, existing)
+      upsert_records(records)
+      enrichment_ids(changed_ids)
+    end
+
+    def remove_stale(listings)
+      current_ids = listings.map { |r| r[:discogs_listing_id] }
+      current_ids.empty? ? @store.listings.delete_all : @store.listings.where.not(discogs_listing_id: current_ids).delete_all
+    end
+
+    private
+
+    def index_records(listings)
       listings.index_by { |r| r[:discogs_listing_id] }
     end
 
-    def detect_changed_ids(records)
-      existing = existing_index(records)
-      records.keys.select { |id| record_changed?(id, records[id], existing) }
-    end
-
-    def existing_index(records)
+    def index_existing(records)
       @store.listings
         .where(discogs_listing_id: records.keys)
         .index_by(&:discogs_listing_id)
     end
 
-    def record_changed?(id, record, existing)
-      existing_record = existing[id]
-      existing_record.nil? || materially_changed?(existing_record, record)
-    end
-
-    def perform_upsert(records, changed_ids)
-      upsert_records(records)
-      enrichment_ids(changed_ids)
+    def detect_changes(records, existing)
+      records.filter_map do |id, record|
+        existing_record = existing[id]
+        id if existing_record.nil? || materially_changed?(existing_record, record)
+      end
     end
 
     def upsert_records(records)
-      @store.listings.upsert_all(records.values, unique_by: :discogs_listing_id, update_only: UPDATE_FIELDS)
+      @store.listings.upsert_all(
+        records.values,
+        unique_by: :discogs_listing_id,
+        update_only: UPDATE_FIELDS
+      )
     end
 
     def enrichment_ids(changed_ids)
-      @store.listings.where(discogs_listing_id: changed_ids).pluck(:id)
+      @store.listings
+        .where(discogs_listing_id: changed_ids)
+        .pluck(:id)
     end
-
-    # Remove listings that were not returned by the current sync.
-    def remove_stale(listings)
-      current_ids = listings.map { |r| r[:discogs_listing_id] }
-      remove_absent_listings(current_ids)
-    end
-
-    def remove_absent_listings(current_ids)
-      scope = current_ids.empty? ? @store.listings : @store.listings.where.not(discogs_listing_id: current_ids)
-      scope.delete_all
-    end
-
-    private
 
     def materially_changed?(existing, incoming)
-      changed_fields(existing, incoming).any? { |a, b| a != b }
+      pairs = changed_pairs(existing, incoming)
+      pairs.any? { |a, b| a != b }
     end
 
-    def changed_fields(existing, incoming)
+    def changed_pairs(existing, incoming)
       [
         [ existing.discogs_release_id.to_s, incoming[:discogs_release_id].to_s ],
         [ normalized_price(existing.price), normalized_price(incoming[:price]) ],

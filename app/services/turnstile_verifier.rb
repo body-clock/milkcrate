@@ -13,26 +13,30 @@ class TurnstileVerifier
     Rails.application.credentials.dig(:turnstile, :site_key)
   end
 
-  FARADAY_ERRORS = [ Faraday::ConnectionFailed, Faraday::TimeoutError, Faraday::Error ].freeze
-
   def self.verify(token:, remote_ip:)
     return false if token.blank? || secret_key.blank?
-
-    verify_with_connection(token, remote_ip)
-  rescue *FARADAY_ERRORS => e
-    log_and_return("Upstream failure", e)
+    verify_token(token, remote_ip)
+  rescue Faraday::ConnectionFailed, Faraday::TimeoutError, Faraday::Error => e
+    log_faraday_error(e)
   end
 
-  def self.verify_with_connection(token, remote_ip)
+  def self.verify_token(token, remote_ip)
     response = connection.post do |request|
       request.body = { secret: secret_key, response: token, remoteip: remote_ip }
     end
     response.body["success"] == true
   end
 
-  def self.log_and_return(message, error)
-    Rails.logger.warn "[TurnstileVerifier] #{message}: #{error.message}"
+  def self.log_faraday_error(error)
+    prefix = error_class_prefix(error)
+    Rails.logger.warn "[TurnstileVerifier] #{prefix}: #{error.message}"
     false
+  end
+
+  def self.error_class_prefix(error)
+    return "Upstream connection failed" if error.is_a?(Faraday::ConnectionFailed)
+    return "Upstream timeout" if error.is_a?(Faraday::TimeoutError)
+    "Upstream error"
   end
 
   def self.secret_key

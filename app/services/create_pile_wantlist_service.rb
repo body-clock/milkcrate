@@ -1,16 +1,10 @@
-# Adds a shopper's pile items to their Discogs wantlist, scoped to an
-# originating store. Produces a seller-filtered Shop My Wants destination
-# when the store has a validated Discogs profile identity.
-#
-# The operation is bounded (MAX_RELEASES_PER_ACTION) and reports partial
-# outcomes honestly. A result with only residual skips but no successful
-# writes does not produce a handoff URL.
+# Service that adds a shopper's pile items to their Discogs Wantlist via OAuth.
 class CreatePileWantlistService
-  MAX_RELEASES_PER_ACTION = 50
-
   Result = Data.define(:wantlist_url, :added_count, :skipped_count, :error) do
     def success? = error.nil?
   end
+
+  MAX_RELEASES_PER_ACTION = 50
 
   def initialize(shopper:, item_ids:, store:)
     @shopper = shopper
@@ -21,11 +15,12 @@ class CreatePileWantlistService
   def call
     release_ids = validate_and_resolve
     return release_ids if release_ids.is_a?(Result)
-
     handle_result(add_to_wantlist(release_ids))
   rescue Discogs::Errors::ApiError => e
     handle_api_error(e)
   end
+
+  private
 
   def validate_and_resolve
     return error_result("No items in pile.") if @item_ids.blank?
@@ -34,7 +29,7 @@ class CreatePileWantlistService
   end
 
   def check_release_count(release_ids)
-    return error_result("No items could be added - none have release data.") if release_ids.empty?
+    return error_result("No items could be added.") if release_ids.empty?
     return oversized_result(release_ids) if release_ids.size > MAX_RELEASES_PER_ACTION
     release_ids
   end
@@ -50,8 +45,7 @@ class CreatePileWantlistService
 
   def add_to_wantlist(release_ids)
     client = build_client
-    stats = add_with_pacing(release_ids, client)
-    stats
+    add_with_pacing(release_ids, client)
   end
 
   def build_client
@@ -62,33 +56,37 @@ class CreatePileWantlistService
   end
 
   def add_with_pacing(release_ids, client)
-    stats = add_stats(release_ids)
-    release_ids.each { |release_id| add_single(release_id, client, stats) }
+    stats = init_stats(release_ids)
+    release_ids.each_with_index { |id, i| break unless add_one(id, client, stats, release_ids.size - i - 1) }
     { added_count: stats[:added], skipped_count: stats[:skipped] }
   end
 
-  def add_single(release_id, client, stats)
-    attempt_add(release_id, client, stats)
+  def add_one(release_id, client, stats, remaining)
+    paced_add(release_id, client, stats)
   rescue Discogs::Errors::RateLimitError
-    abort_on_rate_limit(stats)
+    rate_limited(stats, remaining)
   rescue Discogs::Errors::ApiError
     stats[:skipped] += 1
   end
 
-  def attempt_add(release_id, client, stats)
+  def paced_add(release_id, client, stats)
     sleep(1.2) if stats[:added] > 0
     client.add_want(username: @shopper.discogs_username, release_id:)
     stats[:added] += 1
   end
 
-  def abort_on_rate_limit(stats)
+  def rate_limited(stats, remaining)
     Rails.logger.warn "[CreatePileWantlistService] Rate limited after #{stats[:added]} adds"
-    raise StopIteration
+    stats[:skipped] += 1 + remaining
+    false
+  end
+
+  def init_stats(release_ids)
+    { added: 0, skipped: @item_ids.size - release_ids.size, failures: 0 }
   end
 
   def handle_result(stats)
     return error_result("Could not add any releases to your Wantlist.") if stats[:added_count].zero?
-
     @shopper.touch_last_used!
     Result.new(
       wantlist_url: seller_wantlist_url,
@@ -102,8 +100,6 @@ class CreatePileWantlistService
     Rails.logger.warn "[CreatePileWantlistService] Discogs API error: #{error.message}"
   end
 
-  private
-
   def resolve_store_release_ids
     @store.listings.where(discogs_listing_id: @item_ids)
       .pluck(:discogs_release_id).compact.map(&:to_i).uniq
@@ -111,7 +107,6 @@ class CreatePileWantlistService
 
   def seller_wantlist_url
     return nil unless @store.discogs_user_id.present?
-
     "https://www.discogs.com/shop/mywants/?seller=#{@store.discogs_user_id}"
   end
 

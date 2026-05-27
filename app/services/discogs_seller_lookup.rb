@@ -24,17 +24,23 @@ class DiscogsSellerLookup
   def call
     return invalid_slug unless plausible_username?
     cached = cache.read(cache_key) and return cached
-    cache_result(lookup_discogs)
+    fetch_and_cache
   rescue DiscogsClient::RateLimitError, DiscogsClient::ApiError, Faraday::Error
     api_error
   end
+
+  def fetch_and_cache
+    result = lookup_discogs
+    cache_result(result)
+    result
+  end
+
+  private
 
   def cache_result(result)
     return if result[:reason] == "api_error"
     cache.write(cache_key, result, expires_in: result[:found] ? FOUND_TTL : NOT_FOUND_TTL)
   end
-
-  private
 
   attr_reader :username, :client, :cache
 
@@ -54,7 +60,7 @@ class DiscogsSellerLookup
       found: true,
       seller_name: profile["name"] || profile["username"],
       avatar_url: profile["avatar_url"],
-      slug: slug,
+      slug:,
       store_status: local_store_status(slug),
       store_storefront_path: (store_path(slug) if Store.with_discogs_username(slug).exists?)
     }

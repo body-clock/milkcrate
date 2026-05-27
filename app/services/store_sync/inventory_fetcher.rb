@@ -11,38 +11,30 @@ class StoreSync::InventoryFetcher
   end
 
   def fetch(sort_order: "desc", max_pages: nil)
-    listings, total_pages = accumulate(sort_order:, max_pages:)
-    Result.new(listings:, pages_fetched: pages_fetched, total_pages:)
+    all_listings = []
+    total_pages = nil
+    each_page(sort_order:, max_pages:) { |data| total_pages = collect_page(all_listings, data) }
+    Result.new(listings: all_listings, pages_fetched: pages_fetched, total_pages: total_pages)
   end
 
   private
 
-  def accumulate(sort_order:, max_pages:)
-    all_listings = []
-    each_page(sort_order:, max_pages:) { |data| collect_page(all_listings, data) }
-    [ all_listings, @total_pages ]
-  end
-
   def collect_page(listings, data)
-    @total_pages = extract_total_pages(data)
     listings.concat(data["listings"] || [])
+    extract_total_pages(data)
   end
 
-  def each_page(sort_order:, max_pages:)
+  def each_page(sort_order:, max_pages:, &block)
     @pages_fetched = 0
-    loop { break unless process_page(sort_order:, max_pages:) }
+    loop { break unless process_page(sort_order:, max_pages:, &block) }
   end
 
   def process_page(sort_order:, max_pages:)
     @pages_fetched += 1
     data = fetch_page(@pages_fetched, sort_order)
     return false if empty_page?(data)
-    yield_page(data, max_pages)
-  end
 
-  def yield_page(data, max_pages)
-    yield data
-    @progress&.increment
+    yield(data).tap { @progress&.increment }
     !last_page?(data, max_pages)
   end
 

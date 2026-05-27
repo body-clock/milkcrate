@@ -6,6 +6,7 @@ class FullStoreSyncJob < ApplicationJob
   def perform(store_id, max_pages: nil)
     sync_store(store_id, max_pages:)
   rescue StandardError => error
+    mark_failed(store_id, error)
     log_failure(store_id, error)
     raise
   end
@@ -14,9 +15,9 @@ class FullStoreSyncJob < ApplicationJob
 
   def sync_store(store_id, max_pages:)
     store = Store.find(store_id)
-    store.update!(sync_status: "syncing", sync_progress_pct: 0)
+    sync_started_at = Time.current.tap { store.update!(sync_status: "syncing", sync_progress_pct: 0) }
     listing_ids = run_sync(store, max_pages:)
-    finalize_sync(store, Time.current)
+    finalize_sync(store, sync_started_at)
     dispatch_followup_jobs(store, listing_ids)
   end
 
@@ -53,6 +54,15 @@ class FullStoreSyncJob < ApplicationJob
 
   def sync_manager(store)
     StoreSync::StatusManager.new(store)
+  end
+
+  def mark_failed(store_id, error)
+    store = Store.find_by(id: store_id)
+    store&.update_columns(
+      sync_status: "failed",
+      last_sync_error: "#{error.class}: #{error.message}",
+      last_sync_error_at: Time.current
+    )
   end
 
   def log_failure(store_id, error)

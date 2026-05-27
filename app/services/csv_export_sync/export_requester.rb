@@ -59,19 +59,16 @@ module CsvExportSync
       export_id
     end
 
-
-
     def wait_for_export(export_id)
-      MAX_POLL_ATTEMPTS.times do |attempt|
-        poll_attempt(export_id, attempt)
-      end
-
-      raise ExportError, "Export timed out after #{MAX_POLL_TIME / 60} minutes"
+      poll_export(export_id) or raise ExportError, "Export timed out after #{MAX_POLL_TIME / 60} minutes"
     end
 
-    def poll_attempt(export_id, attempt)
-      response = fetch_export_status(export_id, attempt)
-      sleep(POLL_INTERVAL) unless export_finished?(response)
+    def poll_export(export_id)
+      MAX_POLL_ATTEMPTS.times do |attempt|
+        response = fetch_export_status(export_id, attempt)
+        return true if export_finished?(response)
+        sleep(POLL_INTERVAL)
+      end and nil
     end
 
     def fetch_export_status(export_id, attempt)

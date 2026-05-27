@@ -7,6 +7,14 @@ class Admin::StoreOnboardingChecks
     @check_applicant = check_applicant
   end
 
+  def call
+    return blank_result if @normalized.blank?
+    return conflicting_store_result if (store = existing_store)
+    return conflicting_applicant_result if (applicant = existing_applicant)
+
+    valid_result
+  end
+
   private
 
   def existing_store
@@ -33,13 +41,5 @@ class Admin::StoreOnboardingChecks
 
   def valid_result
     Result.new(valid: true, error_message: nil, conflicting_record: nil, normalized_username: @normalized)
-  end
-
-  def call
-    return blank_result if @normalized.blank?
-    return conflicting_store_result if (store = existing_store)
-    return conflicting_applicant_result if (applicant = existing_applicant)
-
-    valid_result
   end
 end

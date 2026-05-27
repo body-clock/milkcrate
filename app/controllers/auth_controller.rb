@@ -23,24 +23,37 @@ class AuthController < ApplicationController
 
   def handle_store_owner_callback(oauth_verifier)
     clear_shopper_oauth_session
-    validate_store_owner_session(oauth_verifier)
-    complete_store_owner_auth(map_store_owner_params)
+    return if store_owner_session_expired?(oauth_verifier)
+
+    complete_store_owner_auth(**map_store_owner_params(oauth_verifier))
   end
 
-  def validate_store_owner_session(oauth_verifier)
-    slug = session[:oauth_store_slug]
-    Rails.logger.info("[AuthCallback:store] slug=#{slug}")
+  def store_owner_session_expired?(oauth_verifier)
+    return true if expired_store_session?
+    return true if missing_owner_verifier?(oauth_verifier)
 
-    return redirect_store_owner_error("Session expired. Please try again.") if slug.blank? || session[:oauth_request_token].blank?
-
-    redirect_store_owner_error("Missing authorization code from Discogs.") if oauth_verifier.blank?
+    false
   end
 
-  def map_store_owner_params
+  def expired_store_session?
+    return false unless session[:oauth_store_slug].blank? || session[:oauth_request_token].blank?
+
+    redirect_store_owner_error("Session expired. Please try again.")
+    true
+  end
+
+  def missing_owner_verifier?(oauth_verifier)
+    return false unless oauth_verifier.blank?
+
+    redirect_store_owner_error("Missing authorization code from Discogs.")
+    true
+  end
+
+  def map_store_owner_params(oauth_verifier)
     { slug: session[:oauth_store_slug],
       request_token_token: session[:oauth_request_token],
       request_token_secret: session[:oauth_request_token_secret],
-      oauth_verifier: session[:oauth_verifier] }
+      oauth_verifier: }
   end
 
   def complete_store_owner_auth(slug:, request_token_token:, request_token_secret:, oauth_verifier:)
@@ -58,24 +71,37 @@ class AuthController < ApplicationController
 
   def handle_shopper_callback(oauth_verifier)
     clear_store_owner_oauth_session
-    validate_shopper_session(oauth_verifier)
-    complete_shopper_auth(map_shopper_params)
+    return if shopper_session_expired?(oauth_verifier)
+
+    complete_shopper_auth(**map_shopper_params(oauth_verifier))
   end
 
-  def validate_shopper_session(oauth_verifier)
-    store_slug = session[:shopper_oauth_store_slug]
-    Rails.logger.info("[AuthCallback:shopper] store_slug=#{store_slug}")
+  def shopper_session_expired?(oauth_verifier)
+    return true if expired_shopper_session?
+    return true if missing_shopper_verifier?(oauth_verifier)
 
-    return redirect_shopper_error("Session expired. Please try again.") if store_slug.blank? || session[:shopper_oauth_request_token].blank?
-
-    redirect_shopper_error("Missing authorization code from Discogs.") if oauth_verifier.blank?
+    false
   end
 
-  def map_shopper_params
+  def expired_shopper_session?
+    return false unless session[:shopper_oauth_store_slug].blank? || session[:shopper_oauth_request_token].blank?
+
+    redirect_shopper_error("Session expired. Please try again.")
+    true
+  end
+
+  def missing_shopper_verifier?(oauth_verifier)
+    return false unless oauth_verifier.blank?
+
+    redirect_shopper_error("Missing authorization code from Discogs.")
+    true
+  end
+
+  def map_shopper_params(oauth_verifier)
     { store_slug: session[:shopper_oauth_store_slug],
       request_token: session[:shopper_oauth_request_token],
       request_token_secret: session[:shopper_oauth_request_token_secret],
-      oauth_verifier: session[:oauth_verifier] }
+      oauth_verifier: }
   end
 
   def complete_shopper_auth(store_slug:, request_token:, request_token_secret:, oauth_verifier:)
