@@ -38,7 +38,9 @@ module CrateStrategies
 
     def best_theme(candidates)
       themes = discover_themes(candidates)
-      themes[seed % themes.size] if themes.any?
+      return if themes.empty?
+
+      themes[seed % themes.size]
     end
 
     def sort_by_score(records)

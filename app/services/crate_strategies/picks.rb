@@ -12,6 +12,8 @@ module CrateStrategies
       select_by_diversity(scored, count:)
     end
 
+    private
+
     def score_pool(pool, excluded_ids:)
       pool
         .reject { |listing| excluded_ids.include?(listing.id) }
@@ -19,24 +21,28 @@ module CrateStrategies
     end
 
     def select_by_diversity(scored, count:)
-      shuffle_seed = @today.to_s.sum
-      score_sorter(scored, shuffle_seed)
-        .filter_map { |listing, _| apply_genre_cap(listing) }
+      score_sorter(scored)
+        .filter_map(&genre_cap_filter(count))
         .uniq(&:id)
         .first(count)
     end
 
-    def score_sorter(scored, shuffle_seed)
-      genre_cap = @policy.genre_cap(scored.size)
-      @genre_seen = Hash.new(0)
+    def genre_cap_filter(count)
+      genre_cap = @policy.genre_cap(count)
+      genre_seen = Hash.new(0)
+      ->(entry) { apply_genre_cap(entry.first, genre_cap:, genre_seen:) }
+    end
+
+    def score_sorter(scored)
+      shuffle_seed = @today.to_s.sum
       scored.sort_by { |listing, s| @policy.sort_key(listing, s, shuffle_seed) }
     end
 
-    def apply_genre_cap(listing)
+    def apply_genre_cap(listing, genre_cap:, genre_seen:)
       genre = listing.primary_genre
-      return listing unless genre
-      return if @genre_seen[genre] >= @policy.genre_cap(12)
-      @genre_seen[genre] += 1
+      return if genre_seen[genre] >= genre_cap
+
+      genre_seen[genre] += 1
       listing
     end
   end

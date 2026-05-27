@@ -89,6 +89,26 @@ RSpec.describe StorefrontCuration do
   end
 
   describe "#storefront_groups" do
+    it "includes a viable hidden gems crate in the featured group" do
+      store = create(:store)
+      gems = lp_listings(store, count: 4, genres: [ "Jazz" ], styles: [ "Rare Groove" ])
+      curation = described_class.new(store)
+
+      allow(curation).to receive(:picks_strategy)
+        .and_return(instance_double(CrateStrategies::Picks, select: []))
+      allow(curation).to receive(:new_arrivals_strategy)
+        .and_return(instance_double(CrateStrategies::NewArrivals, select: []))
+      allow(curation).to receive(:thematic_strategy)
+        .and_return(instance_double(CrateStrategies::Thematic, select: nil))
+      allow(curation).to receive(:hidden_gems_strategy)
+        .and_return(instance_double(CrateStrategies::HiddenGems, select: gems))
+
+      featured = curation.storefront_groups.fetch(:featured)
+
+      expect(featured.map(&:slug)).to eq([ "hidden-gems" ])
+      expect(featured.first.listings).to eq(gems)
+    end
+
     it "returns grouped crates without storefront section keys" do
       travel_to(Time.zone.parse("2026-05-05 12:00:00")) do
         store = create(:store)

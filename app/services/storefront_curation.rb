@@ -53,6 +53,7 @@ class StorefrontCuration # rubocop:disable Metrics/ClassLength
     seen = excluded_ids.dup
     crates = add_crate(seen, build_new_arrivals_crate(excluded_ids: seen))
     crates += add_crate(seen, build_thematic_crate(excluded_ids: seen))
+    crates += add_crate(seen, build_hidden_gems_crate(excluded_ids: seen))
     crates
   end
 
@@ -83,7 +84,9 @@ class StorefrontCuration # rubocop:disable Metrics/ClassLength
   def viable_crate(slug:, name:, listings:, size: CuratedCrate::CRATE_SIZE)
     capped = listings.first(size)
     crate = CuratedCrate.new(slug:, name:, listings: capped)
-    crate if crate.viable?
+    return unless crate.viable?
+
+    crate
   end
 
   def build_genre_crates(excluded_ids:)
@@ -102,7 +105,10 @@ class StorefrontCuration # rubocop:disable Metrics/ClassLength
 
   def build_and_track(genre, listings, seen_ids)
     crate = CuratedCrate.new(slug: genre.parameterize, name: genre, listings:)
-    seen_ids.merge(listings.map(&:id)) && crate if crate.viable?
+    return unless crate.viable?
+
+    seen_ids.merge(listings.map(&:id))
+    crate
   end
   def genre_listings(genre, seen_ids)
     strategy = CrateStrategies::Genre.new(genre:, genre_counts:, today: Date.today)
@@ -131,7 +137,9 @@ class StorefrontCuration # rubocop:disable Metrics/ClassLength
 
   def build_hidden_gems_crate(excluded_ids:)
     listings = hidden_gems_strategy.select(eligible_listings, excluded_ids:)
-    viable_crate(slug: "hidden-gems", name: "Hidden Gems", listings:) unless listings.empty?
+    return if listings.empty?
+
+    viable_crate(slug: "hidden-gems", name: "Hidden Gems", listings:)
   end
   # Data sources
   def eligible_listings
