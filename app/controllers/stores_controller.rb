@@ -19,6 +19,8 @@ class StoresController < ApplicationController
     redirect_to_discogs(slug, result)
   end
 
+  private
+
   def redirect_to_discogs(slug, result)
     store_owner_oauth_session(slug, result)
     redirect_to result.authorize_url, allow_other_host: true
@@ -29,8 +31,6 @@ class StoresController < ApplicationController
     session[:oauth_request_token_secret] = result.request_token_secret
     session[:oauth_store_slug] = slug
   end
-
-  private
 
   def render_store(store)
     cached = StorefrontCuration.cached_curation(store,

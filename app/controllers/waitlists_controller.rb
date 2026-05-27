@@ -9,6 +9,8 @@ class WaitlistsController < ApplicationController
     render inertia: "apply", props: apply_props.merge(submitted: false, errors: result.errors)
   end
 
+  private
+
   def redirect_on_success
     redirect_to apply_path, flash: { notice: "You're on the list! We'll be in touch.", submitted: true }
   end
@@ -16,8 +18,6 @@ class WaitlistsController < ApplicationController
   def register_waitlist
     WaitlistRegistration.new(waitlist_params, turnstile_token:, remote_ip: request.remote_ip).call
   end
-
-  private
 
   def turnstile_token
     params[:turnstile_token].presence || params[:"cf-turnstile-response"].presence

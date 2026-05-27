@@ -10,17 +10,19 @@ class ShopperAuthController < ApplicationController
     redirect_to result.authorize_url, allow_other_host: true
   end
 
-  def validate_store_slug
-    slug = params[:store_slug]&.strip&.downcase
-    redirect_to(root_path, alert: "Invalid store") && return unless slug.present?
-    slug
-  end
-
   def disconnect
     store_slug = session[:shopper_oauth_store_slug]
     clear_shopper_oauth_session
     redirect_back fallback_location: store_slug ? store_path(store_slug) : root_path,
                   notice: "Disconnected from Discogs."
+  end
+
+  private
+
+  def validate_store_slug
+    slug = params[:store_slug]&.strip&.downcase
+    redirect_to(root_path, alert: "Invalid store") && return unless slug.present?
+    slug
   end
 
   def authorize_shopper(store_slug)

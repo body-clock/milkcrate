@@ -3,13 +3,14 @@
 # Requires store context so listing resolution is scoped server-side.
 class PileController < ApplicationController
   def add_to_wantlist
-    shopper = find_shopper
-    store = find_store
-    return unless shopper && store
+    shopper = find_shopper or return
+    store = find_store or return
 
     result = create_wantlist(shopper, store)
     render_wantlist_result(result)
   end
+
+  private
 
   def create_wantlist(shopper, store)
     item_ids = Array.wrap(params[:items]).filter_map { |i| i[:discogs_listing_id].to_s.presence }

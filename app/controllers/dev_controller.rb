@@ -16,6 +16,8 @@ class DevController < ApplicationController
     start_dev_session(admin)
   end
 
+  private
+
   def start_dev_session(admin)
     reset_session
     session[:admin_id] = admin.id
@@ -30,8 +32,6 @@ class DevController < ApplicationController
       password_confirmation: "dev-password-123"
     )
   end
-
-  private
 
   def ensure_development
     raise "Not available in production" unless Rails.env.development?

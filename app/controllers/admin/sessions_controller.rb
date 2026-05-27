@@ -15,6 +15,13 @@ class Admin::SessionsController < ApplicationController
     finalize_admin_login(result)
   end
 
+  def destroy
+    reset_session
+    redirect_to admin_login_path, notice: "Signed out."
+  end
+
+  private
+
   def authenticate_admin
     Admin::Authenticator.new.call(
       email: session_params[:email],
@@ -28,13 +35,6 @@ class Admin::SessionsController < ApplicationController
     redirect_to result.admin.totp_enabled? ? admin_totp_path : admin_totp_setup_path,
       notice: totp_prompt(result.admin)
   end
-
-  def destroy
-    reset_session
-    redirect_to admin_login_path, notice: "Signed out."
-  end
-
-  private
 
   def session_params
     params.require(:session).permit(:email, :password)
