@@ -10,9 +10,29 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_24_220452) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_26_000002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "admin_totps", force: :cascade do |t|
+    t.bigint "admin_id", null: false
+    t.datetime "created_at", null: false
+    t.boolean "enabled", default: false, null: false
+    t.datetime "last_used_at"
+    t.string "secret", null: false
+    t.datetime "updated_at", null: false
+    t.index ["admin_id"], name: "index_admin_totps_on_admin_id", unique: true
+  end
+
+  create_table "admins", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "email", null: false
+    t.integer "failed_login_attempts", default: 0, null: false
+    t.datetime "locked_at"
+    t.string "password_digest", null: false
+    t.datetime "updated_at", null: false
+    t.index ["email"], name: "index_admins_on_email", unique: true
+  end
 
   create_table "discogs_shoppers", force: :cascade do |t|
     t.datetime "created_at", null: false
@@ -262,6 +282,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_24_220452) do
     t.index ["discogs_username"], name: "index_waitlists_on_discogs_username", unique: true
   end
 
+  add_foreign_key "admin_totps", "admins"
   add_foreign_key "listings", "stores"
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_claimed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade

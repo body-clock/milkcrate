@@ -33,6 +33,12 @@ gem "bootsnap", require: false
 gem "kamal", require: false
 gem "thruster", require: false
 
+# Admin auth
+gem "rotp"
+gem "rqrcode"
+gem "rack-attack"
+gem "bcrypt"
+
 group :development, :test do
   gem "dotenv-rails"
 

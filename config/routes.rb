@@ -1,10 +1,29 @@
 Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
 
-  mount MissionControl::Jobs::Engine, at: "/jobs"
+  # MissionControl::Jobs is protected by the same admin session + TOTP session keys.
+  # The constrained mount is first so it matches for authenticated admins.
+  # Fallback routes catch unauthenticated requests and redirect to login.
+  constraints ->(req) { req.session[:admin_id].present? && req.session[:totp_verified] } do
+    mount MissionControl::Jobs::Engine, at: "/jobs"
+  end
+  get "/jobs" => redirect("/admin/login")
+  get "/jobs/*path" => redirect("/admin/login")
 
   namespace :api do
     get "discogs/lookup/:username", to: "discogs_lookup#show"
+  end
+
+  namespace :admin do
+    # Authentication
+    get  "login",  to: "sessions#new"
+    post "login",  to: "sessions#create"
+    delete "logout", to: "sessions#destroy"
+
+    get  "totp",        to: "totp#show"
+    post "totp",        to: "totp#create"
+    get  "totp/setup",  to: "totp#setup", as: :totp_setup
+    post "totp/setup",  to: "totp#confirm_setup"
   end
 
   get "/admin", to: "admin/dashboard#show"
@@ -24,6 +43,7 @@ Rails.application.routes.draw do
 
   if Rails.env.development? || Rails.env.test?
     get "/dev/login-as/:store_id", to: "dev#login_as"
+    get "/dev/admin-login", to: "dev#admin_login"
   end
 
   # OAuth flow — must be before the catch-all /:slug route
