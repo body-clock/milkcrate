@@ -58,11 +58,9 @@ class FullStoreSyncJob < ApplicationJob
 
   def mark_failed(store_id, error)
     store = Store.find_by(id: store_id)
-    store&.update_columns(
-      sync_status: "failed",
-      last_sync_error: "#{error.class}: #{error.message}",
-      last_sync_error_at: Time.current
-    )
+    return unless store
+
+    sync_manager(store).mark_failed!(error)
   end
 
   def log_failure(store_id, error)

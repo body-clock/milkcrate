@@ -79,8 +79,10 @@ RSpec.describe FullStoreSyncJob do
       end
 
       it "persists failure details when strategy raises" do
+        error = RuntimeError.new("discogs timeout")
+        error.set_backtrace([ "app/services/sync_strategy.rb:17:in `call'" ])
         allow(mock_strategy).to receive(:call).with(store, hash_including(max_pages: nil))
-          .and_raise(RuntimeError, "discogs timeout")
+          .and_raise(error)
 
         expect {
           described_class.perform_now(store.id)
@@ -89,6 +91,7 @@ RSpec.describe FullStoreSyncJob do
         store.reload
         expect(store.sync_status).to eq("failed")
         expect(store.last_sync_error).to include("RuntimeError: discogs timeout")
+        expect(store.last_sync_error).to include("app/services/sync_strategy.rb:17:in `call'")
         expect(store.last_sync_error_at).to be_present
       end
 
