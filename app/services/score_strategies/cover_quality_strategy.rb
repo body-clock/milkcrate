@@ -17,13 +17,21 @@ class ScoreStrategies::CoverQualityStrategy
   COVER_PENALTY = -1.0
 
   def score(listing)
-    cover = listing.cover_image_url
-    thumb = listing.thumbnail_url
-
-    return 0.0 if cover.nil? && thumb.nil?
-    return COVER_PENALTY if cover.nil? || thumb.nil?
-    return COVER_PENALTY if cover == thumb
+    return 0.0 if no_image?(listing)
+    return COVER_PENALTY if poor_image?(listing)
 
     COVER_BOOST
+  end
+
+  private
+
+  def no_image?(listing)
+    listing.cover_image_url.nil? && listing.thumbnail_url.nil?
+  end
+
+  def poor_image?(listing)
+    listing.cover_image_url.nil? ||
+      listing.thumbnail_url.nil? ||
+      listing.cover_image_url == listing.thumbnail_url
   end
 end

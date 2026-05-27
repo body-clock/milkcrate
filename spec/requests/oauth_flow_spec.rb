@@ -79,7 +79,7 @@ RSpec.describe "Discogs OAuth flow", type: :request do
     it "rejects requests without an authenticity token" do
       post "/#{slug}/authorize"
 
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
     end
 
     context "when inventory >= 500" do
@@ -106,6 +106,12 @@ RSpec.describe "Discogs OAuth flow", type: :request do
 
         expect(response).to redirect_to(store_path(slug))
         expect(flash[:alert]).to match(/at least 500/)
+      end
+
+      it "checks seller inventory only once" do
+        post_authorize
+
+        expect(discogs_client).to have_received(:seller_inventory).once
       end
     end
 
@@ -268,6 +274,17 @@ RSpec.describe "Discogs OAuth flow", type: :request do
         get "/auth/discogs/callback", params: { oauth_verifier: "v1" }
 
         expect(flash[:alert]).to match(/identity mismatch/)
+      end
+
+      it "treats identity mismatch as an expected rejection" do
+        allow(Rails.logger).to receive(:error)
+
+        get "/auth/discogs/callback", params: { oauth_verifier: "v1" }
+
+        expect(flash[:alert]).to start_with("Discogs identity mismatch.")
+        expect(flash[:alert]).not_to include("unexpected error")
+        expect(Rails.logger).not_to have_received(:error)
+          .with(include("[AuthCallbackService] Unexpected error"))
       end
     end
 

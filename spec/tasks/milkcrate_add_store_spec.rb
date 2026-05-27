@@ -1,14 +1,28 @@
 require "rails_helper"
 require "rake"
 
-RSpec.describe "milkcrate:add_store" do
+RSpec.describe "stores:add" do
   before(:all) do
     Rake.application = Rake::Application.new
     Rails.application.load_tasks
   end
 
   after do
-    Rake::Task["milkcrate:add_store"].reenable
+    Rake::Task["stores:add"].reenable
+  end
+
+  around do |example|
+    if example.metadata[:silence_stdout] == false
+      example.run
+    else
+      original_stdout = $stdout
+      $stdout = StringIO.new
+      begin
+        example.run
+      ensure
+        $stdout = original_stdout
+      end
+    end
   end
 
   def stub_discogs_profile(username, name:)
@@ -21,7 +35,7 @@ RSpec.describe "milkcrate:add_store" do
     stub_discogs_profile("teststore", name: "Test Store")
 
     expect {
-      Rake::Task["milkcrate:add_store"].invoke("teststore")
+      Rake::Task["stores:add"].invoke("teststore")
     }.to change(Store, :count).by(1)
 
     store = Store.find_by(discogs_username: "teststore")
@@ -32,24 +46,22 @@ RSpec.describe "milkcrate:add_store" do
   it "enqueues FullStoreSyncJob for the new store" do
     stub_discogs_profile("teststore2", name: "Test Store 2")
 
-    Rake::Task["milkcrate:add_store"].reenable
     expect {
-      Rake::Task["milkcrate:add_store"].invoke("teststore2")
+      Rake::Task["stores:add"].invoke("teststore2")
     }.to have_enqueued_job(FullStoreSyncJob)
   end
 
-  it "prints the store URL" do
+  it "prints the store URL", silence_stdout: false do
     stub_discogs_profile("teststore3", name: "Test Store 3")
 
-    Rake::Task["milkcrate:add_store"].reenable
     expect {
-      Rake::Task["milkcrate:add_store"].invoke("teststore3")
+      Rake::Task["stores:add"].invoke("teststore3")
     }.to output(%r{/teststore3}).to_stdout
   end
 
   it "raises when no username given" do
     expect {
-      Rake::Task["milkcrate:add_store"].invoke
+      Rake::Task["stores:add"].invoke
     }.to raise_error(RuntimeError, /Usage/)
   end
 
@@ -57,9 +69,8 @@ RSpec.describe "milkcrate:add_store" do
     create(:store, discogs_username: "existing")
     stub_discogs_profile("existing", name: "Existing Store")
 
-    Rake::Task["milkcrate:add_store"].reenable
     expect {
-      Rake::Task["milkcrate:add_store"].invoke("existing")
+      Rake::Task["stores:add"].invoke("existing")
     }.to raise_error(StoreOnboarding::Error, /already exists/)
   end
 end

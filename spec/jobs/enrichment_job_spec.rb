@@ -21,5 +21,18 @@ RSpec.describe EnrichmentJob do
 
       described_class.perform_now(store.id)
     end
+
+    it "logs the loaded store username when enrichment fails" do
+      allow(Rails.logger).to receive(:error)
+      allow(service).to receive(:enrich_store).with(store, listing_ids: nil)
+        .and_raise(RuntimeError, "Discogs unavailable")
+
+      expect {
+        described_class.perform_now(store.id)
+      }.to raise_error(RuntimeError, "Discogs unavailable")
+
+      expect(Rails.logger).to have_received(:error)
+        .with(include("store=#{store.discogs_username}"))
+    end
   end
 end

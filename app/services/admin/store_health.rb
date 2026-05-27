@@ -8,19 +8,7 @@ module Admin
     end
 
     def props
-      if failed?
-        health_props("failed", "Needs attention", "danger", failure_reasons)
-      elsif processing?
-        health_props("processing", "Processing", "working", processing_reasons)
-      elsif missing_readiness?
-        health_props("processing", "Processing", "working", readiness_reasons)
-      elsif stale?
-        health_props("stale", "Stale", "warning", stale_reasons)
-      elsif partial?
-        health_props("partial", "Partial coverage", "warning", [ "Inventory coverage is partial" ])
-      else
-        health_props("healthy", "Healthy", "good", [ "Sync and enrichment are current" ])
-      end
+      failed_props || processing_props || stale_props || partial_props || healthy_props
     end
 
     private
@@ -84,6 +72,30 @@ module Admin
 
     def stale_time?(time)
       time.present? && time < STALE_AFTER.ago
+    end
+
+    def failed_props
+      health_props("failed", "Needs attention", "danger", failure_reasons) if failed?
+    end
+
+    def processing_props
+      if processing?
+        health_props("processing", "Processing", "working", processing_reasons)
+      elsif missing_readiness?
+        health_props("processing", "Processing", "working", readiness_reasons)
+      end
+    end
+
+    def stale_props
+      health_props("stale", "Stale", "warning", stale_reasons) if stale?
+    end
+
+    def partial_props
+      health_props("partial", "Partial coverage", "warning", [ "Inventory coverage is partial" ]) if partial?
+    end
+
+    def healthy_props
+      health_props("healthy", "Healthy", "good", [ "Sync and enrichment are current" ])
     end
 
     def partial?

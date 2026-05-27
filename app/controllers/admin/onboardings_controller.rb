@@ -3,24 +3,28 @@ class Admin::OnboardingsController < Admin::BaseController
   def create
     waitlist = Waitlist.find(params[:waitlist_id])
 
-    checks = Admin::StoreOnboardingChecks.new(waitlist.discogs_username, check_applicant: false).call
-    if checks.valid
-      perform_onboarding(discogs_username: waitlist.discogs_username, waitlist:)
-    else
-      redirect_to admin_path, alert: checks.error_message
-    end
+    checks = build_checks(waitlist.discogs_username, check_applicant: false)
+    perform_or_redirect(checks, discogs_username: waitlist.discogs_username, waitlist:)
   end
 
   def direct
-    checks = Admin::StoreOnboardingChecks.new(params[:discogs_username]).call
+    checks = build_checks(params[:discogs_username])
+    perform_or_redirect(checks, discogs_username: checks.normalized_username, waitlist: nil)
+  end
+
+  private
+
+  def build_checks(username, check_applicant: true)
+    Admin::StoreOnboardingChecks.new(username, check_applicant:).call
+  end
+
+  def perform_or_redirect(checks, discogs_username:, waitlist:)
     if checks.valid
-      perform_onboarding(discogs_username: checks.normalized_username, waitlist: nil)
+      perform_onboarding(discogs_username:, waitlist:)
     else
       redirect_to admin_path, alert: checks.error_message
     end
   end
-
-  private
 
   def perform_onboarding(discogs_username:, waitlist:)
     result = StoreOnboarding.call(discogs_username:, waitlist:)

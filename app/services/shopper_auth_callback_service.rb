@@ -13,21 +13,7 @@ class ShopperAuthCallbackService
   end
 
   def call
-    oauth_client = DiscogsOauthClient.new
-
-    token_result = oauth_client.exchange_access_token(@request_token, @oauth_verifier)
-
-    identity = oauth_client.verify_identity(token_result.access_token, token_result.access_token_secret)
-
-    shopper = DiscogsShopper.find_or_initialize_by(discogs_username: identity.username)
-    shopper.update!(
-      oauth_token: token_result.access_token,
-      oauth_token_secret: token_result.access_token_secret,
-      store_slug: @store_slug,
-      last_used_at: Time.current
-    )
-
-    Result.new(shopper:, error: nil)
+    authorize_shopper
   rescue DiscogsOauthClient::OauthError => e
     error_result("Authorization failed: #{e.message}")
   rescue ActiveRecord::RecordInvalid => e
@@ -35,6 +21,28 @@ class ShopperAuthCallbackService
   end
 
   private
+
+  def authorize_shopper
+    client = DiscogsOauthClient.new
+    token_result = client.exchange_access_token(@request_token, @oauth_verifier)
+    identity = verify_identity(client, token_result)
+    Result.new(shopper: save_shopper(identity, token_result), error: nil)
+  end
+
+  def verify_identity(client, token_result)
+    client.verify_identity(token_result.access_token, token_result.access_token_secret)
+  end
+
+  def save_shopper(identity, token_result)
+    shopper = DiscogsShopper.find_or_initialize_by(discogs_username: identity.username)
+    shopper.update!(
+      oauth_token: token_result.access_token,
+      oauth_token_secret: token_result.access_token_secret,
+      store_slug: @store_slug,
+      last_used_at: Time.current
+    )
+    shopper
+  end
 
   def build_request_token(token, secret)
     OAuth::RequestToken.new(DiscogsOauthConsumer.build, token, secret)

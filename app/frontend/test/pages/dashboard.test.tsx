@@ -1,11 +1,13 @@
-import React from "react"
-import { describe, expect, it, vi } from "vitest"
-import { render, screen } from "@testing-library/react"
-import Dashboard from "../../pages/dashboard"
+import React from "react";
+import { describe, expect, it, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
+import Dashboard from "../../pages/dashboard";
 
 vi.mock("@inertiajs/react", () => ({
   Link: ({ children, href, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
-    <a href={href} {...props}>{children}</a>
+    <a href={href} {...props}>
+      {children}
+    </a>
   ),
   router: {
     post: vi.fn(),
@@ -14,7 +16,7 @@ vi.mock("@inertiajs/react", () => ({
   usePage: () => ({
     props: {},
   }),
-}))
+}));
 
 describe("owner dashboard", () => {
   it("renders the sync error as concise prose", () => {
@@ -30,18 +32,21 @@ describe("owner dashboard", () => {
           last_synced_at: "2026-05-16T10:00:00Z",
           last_sync_error_summary: "Discogs timeout",
           last_sync_error_at: "2026-05-16T11:00:00Z",
-          owner_email: null,
           oauth_authorized_at: "2026-05-16T09:00:00Z",
         }}
-      />
-    )
+      />,
+    );
 
-    expect(screen.getByRole("heading", { name: "Last sync error" })).toBeInTheDocument()
-    expect(screen.getByText("Discogs timeout")).toBeInTheDocument()
-    expect(document.querySelector("pre")).toBeNull()
-    expect(screen.getByText("Discogs timeout").closest("[role='alert']")).toHaveClass("text-mc-feedback-danger")
-    expect(screen.getByText("Sync failed").parentElement?.innerHTML).toContain("mc-feedback-danger")
-  })
+    expect(screen.getByRole("heading", { name: "Last sync error" })).toBeInTheDocument();
+    expect(screen.getByText("Discogs timeout")).toBeInTheDocument();
+    expect(document.querySelector("pre")).toBeNull();
+    expect(screen.getByText("Discogs timeout").closest("[role='alert']")).toHaveClass(
+      "text-mc-feedback-danger",
+    );
+    expect(screen.getByText("Sync failed").parentElement?.innerHTML).toContain(
+      "mc-feedback-danger",
+    );
+  });
 
   it("uses the shared shell landmark and skip-navigation contract", () => {
     render(
@@ -56,13 +61,12 @@ describe("owner dashboard", () => {
           last_synced_at: null,
           last_sync_error_summary: null,
           last_sync_error_at: null,
-          owner_email: null,
           oauth_authorized_at: null,
         }}
       />,
-    )
+    );
 
-    expect(screen.getAllByRole("main")).toHaveLength(1)
-    expect(screen.getByText("Skip to content")).toHaveAttribute("href", "#main-content")
-  })
-})
+    expect(screen.getAllByRole("main")).toHaveLength(1);
+    expect(screen.getByText("Skip to content")).toHaveAttribute("href", "#main-content");
+  });
+});

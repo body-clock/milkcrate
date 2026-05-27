@@ -25,17 +25,18 @@ class Admin::TotpController < ApplicationController
   def confirm_setup
     code = extract_code
     return render_totp_error(:setup, "Enter the code from your authenticator app") if code.blank?
-
-    unless current_admin.verify_totp!(code)
-      return render inertia: "admin/totp_setup", props: totp_setup_props.merge(
-        errors: { code: [ "Invalid code. Make sure your authenticator app is set up correctly." ] }
-      )
-    end
+    return render_invalid_totp_setup unless current_admin.verify_totp!(code)
 
     complete_authentication!("Two-factor authentication is now active.")
   end
 
   private
+
+  def render_invalid_totp_setup
+    render inertia: "admin/totp_setup", props: totp_setup_props.merge(
+      errors: { code: [ "Invalid code. Make sure your authenticator app is set up correctly." ] }
+    )
+  end
 
   def current_admin
     @current_admin ||= AdminUser.find_by(id: session[:admin_id])

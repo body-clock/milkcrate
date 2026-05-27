@@ -74,13 +74,8 @@ module StoreSync
     def vinyl?(raw)
       format_str = raw.dig("release", "format").to_s
       return false if NON_VINYL.any? { |format| format_str.include?(format) }
-
       formats = raw.dig("release", "formats") || []
-      return true if formats.empty?
-
-      formats.any? do |format|
-        VINYL_FORMATS.any? { |vinyl_format| format["name"].to_s.include?(vinyl_format) }
-      end
+      formats.empty? || formats.any? { |f| VINYL_FORMATS.any? { |vf| f["name"].to_s.include?(vf) } }
     end
 
     def extract_label(release_info)

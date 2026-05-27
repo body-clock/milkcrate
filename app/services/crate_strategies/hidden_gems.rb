@@ -14,13 +14,7 @@ module CrateStrategies
     end
 
     def select(pool, excluded_ids:)
-      obscure = pool
-        .reject { |listing| excluded_ids.include?(listing.id) }
-        .select { |listing|
-          whr = WantHaveRatio.new(listing.want_count.to_i, listing.have_count.to_i)
-          next false unless listing.cover_image_url.present? || listing.thumbnail_url.present?
-          whr.want >= MIN_WANTS && whr.total <= MAX_ENGAGEMENT && whr.want > whr.have
-        }
+      obscure = find_obscure(pool, excluded_ids:)
       return [] if obscure.size < MIN_RECORDS
 
       score_and_sort(obscure, excluded_ids: Set.new, scorer: @scorer) { |candidates| candidates }
@@ -29,16 +23,29 @@ module CrateStrategies
 
     private
 
+    def find_obscure(pool, excluded_ids:)
+      pool
+        .reject { |listing| excluded_ids.include?(listing.id) }
+        .select { |listing| obscure_listing?(listing) }
+    end
+
+    def obscure_listing?(listing)
+      whr = WantHaveRatio.new(listing.want_count.to_i, listing.have_count.to_i)
+      return false unless listing.cover_image_url.present? || listing.thumbnail_url.present?
+      whr.want >= MIN_WANTS && whr.total <= MAX_ENGAGEMENT && whr.want > whr.have
+    end
+
     def apply_genre_cap(ranked)
       genre_seen = Hash.new(0)
-      ranked.select { |listing|
-        genre = listing.primary_genre
-        next false unless genre
-        count = genre_seen[genre]
-        next false if count >= PER_GENRE_CAP
-        genre_seen[genre] = count + 1
-        true
-      }
+      ranked.select { |listing| under_genre_cap?(listing, genre_seen) }
+    end
+
+    def under_genre_cap?(listing, genre_seen)
+      genre = listing.primary_genre
+      return false unless genre && genre_seen[genre] < PER_GENRE_CAP
+
+      genre_seen[genre] += 1
+      true
     end
   end
 end

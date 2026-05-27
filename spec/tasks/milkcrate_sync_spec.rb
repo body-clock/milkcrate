@@ -11,18 +11,20 @@ RSpec.describe "milkcrate sync tasks" do
   end
 
   before do
-    allow(StoreSyncService).to receive(:new).and_return(service)
+    require "ruby-progressbar"
+    allow(ProgressBar).to receive(:create).and_return(double("progress", finish: nil))
+    allow(StoreSyncService).to receive(:new).with(store, progress: anything).and_return(service)
     allow(service).to receive(:full_sync).and_return(4)
   end
 
   after do
-    Rake::Task["milkcrate:sync"]&.reenable
+    Rake::Task["stores:sync"]&.reenable
   end
 
-  it "uses full_sync for milkcrate:sync" do
+  it "uses full_sync for stores:sync" do
     expect(service).to receive(:full_sync).and_return(4)
 
-    expect { Rake::Task["milkcrate:sync"].invoke }
+    expect { Rake::Task["stores:sync"].invoke(store.discogs_username) }
       .to output(/Synced 4 listings\./).to_stdout
   end
 end

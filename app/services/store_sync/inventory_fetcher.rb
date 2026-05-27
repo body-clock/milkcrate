@@ -13,31 +13,29 @@ class StoreSync::InventoryFetcher
   def fetch(sort_order: "desc", max_pages: nil)
     all_listings = []
     total_pages = nil
-
-    each_page(sort_order:, max_pages:) do |data, page|
-      total_pages = extract_total_pages(data)
-      all_listings.concat(data["listings"] || [])
-    end
-
+    each_page(sort_order:, max_pages:) { |data| total_pages = collect_page(all_listings, data) }
     Result.new(listings: all_listings, pages_fetched: pages_fetched, total_pages: total_pages)
   end
 
   private
 
-  def each_page(sort_order:, max_pages:)
+  def collect_page(listings, data)
+    listings.concat(data["listings"] || [])
+    extract_total_pages(data)
+  end
+
+  def each_page(sort_order:, max_pages:, &block)
     @pages_fetched = 0
+    loop { break unless process_page(sort_order:, max_pages:, &block) }
+  end
 
-    loop do
-      @pages_fetched += 1
-      data = fetch_page(@pages_fetched, sort_order)
+  def process_page(sort_order:, max_pages:)
+    @pages_fetched += 1
+    data = fetch_page(@pages_fetched, sort_order)
+    return false if empty_page?(data)
 
-      break if empty_page?(data)
-
-      yield data, @pages_fetched
-      @progress&.increment
-
-      break if last_page?(data, max_pages)
-    end
+    yield(data).tap { @progress&.increment }
+    !last_page?(data, max_pages)
   end
 
   def fetch_page(page, sort_order)

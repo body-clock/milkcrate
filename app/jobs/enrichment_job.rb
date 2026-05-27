@@ -5,17 +5,37 @@ class EnrichmentJob < ApplicationJob
 
   def perform(store_id, listing_ids: nil)
     store = Store.find(store_id)
-    store.update!(enrichment_progress_pct: 0)
-
-    progress = StoreEnrichment::ProgressTracker.new(store)
-    service = EnrichmentService.new(progress: progress)
-    service.enrich_store(store, listing_ids:)
-
-    store.update_columns(enrichment_progress_pct: nil)
+    run_with_progress(store, listing_ids:)
   rescue StandardError => error
-    Rails.logger.error(
-      "[EnrichmentJob] store=#{store&.discogs_username || store_id} job_id=#{job_id} failed\n#{error.full_message(highlight: false, order: :top)}"
-    )
+    log_failure(store || store_id, error)
     raise
+  end
+
+  private
+
+  def setup_progress(store)
+    store.update!(enrichment_progress_pct: 0)
+  end
+
+  def run_enrichment(store, listing_ids:)
+    progress = StoreEnrichment::ProgressTracker.new(store)
+    EnrichmentService.new(progress: progress).enrich_store(store, listing_ids:)
+  end
+
+  def clear_progress(store)
+    store.update_columns(enrichment_progress_pct: nil)
+  end
+
+  def run_with_progress(store, listing_ids:)
+    setup_progress(store)
+    run_enrichment(store, listing_ids:)
+    clear_progress(store)
+  end
+
+  def log_failure(store_or_id, error)
+    name = store_or_id.respond_to?(:discogs_username) ? store_or_id.discogs_username : store_or_id
+    Rails.logger.error(
+      "[EnrichmentJob] store=#{name} job_id=#{job_id} failed\n#{error.full_message(highlight: false, order: :top)}"
+    )
   end
 end

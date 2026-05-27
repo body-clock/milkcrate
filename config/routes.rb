@@ -39,7 +39,6 @@ Rails.application.routes.draw do
   # Store owner dashboard
   get "/dashboard", to: "dashboard#index", as: :dashboard
   post "/dashboard/resync", to: "dashboard#resync"
-  post "/dashboard/signup", to: "dashboard#signup"
 
   if Rails.env.development? || Rails.env.test?
     get "/dev/login-as/:store_id", to: "dev#login_as"

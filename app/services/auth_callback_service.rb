@@ -13,34 +13,57 @@ class AuthCallbackService
   end
 
   def call
-    oauth_client = DiscogsOauthClient.new
-
-    token_result = oauth_client.exchange_access_token(@request_token, @oauth_verifier)
-
-    identity = oauth_client.verify_identity(token_result.access_token, token_result.access_token_secret)
-    return error_result("Discogs identity mismatch. The Discogs account you authorized (#{identity.username}) does not match the store URL (#{@slug}).") unless identity.username.downcase == @slug.downcase
-
-    store = nil
-    ActiveRecord::Base.transaction do
-      store_owner = find_or_create_owner!(@slug, token_result)
-      store = find_or_create_store!(@slug, store_owner)
-      raise ActiveRecord::Rollback if store.nil?
-
-      store.update!(sync_source: :csv_export)
-    end
-
-    return error_result("Could not create store for #{@slug}.") unless store
-    FullStoreSyncJob.perform_later(store.id)
-
-    Result.new(store:, error: nil)
-  rescue DiscogsOauthClient::OauthError => e
-    error_result("Authorization failed: #{e.message}")
+    perform_authorization
+  rescue CallbackError, DiscogsOauthClient::OauthError => error
+    authorization_error(error)
   rescue StandardError => e
-    Rails.logger.error("[AuthCallbackService] Unexpected error: #{e.class}: #{e.message}")
-    error_result("An unexpected error occurred: #{e.message}")
+    unexpected_error(e)
   end
 
   private
+
+  def authorization_error(error)
+    return error_result(error.message) if error.is_a?(CallbackError)
+
+    oauth_error(error)
+  end
+
+  def perform_authorization
+    oauth_client = DiscogsOauthClient.new
+    token_result = oauth_client.exchange_access_token(@request_token, @oauth_verifier)
+    verify_identity!(oauth_client, token_result)
+
+    finalize_authorization(token_result)
+  end
+
+  def finalize_authorization(token_result)
+    store = create_store_in_transaction(token_result)
+    return error_result("Could not create store for #{@slug}.") unless store
+
+    FullStoreSyncJob.perform_later(store.id)
+    Result.new(store:, error: nil)
+  end
+
+  def verify_identity!(oauth_client, token_result)
+    identity = oauth_client.verify_identity(token_result.access_token, token_result.access_token_secret)
+    return if identity.username.downcase == @slug.downcase
+
+    raise CallbackError, "Discogs identity mismatch. The Discogs account you authorized (#{identity.username}) does not match the store URL (#{@slug})."
+  end
+
+  def create_store_in_transaction(token_result)
+    ActiveRecord::Base.transaction do
+      store_owner = find_or_create_owner!(@slug, token_result)
+      create_and_init_store!(@slug, store_owner)
+    end
+  end
+
+  def create_and_init_store!(slug, store_owner)
+    store = find_or_create_store!(slug, store_owner)
+    raise ActiveRecord::Rollback if store.nil?
+    store.update!(sync_source: :csv_export)
+    store
+  end
 
   def find_or_create_owner!(slug, token_result)
     owner = StoreOwner.find_or_initialize_by(discogs_username: slug)
@@ -55,26 +78,39 @@ class AuthCallbackService
   def find_or_create_store!(slug, store_owner)
     store = Store.with_discogs_username(slug).first
     return store if store&.store_owner == store_owner
+    return store.tap { |s| s.update!(store_owner:) } if store
 
-    if store
-      store.update!(store_owner:)
-      store
-    else
-      create_store(slug, store_owner)
-    end
+    create_store(slug, store_owner)
   end
 
   def create_store(slug, store_owner)
     profile = DiscogsClient.new.seller_profile(slug)
-    name = profile["name"].presence || slug
-    discogs_id = profile["id"] if profile["id"].is_a?(Integer)
-    Store.create!(discogs_username: slug, name:, store_owner:, discogs_user_id: discogs_id)
+    Store.create!(**build_create_attrs(profile, slug, store_owner))
   rescue DiscogsClient::ApiError
     nil
   end
 
+  def build_create_attrs(profile, slug, store_owner)
+    discogs_id = profile["id"] if profile["id"].is_a?(Integer)
+    {
+      discogs_username: slug,
+      name: profile["name"].presence || slug,
+      store_owner:,
+      discogs_user_id: discogs_id
+    }
+  end
+
   def build_request_token(token, secret)
     OAuth::RequestToken.new(DiscogsOauthConsumer.build, token, secret)
+  end
+
+  def oauth_error(error)
+    error_result("Authorization failed: #{error.message}")
+  end
+
+  def unexpected_error(error)
+    Rails.logger.error("[AuthCallbackService] Unexpected error: #{error.class}: #{error.message}")
+    error_result("An unexpected error occurred: #{error.message}")
   end
 
   def error_result(message)

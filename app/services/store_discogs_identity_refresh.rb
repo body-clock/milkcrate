@@ -20,20 +20,23 @@ class StoreDiscogsIdentityRefresh
   end
 
   def call
-    profile = client.seller_profile(@store.discogs_username)
-    discogs_id = profile["id"]
-
-    if discogs_id.nil? || !discogs_id.is_a?(Integer)
-      return Result.new(store: @store, error: "Profile response contained no usable numeric ID")
-    end
-
-    @store.update!(discogs_user_id: discogs_id)
-    Result.new(store: @store, error: nil)
+    persist_discogs_id(client.seller_profile(@store.discogs_username)["id"])
   rescue Discogs::Errors::ApiError, DiscogsClient::ApiError => e
     Result.new(store: @store, error: "Discogs profile lookup failed: #{e.message}")
   end
 
   private
+
+  def persist_discogs_id(discogs_id)
+    return missing_id_result unless discogs_id.is_a?(Integer)
+
+    @store.update!(discogs_user_id: discogs_id)
+    Result.new(store: @store, error: nil)
+  end
+
+  def missing_id_result
+    Result.new(store: @store, error: "Profile response contained no usable numeric ID")
+  end
 
   def client
     @client ||= DiscogsClient.new
