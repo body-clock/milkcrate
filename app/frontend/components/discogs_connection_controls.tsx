@@ -7,6 +7,7 @@ interface FormProps {
 
 interface ConnectFormProps extends FormProps {
   storeSlug: string;
+  crateSlug?: string;
 }
 
 const defaultConnectButtonClassName = actionClassName({ size: "lg" });
@@ -22,6 +23,7 @@ function csrfToken() {
 
 export function DiscogsConnectForm({
   storeSlug,
+  crateSlug,
   className,
   buttonClassName = defaultConnectButtonClassName,
 }: ConnectFormProps) {
@@ -29,6 +31,7 @@ export function DiscogsConnectForm({
     <form method="POST" action="/auth/discogs/shopper/authorize" className={className}>
       <input type="hidden" name="authenticity_token" value={csrfToken()} />
       <input type="hidden" name="store_slug" value={storeSlug} />
+      {crateSlug && <input type="hidden" name="crate_slug" value={crateSlug} />}
       <button type="submit" className={buttonClassName}>
         Connect with Discogs
       </button>

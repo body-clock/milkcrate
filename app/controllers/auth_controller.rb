@@ -1,5 +1,5 @@
 # Handles Discogs OAuth authentication flow (store owner and shopper).
-class AuthController < ApplicationController
+class AuthController < ApplicationController # rubocop:disable Metrics/ClassLength
   def callback
     oauth_verifier = params[:oauth_verifier]
     if session[:oauth_request_token].present? && session[:shopper_oauth_request_token].present?
@@ -9,7 +9,6 @@ class AuthController < ApplicationController
   end
 
   private
-
 
   def route_oauth_callback(oauth_verifier)
     return handle_store_owner_callback(oauth_verifier) if session[:oauth_request_token].present?
@@ -40,8 +39,7 @@ class AuthController < ApplicationController
   end
 
   def missing_owner_verifier?(oauth_verifier)
-    return false unless oauth_verifier.blank?
-
+    return false if oauth_verifier.present?
     redirect_store_owner_error("Missing authorization code from Discogs.")
     true
   end
@@ -88,8 +86,7 @@ class AuthController < ApplicationController
   end
 
   def missing_shopper_verifier?(oauth_verifier)
-    return false unless oauth_verifier.blank?
-
+    return false if oauth_verifier.present?
     redirect_shopper_error("Missing authorization code from Discogs.")
     true
   end
@@ -114,9 +111,13 @@ class AuthController < ApplicationController
 
   def redirect_to_shopper_return(result, store_slug)
     session[:shopper_id] = result.shopper.id
-    path = session.delete(:shopper_open_pile) ? store_path(store_slug, open_pile: true) : store_path(store_slug)
+    path = after_auth_path(store_slug)
     clear_shopper_oauth_session
     redirect_to path, notice: "Connected to Discogs as @#{result.shopper.discogs_username}!"
+  end
+
+  def after_auth_path(store_slug)
+    store_path(store_slug, open_pile: true, crate: session[:shopper_crate_slug].presence)
   end
 
   def redirect_store_owner_error(message)
@@ -142,5 +143,6 @@ class AuthController < ApplicationController
     session.delete(:shopper_oauth_request_token_secret)
     session.delete(:shopper_oauth_store_slug)
     session.delete(:shopper_open_pile)
+    session.delete(:shopper_crate_slug)
   end
 end

@@ -3,7 +3,7 @@
 class ShopperAuthController < ApplicationController
   SHOPPER_OAUTH_SESSION_KEYS = %i[
     shopper_id shopper_oauth_request_token shopper_oauth_request_token_secret
-    shopper_oauth_store_slug shopper_open_pile
+    shopper_oauth_store_slug shopper_open_pile shopper_crate_slug
   ].freeze
 
   def authorize
@@ -39,6 +39,7 @@ class ShopperAuthController < ApplicationController
     session[:shopper_oauth_request_token] = result.request_token
     session[:shopper_oauth_request_token_secret] = result.request_token_secret
     session[:shopper_open_pile] = true
+    session[:shopper_crate_slug] = params[:crate_slug].presence
   end
 
   def clear_shopper_oauth_session
