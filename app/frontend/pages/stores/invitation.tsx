@@ -1,20 +1,14 @@
-import { useState, useEffect, useMemo } from "react"
-import { Link } from "@inertiajs/react"
-import { motion } from "framer-motion"
-import MarketingLayout from "@/layouts/marketing_layout"
-import BrandMark from "@/components/brand_mark"
-import Button from "@/components/ui/button"
-import FeedbackMessage from "@/components/ui/feedback_message"
-import { actionClassName } from "@/components/ui/action"
-import { springTactile } from "@/lib/motion_tokens"
-import type { InvitationProps } from "@/types/inertia"
-
-interface LookupResponse {
-  found: boolean
-  seller_name?: string
-  avatar_url?: string
-  reason?: string
-}
+import { useEffect, useMemo } from "react";
+import { Link } from "@inertiajs/react";
+import { motion } from "framer-motion";
+import MarketingLayout from "@/layouts/marketing_layout";
+import BrandMark from "@/components/brand_mark";
+import Button from "@/components/ui/button";
+import FeedbackMessage from "@/components/ui/feedback_message";
+import { actionClassName } from "@/components/ui/action";
+import { springTactile } from "@/lib/motion_tokens";
+import { useDiscogsLookup } from "@/hooks/use_discogs_lookup";
+import type { InvitationProps } from "@/types/inertia";
 
 export default function Invitation({ waitlist_present, slug, oauth_available }: InvitationProps) {
   // Waitlist acknowledgment — no probe, static page
@@ -44,8 +38,8 @@ export default function Invitation({ waitlist_present, slug, oauth_available }: 
             transition={{ delay: 0.2, duration: 0.3 }}
             className="text-sm text-mc-text-dim leading-relaxed max-w-sm"
           >
-            We'll notify the applicant when their storefront is ready. In the
-            meantime, feel free to explore other storefronts on Milkcrate.
+            We'll notify the applicant when their storefront is ready. In the meantime, feel free to
+            explore other storefronts on Milkcrate.
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 8 }}
@@ -53,84 +47,71 @@ export default function Invitation({ waitlist_present, slug, oauth_available }: 
             transition={{ delay: 0.3, duration: 0.3 }}
             className="mt-8"
           >
-            <Link
-              href="/"
-              className={actionClassName({ size: "lg", className: "tracking-wide" })}
-            >
+            <Link href="/" className={actionClassName({ size: "lg", className: "tracking-wide" })}>
               Browse storefronts
             </Link>
           </motion.div>
         </div>
       </MarketingLayout>
-    )
+    );
   }
 
   // Invitation page — async Discogs probe
-  return <InvitationContent slug={slug} oauth_available={oauth_available} />
+  return <InvitationContent slug={slug} oauth_available={oauth_available} />;
 }
 
 function InvitationContent({ slug, oauth_available }: { slug: string; oauth_available?: boolean }) {
-  const [probeState, setProbeState] = useState<"loading" | "found" | "not_found">("loading")
-  const [sellerName, setSellerName] = useState<string | null>(null)
-  const csrfToken = document.querySelector<HTMLMetaElement>("meta[name='csrf-token']")?.content
+  const { state, lookup } = useDiscogsLookup();
+  const csrfToken = document.querySelector<HTMLMetaElement>("meta[name='csrf-token']")?.content;
 
-  // Quality gate: only probe plausible Discogs usernames
   const shouldProbe = useMemo(() => {
-    if (slug.length < 3 || slug.length > 40) return false
-    if (!/^[a-zA-Z0-9][a-zA-Z0-9_-]*[a-zA-Z0-9]$/.test(slug)) return false
-
+    if (slug.length < 3 || slug.length > 40) return false;
+    if (!/^[a-zA-Z0-9][a-zA-Z0-9_-]*[a-zA-Z0-9]$/.test(slug)) return false;
     const reserved = [
-      "admin", "apply", "jobs", "up", "assets", "404", "500", "health",
-      "login", "logout", "signup", "register",
-      "api", "docs", "status", "help", "support",
-      "favicon", "manifest", "service-worker",
-    ]
-    if (reserved.includes(slug.toLowerCase())) return false
-
-    return true
-  }, [slug])
+      "admin",
+      "apply",
+      "jobs",
+      "up",
+      "assets",
+      "404",
+      "500",
+      "health",
+      "login",
+      "logout",
+      "signup",
+      "register",
+      "api",
+      "docs",
+      "status",
+      "help",
+      "support",
+      "favicon",
+      "manifest",
+      "service-worker",
+    ];
+    return !reserved.includes(slug.toLowerCase());
+  }, [slug]);
 
   useEffect(() => {
-    // Reset stale state from previous slug
-    setProbeState("loading")
-    setSellerName(null)
+    if (shouldProbe) lookup(slug);
+  }, [slug, shouldProbe, lookup]);
 
-    if (!shouldProbe) {
-      setProbeState("not_found")
-      return
-    }
+  const displayStatus: "loading" | "found" | "not_found" = !shouldProbe
+    ? "not_found"
+    : state.status === "loading" || state.status === "idle"
+      ? "loading"
+      : state.status === "preview" ||
+          state.status === "error_active_store" ||
+          state.status === "error_applicant"
+        ? "found"
+        : "not_found";
 
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 10000)
-
-    fetch(`/api/discogs/lookup/${encodeURIComponent(slug)}`, { signal: controller.signal })
-      .then((res) => {
-        if (!res.ok) {
-          setProbeState("not_found")
-          return
-        }
-        return res.json() as Promise<LookupResponse>
-      })
-      .then((data) => {
-        if (!data) return
-        if (data.found) {
-          setSellerName(data.seller_name || slug)
-          setProbeState("found")
-        } else {
-          setProbeState("not_found")
-        }
-      })
-      .catch((err) => {
-        if (err instanceof DOMException && err.name === "AbortError") return
-        setProbeState("not_found")
-      })
-      .finally(() => clearTimeout(timeoutId))
-
-    return () => {
-      controller.abort()
-      clearTimeout(timeoutId)
-    }
-  }, [slug, shouldProbe])
+  const sellerName =
+    state.status === "preview" ||
+    state.status === "error_active_store" ||
+    state.status === "error_applicant"
+      ? state.result.seller_name || slug
+      : null;
 
   return (
     <MarketingLayout>
@@ -143,113 +124,137 @@ function InvitationContent({ slug, oauth_available }: { slug: string; oauth_avai
         >
           <BrandMark size="large" />
         </motion.div>
-
-        {/* Loading state */}
-        {probeState === "loading" && (
-          <FeedbackMessage tone="progress" live="polite" className="flex flex-col items-center border-0 bg-transparent">
-            <div className="w-8 h-8 mb-4 border-2 border-mc-accent border-t-transparent rounded-full motion-safe:animate-spin" />
-            <p>Checking if this URL is available...</p>
-          </FeedbackMessage>
+        {displayStatus === "loading" && <InvitationLoading />}
+        {displayStatus === "found" && (
+          <InvitationFound
+            slug={slug}
+            oauth_available={oauth_available}
+            sellerName={sellerName}
+            csrfToken={csrfToken}
+          />
         )}
-
-        {/* Seller found — personalized invitation */}
-        {probeState === "found" && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            className="w-full"
-          >
-            <motion.h1
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1, duration: 0.3 }}
-              className="text-2xl font-bold text-mc-text mb-3"
-            >
-              We found <span className="text-mc-accent">{sellerName}</span> on Discogs
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.3 }}
-              className="text-sm text-mc-text-dim leading-relaxed max-w-sm mx-auto mb-8"
-            >
-              This URL could be your storefront. Claim it to show your Discogs
-              inventory as a browsable, curated record store.
-            </motion.p>
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.3 }}
-              className="space-y-3"
-            >
-              {oauth_available ? (
-                <form action={`/${slug}/authorize`} method="POST" className="inline">
-                  {csrfToken && <input type="hidden" name="authenticity_token" value={csrfToken} />}
-                  <Button type="submit" size="lg" className="tracking-wide">
-                    Claim with Discogs
-                  </Button>
-                </form>
-              ) : (
-                <Link
-                  href={`/apply?discogs_username=${encodeURIComponent(slug)}`}
-                  className={actionClassName({ size: "lg", className: "tracking-wide" })}
-                >
-                  Claim this storefront
-                </Link>
-              )}
-              <div>
-                <Link
-                  href={`/apply?discogs_username=${encodeURIComponent(slug)}`}
-                  className="text-xs text-mc-text-dim hover:text-mc-accent transition-colors"
-                >
-                  Or apply via waitlist
-                </Link>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-
-        {/* Not found — generic invitation */}
-        {probeState === "not_found" && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            className="w-full"
-          >
-            <motion.h1
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1, duration: 0.3 }}
-              className="text-2xl font-bold text-mc-text mb-3"
-            >
-              This page is available
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.3 }}
-              className="text-sm text-mc-text-dim leading-relaxed max-w-sm mx-auto mb-8"
-            >
-              If you sell records on Discogs, you can turn this URL into your
-              own browsable storefront on Milkcrate.
-            </motion.p>
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.3 }}
-            >
-                <Link
-                  href="/apply"
-                  className={actionClassName({ size: "lg", className: "tracking-wide" })}
-              >
-                Apply to join
-              </Link>
-            </motion.div>
-          </motion.div>
-        )}
+        {displayStatus === "not_found" && <InvitationNoMatch />}
       </div>
     </MarketingLayout>
-  )
+  );
+}
+
+function InvitationLoading() {
+  return (
+    <FeedbackMessage
+      tone="progress"
+      live="polite"
+      className="flex flex-col items-center border-0 bg-transparent"
+    >
+      <div className="w-8 h-8 mb-4 border-2 border-mc-accent border-t-transparent rounded-full motion-safe:animate-spin" />
+      <p>Checking if this URL is available...</p>
+    </FeedbackMessage>
+  );
+}
+
+function InvitationFound({
+  slug,
+  oauth_available,
+  sellerName,
+  csrfToken,
+}: {
+  slug: string;
+  oauth_available?: boolean;
+  sellerName: string | null;
+  csrfToken: string | undefined;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="w-full"
+    >
+      <motion.h1
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1, duration: 0.3 }}
+        className="text-2xl font-bold text-mc-text mb-3"
+      >
+        We found <span className="text-mc-accent">{sellerName}</span> on Discogs
+      </motion.h1>
+      <motion.p
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2, duration: 0.3 }}
+        className="text-sm text-mc-text-dim leading-relaxed max-w-sm mx-auto mb-8"
+      >
+        This URL could be your storefront. Claim it to show your Discogs inventory as a browsable,
+        curated record store.
+      </motion.p>
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3, duration: 0.3 }}
+        className="space-y-3"
+      >
+        {oauth_available ? (
+          <form action={`/${slug}/authorize`} method="POST" className="inline">
+            {csrfToken && <input type="hidden" name="authenticity_token" value={csrfToken} />}
+            <Button type="submit" size="lg" className="tracking-wide">
+              Claim with Discogs
+            </Button>
+          </form>
+        ) : (
+          <Link
+            href={`/apply?discogs_username=${encodeURIComponent(slug)}`}
+            className={actionClassName({ size: "lg", className: "tracking-wide" })}
+          >
+            Claim this storefront
+          </Link>
+        )}
+        <div>
+          <Link
+            href={`/apply?discogs_username=${encodeURIComponent(slug)}`}
+            className="text-xs text-mc-text-dim hover:text-mc-accent transition-colors"
+          >
+            Or apply via waitlist
+          </Link>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function InvitationNoMatch() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="w-full"
+    >
+      <motion.h1
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1, duration: 0.3 }}
+        className="text-2xl font-bold text-mc-text mb-3"
+      >
+        This page is available
+      </motion.h1>
+      <motion.p
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2, duration: 0.3 }}
+        className="text-sm text-mc-text-dim leading-relaxed max-w-sm mx-auto mb-8"
+      >
+        If you sell records on Discogs, you can turn this URL into your own browsable storefront on
+        Milkcrate.
+      </motion.p>
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3, duration: 0.3 }}
+      >
+        <Link href="/apply" className={actionClassName({ size: "lg", className: "tracking-wide" })}>
+          Apply to join
+        </Link>
+      </motion.div>
+    </motion.div>
+  );
 }

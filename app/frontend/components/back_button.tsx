@@ -1,12 +1,10 @@
-import React from "react"
-
 interface BackButtonProps {
   /** Icon: circular ← button. Text: "← Label" pill button. */
-  variant: "icon" | "text"
+  variant: "icon" | "text";
   /** Label for the text variant (e.g., "Store"). */
-  label?: string
-  onClick: () => void
-  className?: string
+  label?: string;
+  onClick: () => void;
+  className?: string;
 }
 
 /**
@@ -22,9 +20,11 @@ export default function BackButton({ variant, label, onClick, className = "" }: 
         className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-mc-border bg-mc-bg-raised text-lg leading-none text-mc-text-dim transition-[color,border-color,transform] hover:border-mc-accent hover:text-mc-accent active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg ${className}`}
         aria-label={label ? `Back to ${label}` : "Back"}
       >
-        <span aria-hidden="true" className="-translate-y-px">←</span>
+        <span aria-hidden="true" className="-translate-y-px">
+          ←
+        </span>
       </button>
-    )
+    );
   }
 
   return (
@@ -36,5 +36,5 @@ export default function BackButton({ variant, label, onClick, className = "" }: 
     >
       ← {label ?? "Back"}
     </button>
-  )
+  );
 }

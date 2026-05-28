@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { usePage } from "@inertiajs/react";
 import { usePileContext } from "../contexts/pile_context";
 import { useViewport } from "@/hooks/use_viewport";
+import { useDialogFocusTrap } from "@/hooks/use_dialog_focus_trap";
 import { springDrawer } from "@/lib/motion_tokens";
 import { formatPriceValue } from "@/lib/format_price";
 import { useShopperContext } from "../contexts/shopper_context";
@@ -219,15 +220,79 @@ function ConnectedAccount({ username }: { username: string }) {
   );
 }
 
+// ── Footer sub-component ────────────────────────────────────────
+
+interface PileFooterProps {
+  pile: Listing[];
+  total: number;
+  isConnected: boolean;
+  shopper: { discogs_username: string } | null;
+  state: string;
+  wantlistResult: { wantlist_url: string | null; added: number; skipped: number } | null;
+  errorMessage: string | null;
+  storeName: string | null;
+  storeSlug: string | null;
+  handoffAvailable: boolean;
+  highlightOnMount: boolean | undefined;
+  onSendToWantlist: () => void;
+  onReset: () => void;
+}
+
+function PileFooter({
+  pile,
+  total,
+  isConnected,
+  shopper,
+  state,
+  wantlistResult,
+  errorMessage,
+  storeName,
+  storeSlug,
+  handoffAvailable,
+  highlightOnMount,
+  onSendToWantlist,
+  onReset,
+}: PileFooterProps) {
+  const isInProgress = state === "creating";
+  const showResult = state === "success" && wantlistResult;
+  const showError = state === "error";
+  const showHandoffAction = handoffAvailable && isConnected && state === "idle";
+  const showDisconnectedCta = handoffAvailable && !isConnected && state === "idle";
+
+  return (
+    <div className="flex-shrink-0 px-4 py-4 border-t border-mc-border flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <span className="text-xs text-mc-text-dim uppercase tracking-wider">Total</span>
+        <span className="text-sm font-semibold">
+          {formatPriceValue(total.toFixed(2), pile[0]?.currency)}
+        </span>
+      </div>
+      {isConnected && shopper && <ConnectedAccount username={shopper.discogs_username} />}
+      {showResult && (
+        <WantlistResultView result={wantlistResult!} storeName={storeName} onDismiss={onReset} />
+      )}
+      {showError && <WantlistErrorView message={errorMessage} onRetry={onReset} />}
+      {isInProgress && <WantlistInProgressView count={pile.length} />}
+      {showHandoffAction && (
+        <WantlistHandoffAction
+          storeName={storeName}
+          onSend={onSendToWantlist}
+          highlight={highlightOnMount}
+        />
+      )}
+      {showDisconnectedCta && storeSlug && (
+        <DisconnectedCta storeName={storeName} storeSlug={storeSlug} />
+      )}
+    </div>
+  );
+}
+
 // ── Main component ──────────────────────────────────────────────
 
 export default function PileSheet({ open, onClose, returnFocusRef, highlightOnMount }: Props) {
   const { pile, removeFromPile, clearPile } = usePileContext();
   const { isCompact } = useViewport();
   const [confirmClear, setConfirmClear] = React.useState(false);
-  const dialogRef = React.useRef<HTMLDivElement>(null);
-  const titleRef = React.useRef<HTMLSpanElement>(null);
-  const previousFocusRef = React.useRef<HTMLElement | null>(null);
 
   const page = usePage<PageProps>();
   const store = page.props.store;
@@ -238,89 +303,30 @@ export default function PileSheet({ open, onClose, returnFocusRef, highlightOnMo
     useShopperContext();
 
   const total = pile.reduce((sum, l) => sum + (parseFloat(l.price) || 0), 0);
-  const isInProgress = state === "creating";
-  const showResult = state === "success" && wantlistResult;
-  const showError = state === "error";
-  const showHandoffAction = handoffAvailable && isConnected && state === "idle";
-  const showDisconnectedCta = handoffAvailable && !isConnected && state === "idle";
 
-  React.useEffect(() => {
-    if (!open) return;
+  const handleClose = React.useCallback(() => {
+    setConfirmClear(false);
+    onClose();
+  }, [onClose]);
 
-    previousFocusRef.current = document.activeElement as HTMLElement | null;
-    titleRef.current?.focus();
+  const { dialogRef, titleRef } = useDialogFocusTrap(open, handleClose, { returnFocusRef });
 
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        setConfirmClear(false);
-        onClose();
-        return;
-      }
-
-      if (event.key !== "Tab") return;
-
-      const dialog = dialogRef.current;
-      if (!dialog) return;
-
-      const focusable = Array.from(
-        dialog.querySelectorAll<HTMLElement>(
-          'a[href], button:not([disabled]), input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
-        ),
-      );
-
-      if (focusable.length === 0) {
-        event.preventDefault();
-        titleRef.current?.focus();
-        return;
-      }
-
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      const active = document.activeElement;
-
-      if (
-        event.shiftKey &&
-        (active === first || active === titleRef.current || !dialog.contains(active))
-      ) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && (active === last || !dialog.contains(active))) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-
-    const previousFocus = previousFocusRef.current;
-    const returnFocus = returnFocusRef?.current;
-
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-      if (previousFocus?.isConnected) {
-        previousFocus.focus();
-      } else if (returnFocus) {
-        returnFocus.focus();
-      }
-    };
-  }, [open, onClose, returnFocusRef]);
-
+  // Reset result when sheet closes
   React.useEffect(() => {
     if (!open) resetResult();
   }, [open, resetResult]);
 
+  // Re-focus title when dialog content changes
   React.useEffect(() => {
     if (!open || dialogRef.current?.contains(document.activeElement)) return;
-
     titleRef.current?.focus();
-  }, [open, pile.length, confirmClear, state]);
+  }, [open, pile.length, confirmClear, state, dialogRef, titleRef]);
 
-  const handleSendToWantlist = async () => {
+  const handleSendToWantlist = React.useCallback(async () => {
     if (!isConnected || !storeSlug) return;
     const items = pile.map((l) => ({ discogs_listing_id: l.discogs_listing_id }));
     await addToWantlist(items, storeSlug);
-  };
+  }, [isConnected, storeSlug, pile, addToWantlist]);
 
   if (!open) return null;
 
@@ -330,7 +336,7 @@ export default function PileSheet({ open, onClose, returnFocusRef, highlightOnMo
         className="fixed inset-0 bg-black/50 z-40"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        onClick={onClose}
+        onClick={handleClose}
         aria-hidden="true"
       />
 
@@ -394,10 +400,7 @@ export default function PileSheet({ open, onClose, returnFocusRef, highlightOnMo
               ))}
           </div>
           <button
-            onClick={() => {
-              setConfirmClear(false);
-              onClose();
-            }}
+            onClick={handleClose}
             className="inline-flex h-11 w-11 items-center justify-center rounded text-lg leading-none text-mc-text-dim transition-colors hover:bg-mc-bg-raised hover:text-mc-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus"
             aria-label="Close pile"
           >
@@ -422,34 +425,21 @@ export default function PileSheet({ open, onClose, returnFocusRef, highlightOnMo
 
         {/* Footer */}
         {pile.length > 0 && (
-          <div className="flex-shrink-0 px-4 py-4 border-t border-mc-border flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-mc-text-dim uppercase tracking-wider">Total</span>
-              <span className="text-sm font-semibold">
-                {formatPriceValue(total.toFixed(2), pile[0]?.currency)}
-              </span>
-            </div>
-            {isConnected && shopper && <ConnectedAccount username={shopper.discogs_username} />}
-            {showResult && (
-              <WantlistResultView
-                result={wantlistResult!}
-                storeName={store?.name ?? null}
-                onDismiss={resetResult}
-              />
-            )}
-            {showError && <WantlistErrorView message={errorMessage} onRetry={resetResult} />}
-            {isInProgress && <WantlistInProgressView count={pile.length} />}
-            {showHandoffAction && (
-              <WantlistHandoffAction
-                storeName={store?.name ?? null}
-                onSend={handleSendToWantlist}
-                highlight={highlightOnMount}
-              />
-            )}
-            {showDisconnectedCta && storeSlug && (
-              <DisconnectedCta storeName={store?.name ?? null} storeSlug={storeSlug} />
-            )}
-          </div>
+          <PileFooter
+            pile={pile}
+            total={total}
+            isConnected={isConnected}
+            shopper={shopper}
+            state={state}
+            wantlistResult={wantlistResult}
+            errorMessage={errorMessage}
+            storeName={store?.name ?? null}
+            storeSlug={storeSlug ?? null}
+            handoffAvailable={handoffAvailable}
+            highlightOnMount={highlightOnMount}
+            onSendToWantlist={handleSendToWantlist}
+            onReset={resetResult}
+          />
         )}
       </motion.div>
     </>

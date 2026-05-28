@@ -1,145 +1,95 @@
-import React, { useState, useCallback, useEffect, useMemo, useRef } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import CrateTabs from "./crate_tabs"
-import GhostFingerCue from "./ghost_finger_cue"
-import RecordCard from "./record_card"
-import RecordDetails from "./record_details"
-import ScoreBreakdown from "./score_breakdown"
-import { buildCrateWindow } from "../lib/crate_window"
+import React, { useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import CrateTabs from "./crate_tabs";
+import GhostFingerCue from "./ghost_finger_cue";
+import RecordCard from "./record_card";
+import RecordDetails from "./record_details";
+import ScoreBreakdown from "./score_breakdown";
+import BackButton from "./back_button";
+import { buildCrateWindow } from "../lib/crate_window";
 import {
   RIFFLE_LANGUAGE,
   riffleActiveCardMotion,
-  resolveRiffleDrag,
-  resolveRiffleMove,
   type RiffleDirection,
-} from "../lib/riffle_navigation"
-import { useViewport } from "@/hooks/use_viewport"
-import { SCALE_PRESS, springPress, transitionCrate, transitionCrateDesktop, reducedMotionTransition } from "@/lib/motion_tokens"
-import { useReducedMotionContext } from "./storefront_motion_config"
-import { isLessonEligible, markLessonLearned, isLessonLearned } from "../lib/first_swipe_lesson"
-import { usePreload } from "@/hooks/use_preload"
-import type { Crate } from "../types/inertia"
+} from "../lib/riffle_navigation";
+import { useCrateNavigation } from "@/hooks/use_crate_navigation";
+import { useViewport } from "@/hooks/use_viewport";
+import {
+  SCALE_PRESS,
+  springPress,
+  transitionCrate,
+  transitionCrateDesktop,
+  reducedMotionTransition,
+} from "@/lib/motion_tokens";
+import { useReducedMotionContext } from "./storefront_motion_config";
+import { isLessonEligible } from "../lib/first_swipe_lesson";
+import { usePreload } from "@/hooks/use_preload";
+import type { Crate, Listing } from "../types/inertia";
 
 interface Props {
-  crates: Crate[]
-  activeSlug: string
-  startIndex?: number
-  hideTabs?: boolean
-  compactHeaderOwnedByLayout?: boolean
-  onSelectCrate: (slug: string, startIndex?: number) => void
-  onBack?: () => void
+  crates: Crate[];
+  activeSlug: string;
+  startIndex?: number;
+  hideTabs?: boolean;
+  compactHeaderOwnedByLayout?: boolean;
+  onSelectCrate: (slug: string, startIndex?: number) => void;
+  onBack?: () => void;
 }
 
-const ROTATION_FACTOR = 8 / 120 // maps 120px drag to 8deg rotation
-const WINDOW_RADIUS = 2
+// ── Constants ─────────────────────────────────────────────────
+
+const ROTATION_FACTOR = 8 / 120;
+const WINDOW_RADIUS = 2;
 const compositedLayerStyle: React.CSSProperties = {
   willChange: "transform, opacity",
   backfaceVisibility: "hidden",
   WebkitBackfaceVisibility: "hidden",
   contain: "layout paint style",
-}
+};
 const activeLayerStyle: React.CSSProperties = {
   willChange: "transform, opacity",
   backfaceVisibility: "hidden",
   WebkitBackfaceVisibility: "hidden",
+};
+
+// ── Sub-components ───────────────────────────────────────────
+
+interface CrateHeaderProps {
+  isCompact: boolean;
+  onBack?: () => void;
+  crates: Crate[];
+  activeSlug: string;
+  activeCrate: Crate | undefined;
+  total: number;
+  hideTabs: boolean;
+  compactHeaderOwnedByLayout: boolean;
+  onSelectCrate: (slug: string, startIndex?: number) => void;
 }
 
-export default function CrateView({
+function CrateHeader({
+  isCompact,
+  onBack,
   crates,
   activeSlug,
-  startIndex = 0,
-  hideTabs = false,
-  compactHeaderOwnedByLayout = false,
+  activeCrate,
+  total,
+  hideTabs,
+  compactHeaderOwnedByLayout,
   onSelectCrate,
-  onBack,
-}: Props) {
-  const { isCompact } = useViewport()
-  const activeCrate = crates.find((c) => c.slug === activeSlug) ?? crates[0]
-  const records = activeCrate?.records ?? []
-  const total = records.length
-  const [index, setIndex] = useState(startIndex)
-  const [showGestureHint, setShowGestureHint] = useState(() => !isLessonLearned())
-  const [edgeStatus, setEdgeStatus] = useState<string | null>(null)
+}: CrateHeaderProps) {
+  if (isCompact) {
+    if (compactHeaderOwnedByLayout && hideTabs) return null;
 
-  const direction = useRef<RiffleDirection>("deeper")
-  const indexRef = useRef(index)
-  const prefersReducedMotion = useReducedMotionContext()
-  const dragRotationRef = useRef<HTMLDivElement>(null)
-
-  // Keep indexRef in sync so navigate callback reads the latest index
-  // even before React re-renders (critical for rapid keyboard navigation)
-  indexRef.current = index
-
-  useEffect(() => {
-    setIndex(startIndex)
-    // Only re-show the hint if the lesson hasn't been learned this session
-    setShowGestureHint(!isLessonLearned())
-    setEdgeStatus(null)
-  }, [activeSlug, startIndex])
-
-  const navigate = useCallback((riffleDirection: RiffleDirection) => {
-    const move = resolveRiffleMove({
-      currentIndex: indexRef.current,
-      total,
-      direction: riffleDirection,
-    })
-
-    if (!move.moved) {
-      setEdgeStatus(RIFFLE_LANGUAGE.edgeStatus[riffleDirection])
-      return
-    }
-
-    direction.current = riffleDirection
-    indexRef.current = move.nextIndex
-    setIndex(move.nextIndex)
-    setShowGestureHint(false)
-    setEdgeStatus(null)
-
-    // Mark the first-swipe lesson learned on successful vertical riffle
-    if (isCompact) {
-      markLessonLearned()
-    }
-  }, [total, isCompact])
-
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    const target = e.target as HTMLElement
-    if (
-      target instanceof HTMLInputElement ||
-      target instanceof HTMLTextAreaElement ||
-      target instanceof HTMLSelectElement ||
-      target.isContentEditable
-    ) return
-    if (document.querySelector('[role="dialog"][aria-modal="true"]')) return
-    if (e.key === "ArrowDown") navigate("deeper")
-    if (e.key === "ArrowUp") navigate("front")
-  }, [navigate])
-
-  useEffect(() => {
-    document.addEventListener("keydown", handleKeyDown)
-    return () => document.removeEventListener("keydown", handleKeyDown)
-  }, [handleKeyDown])
-
-  const progress = total > 0 ? ((index + 1) / total) * 100 : 0
-  const activeRecord = records[index]
-
-  const crateHeader = isCompact ? (
-    !compactHeaderOwnedByLayout || !hideTabs ? (
+    return (
       <div className="mb-3">
         <>
           {!compactHeaderOwnedByLayout && (
             <div className="flex items-center gap-3">
-              {onBack && (
-                <button
-                  type="button"
-                  onClick={onBack}
-                  className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-mc-border bg-mc-bg-raised text-lg leading-none text-mc-text-dim transition-[color,border-color,transform] hover:border-mc-accent hover:text-mc-accent active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
-                  aria-label="Back to store"
-                >
-                  <span aria-hidden="true" className="-translate-y-px">←</span>
-                </button>
-              )}
+              {onBack && <BackButton variant="icon" onClick={onBack} label="store" />}
               <div className="min-w-0 flex-1">
-                <h1 className="truncate text-base font-semibold leading-tight">{activeCrate?.name}</h1>
+                <h1 className="truncate text-base font-semibold leading-tight">
+                  {activeCrate?.name}
+                </h1>
                 <div className="text-[11px] uppercase tracking-[0.12em] text-mc-text-dim">
                   {total === 1 ? "1 record" : `${total} records`}
                 </div>
@@ -153,70 +103,59 @@ export default function CrateView({
           )}
         </>
       </div>
-    ) : null
-  ) : (
-    <div className="mb-4">
-        <>
-          <div className="flex items-center gap-3 border-b border-mc-border pb-2 mb-3">
-            {onBack && (
-              <button
-                type="button"
-                onClick={onBack}
-                className="flex items-center gap-1.5 text-xs font-medium text-mc-text-dim bg-mc-bg-raised border border-mc-border rounded-lg hover:border-mc-accent hover:text-mc-accent transition-colors whitespace-nowrap py-1.5 px-3 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
-                aria-label="Back to store"
-              >
-                ← Store
-              </button>
-            )}
-            {onBack && !hideTabs && <div className="w-px self-stretch bg-mc-border" />}
-            <div className="min-w-0 flex-1">
-              <h1 className="truncate text-base font-semibold leading-tight">{activeCrate?.name}</h1>
-              <div className="text-[11px] uppercase tracking-[0.12em] text-mc-text-dim">
-                {total === 1 ? "1 record" : `${total} records`}
-              </div>
-            </div>
-          </div>
-          {!hideTabs && (
-            <CrateTabs crates={crates} activeSlug={activeSlug} onSelect={onSelectCrate} />
-          )}
-        </>
-    </div>
-  )
-
-  usePreload(records, index)
-  const visibleRecords = useMemo(
-    () => buildCrateWindow(records, index, WINDOW_RADIUS),
-    [records, index],
-  )
-
-  const handleDragEnd = useCallback((
-    info: { offset: { x: number; y: number }; velocity: { x: number; y: number } }
-  ) => {
-    const riffleDirection = resolveRiffleDrag({
-      offsetX: info.offset.x,
-      offsetY: info.offset.y,
-      velocityY: info.velocity.y,
-    })
-
-    if (riffleDirection) {
-      navigate(riffleDirection)
-    }
-    // Horizontal swipes return no direction from resolveRiffleDrag, so
-    // nothing happens here — the cue stays floating, the record stays put.
-  }, [navigate])
-
-  if (!activeCrate || total === 0) {
-    return (
-      <div>
-        {crateHeader}
-        <div className="py-16 text-center text-mc-text-dim text-sm">No records in this crate yet.</div>
-      </div>
-    )
+    );
   }
 
-  const cardStack = (
+  return (
+    <div className="mb-4">
+      <>
+        <div className="flex items-center gap-3 border-b border-mc-border pb-2 mb-3">
+          {onBack && <BackButton variant="text" onClick={onBack} label="store" />}
+          {onBack && !hideTabs && <div className="w-px self-stretch bg-mc-border" />}
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate text-base font-semibold leading-tight">{activeCrate?.name}</h1>
+            <div className="text-[11px] uppercase tracking-[0.12em] text-mc-text-dim">
+              {total === 1 ? "1 record" : `${total} records`}
+            </div>
+          </div>
+        </div>
+        {!hideTabs && (
+          <CrateTabs crates={crates} activeSlug={activeSlug} onSelect={onSelectCrate} />
+        )}
+      </>
+    </div>
+  );
+}
+
+interface CardStackProps {
+  isCompact: boolean;
+  records: { id: number; thumbnail_url?: string | null; cover_image_url?: string | null }[];
+  visibleRecords: ReturnType<typeof buildCrateWindow<Listing>>;
+  activeSlug: string;
+  prefersReducedMotion: boolean;
+  direction: React.RefObject<RiffleDirection>;
+  showGestureHint: boolean;
+  total: number;
+  dragRotationRef: React.RefObject<HTMLDivElement | null>;
+  handleDragEnd: (info: {
+    offset: { x: number; y: number };
+    velocity: { x: number; y: number };
+  }) => void;
+}
+
+function CardStack({
+  isCompact,
+  visibleRecords,
+  activeSlug,
+  prefersReducedMotion,
+  direction,
+  showGestureHint,
+  total,
+  dragRotationRef,
+  handleDragEnd,
+}: CardStackProps) {
+  return (
     <>
-      {/* Front-riffle crate stack */}
       <div
         data-testid="crate-stack"
         data-viewport={isCompact ? "compact" : "wide"}
@@ -234,137 +173,169 @@ export default function CrateView({
             height: isCompact ? "min(80vw, 340px, 54svh)" : "min(82vw, 400px)",
           }}
         >
-          {/* Hint cards as plain divs with CSS transitions (compositor thread, no JS cost) */}
-          {visibleRecords.filter((s) => !s.isActive).map((slot) => {
-            const depth = Math.abs(slot.offset)
-            const hintUrl = slot.record.thumbnail_url ?? slot.record.cover_image_url
-            const baseX = slot.offset * 16
-            const baseY = depth * 12
-            const baseRotate = slot.offset * -4
-            const scale = 1 - depth * 0.045
+          {visibleRecords
+            .filter((s) => !s.isActive)
+            .map((slot) => {
+              const depth = Math.abs(slot.offset);
+              const hintUrl = slot.record.thumbnail_url ?? slot.record.cover_image_url;
+              const baseX = slot.offset * 16;
+              const baseY = depth * 12;
+              const baseRotate = slot.offset * -4;
+              const scale = 1 - depth * 0.045;
 
-            return (
-              <div
-                key={`hint-${slot.record.id}`}
-                aria-hidden="true"
-                data-riffle-slot={slot.offset}
-                className="absolute inset-0 rounded-lg overflow-hidden border border-mc-border bg-mc-bg-raised shadow-lg pointer-events-none"
-                style={{
-                  ...compositedLayerStyle,
-                  zIndex: 10 - depth,
-                  opacity: 0.38,
-                  transform: `translate(${baseX}px, ${baseY}px) rotate(${baseRotate}deg) scale(${scale})`,
-                  transition: prefersReducedMotion
-                    ? 'transform 0.01s ease-out, opacity 0.01s ease-out'
-                    : 'transform 0.2s ease-out, opacity 0.2s ease-out',
-                }}
-              >
-                {hintUrl ? (
-                  <img
-                    src={hintUrl}
-                    alt=""
-                    className="w-full h-full object-cover saturate-75"
-                    draggable={false}
-                    loading="lazy"
-                    decoding="async"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-mc-text-dim text-5xl">♪</div>
-                )}
-                <div className="absolute inset-0 bg-mc-bg/35" />
-              </div>
-            )
-          })}
-
-          {/* Active card entry + exit animation via AnimatePresence */}
-          <AnimatePresence
-            initial={!prefersReducedMotion}
-            custom={direction.current}
-          >
-            {visibleRecords.filter((s) => s.isActive).map((slot) => (
-              <motion.div
-                key={`active-${slot.record.id}`}
-                custom={direction.current}
-                variants={{
-                  initial: (d: RiffleDirection) => (
-                    riffleActiveCardMotion(d, prefersReducedMotion).initial
-                  ),
-                  animate: { opacity: 1, y: 0, rotate: 0, scale: 1 },
-                  exit: (d: RiffleDirection) => (
-                    riffleActiveCardMotion(d, prefersReducedMotion).exit
-                  ),
-                }}
-                initial="initial"
-                animate="animate"
-                exit="exit"
-                transition={prefersReducedMotion ? reducedMotionTransition : (isCompact ? transitionCrate : transitionCrateDesktop)}
-                className="absolute inset-0"
-                style={{ ...activeLayerStyle, zIndex: 30 }}
-              >
-                <motion.div
-                  ref={dragRotationRef}
-                  data-testid="crate-drag-surface"
-                  className="w-full h-full"
+              return (
+                <div
+                  key={`hint-${slot.record.id}`}
+                  aria-hidden="true"
+                  data-riffle-slot={slot.offset}
+                  className="absolute inset-0 rounded-lg overflow-hidden border border-mc-border bg-mc-bg-raised shadow-lg pointer-events-none"
                   style={{
-                    touchAction: "none",
-                    willChange: "transform",
-                    backfaceVisibility: "hidden",
-                    WebkitBackfaceVisibility: "hidden",
-                    rotate: 'var(--drag-rotate, 0deg)',
-                  }}
-                  drag
-                  dragConstraints={{ left: 0, right: 0, top: -180, bottom: 180 }}
-                  dragElastic={0.28}
-                  dragMomentum={false}
-                  dragSnapToOrigin
-                  whileDrag={prefersReducedMotion ? undefined : { scale: 0.985 }}
-                  onDrag={(_, info) => {
-                    dragRotationRef.current?.style.setProperty('--drag-rotate', `${info.offset.x * ROTATION_FACTOR}deg`)
-                  }}
-                  onDragEnd={(_e, info) => {
-                    dragRotationRef.current?.style.setProperty('--drag-rotate', '0deg')
-                    handleDragEnd(info)
+                    ...compositedLayerStyle,
+                    zIndex: 10 - depth,
+                    opacity: 0.38,
+                    transform: `translate(${baseX}px, ${baseY}px) rotate(${baseRotate}deg) scale(${scale})`,
+                    transition: prefersReducedMotion
+                      ? "transform 0.01s ease-out, opacity 0.01s ease-out"
+                      : "transform 0.2s ease-out, opacity 0.2s ease-out",
                   }}
                 >
-                  {/* Thumbnail backdrop — visible while full-res loads */}
-                  {slot.record.thumbnail_url && (
-                    <div className="absolute inset-0 rounded-lg overflow-hidden z-0 pointer-events-none">
-                      <img
-                        src={slot.record.thumbnail_url}
-                        alt=""
-                        className="w-full h-full object-cover saturate-75"
-                        style={{ filter: 'blur(8px)' }}
-                        draggable={false}
-                        onError={(e) => {
-                          // Hide backdrop on image load failure to avoid broken-image artifact
-                          ;(e.currentTarget as HTMLElement).style.display = 'none'
-                        }}
-                      />
+                  {hintUrl ? (
+                    <img
+                      src={hintUrl}
+                      alt=""
+                      className="w-full h-full object-cover saturate-75"
+                      draggable={false}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-mc-text-dim text-5xl">
+                      ♪
                     </div>
                   )}
-                  <RecordCard
-                    listing={slot.record}
-                    resetKey={`${activeSlug}-${slot.record.id}`}
-                    className="relative z-10 rounded-lg"
-                    imageLoading="eager"
-                    disableFlip={!isCompact}
-                    framed
-                  />
+                  <div className="absolute inset-0 bg-mc-bg/35" />
+                </div>
+              );
+            })}
+
+          <AnimatePresence initial={!prefersReducedMotion} custom={direction.current}>
+            {visibleRecords
+              .filter((s) => s.isActive)
+              .map((slot) => (
+                <motion.div
+                  key={`active-${slot.record.id}`}
+                  custom={direction.current}
+                  variants={{
+                    initial: (d: RiffleDirection) =>
+                      riffleActiveCardMotion(d, prefersReducedMotion).initial,
+                    animate: { opacity: 1, y: 0, rotate: 0, scale: 1 },
+                    exit: (d: RiffleDirection) =>
+                      riffleActiveCardMotion(d, prefersReducedMotion).exit,
+                  }}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                  transition={
+                    prefersReducedMotion
+                      ? reducedMotionTransition
+                      : isCompact
+                        ? transitionCrate
+                        : transitionCrateDesktop
+                  }
+                  className="absolute inset-0"
+                  style={{ ...activeLayerStyle, zIndex: 30 }}
+                >
+                  <motion.div
+                    ref={dragRotationRef}
+                    data-testid="crate-drag-surface"
+                    className="w-full h-full"
+                    style={{
+                      touchAction: "none",
+                      willChange: "transform",
+                      backfaceVisibility: "hidden",
+                      WebkitBackfaceVisibility: "hidden",
+                      rotate: "var(--drag-rotate, 0deg)",
+                    }}
+                    drag
+                    dragConstraints={{ left: 0, right: 0, top: -180, bottom: 180 }}
+                    dragElastic={0.28}
+                    dragMomentum={false}
+                    dragSnapToOrigin
+                    whileDrag={prefersReducedMotion ? undefined : { scale: 0.985 }}
+                    onDrag={(_, info) => {
+                      dragRotationRef.current?.style.setProperty(
+                        "--drag-rotate",
+                        `${info.offset.x * ROTATION_FACTOR}deg`,
+                      );
+                    }}
+                    onDragEnd={(_e, info) => {
+                      dragRotationRef.current?.style.setProperty("--drag-rotate", "0deg");
+                      handleDragEnd(info);
+                    }}
+                  >
+                    {slot.record.thumbnail_url && (
+                      <div className="absolute inset-0 rounded-lg overflow-hidden z-0 pointer-events-none">
+                        <img
+                          src={slot.record.thumbnail_url}
+                          alt=""
+                          className="w-full h-full object-cover saturate-75"
+                          style={{ filter: "blur(8px)" }}
+                          draggable={false}
+                          onError={(e) => {
+                            (e.currentTarget as HTMLElement).style.display = "none";
+                          }}
+                        />
+                      </div>
+                    )}
+                    <RecordCard
+                      listing={slot.record}
+                      resetKey={`${activeSlug}-${slot.record.id}`}
+                      className="relative z-10 rounded-lg"
+                      imageLoading="eager"
+                      disableFlip={!isCompact}
+                      framed
+                    />
+                  </motion.div>
                 </motion.div>
-              </motion.div>
-            ))}
+              ))}
           </AnimatePresence>
 
-          {/* Ghost-finger lesson cue — overlays the active record card */}
-          {isCompact && showGestureHint && isLessonEligible({ isCompact, isPopulated: total > 0 }) && (
-            <GhostFingerCue reducedMotion={prefersReducedMotion} />
-          )}
+          {isCompact &&
+            showGestureHint &&
+            isLessonEligible({ isCompact, isPopulated: total > 0 }) && (
+              <GhostFingerCue reducedMotion={prefersReducedMotion} />
+            )}
         </div>
       </div>
+    </>
+  );
+}
 
-      {/* Progress bar */}
+interface CrateProgressProps {
+  index: number;
+  total: number;
+  progress: number;
+  edgeStatus: string | null;
+  isCompact: boolean;
+  prefersReducedMotion: boolean;
+  navigate: (dir: RiffleDirection) => void;
+}
+
+function CrateProgress({
+  index,
+  total,
+  progress,
+  edgeStatus,
+  isCompact,
+  prefersReducedMotion,
+  navigate,
+}: CrateProgressProps) {
+  return (
+    <>
       <div className={`w-full max-w-xs sm:max-w-sm mx-auto ${isCompact ? "mt-1 mb-3" : "mb-4"}`}>
-        <div className={`flex items-center justify-between text-[10px] uppercase tracking-[0.14em] text-mc-text-dim select-none ${isCompact ? "mb-1" : "mb-1.5"}`}>
+        <div
+          className={`flex items-center justify-between text-[10px] uppercase tracking-[0.14em] text-mc-text-dim select-none ${isCompact ? "mb-1" : "mb-1.5"}`}
+        >
           <span>{RIFFLE_LANGUAGE.progressStart}</span>
           <span>{RIFFLE_LANGUAGE.progressEnd}</span>
         </div>
@@ -384,7 +355,6 @@ export default function CrateView({
         </div>
       </div>
 
-      {/* Paginator */}
       <div className={`flex items-center justify-center ${isCompact ? "gap-3" : "gap-4 sm:gap-6"}`}>
         <motion.button
           type="button"
@@ -425,28 +395,109 @@ export default function CrateView({
           {edgeStatus}
         </p>
       )}
-
     </>
-  )
+  );
+}
+
+// ── Main component ────────────────────────────────────────────
+
+export default function CrateView({
+  crates,
+  activeSlug,
+  startIndex = 0,
+  hideTabs = false,
+  compactHeaderOwnedByLayout = false,
+  onSelectCrate,
+  onBack,
+}: Props) {
+  const { isCompact } = useViewport();
+  const prefersReducedMotion = useReducedMotionContext();
+  const { activeCrate, records, total } = useMemo(() => {
+    const crate = crates.find((c) => c.slug === activeSlug) ?? crates[0];
+    const recs = crate?.records ?? [];
+    return { activeCrate: crate, records: recs, total: recs.length };
+  }, [crates, activeSlug]);
+
+  const {
+    index,
+    direction,
+    navigate,
+    edgeStatus,
+    showGestureHint,
+    progress,
+    dragRotationRef,
+    handleDragEnd,
+  } = useCrateNavigation({ total, isCompact, initialIndex: startIndex });
+
+  usePreload(records, index);
+  const visibleRecords = useMemo(
+    () => buildCrateWindow<Listing>(records, index, WINDOW_RADIUS),
+    [records, index],
+  );
+
+  const activeRecord = records[index];
+
+  const header = (
+    <CrateHeader
+      isCompact={isCompact}
+      onBack={onBack}
+      crates={crates}
+      activeSlug={activeSlug}
+      activeCrate={activeCrate}
+      total={total}
+      hideTabs={hideTabs}
+      compactHeaderOwnedByLayout={compactHeaderOwnedByLayout}
+      onSelectCrate={onSelectCrate}
+    />
+  );
+
+  if (!activeCrate || total === 0) {
+    return (
+      <div>
+        {header}
+        <div className="py-16 text-center text-mc-text-dim text-sm">
+          No records in this crate yet.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col">
-      {crateHeader}
+      {header}
 
-      {/* Mobile: single column. Desktop: centered two-column */}
       <div className="md:mx-auto md:w-full md:grid md:grid-cols-[420px_1fr] md:gap-12 md:items-start">
         <div className="flex flex-col">
-          {cardStack}
+          <CardStack
+            isCompact={isCompact}
+            records={records}
+            visibleRecords={visibleRecords}
+            activeSlug={activeSlug}
+            prefersReducedMotion={prefersReducedMotion}
+            direction={direction}
+            showGestureHint={showGestureHint}
+            total={total}
+            dragRotationRef={dragRotationRef}
+            handleDragEnd={handleDragEnd}
+          />
+          <CrateProgress
+            index={index}
+            total={total}
+            progress={progress}
+            edgeStatus={edgeStatus}
+            isCompact={isCompact}
+            prefersReducedMotion={prefersReducedMotion}
+            navigate={navigate}
+          />
         </div>
 
-        {/* Desktop details panel */}
         {activeRecord && (
           <div className="hidden md:flex md:flex-col md:pt-7">
             <RecordDetails listing={activeRecord} direction={direction.current} />
-          <ScoreBreakdown listing={activeRecord} />
+            <ScoreBreakdown listing={activeRecord} />
           </div>
         )}
       </div>
     </div>
-  )
+  );
 }
