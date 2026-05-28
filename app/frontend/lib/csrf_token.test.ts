@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { describe, it } from "node:test";
+import assert from "node:assert";
 import { csrfToken } from "./csrf_token";
 
 describe("csrfToken", () => {
@@ -11,7 +12,7 @@ describe("csrfToken", () => {
     });
 
     try {
-      expect(csrfToken()).toBe("");
+      assert.strictEqual(csrfToken(), "");
     } finally {
       Object.defineProperty(globalThis, "document", {
         configurable: true,
