@@ -2,10 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import RecordCard from "../record_card";
 import { compositedLayer } from "../../lib/motion_tokens";
-import {
-  riffleActiveCardMotion,
-  type RiffleDirection,
-} from "../../lib/riffle_navigation";
+import { riffleActiveCardMotion, type RiffleDirection } from "../../lib/riffle_navigation";
 import {
   transitionCrate,
   transitionCrateDesktop,
@@ -43,6 +40,12 @@ export default function ActiveRecordCard({
   dragRotationRef,
   handleDragEnd,
 }: ActiveRecordCardProps) {
+  const activeTransition = prefersReducedMotion
+    ? reducedMotionTransition
+    : isCompact
+      ? transitionCrate
+      : transitionCrateDesktop;
+
   return (
     <motion.div
       key={`active-${slot.record.id}`}
@@ -55,13 +58,7 @@ export default function ActiveRecordCard({
       initial="initial"
       animate="animate"
       exit="exit"
-      transition={
-        prefersReducedMotion
-          ? reducedMotionTransition
-          : isCompact
-            ? transitionCrate
-            : transitionCrateDesktop
-      }
+      transition={activeTransition}
       className="absolute inset-0"
       style={{ ...compositedLayer(false), zIndex: 30 }}
     >
