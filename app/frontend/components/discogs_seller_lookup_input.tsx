@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { springTactile } from "@/lib/motion_tokens";
 import Button from "@/components/ui/button";
@@ -31,20 +32,36 @@ const easeOut = [0.25, 0.46, 0.45, 0.94] as const;
 
 // ── Status sub-components ──────────────────────────────────────
 
-function LookupLoading() {
+function LookupStatusFrame({
+  statusKey,
+  children,
+  transition = { duration: 0.2, ease: easeOut },
+}: {
+  statusKey: string;
+  children: ReactNode;
+  transition?: ComponentProps<typeof motion.div>["transition"];
+}) {
   return (
     <motion.div
-      key="loading"
+      key={statusKey}
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -4 }}
-      transition={{ duration: 0.2, ease: easeOut }}
+      transition={transition}
     >
+      {children}
+    </motion.div>
+  );
+}
+
+function LookupLoading() {
+  return (
+    <LookupStatusFrame statusKey="loading">
       <FeedbackMessage tone="progress" className="flex items-center gap-3 px-4 py-3">
         <Spinner size="md" />
         <span>Checking Discogs...</span>
       </FeedbackMessage>
-    </motion.div>
+    </LookupStatusFrame>
   );
 }
 
@@ -56,13 +73,7 @@ function LookupPreview({
   copy: Pick<Props["copy"], "seller_preview_claim">;
 }) {
   return (
-    <motion.div
-      key="preview"
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -4 }}
-      transition={springTactile}
-    >
+    <LookupStatusFrame statusKey="preview" transition={springTactile}>
       <FeedbackMessage
         tone="success"
         className="flex flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between"
@@ -87,23 +98,17 @@ function LookupPreview({
           </Button>
         </form>
       </FeedbackMessage>
-    </motion.div>
+    </LookupStatusFrame>
   );
 }
 
 function LookupNotFound({ copy }: { copy: Pick<Props["copy"], "seller_not_found"> }) {
   return (
-    <motion.div
-      key="not-found"
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -4 }}
-      transition={{ duration: 0.2, ease: easeOut }}
-    >
+    <LookupStatusFrame statusKey="not-found">
       <FeedbackMessage tone="danger" live="assertive">
         {copy.seller_not_found}
       </FeedbackMessage>
-    </motion.div>
+    </LookupStatusFrame>
   );
 }
 
@@ -115,13 +120,7 @@ function LookupActiveStore({
   copy: Pick<Props["copy"], "seller_already_active">;
 }) {
   return (
-    <motion.div
-      key="active-store"
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -4 }}
-      transition={{ duration: 0.2, ease: easeOut }}
-    >
+    <LookupStatusFrame statusKey="active-store">
       <FeedbackMessage tone="warning" live="assertive">
         {copy.seller_already_active}{" "}
         {result.store_storefront_path && (
@@ -133,23 +132,17 @@ function LookupActiveStore({
           </a>
         )}
       </FeedbackMessage>
-    </motion.div>
+    </LookupStatusFrame>
   );
 }
 
 function LookupApplicant({ copy }: { copy: Pick<Props["copy"], "seller_applicant_exists"> }) {
   return (
-    <motion.div
-      key="applicant"
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -4 }}
-      transition={{ duration: 0.2, ease: easeOut }}
-    >
+    <LookupStatusFrame statusKey="applicant">
       <FeedbackMessage tone="warning" live="assertive">
         {copy.seller_applicant_exists}
       </FeedbackMessage>
-    </motion.div>
+    </LookupStatusFrame>
   );
 }
 
@@ -161,13 +154,7 @@ function LookupApiError({
   onRetry: () => void;
 }) {
   return (
-    <motion.div
-      key="api-error"
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -4 }}
-      transition={{ duration: 0.2, ease: easeOut }}
-    >
+    <LookupStatusFrame statusKey="api-error">
       <FeedbackMessage tone="danger" live="assertive">
         {copy.seller_lookup_error}{" "}
         <button
@@ -178,7 +165,7 @@ function LookupApiError({
           Try again
         </button>
       </FeedbackMessage>
-    </motion.div>
+    </LookupStatusFrame>
   );
 }
 

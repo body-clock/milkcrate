@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react"
+import { useState, useCallback, useEffect, useRef } from "react"
 
 const isBrowser = typeof window !== "undefined"
 
@@ -20,19 +20,28 @@ interface UsePointerProximityResult {
   handlers: PointerProximityHandlers
 }
 
+function computeProximityFromRect(rect: DOMRect | {
+  left: number
+  top: number
+  width: number
+  height: number
+}, clientX: number, clientY: number): number {
+  const cx = rect.left + rect.width / 2
+  const cy = rect.top + rect.height / 2
+  const dx = clientX - cx
+  const dy = clientY - cy
+  const dist = Math.hypot(dx, dy)
+  const maxDist = Math.hypot(rect.width, rect.height) * 0.6
+
+  return Math.max(0, Math.min(1, 1 - dist / maxDist))
+}
+
 function computeProximity(e: React.PointerEvent): number {
   const el = e.currentTarget as HTMLElement | null
   if (!el) return 0
   const rect = el.getBoundingClientRect()
 
-  const cx = rect.left + rect.width / 2
-  const cy = rect.top + rect.height / 2
-  const dx = e.clientX - cx
-  const dy = e.clientY - cy
-  const dist = Math.hypot(dx, dy)
-  const maxDist = Math.hypot(rect.width, rect.height) * 0.6
-
-  return Math.max(0, Math.min(1, 1 - dist / maxDist))
+  return computeProximityFromRect(rect, e.clientX, e.clientY)
 }
 
 /**
@@ -65,6 +74,10 @@ export function usePointerProximity(
   const move = useCallback(
     (e: React.PointerEvent) => {
       if (!isBrowser || disabled || isTouchRef.current) return
+      const target = e.currentTarget as HTMLElement | null
+      if (!target) return
+      const rect = target.getBoundingClientRect()
+      const { clientX, clientY } = e
 
       if (rafRef.current !== null) {
         cancelAnimationFrame(rafRef.current)
@@ -72,9 +85,7 @@ export function usePointerProximity(
 
       rafRef.current = requestAnimationFrame(() => {
         rafRef.current = null
-        if (e.currentTarget) {
-          setProximity(computeProximity(e))
-        }
+        setProximity(computeProximityFromRect(rect, clientX, clientY))
       })
     },
     [disabled],
@@ -90,6 +101,15 @@ export function usePointerProximity(
   }, [])
 
   const handlers = { onPointerEnter: enter, onPointerLeave: leave, onPointerMove: move }
+
+  useEffect(() => {
+    return () => {
+      if (rafRef.current === null) return
+
+      cancelAnimationFrame(rafRef.current)
+      rafRef.current = null
+    }
+  }, [])
 
   return { proximity, handlers }
 }

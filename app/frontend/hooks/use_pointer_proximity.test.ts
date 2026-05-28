@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 import { renderHook, act } from "@testing-library/react"
 import { usePointerProximity } from "./use_pointer_proximity"
 
@@ -98,5 +98,50 @@ describe("usePointerProximity", () => {
     })
 
     expect(result.current.proximity).toBe(0)
+  })
+
+  it("uses snapshotted pointer data when the rAF callback runs later", () => {
+    vi.useFakeTimers()
+    const { result } = renderHook(() => usePointerProximity())
+
+    const el = document.createElement("div")
+    Object.defineProperty(el, "getBoundingClientRect", {
+      value: () => ({ left: 0, top: 0, width: 200, height: 200, right: 200, bottom: 200 }),
+    })
+
+    const event = makePointerEvent("pointermove", { clientX: 100, clientY: 100 })
+    Object.defineProperty(event, "currentTarget", { value: el, configurable: true })
+
+    act(() => {
+      result.current.handlers.onPointerMove(event)
+      Object.defineProperty(event, "currentTarget", { value: null, configurable: true })
+      vi.advanceTimersByTime(16)
+    })
+
+    expect(result.current.proximity).toBeGreaterThan(0)
+    vi.useRealTimers()
+  })
+
+  it("cancels queued animation frames on unmount", () => {
+    vi.useFakeTimers()
+    const cancelAnimationFrameSpy = vi.spyOn(window, "cancelAnimationFrame")
+    const { result, unmount } = renderHook(() => usePointerProximity())
+
+    const el = document.createElement("div")
+    Object.defineProperty(el, "getBoundingClientRect", {
+      value: () => ({ left: 0, top: 0, width: 200, height: 200, right: 200, bottom: 200 }),
+    })
+
+    const event = makePointerEvent("pointermove", { clientX: 100, clientY: 100 })
+    Object.defineProperty(event, "currentTarget", { value: el })
+
+    act(() => {
+      result.current.handlers.onPointerMove(event)
+    })
+
+    unmount()
+
+    expect(cancelAnimationFrameSpy).toHaveBeenCalled()
+    vi.useRealTimers()
   })
 })

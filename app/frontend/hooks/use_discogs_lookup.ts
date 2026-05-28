@@ -28,6 +28,7 @@ interface UseDiscogsLookupResult {
 export function useDiscogsLookup(onAnnounce?: (message: string) => void): UseDiscogsLookupResult {
   const [state, setState] = useState<LookupState>({ status: "idle" });
   const abortRef = useRef<AbortController | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const announce = useCallback(
     (message: string) => {
@@ -40,12 +41,15 @@ export function useDiscogsLookup(onAnnounce?: (message: string) => void): UseDis
   useEffect(() => {
     return () => {
       abortRef.current?.abort();
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, []);
 
   const lookup = useCallback(
     (username: string) => {
       abortRef.current?.abort();
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+
       const controller = new AbortController();
       abortRef.current = controller;
 
@@ -54,13 +58,27 @@ export function useDiscogsLookup(onAnnounce?: (message: string) => void): UseDis
 
       const url = `/api/discogs/lookup/${encodeURIComponent(username)}`;
 
+      timeoutRef.current = setTimeout(() => {
+        if (abortRef.current !== controller) return;
+
+        controller.abort();
+        abortRef.current = null;
+        timeoutRef.current = null;
+        setState({ status: "error_api" });
+        announce("Something went wrong. Please try again.");
+      }, 10_000);
+
       fetch(url, { signal: controller.signal })
         .then((res) => {
           if (!res.ok) throw new Error(`Lookup failed: ${res.status}`);
           return res.json() as Promise<DiscogsLookupResult>;
         })
         .then((data) => {
+          if (abortRef.current !== controller) return;
           if (controller.signal.aborted) return;
+          if (timeoutRef.current) clearTimeout(timeoutRef.current);
+          timeoutRef.current = null;
+          abortRef.current = null;
 
           if (!data.found) {
             setState({ status: "error_not_found" });
@@ -83,8 +101,12 @@ export function useDiscogsLookup(onAnnounce?: (message: string) => void): UseDis
           }
         })
         .catch((err) => {
+          if (abortRef.current !== controller) return;
           if (controller.signal.aborted) return;
           if (err instanceof DOMException && err.name === "AbortError") return;
+          if (timeoutRef.current) clearTimeout(timeoutRef.current);
+          timeoutRef.current = null;
+          abortRef.current = null;
 
           setState({ status: "error_api" });
           announce("Something went wrong. Please try again.");
@@ -94,6 +116,10 @@ export function useDiscogsLookup(onAnnounce?: (message: string) => void): UseDis
   );
 
   const reset = useCallback(() => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = null;
     setState({ status: "idle" });
   }, []);
 

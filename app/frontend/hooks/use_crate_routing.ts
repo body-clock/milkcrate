@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import type { Crate, StorefrontSection } from "@/types/inertia";
 
 interface UseCrateRoutingOptions {
@@ -11,7 +11,21 @@ interface UseCrateRoutingResult {
   activeCrate: Crate | null;
   startIndex: number;
   selectCrate: (slug: string, index?: number) => void;
+  backToStore: () => void;
   allCrates: Crate[];
+}
+
+function historyStateWithCrate(slug: string, startIndex: number) {
+  return { ...(history.state ?? {}), crateSlug: slug, startIndex };
+}
+
+function historyStateWithoutCrate() {
+  const { crateSlug: _crateSlug, startIndex: _startIndex, ...rest } = history.state ?? {};
+  return rest;
+}
+
+function storeFloorUrl() {
+  return `${window.location.pathname}${window.location.hash}`;
 }
 
 export function useCrateRouting({
@@ -33,6 +47,7 @@ export function useCrateRouting({
     const raw = history.state?.startIndex;
     return Number.isFinite(raw) && (raw as number) >= 0 ? (raw as number) : 0;
   });
+  const activeSlugRef = useRef(activeSlug);
 
   const allCrates = useMemo(() => {
     if (crates.length > 0) return crates;
@@ -47,20 +62,33 @@ export function useCrateRouting({
 
   const selectCrate = useCallback(
     (slug: string, index = 0) => {
+      const wasOnStoreFloor = activeSlugRef.current === null;
+      activeSlugRef.current = slug;
       setStartIndex(index);
       setActiveSlug(slug);
-      if (activeSlug === null) {
-        history.pushState({ crateSlug: slug, startIndex: index }, "");
-      } else {
-        history.replaceState({ crateSlug: slug, startIndex: index }, "");
+
+      const nextState = historyStateWithCrate(slug, index);
+      if (wasOnStoreFloor) {
+        history.pushState(nextState, "");
+        return;
       }
+
+      history.replaceState(nextState, "");
     },
-    [activeSlug],
+    [],
   );
+
+  const backToStore = useCallback(() => {
+    activeSlugRef.current = null;
+    setActiveSlug(null);
+    setStartIndex(0);
+    history.replaceState(historyStateWithoutCrate(), "", storeFloorUrl());
+  }, []);
 
   useEffect(() => {
     const handlePop = (e: PopStateEvent) => {
       const slug = e.state?.crateSlug ?? null;
+      activeSlugRef.current = slug;
       setActiveSlug(slug);
       setStartIndex(e.state?.startIndex ?? 0);
     };
@@ -68,5 +96,5 @@ export function useCrateRouting({
     return () => window.removeEventListener("popstate", handlePop);
   }, []);
 
-  return { activeSlug, activeCrate, startIndex, selectCrate, allCrates };
+  return { activeSlug, activeCrate, startIndex, selectCrate, backToStore, allCrates };
 }

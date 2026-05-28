@@ -8,7 +8,7 @@ import { useCrateRouting } from "@/hooks/use_crate_routing";
 import type { StoreShowProps } from "@/types/inertia";
 
 export default function StoreShow({ store, crates, storefront_sections }: StoreShowProps) {
-  const { activeSlug, activeCrate, startIndex, selectCrate, allCrates } = useCrateRouting({
+  const { activeSlug, activeCrate, startIndex, selectCrate, backToStore, allCrates } = useCrateRouting({
     crates,
     storefront_sections: storefront_sections ?? [],
   });
@@ -20,7 +20,7 @@ export default function StoreShow({ store, crates, storefront_sections }: StoreS
           ? {
               name: activeCrate.name,
               count: activeCrate.records.length,
-              onBack: () => history.back(),
+              onBack: backToStore,
             }
           : undefined
       }
@@ -88,7 +88,7 @@ export default function StoreShow({ store, crates, storefront_sections }: StoreS
           startIndex={startIndex}
           compactHeaderOwnedByLayout
           onSelectCrate={selectCrate}
-          onBack={() => history.back()}
+          onBack={backToStore}
         />
       )}
     </AppLayout>

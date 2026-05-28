@@ -142,17 +142,177 @@ interface CardStackProps {
   }) => void;
 }
 
-function CardStack({
-  isCompact,
+function HintCardStack({
   visibleRecords,
+  prefersReducedMotion,
+}: Pick<CardStackProps, "visibleRecords" | "prefersReducedMotion">) {
+  return (
+    <>
+      {visibleRecords
+        .filter((s) => !s.isActive)
+        .map((slot) => {
+          const depth = Math.abs(slot.offset);
+          const hintUrl = slot.record.thumbnail_url ?? slot.record.cover_image_url;
+          const baseX = slot.offset * 16;
+          const baseY = depth * 12;
+          const baseRotate = slot.offset * -4;
+          const scale = 1 - depth * 0.045;
+
+          return (
+            <div
+              key={`hint-${slot.record.id}`}
+              aria-hidden="true"
+              data-riffle-slot={slot.offset}
+              className="absolute inset-0 rounded-lg overflow-hidden border border-mc-border bg-mc-bg-raised shadow-lg pointer-events-none"
+              style={{
+                ...compositedLayerStyle,
+                zIndex: 10 - depth,
+                opacity: 0.38,
+                transform: `translate(${baseX}px, ${baseY}px) rotate(${baseRotate}deg) scale(${scale})`,
+                transition: prefersReducedMotion
+                  ? "transform 0.01s ease-out, opacity 0.01s ease-out"
+                  : "transform 0.2s ease-out, opacity 0.2s ease-out",
+              }}
+            >
+              {hintUrl ? (
+                <img
+                  src={hintUrl}
+                  alt=""
+                  className="w-full h-full object-cover saturate-75"
+                  draggable={false}
+                  loading="lazy"
+                  decoding="async"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-mc-text-dim text-5xl">
+                  ♪
+                </div>
+              )}
+              <div className="absolute inset-0 bg-mc-bg/35" />
+            </div>
+          );
+        })}
+    </>
+  );
+}
+
+function ActiveRecordCard({
+  slot,
+  isCompact,
   activeSlug,
   prefersReducedMotion,
   direction,
-  showGestureHint,
-  total,
   dragRotationRef,
   handleDragEnd,
-}: CardStackProps) {
+}: Pick<
+  CardStackProps,
+  "isCompact" | "activeSlug" | "prefersReducedMotion" | "direction" | "dragRotationRef" | "handleDragEnd"
+> & {
+  slot: ReturnType<typeof buildCrateWindow<Listing>>[number];
+}) {
+  return (
+    <motion.div
+      key={`active-${slot.record.id}`}
+      custom={direction.current}
+      variants={{
+        initial: (d: RiffleDirection) => riffleActiveCardMotion(d, prefersReducedMotion).initial,
+        animate: { opacity: 1, y: 0, rotate: 0, scale: 1 },
+        exit: (d: RiffleDirection) => riffleActiveCardMotion(d, prefersReducedMotion).exit,
+      }}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      transition={
+        prefersReducedMotion
+          ? reducedMotionTransition
+          : isCompact
+            ? transitionCrate
+            : transitionCrateDesktop
+      }
+      className="absolute inset-0"
+      style={{ ...activeLayerStyle, zIndex: 30 }}
+    >
+      <motion.div
+        ref={dragRotationRef}
+        data-testid="crate-drag-surface"
+        className="w-full h-full"
+        style={{
+          touchAction: "none",
+          willChange: "transform",
+          backfaceVisibility: "hidden",
+          WebkitBackfaceVisibility: "hidden",
+          rotate: "var(--drag-rotate, 0deg)",
+        }}
+        drag
+        dragConstraints={{ left: 0, right: 0, top: -180, bottom: 180 }}
+        dragElastic={0.28}
+        dragMomentum={false}
+        dragSnapToOrigin
+        whileDrag={prefersReducedMotion ? undefined : { scale: 0.985 }}
+        onDrag={(_, info) => {
+          dragRotationRef.current?.style.setProperty(
+            "--drag-rotate",
+            `${info.offset.x * ROTATION_FACTOR}deg`,
+          );
+        }}
+        onDragEnd={(_e, info) => {
+          dragRotationRef.current?.style.setProperty("--drag-rotate", "0deg");
+          handleDragEnd(info);
+        }}
+      >
+        {slot.record.thumbnail_url && (
+          <div className="absolute inset-0 rounded-lg overflow-hidden z-0 pointer-events-none">
+            <img
+              src={slot.record.thumbnail_url}
+              alt=""
+              className="w-full h-full object-cover saturate-75"
+              style={{ filter: "blur(8px)" }}
+              draggable={false}
+              onError={(e) => {
+                (e.currentTarget as HTMLElement).style.display = "none";
+              }}
+            />
+          </div>
+        )}
+        <RecordCard
+          listing={slot.record}
+          resetKey={`${activeSlug}-${slot.record.id}`}
+          className="relative z-10 rounded-lg"
+          imageLoading="eager"
+          disableFlip={!isCompact}
+          framed
+        />
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function GestureHintOverlay({
+  isCompact,
+  showGestureHint,
+  total,
+  prefersReducedMotion,
+}: Pick<CardStackProps, "isCompact" | "showGestureHint" | "total" | "prefersReducedMotion">) {
+  if (!isCompact) return null;
+  if (!showGestureHint) return null;
+  if (!isLessonEligible({ isCompact, isPopulated: total > 0 })) return null;
+
+  return <GhostFingerCue reducedMotion={prefersReducedMotion} />;
+}
+
+function CardStack(props: CardStackProps) {
+  const {
+    isCompact,
+    visibleRecords,
+    activeSlug,
+    prefersReducedMotion,
+    direction,
+    showGestureHint,
+    total,
+    dragRotationRef,
+    handleDragEnd,
+  } = props;
+
   return (
     <>
       <div
@@ -172,138 +332,31 @@ function CardStack({
             height: isCompact ? "min(80vw, 340px, 54svh)" : "min(82vw, 400px)",
           }}
         >
-          {visibleRecords
-            .filter((s) => !s.isActive)
-            .map((slot) => {
-              const depth = Math.abs(slot.offset);
-              const hintUrl = slot.record.thumbnail_url ?? slot.record.cover_image_url;
-              const baseX = slot.offset * 16;
-              const baseY = depth * 12;
-              const baseRotate = slot.offset * -4;
-              const scale = 1 - depth * 0.045;
-
-              return (
-                <div
-                  key={`hint-${slot.record.id}`}
-                  aria-hidden="true"
-                  data-riffle-slot={slot.offset}
-                  className="absolute inset-0 rounded-lg overflow-hidden border border-mc-border bg-mc-bg-raised shadow-lg pointer-events-none"
-                  style={{
-                    ...compositedLayerStyle,
-                    zIndex: 10 - depth,
-                    opacity: 0.38,
-                    transform: `translate(${baseX}px, ${baseY}px) rotate(${baseRotate}deg) scale(${scale})`,
-                    transition: prefersReducedMotion
-                      ? "transform 0.01s ease-out, opacity 0.01s ease-out"
-                      : "transform 0.2s ease-out, opacity 0.2s ease-out",
-                  }}
-                >
-                  {hintUrl ? (
-                    <img
-                      src={hintUrl}
-                      alt=""
-                      className="w-full h-full object-cover saturate-75"
-                      draggable={false}
-                      loading="lazy"
-                      decoding="async"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-mc-text-dim text-5xl">
-                      ♪
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-mc-bg/35" />
-                </div>
-              );
-            })}
+          <HintCardStack visibleRecords={visibleRecords} prefersReducedMotion={prefersReducedMotion} />
 
           <AnimatePresence initial={!prefersReducedMotion} custom={direction.current}>
             {visibleRecords
               .filter((s) => s.isActive)
               .map((slot) => (
-                <motion.div
+                <ActiveRecordCard
                   key={`active-${slot.record.id}`}
-                  custom={direction.current}
-                  variants={{
-                    initial: (d: RiffleDirection) =>
-                      riffleActiveCardMotion(d, prefersReducedMotion).initial,
-                    animate: { opacity: 1, y: 0, rotate: 0, scale: 1 },
-                    exit: (d: RiffleDirection) =>
-                      riffleActiveCardMotion(d, prefersReducedMotion).exit,
-                  }}
-                  initial="initial"
-                  animate="animate"
-                  exit="exit"
-                  transition={
-                    prefersReducedMotion
-                      ? reducedMotionTransition
-                      : isCompact
-                        ? transitionCrate
-                        : transitionCrateDesktop
-                  }
-                  className="absolute inset-0"
-                  style={{ ...activeLayerStyle, zIndex: 30 }}
-                >
-                  <motion.div
-                    ref={dragRotationRef}
-                    data-testid="crate-drag-surface"
-                    className="w-full h-full"
-                    style={{
-                      touchAction: "none",
-                      willChange: "transform",
-                      backfaceVisibility: "hidden",
-                      WebkitBackfaceVisibility: "hidden",
-                      rotate: "var(--drag-rotate, 0deg)",
-                    }}
-                    drag
-                    dragConstraints={{ left: 0, right: 0, top: -180, bottom: 180 }}
-                    dragElastic={0.28}
-                    dragMomentum={false}
-                    dragSnapToOrigin
-                    whileDrag={prefersReducedMotion ? undefined : { scale: 0.985 }}
-                    onDrag={(_, info) => {
-                      dragRotationRef.current?.style.setProperty(
-                        "--drag-rotate",
-                        `${info.offset.x * ROTATION_FACTOR}deg`,
-                      );
-                    }}
-                    onDragEnd={(_e, info) => {
-                      dragRotationRef.current?.style.setProperty("--drag-rotate", "0deg");
-                      handleDragEnd(info);
-                    }}
-                  >
-                    {slot.record.thumbnail_url && (
-                      <div className="absolute inset-0 rounded-lg overflow-hidden z-0 pointer-events-none">
-                        <img
-                          src={slot.record.thumbnail_url}
-                          alt=""
-                          className="w-full h-full object-cover saturate-75"
-                          style={{ filter: "blur(8px)" }}
-                          draggable={false}
-                          onError={(e) => {
-                            (e.currentTarget as HTMLElement).style.display = "none";
-                          }}
-                        />
-                      </div>
-                    )}
-                    <RecordCard
-                      listing={slot.record}
-                      resetKey={`${activeSlug}-${slot.record.id}`}
-                      className="relative z-10 rounded-lg"
-                      imageLoading="eager"
-                      disableFlip={!isCompact}
-                      framed
-                    />
-                  </motion.div>
-                </motion.div>
+                  slot={slot}
+                  isCompact={isCompact}
+                  activeSlug={activeSlug}
+                  prefersReducedMotion={prefersReducedMotion}
+                  direction={direction}
+                  dragRotationRef={dragRotationRef}
+                  handleDragEnd={handleDragEnd}
+                />
               ))}
           </AnimatePresence>
 
-          {isCompact &&
-            showGestureHint &&
-            isLessonEligible({ isCompact, isPopulated: total > 0 }) && (
-              <GhostFingerCue reducedMotion={prefersReducedMotion} />
-            )}
+          <GestureHintOverlay
+            isCompact={isCompact}
+            showGestureHint={showGestureHint}
+            total={total}
+            prefersReducedMotion={prefersReducedMotion}
+          />
         </div>
       </div>
     </>

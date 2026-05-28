@@ -316,6 +316,24 @@ describe("CrateShelf", () => {
       expect(screen.getByText("Jazz")).toBeInTheDocument();
     });
 
+    it("applies className prop in static mode", () => {
+      const crate = makeCrate();
+
+      const { container } = renderShelf(<CrateShelf crate={crate} className="test-shelf" />);
+
+      expect(container.querySelector(".test-shelf")).toBeInTheDocument();
+    });
+
+    it("applies className prop in interactive mode", () => {
+      const crate = makeCrate();
+
+      const { container } = renderShelf(
+        <CrateShelf crate={crate} interactive className="test-shelf" onSelectCrate={vi.fn()} />,
+      );
+
+      expect(container.querySelector(".test-shelf")).toBeInTheDocument();
+    });
+
     it("renders interactive variant with correct role", () => {
       const crate = makeCrate();
 

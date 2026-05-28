@@ -127,14 +127,34 @@ function CrateShelfLayout({
   );
 }
 
+function gridColumnCount(previewCount: number) {
+  if (previewCount <= 4) return 2;
+  if (previewCount <= 6) return 3;
+
+  return 4;
+}
+
 // ── Static variant ──────────────────────────────────────────────
 
 function StaticCrateShelf(params: Omit<CrateShelfProps, "interactive">) {
-  const { crate, previewCount = 4, meta, headerSize = "genre", tactileThumbnails = false } = params;
-  const gridCols = previewCount <= 4 ? 2 : previewCount <= 6 ? 3 : 4;
+  const {
+    crate,
+    previewCount = 4,
+    meta,
+    headerSize = "genre",
+    tactileThumbnails = false,
+    className,
+  } = params;
+  const gridCols = gridColumnCount(previewCount);
+  const containerClassName = [
+    "flex flex-col w-full rounded-lg bg-mc-bg-card border border-mc-border overflow-hidden text-left",
+    className,
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
-    <div className="flex flex-col w-full rounded-lg bg-mc-bg-card border border-mc-border overflow-hidden text-left">
+    <div className={containerClassName}>
       <CrateShelfLayout
         crate={crate}
         previewCount={previewCount}
@@ -164,7 +184,7 @@ function InteractiveCrateShelf(params: Omit<CrateShelfProps, "interactive">) {
     className,
     isHovered: externalHovered,
   } = params;
-  const gridCols = previewCount <= 4 ? 2 : previewCount <= 6 ? 3 : 4;
+  const gridCols = gridColumnCount(previewCount);
 
   // When wrapped by CrateCard (or another parent that manages hover), use the
   // external hover state. Otherwise, compute our own.
@@ -241,5 +261,3 @@ export default function CrateShelf(props: CrateShelfProps) {
 
   return <StaticCrateShelf {...rest} />;
 }
-
-export { StaticCrateShelf };

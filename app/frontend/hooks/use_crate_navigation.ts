@@ -19,7 +19,6 @@ interface UseCrateNavigationResult {
   index: number;
   direction: React.RefObject<RiffleDirection>;
   navigate: (riffleDirection: RiffleDirection) => void;
-  handleKeyDown: (e: KeyboardEvent) => void;
   handleDragEnd: (info: {
     offset: { x: number; y: number };
     velocity: { x: number; y: number };
@@ -28,7 +27,56 @@ interface UseCrateNavigationResult {
   showGestureHint: boolean;
   progress: number;
   dragRotationRef: React.RefObject<HTMLDivElement | null>;
-  indexRef: React.MutableRefObject<number>;
+}
+
+interface DragEndInfo {
+  offset: { x: number; y: number };
+  velocity: { x: number; y: number };
+}
+
+function isEditableTarget(target: EventTarget | null) {
+  if (!(target instanceof HTMLElement)) return false;
+
+  return (
+    target instanceof HTMLInputElement ||
+    target instanceof HTMLTextAreaElement ||
+    target instanceof HTMLSelectElement ||
+    target.isContentEditable
+  );
+}
+
+function useDragNavigation(navigate: (direction: RiffleDirection) => void) {
+  return useCallback(
+    (info: DragEndInfo) => {
+      const riffleDirection = resolveRiffleDrag({
+        offsetX: info.offset.x,
+        offsetY: info.offset.y,
+        velocityY: info.velocity.y,
+      });
+
+      if (!riffleDirection) return;
+
+      navigate(riffleDirection);
+    },
+    [navigate],
+  );
+}
+
+function useKeyboardNavigation(navigate: (direction: RiffleDirection) => void) {
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (isEditableTarget(e.target)) return;
+      if (document.querySelector('[role="dialog"][aria-modal="true"]')) return;
+      if (e.key === "ArrowDown") navigate("deeper");
+      if (e.key === "ArrowUp") navigate("front");
+    },
+    [navigate],
+  );
+
+  useEffect(() => {
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [handleKeyDown]);
 }
 
 /**
@@ -88,42 +136,8 @@ export function useCrateNavigation({
     [total, isCompact],
   );
 
-  const handleDragEnd = useCallback(
-    (info: { offset: { x: number; y: number }; velocity: { x: number; y: number } }) => {
-      const riffleDirection = resolveRiffleDrag({
-        offsetX: info.offset.x,
-        offsetY: info.offset.y,
-        velocityY: info.velocity.y,
-      });
-
-      if (riffleDirection) {
-        navigate(riffleDirection);
-      }
-    },
-    [navigate],
-  );
-
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement;
-      if (
-        target instanceof HTMLInputElement ||
-        target instanceof HTMLTextAreaElement ||
-        target instanceof HTMLSelectElement ||
-        target.isContentEditable
-      )
-        return;
-      if (document.querySelector('[role="dialog"][aria-modal="true"]')) return;
-      if (e.key === "ArrowDown") navigate("deeper");
-      if (e.key === "ArrowUp") navigate("front");
-    },
-    [navigate],
-  );
-
-  useEffect(() => {
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [handleKeyDown]);
+  const handleDragEnd = useDragNavigation(navigate);
+  useKeyboardNavigation(navigate);
 
   const progress = total > 0 ? ((index + 1) / total) * 100 : 0;
 
@@ -131,12 +145,10 @@ export function useCrateNavigation({
     index,
     direction,
     navigate,
-    handleKeyDown,
     handleDragEnd,
     edgeStatus,
     showGestureHint,
     progress,
     dragRotationRef,
-    indexRef,
   };
 }

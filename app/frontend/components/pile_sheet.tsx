@@ -222,37 +222,39 @@ function ConnectedAccount({ username }: { username: string }) {
 
 // ── Footer sub-component ────────────────────────────────────────
 
-interface PileFooterProps {
+interface PileFooterModel {
   pile: Listing[];
   total: number;
-  isConnected: boolean;
   shopper: { discogs_username: string } | null;
+  storeName: string | null;
+  storeSlug: string | null;
   state: string;
   wantlistResult: { wantlist_url: string | null; added: number; skipped: number } | null;
   errorMessage: string | null;
-  storeName: string | null;
-  storeSlug: string | null;
   handoffAvailable: boolean;
   highlightOnMount: boolean | undefined;
-  onSendToWantlist: () => void;
-  onReset: () => void;
+  isConnected: boolean;
 }
 
-function PileFooter({
-  pile,
-  total,
-  isConnected,
-  shopper,
-  state,
-  wantlistResult,
-  errorMessage,
-  storeName,
-  storeSlug,
-  handoffAvailable,
-  highlightOnMount,
-  onSendToWantlist,
-  onReset,
-}: PileFooterProps) {
+interface PileFooterActions {
+  sendToWantlist: () => void;
+  reset: () => void;
+}
+
+function PileFooter({ model, actions }: { model: PileFooterModel; actions: PileFooterActions }) {
+  const {
+    pile,
+    total,
+    isConnected,
+    shopper,
+    state,
+    wantlistResult,
+    errorMessage,
+    storeName,
+    storeSlug,
+    handoffAvailable,
+    highlightOnMount,
+  } = model;
   const isInProgress = state === "creating";
   const showResult = state === "success" && wantlistResult;
   const showError = state === "error";
@@ -269,14 +271,14 @@ function PileFooter({
       </div>
       {isConnected && shopper && <ConnectedAccount username={shopper.discogs_username} />}
       {showResult && (
-        <WantlistResultView result={wantlistResult!} storeName={storeName} onDismiss={onReset} />
+        <WantlistResultView result={wantlistResult!} storeName={storeName} onDismiss={actions.reset} />
       )}
-      {showError && <WantlistErrorView message={errorMessage} onRetry={onReset} />}
+      {showError && <WantlistErrorView message={errorMessage} onRetry={actions.reset} />}
       {isInProgress && <WantlistInProgressView count={pile.length} />}
       {showHandoffAction && (
         <WantlistHandoffAction
           storeName={storeName}
-          onSend={onSendToWantlist}
+          onSend={actions.sendToWantlist}
           highlight={highlightOnMount}
         />
       )}
@@ -327,6 +329,20 @@ export default function PileSheet({ open, onClose, returnFocusRef, highlightOnMo
     const items = pile.map((l) => ({ discogs_listing_id: l.discogs_listing_id }));
     await addToWantlist(items, storeSlug);
   }, [isConnected, storeSlug, pile, addToWantlist]);
+
+  const footerModel: PileFooterModel = {
+    pile,
+    total,
+    isConnected,
+    shopper,
+    state,
+    wantlistResult,
+    errorMessage,
+    storeName: store?.name ?? null,
+    storeSlug: storeSlug ?? null,
+    handoffAvailable,
+    highlightOnMount,
+  };
 
   if (!open) return null;
 
@@ -426,19 +442,8 @@ export default function PileSheet({ open, onClose, returnFocusRef, highlightOnMo
         {/* Footer */}
         {pile.length > 0 && (
           <PileFooter
-            pile={pile}
-            total={total}
-            isConnected={isConnected}
-            shopper={shopper}
-            state={state}
-            wantlistResult={wantlistResult}
-            errorMessage={errorMessage}
-            storeName={store?.name ?? null}
-            storeSlug={storeSlug ?? null}
-            handoffAvailable={handoffAvailable}
-            highlightOnMount={highlightOnMount}
-            onSendToWantlist={handleSendToWantlist}
-            onReset={resetResult}
+            model={footerModel}
+            actions={{ sendToWantlist: handleSendToWantlist, reset: resetResult }}
           />
         )}
       </motion.div>

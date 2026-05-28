@@ -3,7 +3,6 @@ import type { MotionStyle, Transition } from "framer-motion";
 import { useReducedMotionContext } from "@/components/storefront_motion_config";
 import { usePointerProximity } from "./use_pointer_proximity";
 import { useTactileTransform } from "./use_tactile_transform";
-import { springTactile, springPress } from "@/lib/motion_tokens";
 
 interface UseTactileHoverOptions {
   /** Resting tilt in degrees when not hovered. Default 0. */
@@ -87,7 +86,7 @@ export function useTactileHover(options: UseTactileHoverOptions = {}): TactileSt
     ],
   );
 
-  const { transform } = useTactileTransform(proximity, isPressed, {
+  const { transform, transition } = useTactileTransform(proximity, isPressed, {
     restingTilt,
     disableTilt,
     reducedMotion,
@@ -100,7 +99,7 @@ export function useTactileHover(options: UseTactileHoverOptions = {}): TactileSt
     isPressed,
     proximity,
     transform,
-    transition: isPressed ? springPress : springTactile,
+    transition,
     handlers,
   };
 }

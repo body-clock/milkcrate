@@ -36,8 +36,6 @@ export function useTactileTransform(
 ): UseTactileTransformResult {
   const { restingTilt = 0, disableTilt = false, reducedMotion = false } = options
 
-  const isHovered = proximity > 0
-
   const transform = useMemo<MotionStyle>(() => {
     if (reducedMotion) {
       return { rotate: 0, scale: 1, y: 0 }
@@ -61,6 +59,6 @@ export function useTactileTransform(
 
   return {
     transform,
-    transition: isPressed ? springPress : isHovered ? springTactile : springPress,
+    transition: isPressed ? springPress : springTactile,
   }
 }

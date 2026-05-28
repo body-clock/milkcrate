@@ -4,6 +4,12 @@ Quick-captured thoughts, ideas, and tasks collected during sessions.
 
 <!-- Entries are appended by /sn — newest first -->
 
+## 2026-05-28
+
+- **CrateView back button navigates to stale/expired page instead of store view** — Clicking the back button in CrateView calls `history.back()`, which navigates to the last browser history entry. If the previous page was an expired OAuth callback or a stale middleware redirect, the user gets dumped on an error page instead of returning to the store floor. Should replace `history.back()` with an explicit navigation to the store view, or store the store-return URL explicitly and navigate to it rather than relying on browser history.
+
+- **Pile sheet exit animation missing** — The pile sheet slides in smoothly with a spring animation (`springDrawer`), but on close it disappears instantly with no exit transition. The drawer just vanishes instead of sliding back out, which feels jarring after the polished entry. Should add an exit animation (slide-out matching the entry direction) or a fade-out so the dismissal feels intentional rather than abrupt.
+
 ## 2026-05-27
 
 - **Post-OAuth redirect should return shopper to the crate** — After a Discogs shopper OAuth completes, `complete_shopper_auth` redirects to `store_path` with a generic notice. If the user was on a crate page and clicked a listing's "Add to Cart" / "Want" button that required auth, the OAuth redirect dumps them on the store landing page with no cue to follow through. Should preserve the crate context (thread `return_to` through the OAuth chain), redirect back to that crate, and visually emphasize the "Add to Cart" action on the listing that triggered the flow.

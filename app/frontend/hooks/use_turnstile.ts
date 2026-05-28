@@ -46,6 +46,7 @@ export function useTurnstile({
 
   useEffect(() => {
     if (!enabled || !siteKey || !turnstileRef.current) return;
+    let scriptWithListener: HTMLScriptElement | null = null;
 
     const renderWidget = () => {
       if (!window.turnstile || !turnstileRef.current || widgetIdRef.current !== null) return;
@@ -65,6 +66,7 @@ export function useTurnstile({
       if (window.turnstile) {
         renderWidget();
       } else {
+        scriptWithListener = existingScript;
         existingScript.addEventListener("load", renderWidget, { once: true });
       }
     } else {
@@ -73,12 +75,13 @@ export function useTurnstile({
       script.async = true;
       script.defer = true;
       script.dataset.turnstileScript = "true";
-      script.onload = renderWidget;
+      scriptWithListener = script;
+      script.addEventListener("load", renderWidget, { once: true });
       document.head.appendChild(script);
     }
 
     return () => {
-      existingScript?.removeEventListener("load", renderWidget);
+      scriptWithListener?.removeEventListener("load", renderWidget);
       if (widgetIdRef.current !== null) {
         window.turnstile?.remove?.(widgetIdRef.current);
         widgetIdRef.current = null;
