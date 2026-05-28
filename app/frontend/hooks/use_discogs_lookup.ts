@@ -25,7 +25,21 @@ interface UseDiscogsLookupResult {
  * and screen-reader announcements. The consuming component owns the input UI
  * and renders status branches based on the returned state.
  */
-export function useDiscogsLookup(onAnnounce?: (message: string) => void): UseDiscogsLookupResult {
+export function useDiscogsLookup(onAnnounce?: (message: string) => void): UseDiscogsLookupResult;
+/**
+ * Overload: accepts a custom lookup URL (e.g., admin endpoint).
+ * When `lookupUrl` is provided, the hook calls that URL with
+ * `username` as a query parameter.
+ */
+export function useDiscogsLookup(
+  onAnnounce?: ((message: string) => void) | string,
+): UseDiscogsLookupResult;
+
+export function useDiscogsLookup(
+  onAnnounceOrUrl?: ((message: string) => void) | string,
+): UseDiscogsLookupResult {
+  const onAnnounce = typeof onAnnounceOrUrl === "function" ? onAnnounceOrUrl : undefined;
+  const lookupUrl = typeof onAnnounceOrUrl === "string" ? onAnnounceOrUrl : undefined;
   const [state, setState] = useState<LookupState>({ status: "idle" });
   const abortRef = useRef<AbortController | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -56,7 +70,9 @@ export function useDiscogsLookup(onAnnounce?: (message: string) => void): UseDis
       setState({ status: "loading" });
       announce("Checking Discogs availability...");
 
-      const url = `/api/discogs/lookup/${encodeURIComponent(username)}`;
+      const url = lookupUrl
+        ? `${lookupUrl}?username=${encodeURIComponent(username)}`
+        : `/api/discogs/lookup/${encodeURIComponent(username)}`;
 
       timeoutRef.current = setTimeout(() => {
         if (abortRef.current !== controller) return;
@@ -112,7 +128,7 @@ export function useDiscogsLookup(onAnnounce?: (message: string) => void): UseDis
           announce("Something went wrong. Please try again.");
         });
     },
-    [announce],
+    [announce, lookupUrl],
   );
 
   const reset = useCallback(() => {

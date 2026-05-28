@@ -13,70 +13,6 @@ interface Props {
   onSelectCrate: (slug: string, startIndex?: number) => void;
 }
 
-function CompactPicksShelf({
-  crate,
-  onSelectCrate,
-  picksPreviewCount,
-  today,
-}: {
-  crate: Crate;
-  onSelectCrate: (slug: string, startIndex?: number) => void;
-  picksPreviewCount: number;
-  today: string;
-}) {
-  return (
-    <CrateShelf
-      crate={crate}
-      interactive
-      onSelectCrate={onSelectCrate}
-      previewCount={picksPreviewCount}
-      meta={today}
-      openLabel="DIG →"
-      tactileThumbnails={false}
-    />
-  );
-}
-
-function DesktopPicksShelf({
-  crate,
-  onSelectCrate,
-  picksPreviewCount,
-  today,
-}: {
-  crate: Crate;
-  onSelectCrate: (slug: string, startIndex?: number) => void;
-  picksPreviewCount: number;
-  today: string;
-}) {
-  const { isHovered, isPressed, handlers } = useTactileHover();
-
-  return (
-    <motion.div
-      className="w-full rounded-lg overflow-hidden border"
-      animate={{
-        borderColor: isHovered ? "var(--mc-accent)" : "var(--mc-border)",
-        scale: isPressed ? SCALE_PRESS : isHovered ? SCALE_HOVER : 1,
-        y: isHovered ? -3 : 0,
-        rotate: isHovered ? 0 : -0.5,
-      }}
-      transition={isPressed ? springPress : springTactile}
-      {...handlers}
-    >
-      <CrateShelf
-        crate={crate}
-        interactive
-        onSelectCrate={onSelectCrate}
-        previewCount={picksPreviewCount}
-        meta={today}
-        openLabel="DIG →"
-        tactileThumbnails
-        className="border-0 rounded-none"
-        isHovered={isHovered}
-      />
-    </motion.div>
-  );
-}
-
 function PicksShelf({
   crate,
   onSelectCrate,
@@ -90,25 +26,42 @@ function PicksShelf({
 }) {
   const { isCompact } = useViewport();
 
-  if (isCompact) {
+  const shelf = (
+    <CrateShelf
+      crate={crate}
+      interactive
+      onSelectCrate={onSelectCrate}
+      previewCount={picksPreviewCount}
+      meta={today}
+      openLabel="DIG →"
+      tactileThumbnails={!isCompact}
+      className={!isCompact ? "border-0 rounded-none" : undefined}
+    />
+  );
+
+  // Desktop: wrap in a hover-animated motion container
+  if (!isCompact) {
+    const { isHovered, isPressed, handlers } = useTactileHover();
+
     return (
-      <CompactPicksShelf
-        crate={crate}
-        onSelectCrate={onSelectCrate}
-        picksPreviewCount={picksPreviewCount}
-        today={today}
-      />
+      <motion.div
+        className="w-full rounded-lg overflow-hidden border"
+        animate={{
+          borderColor: isHovered ? "var(--mc-accent)" : "var(--mc-border)",
+          scale: isPressed ? SCALE_PRESS : isHovered ? SCALE_HOVER : 1,
+          y: isHovered ? -3 : 0,
+          rotate: isHovered ? 0 : -0.5,
+        }}
+        transition={isPressed ? springPress : springTactile}
+        {...handlers}
+      >
+        {shelf}
+      </motion.div>
     );
   }
 
-  return (
-    <DesktopPicksShelf
-      crate={crate}
-      onSelectCrate={onSelectCrate}
-      picksPreviewCount={picksPreviewCount}
-      today={today}
-    />
-  );
+  // Compact: plain shelf, no hover wrapper
+  return shelf;
 }
 
 export default function StoreFloor({ sections, onSelectCrate }: Props) {

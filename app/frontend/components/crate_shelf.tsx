@@ -39,31 +39,40 @@ export type CrateShelfProps = StaticCrateShelfProps | InteractiveCrateShelfProps
 
 // ── Shared layout skeleton ─────────────────────────────────────
 
-function CrateShelfLayout({
-  crate,
-  previewCount,
-  headerSize = "genre",
-  meta,
-  openLabel,
-  isHovered,
-  interactive,
-  onSelectCrate,
-  tactileThumbnails,
-  gridCols,
-  headerProps: { className: headerClassName, ...headerProps },
-}: {
-  crate: Crate;
-  previewCount: number;
+interface ShelfHeaderConfig {
   headerSize?: "featured" | "genre";
   meta?: string;
   openLabel?: string;
-  isHovered: boolean;
+  previewCount: number;
+}
+
+interface ShelfInteractionConfig {
   interactive: boolean;
   onSelectCrate?: (slug: string, startIndex?: number) => void;
+  isHovered: boolean;
   tactileThumbnails: boolean;
+}
+
+interface ShelfGridConfig {
   gridCols: number;
+}
+
+function CrateShelfLayout({
+  crate,
+  header,
+  interaction,
+  grid,
+  headerProps: { className: headerClassName, ...headerProps },
+}: {
+  crate: Crate;
+  header: ShelfHeaderConfig;
+  interaction: ShelfInteractionConfig;
+  grid: ShelfGridConfig;
   headerProps: React.HTMLAttributes<HTMLDivElement>;
 }) {
+  const { headerSize = "genre", meta, openLabel, previewCount } = header;
+  const { interactive, onSelectCrate, isHovered, tactileThumbnails } = interaction;
+  const { gridCols } = grid;
   const innerHoverScale = 1 + (SCALE_HOVER - 1) / 2;
   const nameClass = headerSize === "featured" ? "text-base font-semibold" : "text-sm font-semibold";
 
@@ -167,13 +176,14 @@ function StaticCrateShelf(params: StaticCrateShelfProps) {
     <div className={containerClassName}>
       <CrateShelfLayout
         crate={crate}
-        previewCount={previewCount}
-        meta={meta}
-        headerSize={headerSize}
-        isHovered={false}
-        interactive={false}
-        tactileThumbnails={tactileThumbnails}
-        gridCols={gridCols}
+        header={{ headerSize, meta, previewCount }}
+        interaction={{
+          interactive: false,
+          isHovered: false,
+          onSelectCrate: undefined,
+          tactileThumbnails,
+        }}
+        grid={{ gridCols }}
         headerProps={{}}
       />
     </div>
@@ -232,15 +242,9 @@ function InteractiveCrateShelf(params: InteractiveCrateShelfProps) {
     >
       <CrateShelfLayout
         crate={crate}
-        previewCount={previewCount}
-        meta={meta}
-        openLabel={openLabel}
-        headerSize={headerSize}
-        isHovered={isHovered}
-        interactive={true}
-        onSelectCrate={onSelectCrate}
-        tactileThumbnails={tactileThumbnails}
-        gridCols={gridCols}
+        header={{ headerSize, meta, openLabel, previewCount }}
+        interaction={{ interactive: true, onSelectCrate, isHovered, tactileThumbnails }}
+        grid={{ gridCols }}
         headerProps={{
           role: "button",
           tabIndex: 0,

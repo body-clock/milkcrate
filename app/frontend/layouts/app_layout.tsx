@@ -7,7 +7,7 @@ import StorefrontMotionConfig from "@/components/storefront_motion_config";
 import { ViewportProvider } from "@/contexts/viewport_context";
 import { useViewport } from "@/hooks/use_viewport";
 import BrandMark from "@/components/brand_mark";
-import BackButton from "@/components/back_button";
+import { IconBackButton } from "@/components/back_button";
 import MilkcrateShell from "@/layouts/milkcrate_shell";
 import { ShopperProvider, useShopperContext } from "@/contexts/shopper_context";
 import { DiscogsDisconnectForm } from "@/components/discogs_connection_controls";
@@ -61,12 +61,7 @@ function AppHeader({
       <div className="flex min-w-0 items-center leading-none">
         {compactCrateLocation ? (
           <>
-            <BackButton
-              variant="icon"
-              label="store"
-              onClick={compactCrateLocation.onBack}
-              className="mr-3"
-            />
+            <IconBackButton label="store" onClick={compactCrateLocation.onBack} className="mr-3" />
             <div className="min-w-0">
               <span className="mc-brand-title block truncate text-base font-bold text-mc-text">
                 {compactCrateLocation.name}
