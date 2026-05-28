@@ -37,6 +37,8 @@ export default function CrateCard({ crate, variant, onSelectCrate }: Props) {
         previewCount={4}
         openLabel="DIG →"
         headerSize={variant}
+        className="border-0 rounded-none"
+        isHovered={isHovered}
       />
     </motion.div>
   );
