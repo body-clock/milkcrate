@@ -185,17 +185,6 @@ describe("CrateShelf", () => {
       expect(onSelectCrate).toHaveBeenCalledWith("jazz-crate");
     });
 
-    it("does not fire onSelectCrate when header is clicked if no handler", async () => {
-      const user = userEvent.setup();
-      const crate = makeCrate();
-
-      renderShelf(<CrateShelf crate={crate} interactive />);
-
-      const button = screen.getByRole("button", { name: "Open Jazz" });
-      await user.click(button);
-      // Graceful: clicking without handler does not throw
-      expect(button).toBeInTheDocument();
-    });
   });
 
   describe("product-browsing variant", () => {
@@ -342,13 +331,19 @@ describe("CrateShelf", () => {
       expect(screen.getByRole("button", { name: "Open Jazz" })).toBeInTheDocument();
     });
 
-    it("handles missing onSelectCrate gracefully in interactive mode", () => {
+  });
+
+  describe("type contract", () => {
+    it("keeps static and interactive shelf props mutually exclusive", () => {
       const crate = makeCrate();
 
-      renderShelf(<CrateShelf crate={crate} interactive />);
+      // @ts-expect-error interactive shelves require onSelectCrate
+      const missingHandler = <CrateShelf crate={crate} interactive />;
+      // @ts-expect-error static shelves do not accept onSelectCrate
+      const staticWithHandler = <CrateShelf crate={crate} onSelectCrate={vi.fn()} />;
 
-      const button = screen.getByRole("button", { name: "Open Jazz" });
-      expect(button).toBeInTheDocument();
+      expect(missingHandler.props.interactive).toBe(true);
+      expect(staticWithHandler.props.onSelectCrate).toBeDefined();
     });
   });
 

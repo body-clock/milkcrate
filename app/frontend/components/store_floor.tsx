@@ -13,11 +13,7 @@ interface Props {
   onSelectCrate: (slug: string, startIndex?: number) => void;
 }
 
-/**
- * Wraps the picks CrateShelf in a tactile container on desktop viewports.
- * On compact, renders the shelf directly without animation wrapper.
- */
-function PicksShelf({
+function CompactPicksShelf({
   crate,
   onSelectCrate,
   picksPreviewCount,
@@ -28,10 +24,7 @@ function PicksShelf({
   picksPreviewCount: number;
   today: string;
 }) {
-  const { isCompact } = useViewport();
-  const { isHovered, isPressed, handlers } = useTactileHover();
-
-  const shelf = isCompact ? (
+  return (
     <CrateShelf
       crate={crate}
       interactive
@@ -41,21 +34,21 @@ function PicksShelf({
       openLabel="DIG →"
       tactileThumbnails={false}
     />
-  ) : (
-    <CrateShelf
-      crate={crate}
-      interactive
-      onSelectCrate={onSelectCrate}
-      previewCount={picksPreviewCount}
-      meta={today}
-      openLabel="DIG →"
-      tactileThumbnails={!isCompact}
-      className="border-0 rounded-none"
-      isHovered={isHovered}
-    />
   );
+}
 
-  if (isCompact) return shelf;
+function DesktopPicksShelf({
+  crate,
+  onSelectCrate,
+  picksPreviewCount,
+  today,
+}: {
+  crate: Crate;
+  onSelectCrate: (slug: string, startIndex?: number) => void;
+  picksPreviewCount: number;
+  today: string;
+}) {
+  const { isHovered, isPressed, handlers } = useTactileHover();
 
   return (
     <motion.div
@@ -69,8 +62,52 @@ function PicksShelf({
       transition={isPressed ? springPress : springTactile}
       {...handlers}
     >
-      {shelf}
+      <CrateShelf
+        crate={crate}
+        interactive
+        onSelectCrate={onSelectCrate}
+        previewCount={picksPreviewCount}
+        meta={today}
+        openLabel="DIG →"
+        tactileThumbnails
+        className="border-0 rounded-none"
+        isHovered={isHovered}
+      />
     </motion.div>
+  );
+}
+
+function PicksShelf({
+  crate,
+  onSelectCrate,
+  picksPreviewCount,
+  today,
+}: {
+  crate: Crate;
+  onSelectCrate: (slug: string, startIndex?: number) => void;
+  picksPreviewCount: number;
+  today: string;
+}) {
+  const { isCompact } = useViewport();
+
+  if (isCompact) {
+    return (
+      <CompactPicksShelf
+        crate={crate}
+        onSelectCrate={onSelectCrate}
+        picksPreviewCount={picksPreviewCount}
+        today={today}
+      />
+    );
+  }
+
+  return (
+    <DesktopPicksShelf
+      crate={crate}
+      onSelectCrate={onSelectCrate}
+      picksPreviewCount={picksPreviewCount}
+      today={today}
+    />
   );
 }
 

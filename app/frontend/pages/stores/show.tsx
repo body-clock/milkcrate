@@ -12,6 +12,8 @@ export default function StoreShow({ store, crates, storefront_sections }: StoreS
     crates,
     storefront_sections: storefront_sections ?? [],
   });
+  const listingCount = store.total_listings ?? 0;
+  const hasStoreSummary = Boolean(store.description) || listingCount > 0;
 
   return (
     <AppLayout
@@ -25,7 +27,7 @@ export default function StoreShow({ store, crates, storefront_sections }: StoreS
           : undefined
       }
     >
-      {activeSlug === null && (store.description || store.total_listings) && (
+      {activeSlug === null && hasStoreSummary ? (
         <motion.div
           initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: 1, y: 0 }}
@@ -35,13 +37,13 @@ export default function StoreShow({ store, crates, storefront_sections }: StoreS
           {store.description && (
             <p className="text-sm text-mc-text leading-relaxed max-w-prose">{store.description}</p>
           )}
-          {store.total_listings && (
+          {listingCount > 0 ? (
             <p className="text-xs text-mc-text-dim mt-1.5">
-              {store.total_listings.toLocaleString()} vinyl listings
+              {listingCount.toLocaleString()} vinyl listings
             </p>
-          )}
+          ) : null}
         </motion.div>
-      )}
+      ) : null}
 
       {store.sync_status === "failed" && (
         <FeedbackMessage tone="danger" live="assertive" className="mb-6 px-4 py-3">

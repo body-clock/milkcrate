@@ -5,12 +5,8 @@ import { useTactileHover } from "@/hooks/use_tactile_hover";
 import { springTactile, springPress, SCALE_HOVER } from "@/lib/motion_tokens";
 import type { Crate } from "../types/inertia";
 
-export interface CrateShelfProps {
+interface BaseCrateShelfProps {
   crate: Crate;
-  /** When true, header and thumbnails become clickable for crate navigation. */
-  interactive?: boolean;
-  /** Callback for crate selection. Receives slug and optional record index. */
-  onSelectCrate?: (slug: string, startIndex?: number) => void;
   /** Maximum number of record thumbnails to show. Defaults to 4. */
   previewCount?: number;
   /** Optional meta text shown beside the crate name (e.g. today's date). */
@@ -23,9 +19,23 @@ export interface CrateShelfProps {
   tactileThumbnails?: boolean;
   /** Additional class for the outer container (used by CrateCard to strip border). */
   className?: string;
+}
+
+interface StaticCrateShelfProps extends BaseCrateShelfProps {
+  interactive?: false;
+  onSelectCrate?: never;
+  isHovered?: never;
+}
+
+interface InteractiveCrateShelfProps extends BaseCrateShelfProps {
+  interactive: true;
+  /** Callback for crate selection. Receives slug and optional record index. */
+  onSelectCrate: (slug: string, startIndex?: number) => void;
   /** External hover state override — when CrateCard wraps this shelf. */
   isHovered?: boolean;
 }
+
+export type CrateShelfProps = StaticCrateShelfProps | InteractiveCrateShelfProps;
 
 // ── Shared layout skeleton ─────────────────────────────────────
 
@@ -136,7 +146,7 @@ function gridColumnCount(previewCount: number) {
 
 // ── Static variant ──────────────────────────────────────────────
 
-function StaticCrateShelf(params: Omit<CrateShelfProps, "interactive">) {
+function StaticCrateShelf(params: StaticCrateShelfProps) {
   const {
     crate,
     previewCount = 4,
@@ -172,7 +182,7 @@ function StaticCrateShelf(params: Omit<CrateShelfProps, "interactive">) {
 
 // ── Interactive variant ─────────────────────────────────────────
 
-function InteractiveCrateShelf(params: Omit<CrateShelfProps, "interactive">) {
+function InteractiveCrateShelf(params: InteractiveCrateShelfProps) {
   const {
     crate,
     onSelectCrate,
@@ -253,11 +263,9 @@ function InteractiveCrateShelf(params: Omit<CrateShelfProps, "interactive">) {
  * based on the `interactive` prop.
  */
 export default function CrateShelf(props: CrateShelfProps) {
-  const { interactive = false, ...rest } = props;
-
-  if (interactive) {
-    return <InteractiveCrateShelf {...rest} />;
+  if (props.interactive) {
+    return <InteractiveCrateShelf {...props} />;
   }
 
-  return <StaticCrateShelf {...rest} />;
+  return <StaticCrateShelf {...props} />;
 }
