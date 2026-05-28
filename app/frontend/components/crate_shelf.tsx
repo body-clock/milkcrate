@@ -21,10 +21,6 @@ export interface CrateShelfProps {
   headerSize?: "featured" | "genre";
   /** When true, enables thumbnail hover scale on non-compact viewports. */
   tactileThumbnails?: boolean;
-  /** Additional class for the outer container (used by CrateCard to strip border). */
-  className?: string;
-  /** External hover state override — when CrateCard wraps this shelf. */
-  isHovered?: boolean;
 }
 
 // ── Shared layout skeleton ─────────────────────────────────────
@@ -161,23 +157,10 @@ function InteractiveCrateShelf(params: Omit<CrateShelfProps, "interactive">) {
     openLabel,
     headerSize = "genre",
     tactileThumbnails = false,
-    className,
-    isHovered: externalHovered,
   } = params;
   const gridCols = previewCount <= 4 ? 2 : previewCount <= 6 ? 3 : 4;
 
-  // When wrapped by CrateCard (or another parent that manages hover), use the
-  // external hover state. Otherwise, compute our own.
-  const ownsHover = externalHovered === undefined;
-  const internal = useTactileHover();
-  const isHovered = ownsHover ? internal.isHovered : externalHovered!;
-  const isPressed = ownsHover ? internal.isPressed : false;
-  const containerClassName = [
-    "flex flex-col w-full rounded-lg bg-mc-bg-card border border-mc-border overflow-hidden text-left",
-    className,
-  ]
-    .filter(Boolean)
-    .join(" ");
+  const { isHovered, isPressed, handlers } = useTactileHover();
 
   const handleSelectCrate = () => {
     onSelectCrate?.(crate.slug);
@@ -193,12 +176,12 @@ function InteractiveCrateShelf(params: Omit<CrateShelfProps, "interactive">) {
 
   return (
     <motion.div
-      className={containerClassName}
+      className="flex flex-col w-full rounded-lg bg-mc-bg-card border border-mc-border overflow-hidden text-left"
       animate={{
         scale: isPressed ? 0.99 : isHovered ? 1.008 : 1,
       }}
       transition={isPressed ? springPress : springTactile}
-      {...(ownsHover ? internal.handlers : {})}
+      {...handlers}
     >
       <CrateShelfLayout
         crate={crate}
