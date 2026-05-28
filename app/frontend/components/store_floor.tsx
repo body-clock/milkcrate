@@ -1,16 +1,16 @@
-import { motion } from "framer-motion"
-import CrateShelf from "./crate_shelf"
-import FeaturedCratesRow from "./featured_crates_row"
-import GenreGrid from "./genre_grid"
-import { useTactileHover } from "@/hooks/use_tactile_hover"
-import { useViewport } from "@/hooks/use_viewport"
-import { springTactile, springPress, SCALE_HOVER, SCALE_PRESS } from "@/lib/motion_tokens"
-import type { Crate } from "../types/inertia"
-import type { StorefrontSection } from "../types/inertia"
+import { motion } from "framer-motion";
+import CrateShelf from "./crate_shelf";
+import FeaturedCratesRow from "./featured_crates_row";
+import GenreGrid from "./genre_grid";
+import { useTactileHover } from "@/hooks/use_tactile_hover";
+import { useViewport } from "@/hooks/use_viewport";
+import { springTactile, springPress, SCALE_HOVER, SCALE_PRESS } from "@/lib/motion_tokens";
+import type { Crate } from "../types/inertia";
+import type { StorefrontSection } from "../types/inertia";
 
 interface Props {
-  sections: StorefrontSection[]
-  onSelectCrate: (slug: string, startIndex?: number) => void
+  sections: StorefrontSection[];
+  onSelectCrate: (slug: string, startIndex?: number) => void;
 }
 
 /**
@@ -23,15 +23,25 @@ function PicksShelf({
   picksPreviewCount,
   today,
 }: {
-  crate: Crate
-  onSelectCrate: (slug: string, startIndex?: number) => void
-  picksPreviewCount: number
-  today: string
+  crate: Crate;
+  onSelectCrate: (slug: string, startIndex?: number) => void;
+  picksPreviewCount: number;
+  today: string;
 }) {
-  const { isCompact } = useViewport()
-  const { isHovered, isPressed, handlers } = useTactileHover()
+  const { isCompact } = useViewport();
+  const { isHovered, isPressed, handlers } = useTactileHover();
 
-  const shelf = (
+  const shelf = isCompact ? (
+    <CrateShelf
+      crate={crate}
+      interactive
+      onSelectCrate={onSelectCrate}
+      previewCount={picksPreviewCount}
+      meta={today}
+      openLabel="DIG →"
+      tactileThumbnails={false}
+    />
+  ) : (
     <CrateShelf
       crate={crate}
       interactive
@@ -40,10 +50,12 @@ function PicksShelf({
       meta={today}
       openLabel="DIG →"
       tactileThumbnails={!isCompact}
+      className="border-0 rounded-none"
+      isHovered={isHovered}
     />
-  )
+  );
 
-  if (isCompact) return shelf
+  if (isCompact) return shelf;
 
   return (
     <motion.div
@@ -59,21 +71,21 @@ function PicksShelf({
     >
       {shelf}
     </motion.div>
-  )
+  );
 }
 
 export default function StoreFloor({ sections, onSelectCrate }: Props) {
-  const { isCompact } = useViewport()
+  const { isCompact } = useViewport();
 
   // Tier-specific preview density: compact shows fewer, wide shows more
-  const picksPreviewCount = isCompact ? 4 : 8
+  const picksPreviewCount = isCompact ? 4 : 8;
 
   return (
     <div className="flex flex-col gap-8 sm:gap-10">
       {sections.map((section) => {
         if (section.key === "picks_wall") {
-          const picks = section.crate
-          const today = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" })
+          const picks = section.crate;
+          const today = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" });
 
           return (
             picks.records.length > 0 && (
@@ -85,19 +97,25 @@ export default function StoreFloor({ sections, onSelectCrate }: Props) {
                 today={today}
               />
             )
-          )
+          );
         }
 
         if (section.key === "featured_crates") {
-          return <FeaturedCratesRow key="featured" crates={section.crates} onSelectCrate={onSelectCrate} />
+          return (
+            <FeaturedCratesRow
+              key="featured"
+              crates={section.crates}
+              onSelectCrate={onSelectCrate}
+            />
+          );
         }
 
         if (section.key === "genre_grid") {
-          return <GenreGrid key="genres" crates={section.crates} onSelectCrate={onSelectCrate} />
+          return <GenreGrid key="genres" crates={section.crates} onSelectCrate={onSelectCrate} />;
         }
 
-        return null
+        return null;
       })}
     </div>
-  )
+  );
 }
