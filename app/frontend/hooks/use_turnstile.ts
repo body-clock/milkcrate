@@ -41,6 +41,8 @@ export function useTurnstile({
 }: UseTurnstileOptions): UseTurnstileResult {
   const turnstileRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<TurnstileWidgetId | null>(null);
+  const onTokenRef = useRef(onToken);
+  onTokenRef.current = onToken;
 
   useEffect(() => {
     if (!enabled || !siteKey || !turnstileRef.current) return;
@@ -50,9 +52,9 @@ export function useTurnstile({
 
       widgetIdRef.current = window.turnstile.render(turnstileRef.current, {
         sitekey: siteKey,
-        callback: onToken,
-        "expired-callback": () => onToken(""),
-        "error-callback": () => onToken(""),
+        callback: (token) => onTokenRef.current(token),
+        "expired-callback": () => onTokenRef.current(""),
+        "error-callback": () => onTokenRef.current(""),
       });
     };
 
@@ -82,7 +84,7 @@ export function useTurnstile({
         widgetIdRef.current = null;
       }
     };
-  }, [enabled, siteKey, onToken]);
+  }, [enabled, siteKey]);
 
   return { turnstileRef, isReady: enabled && !!siteKey };
 }

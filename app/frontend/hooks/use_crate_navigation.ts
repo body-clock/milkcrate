@@ -11,6 +11,8 @@ interface UseCrateNavigationOptions {
   total: number;
   isCompact: boolean;
   initialIndex: number;
+  /** Changing this key resets index, edge, and gesture state (e.g., activeSlug). */
+  resetKey: string;
 }
 
 interface UseCrateNavigationResult {
@@ -39,6 +41,7 @@ export function useCrateNavigation({
   total,
   isCompact,
   initialIndex,
+  resetKey,
 }: UseCrateNavigationOptions): UseCrateNavigationResult {
   const [index, setIndex] = useState(initialIndex);
   const [showGestureHint, setShowGestureHint] = useState(() => !isLessonLearned());
@@ -56,7 +59,7 @@ export function useCrateNavigation({
     setIndex(initialIndex);
     setShowGestureHint(!isLessonLearned());
     setEdgeStatus(null);
-  }, [initialIndex]);
+  }, [initialIndex, resetKey]);
 
   const navigate = useCallback(
     (riffleDirection: RiffleDirection) => {

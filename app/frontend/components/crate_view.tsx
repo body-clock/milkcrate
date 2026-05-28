@@ -426,7 +426,7 @@ export default function CrateView({
     progress,
     dragRotationRef,
     handleDragEnd,
-  } = useCrateNavigation({ total, isCompact, initialIndex: startIndex });
+  } = useCrateNavigation({ total, isCompact, initialIndex: startIndex, resetKey: activeSlug });
 
   usePreload(records, index);
   const visibleRecords = useMemo(
