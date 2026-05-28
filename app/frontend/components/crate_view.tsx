@@ -129,7 +129,6 @@ function CrateHeader({
 
 interface CardStackProps {
   isCompact: boolean;
-  records: { id: number; thumbnail_url?: string | null; cover_image_url?: string | null }[];
   visibleRecords: ReturnType<typeof buildCrateWindow<Listing>>;
   activeSlug: string;
   prefersReducedMotion: boolean;
@@ -470,7 +469,6 @@ export default function CrateView({
         <div className="flex flex-col">
           <CardStack
             isCompact={isCompact}
-            records={records}
             visibleRecords={visibleRecords}
             activeSlug={activeSlug}
             prefersReducedMotion={prefersReducedMotion}

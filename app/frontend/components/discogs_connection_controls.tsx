@@ -1,4 +1,5 @@
 import { actionClassName } from "./ui/action";
+import { csrfToken } from "@/lib/csrf_token";
 
 interface FormProps {
   className?: string;
@@ -16,10 +17,6 @@ const defaultDisconnectButtonClassName = actionClassName({
   size: "sm",
   className: "min-h-11",
 });
-
-function csrfToken() {
-  return document.querySelector<HTMLMetaElement>("meta[name='csrf-token']")?.content ?? "";
-}
 
 export function DiscogsConnectForm({
   storeSlug,
