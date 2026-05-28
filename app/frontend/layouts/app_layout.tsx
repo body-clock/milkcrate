@@ -7,6 +7,7 @@ import StorefrontMotionConfig from "@/components/storefront_motion_config";
 import { ViewportProvider } from "@/contexts/viewport_context";
 import { useViewport } from "@/hooks/use_viewport";
 import BrandMark from "@/components/brand_mark";
+import BackButton from "@/components/back_button";
 import MilkcrateShell from "@/layouts/milkcrate_shell";
 import { ShopperProvider, useShopperContext } from "@/contexts/shopper_context";
 import { DiscogsDisconnectForm } from "@/components/discogs_connection_controls";
@@ -24,29 +25,34 @@ interface AppLayoutProps {
   compactLocation?: CompactStoreLocation;
 }
 
-export function AppLayoutContent({ children, compactLocation }: AppLayoutProps) {
-  const page = usePage<{
-    notice?: string;
-    alert?: string;
-    store?: Pick<Store, "name" | "discogs_username">;
-    shopper?: { discogs_username: string } | null;
-  }>();
-  const notice = page.props.notice;
-  const alertMsg = page.props.alert;
-  const storeName = page.props.store?.name;
-  const discogsUsername = page.props.store?.discogs_username;
-  const { theme, toggle } = useTheme();
-  const { isCompact } = useViewport();
-  const { pile } = usePileContext();
-  const { shopper } = useShopperContext();
-  const autoOpenPile =
-    typeof window !== "undefined" && new URLSearchParams(window.location.search).has("open_pile");
-  const [pileOpen, setPileOpen] = useState(autoOpenPile);
-  const handleClosePile = React.useCallback(() => setPileOpen(false), []);
-  const compactCrateLocation = isCompact ? compactLocation : undefined;
-  const contextFocusRef = React.useRef<HTMLElement>(null);
+// ── Internal sub-components ───────────────────────────────────
 
-  const header = (
+interface AppHeaderProps {
+  compactCrateLocation?: CompactStoreLocation;
+  storeName?: string;
+  discogsUsername?: string;
+  isCompact: boolean;
+  pile: { length: number };
+  pileOpen: boolean;
+  theme: "light" | "dark";
+  toggle: () => void;
+  setPileOpen: (open: boolean) => void;
+  contextFocusRef: React.RefObject<HTMLElement | null>;
+}
+
+function AppHeader({
+  compactCrateLocation,
+  storeName,
+  discogsUsername,
+  isCompact,
+  pile,
+  pileOpen,
+  theme,
+  toggle,
+  setPileOpen,
+  contextFocusRef,
+}: AppHeaderProps) {
+  return (
     <header
       ref={contextFocusRef}
       tabIndex={-1}
@@ -55,16 +61,12 @@ export function AppLayoutContent({ children, compactLocation }: AppLayoutProps) 
       <div className="flex min-w-0 items-center leading-none">
         {compactCrateLocation ? (
           <>
-            <button
-              type="button"
+            <BackButton
+              variant="icon"
+              label="store"
               onClick={compactCrateLocation.onBack}
-              className="mr-3 flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-mc-border bg-mc-bg-raised text-lg leading-none text-mc-text-dim transition-[color,border-color,transform] hover:border-mc-accent hover:text-mc-accent active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
-              aria-label="Back to store"
-            >
-              <span aria-hidden="true" className="-translate-y-px">
-                ←
-              </span>
-            </button>
+              className="mr-3"
+            />
             <div className="min-w-0">
               <span className="mc-brand-title block truncate text-base font-bold text-mc-text">
                 {compactCrateLocation.name}
@@ -129,6 +131,44 @@ export function AppLayoutContent({ children, compactLocation }: AppLayoutProps) 
         )}
       </div>
     </header>
+  );
+}
+
+export function AppLayoutContent({ children, compactLocation }: AppLayoutProps) {
+  const page = usePage<{
+    notice?: string;
+    alert?: string;
+    store?: Pick<Store, "name" | "discogs_username">;
+    shopper?: { discogs_username: string } | null;
+  }>();
+  const notice = page.props.notice;
+  const alertMsg = page.props.alert;
+  const storeName = page.props.store?.name;
+  const discogsUsername = page.props.store?.discogs_username;
+  const { theme, toggle } = useTheme();
+  const { isCompact } = useViewport();
+  const { pile } = usePileContext();
+  const { shopper } = useShopperContext();
+  const autoOpenPile =
+    typeof window !== "undefined" && new URLSearchParams(window.location.search).has("open_pile");
+  const [pileOpen, setPileOpen] = useState(autoOpenPile);
+  const handleClosePile = React.useCallback(() => setPileOpen(false), []);
+  const compactCrateLocation = isCompact ? compactLocation : undefined;
+  const contextFocusRef = React.useRef<HTMLElement>(null);
+
+  const header = (
+    <AppHeader
+      compactCrateLocation={compactCrateLocation}
+      storeName={storeName}
+      discogsUsername={discogsUsername}
+      isCompact={isCompact}
+      pile={pile}
+      pileOpen={pileOpen}
+      theme={theme}
+      toggle={toggle}
+      setPileOpen={setPileOpen}
+      contextFocusRef={contextFocusRef}
+    />
   );
 
   const footer = (

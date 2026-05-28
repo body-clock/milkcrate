@@ -3,6 +3,7 @@ import { Link } from "@inertiajs/react";
 import { motion } from "framer-motion";
 import MarketingLayout from "@/layouts/marketing_layout";
 import BrandMark from "@/components/brand_mark";
+import Spinner from "@/components/spinner";
 import Button from "@/components/ui/button";
 import FeedbackMessage from "@/components/ui/feedback_message";
 import { actionClassName } from "@/components/ui/action";
@@ -146,7 +147,7 @@ function InvitationLoading() {
       live="polite"
       className="flex flex-col items-center border-0 bg-transparent"
     >
-      <div className="w-8 h-8 mb-4 border-2 border-mc-accent border-t-transparent rounded-full motion-safe:animate-spin" />
+      <Spinner size="lg" className="mb-4" />
       <p>Checking if this URL is available...</p>
     </FeedbackMessage>
   );
