@@ -26,26 +26,10 @@ describe("Discogs connection controls", () => {
       "value",
       "philadelphiamusic",
     );
-    expect(form?.querySelector("input[name='return_to']")).toBeNull();
     expect(screen.getByRole("button", { name: "Connect with Discogs" })).toHaveClass(
       "focus-visible:ring-mc-focus",
     );
     expect(screen.getByRole("button", { name: "Connect with Discogs" })).not.toHaveClass("mc-btn");
-  });
-
-  it("includes return_to field when returnTo prop is provided", () => {
-    render(
-      <DiscogsConnectForm
-        storeSlug="philadelphiamusic"
-        returnTo="/stores/philadelphiamusic/crates/new-arrivals"
-      />,
-    );
-
-    const form = screen.getByRole("button", { name: "Connect with Discogs" }).closest("form");
-    expect(form?.querySelector("input[name='return_to']")).toHaveAttribute(
-      "value",
-      "/stores/philadelphiamusic/crates/new-arrivals",
-    );
   });
 
   it("submits the existing shopper disconnect contract without hover interaction", () => {

@@ -190,8 +190,6 @@ function DisconnectedCta({
   storeName: string | null;
   storeSlug: string;
 }) {
-  const returnTo = typeof window !== "undefined" ? window.location.pathname : undefined;
-
   return (
     <div className="flex flex-col gap-2">
       <p className="text-[11px] text-mc-text-dim leading-relaxed">
@@ -200,7 +198,6 @@ function DisconnectedCta({
       </p>
       <DiscogsConnectForm
         storeSlug={storeSlug}
-        returnTo={returnTo}
         buttonClassName={actionClassName({ variant: "danger", size: "lg", className: "w-full" })}
       />
     </div>

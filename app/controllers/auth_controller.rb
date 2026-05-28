@@ -114,7 +114,7 @@ class AuthController < ApplicationController
 
   def redirect_to_shopper_return(result, store_slug)
     session[:shopper_id] = result.shopper.id
-    path = session.delete(:shopper_open_pile) ? store_path(store_slug, open_pile: true) : session[:shopper_return_to].presence || store_path(store_slug)
+    path = session.delete(:shopper_open_pile) ? store_path(store_slug, open_pile: true) : store_path(store_slug)
     clear_shopper_oauth_session
     redirect_to path, notice: "Connected to Discogs as @#{result.shopper.discogs_username}!"
   end
@@ -141,7 +141,6 @@ class AuthController < ApplicationController
     session.delete(:shopper_oauth_request_token)
     session.delete(:shopper_oauth_request_token_secret)
     session.delete(:shopper_oauth_store_slug)
-    session.delete(:shopper_return_to)
     session.delete(:shopper_open_pile)
   end
 end
