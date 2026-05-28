@@ -1,6 +1,11 @@
 # Handles the Discogs OAuth initiation and session management for shoppers (buyers).
 # Separate from the store-owner flow at StoresController#authorize.
 class ShopperAuthController < ApplicationController
+  SHOPPER_OAUTH_SESSION_KEYS = %i[
+    shopper_id shopper_oauth_request_token shopper_oauth_request_token_secret
+    shopper_oauth_store_slug shopper_open_pile shopper_crate_slug
+  ].freeze
+
   def authorize
     store_slug = validate_store_slug or return
     result = authorize_shopper(store_slug)
@@ -33,12 +38,11 @@ class ShopperAuthController < ApplicationController
     session[:shopper_oauth_store_slug] = store_slug
     session[:shopper_oauth_request_token] = result.request_token
     session[:shopper_oauth_request_token_secret] = result.request_token_secret
+    session[:shopper_open_pile] = true
+    session[:shopper_crate_slug] = params[:crate_slug].presence
   end
 
   def clear_shopper_oauth_session
-    session.delete(:shopper_id)
-    session.delete(:shopper_oauth_request_token)
-    session.delete(:shopper_oauth_request_token_secret)
-    session.delete(:shopper_oauth_store_slug)
+    SHOPPER_OAUTH_SESSION_KEYS.each { |key| session.delete(key) }
   end
 end
