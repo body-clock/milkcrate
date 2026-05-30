@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { usePage } from "@inertiajs/react";
 import { usePileContext } from "../contexts/pile_context";
 import { useViewport } from "@/hooks/use_viewport";
@@ -65,124 +65,129 @@ export default function PileSheet({ open, onClose, returnFocusRef, highlightOnMo
     await addToWantlist(items, storeSlug);
   }, [isConnected, storeSlug, pile, addToWantlist]);
 
-  if (!open) return null;
-
   return (
-    <>
-      <motion.div
-        className="fixed inset-0 bg-black/50 z-40"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        onClick={handleClose}
-        aria-hidden="true"
-      />
+    <AnimatePresence>
+      {open && (
+        <>
+          <motion.div
+            className="fixed inset-0 bg-black/50 z-40"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            onClick={handleClose}
+            aria-hidden="true"
+          />
 
-      <motion.div
-        ref={dialogRef}
-        id="pile-sheet"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="pile-sheet-title"
-        className={
-          isCompact
-            ? "fixed inset-0 z-50 h-dvh bg-mc-bg flex flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
-            : "fixed top-0 right-0 bottom-0 z-50 bg-mc-bg border-l border-mc-border w-96 flex flex-col"
-        }
-        initial={isCompact ? { y: "100%" } : { x: "100%" }}
-        animate={isCompact ? { y: 0 } : { x: 0 }}
-        transition={springDrawer}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-mc-border flex-shrink-0">
-          <div className="flex items-center gap-3">
-            <span
-              ref={titleRef}
-              id="pile-sheet-title"
-              tabIndex={-1}
-              className="text-sm font-semibold outline-none"
-            >
-              Your pile{" "}
-              {pile.length > 0 && (
-                <span className="text-mc-text-dim font-normal">· {pile.length} records</span>
-              )}
-            </span>
-            {pile.length > 0 &&
-              (confirmClear ? (
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-mc-text-dim">Sure?</span>
-                  <button
-                    onClick={() => {
-                      clearPile();
-                      setConfirmClear(false);
-                    }}
-                    className={`${actionClassName({ variant: "danger", size: "sm" })} min-w-11 justify-center`}
-                  >
-                    Yes
-                  </button>
-                  <button
-                    onClick={() => setConfirmClear(false)}
-                    className={`${actionClassName({ variant: "ghost", size: "sm" })} min-w-11 justify-center`}
-                  >
-                    No
-                  </button>
+          <motion.div
+            ref={dialogRef}
+            id="pile-sheet"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="pile-sheet-title"
+            className={
+              isCompact
+                ? "fixed inset-0 z-50 h-dvh bg-mc-bg flex flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
+                : "fixed top-0 right-0 bottom-0 z-50 bg-mc-bg border-l border-mc-border w-96 flex flex-col"
+            }
+            initial={isCompact ? { y: "100%" } : { x: "100%" }}
+            animate={isCompact ? { y: 0 } : { x: 0 }}
+            exit={isCompact ? { y: "100%" } : { x: "100%" }}
+            transition={springDrawer}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-mc-border flex-shrink-0">
+              <div className="flex items-center gap-3">
+                <span
+                  ref={titleRef}
+                  id="pile-sheet-title"
+                  tabIndex={-1}
+                  className="text-sm font-semibold outline-none"
+                >
+                  Your pile{" "}
+                  {pile.length > 0 && (
+                    <span className="text-mc-text-dim font-normal">· {pile.length} records</span>
+                  )}
+                </span>
+                {pile.length > 0 &&
+                  (confirmClear ? (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-mc-text-dim">Sure?</span>
+                      <button
+                        onClick={() => {
+                          clearPile();
+                          setConfirmClear(false);
+                        }}
+                        className={`${actionClassName({ variant: "danger", size: "sm" })} min-w-11 justify-center`}
+                      >
+                        Yes
+                      </button>
+                      <button
+                        onClick={() => setConfirmClear(false)}
+                        className={`${actionClassName({ variant: "ghost", size: "sm" })} min-w-11 justify-center`}
+                      >
+                        No
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setConfirmClear(true)}
+                      className={`${actionClassName({ variant: "ghost", size: "sm" })} min-w-11 justify-center`}
+                      aria-label={`Clear ${pile.length} records from pile`}
+                    >
+                      Clear
+                    </button>
+                  ))}
+              </div>
+              <button
+                onClick={handleClose}
+                className="inline-flex h-11 w-11 items-center justify-center rounded text-lg leading-none text-mc-text-dim transition-colors hover:bg-mc-bg-raised hover:text-mc-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus"
+                aria-label="Close pile"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Records list */}
+            <div className="flex-1 overflow-y-auto">
+              {pile.length === 0 ? (
+                <div className="py-16 text-center text-sm text-mc-text-dim">
+                  No records in your pile yet.
                 </div>
               ) : (
-                <button
-                  onClick={() => setConfirmClear(true)}
-                  className={`${actionClassName({ variant: "ghost", size: "sm" })} min-w-11 justify-center`}
-                  aria-label={`Clear ${pile.length} records from pile`}
-                >
-                  Clear
-                </button>
-              ))}
-          </div>
-          <button
-            onClick={handleClose}
-            className="inline-flex h-11 w-11 items-center justify-center rounded text-lg leading-none text-mc-text-dim transition-colors hover:bg-mc-bg-raised hover:text-mc-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus"
-            aria-label="Close pile"
-          >
-            ×
-          </button>
-        </div>
-
-        {/* Records list */}
-        <div className="flex-1 overflow-y-auto">
-          {pile.length === 0 ? (
-            <div className="py-16 text-center text-sm text-mc-text-dim">
-              No records in your pile yet.
+                <ul>
+                  {pile.map((listing) => (
+                    <PileRecordItem key={listing.id} listing={listing} onRemove={removeFromPile} />
+                  ))}
+                </ul>
+              )}
             </div>
-          ) : (
-            <ul>
-              {pile.map((listing) => (
-                <PileRecordItem key={listing.id} listing={listing} onRemove={removeFromPile} />
-              ))}
-            </ul>
-          )}
-        </div>
 
-        {/* Footer */}
-        {pile.length > 0 && (
-          <PileFooter
-            pileSize={pile.length}
-            header={{ total, currency: pile[0]?.currency }}
-            shopper={{
-              isConnected,
-              username: shopper?.discogs_username ?? null,
-              storeName: store?.name ?? null,
-              storeSlug: storeSlug ?? null,
-            }}
-            submission={{
-              status: state,
-              wantlistResult,
-              errorMessage,
-            }}
-            handoffAvailable={handoffAvailable}
-            highlightOnMount={highlightOnMount}
-            onSendToWantlist={handleSendToWantlist}
-            onReset={resetResult}
-          />
-        )}
-      </motion.div>
-    </>
+            {/* Footer */}
+            {pile.length > 0 && (
+              <PileFooter
+                pileSize={pile.length}
+                header={{ total, currency: pile[0]?.currency }}
+                shopper={{
+                  isConnected,
+                  username: shopper?.discogs_username ?? null,
+                  storeName: store?.name ?? null,
+                  storeSlug: storeSlug ?? null,
+                }}
+                submission={{
+                  status: state,
+                  wantlistResult,
+                  errorMessage,
+                }}
+                handoffAvailable={handoffAvailable}
+                highlightOnMount={highlightOnMount}
+                onSendToWantlist={handleSendToWantlist}
+                onReset={resetResult}
+              />
+            )}
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 }
