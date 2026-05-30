@@ -6,7 +6,8 @@ Quick-captured thoughts, ideas, and tasks collected during sessions.
 
 ## 2026-05-28
 
-- **Pile sheet exit animation missing** — The pile sheet slides in smoothly with a spring animation (`springDrawer`), but on close it disappears instantly with no exit transition. The drawer just vanishes instead of sliding back out, which feels jarring after the polished entry. Should add an exit animation (slide-out matching the entry direction) or a fade-out so the dismissal feels intentional rather than abrupt.
+- ~~**Pile sheet exit animation missing** — The pile sheet slides in smoothly with a spring animation (`springDrawer`), but on close it disappears instantly with no exit transition. The drawer just vanishes instead of sliding back out, which feels jarring after the polished entry. Should add an exit animation (slide-out matching the entry direction) or a fade-out so the dismissal feels intentional rather than abrupt.~~
+  ✅ *Resolved — Wrapped in `AnimatePresence` with `exit` animation reversing entry direction (backdrop fades out, drawer slides back down/right).*
 
 ## 2026-05-27
 
@@ -16,7 +17,8 @@ Quick-captured thoughts, ideas, and tasks collected during sessions.
 
 ## 2026-05-24
 
-- **Pile scope — global vs per-store** — The pile is currently global (same pile across all stores). When you browse a different store, the pile carries over. This is either a bug or a feature. It could be confusing ("why are there records from Philadelphia Music on the betternowrecords page?") or it could be a useful cross-store collection feature ("I'm browsing everywhere and building one unified pile"). Need to decide: scope pile to the specific store, or lean into cross-store as a feature with appropriate UI to clarify what's in the pile and where it came from.
+- ~~**Pile scope — global vs per-store** — The pile is currently global (same pile across all stores). When you browse a different store, the pile carries over. This is either a bug or a feature. It could be confusing ("why are there records from Philadelphia Music on the betternowrecords page?") or it could be a useful cross-store collection feature ("I'm browsing everywhere and building one unified pile"). Need to decide: scope pile to the specific store, or lean into cross-store as a feature with appropriate UI to clarify what's in the pile and where it came from.~~
+  ✅ *Resolved — Decided: per-store pile with localStorage scoped to current store.*
 
 ## 2026-05-23
 

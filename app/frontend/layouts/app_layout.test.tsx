@@ -1,6 +1,6 @@
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import AppLayout from "./app_layout";
 import type { Listing } from "@/types/inertia";
@@ -163,7 +163,9 @@ describe("AppLayout storefront chrome", () => {
     await user.click(trigger);
     await user.click(screen.getByRole("button", { name: "Close pile" }));
 
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
     expect(screen.getByTestId("storefront-background")).not.toHaveAttribute("inert");
     expect(trigger).toHaveFocus();
   });

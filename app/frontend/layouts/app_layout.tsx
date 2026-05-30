@@ -106,7 +106,7 @@ function AppHeader({
           <button
             type="button"
             onClick={() => setPileOpen(true)}
-            className="inline-flex min-h-10 items-center gap-2 rounded-md px-3 text-xs font-semibold text-mc-accent hover:bg-mc-accent/10 select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
+            className="inline-flex min-h-10 items-center gap-2 rounded-md border border-mc-border bg-mc-bg-card px-3 text-xs font-semibold text-mc-accent hover:bg-mc-accent/10 hover:border-mc-accent/30 select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
             aria-label={`Pile (${pile.length})`}
             aria-expanded={pileOpen}
             aria-controls="pile-sheet"
