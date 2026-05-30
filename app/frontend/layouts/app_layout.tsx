@@ -215,10 +215,13 @@ export function AppLayoutContent({ children, compactLocation }: AppLayoutProps) 
 }
 
 export default function AppLayout({ children, compactLocation }: AppLayoutProps) {
+  const page = usePage<{ store?: { discogs_username?: string } }>();
+  const storeSlug = page.props.store?.discogs_username;
+
   return (
     <StorefrontMotionConfig>
       <ViewportProvider>
-        <PileProvider>
+        <PileProvider storeSlug={storeSlug}>
           <ShopperProvider>
             <AppLayoutContent compactLocation={compactLocation}>{children}</AppLayoutContent>
           </ShopperProvider>
