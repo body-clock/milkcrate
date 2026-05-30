@@ -27,7 +27,7 @@ class RecordScorer
       desirability: ScoreStrategies::DesirabilityStrategy.new,
       metadata: ScoreStrategies::MetadataStrategy.new,
       cover_quality: ScoreStrategies::CoverQualityStrategy.new,
-      freshness: ScoreStrategies::FreshnessStrategy.new(today:),
+      freshness: ScoreStrategies::FreshnessStrategy.new,
       noise: ScoreStrategies::NoiseStrategy.new(today:),
       price: ScoreStrategies::PriceStrategy.new
     }.freeze
