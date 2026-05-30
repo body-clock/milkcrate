@@ -1,24 +1,22 @@
-import { motion } from "framer-motion"
-import { useTactileHover } from "@/hooks/use_tactile_hover"
-import { springTactile, springPress, SCALE_HOVER, SCALE_PRESS } from "@/lib/motion_tokens"
-import CrateShelf from "./crate_shelf"
-import type { Crate } from "../types/inertia"
+import { motion } from "framer-motion";
+import { useTactileHover } from "@/hooks/use_tactile_hover";
+import { springTactile, springPress, SCALE_HOVER, SCALE_PRESS } from "@/lib/motion_tokens";
+import CrateShelf from "./crate_shelf";
+import type { Crate } from "../types/inertia";
 
 interface Props {
-  crate: Crate
-  variant: "featured" | "genre"
-  onSelectCrate: (slug: string, startIndex?: number) => void
+  crate: Crate;
+  variant: "featured" | "genre";
+  onSelectCrate: (slug: string, startIndex?: number) => void;
 }
 
 /**
  * A tactile crate card — wraps CrateShelf in a Framer Motion container
  * that applies cursor-proximity hover animations (scale, lift, tilt,
- * border glow). The outer motion.div owns the border (so borderColor
- * animation is visible) and passes hover state into CrateShelf for
- * inner animations (open label, thumbnail scale).
+ * border glow). The outer motion.div owns the border animation.
  */
 export default function CrateCard({ crate, variant, onSelectCrate }: Props) {
-  const { isHovered, isPressed, handlers } = useTactileHover()
+  const { isHovered, isPressed, handlers } = useTactileHover();
 
   return (
     <motion.div
@@ -39,9 +37,9 @@ export default function CrateCard({ crate, variant, onSelectCrate }: Props) {
         previewCount={4}
         openLabel="DIG →"
         headerSize={variant}
-        isHovered={isHovered}
         className="border-0 rounded-none"
+        isHovered={isHovered}
       />
     </motion.div>
-  )
+  );
 }

@@ -1,8 +1,36 @@
 # Omakase Ruby styling for Rails
 inherit_gem: { rubocop-rails-omakase: rubocop.yml }
 
-# Overwrite or add rules to create your own house style
-#
-# # Use `[a, [b, c]]` not `[ a, [ b, c ] ]`
-# Layout/SpaceInsideArrayLiteralBrackets:
-#   Enabled: false
+# ── Sandi Metz POODR metrics ──────────────────────────────
+# Rules 1-3: automated with RuboCop
+# Rule 4 (controllers → 1 ivar/action) checked via pi extension
+
+Metrics/MethodLength:
+  Enabled: true
+  Max: 5
+  CountAsOne: ["array", "hash", "heredoc"]
+  Exclude:
+    - "db/migrate/*.rb"
+    - "spec/**/*.rb"
+    - "lib/**/*.rake"
+    - "lib/tasks/**/*.rb"
+
+Metrics/ClassLength:
+  Enabled: true
+  Max: 100
+  CountAsOne: ["array", "hash", "heredoc"]
+  Exclude:
+    - "db/migrate/*.rb"
+    - "spec/**/*.rb"
+
+Metrics/ModuleLength:
+  Enabled: true
+  Max: 100
+
+Metrics/ParameterLists:
+  Enabled: true
+  Max: 4
+  CountKeywordArgs: false
+  Exclude:
+    - "db/migrate/*.rb"
+    - "spec/**/*.rb"

@@ -12,50 +12,43 @@ module SyncStrategies
     # to get up to 2x coverage — the pages don't overlap across sort orders.
     DISCOGS_PAGE_LIMIT = 100
 
-    # Fetches inventory from the Discogs public API and returns normalized listings.
-    # Performs two passes (desc + asc) to maximize coverage across paginated results.
-    #
-    # Returns SyncStrategies::Result with:
-    #   listings  — array of normalized listing hashes (nil entries filtered out)
-    #   complete? — false (public API is paginated and may be incomplete)
     def call(store, max_pages: nil, progress: nil)
-      # Probe page 1 to get total pages — used for progress tracking and pass count
-      probe = @client.seller_inventory(store.discogs_username, page: 1, sort_order: "desc")
-      total_pages = probe.dig("pagination", "pages") || 1
-      needs_two_pass = total_pages > DISCOGS_PAGE_LIMIT
-
-      # Actual pages we can fetch per pass (Discogs caps at 100)
-      fetchable = if max_pages
-        [ total_pages, max_pages, DISCOGS_PAGE_LIMIT ].min
-      else
-        [ total_pages, DISCOGS_PAGE_LIMIT ].min
-      end
-
-      passes = needs_two_pass ? 2 : 1
-      progress.total = fetchable * passes if progress
-
-      desc_result = fetch_listings(store, sort_order: "desc", max_pages:, progress:)
-      asc_result = if passes > 1
-        fetch_listings(store, sort_order: "asc", max_pages:, progress:)
-      else
-        SyncStrategies::Result.new(listings: [], complete: false)
-      end
-
-      all_raw = desc_result.listings + asc_result.listings
-      normalized = all_raw.filter_map { |raw| normalize(raw, store) }
-
-      SyncStrategies::Result.new(listings: normalized, complete: false)
+      total_pages, fetchable, passes = probe_pages(store, max_pages)
+      setup_progress(progress, fetchable, passes)
+      desc_raw = fetch_listings(store, sort_order: "desc", max_pages:, progress:)
+      asc_raw = fetch_asc_pass(store, total_pages, max_pages:, progress:)
+      normalize_result(desc_raw, asc_raw, store)
     end
 
     private
 
+    def probe_pages(store, max_pages)
+      probe = @client.seller_inventory(store.discogs_username, page: 1, sort_order: "desc")
+      total_pages = probe.dig("pagination", "pages") || 1
+      needs_two_pass = total_pages > DISCOGS_PAGE_LIMIT
+      fetchable = [ total_pages, max_pages, DISCOGS_PAGE_LIMIT ].compact.min
+      [ total_pages, fetchable, needs_two_pass ? 2 : 1 ]
+    end
+
+    def setup_progress(progress, fetchable, passes)
+      progress.total = fetchable * passes if progress
+    end
+
+    def fetch_asc_pass(store, total_pages, max_pages:, progress:)
+      return SyncStrategies::Result.new(listings: [], complete: false) unless total_pages > DISCOGS_PAGE_LIMIT
+
+      fetch_listings(store, sort_order: "asc", max_pages:, progress:)
+    end
+
+    def normalize_result(desc_raw, asc_raw, store)
+      all_raw = desc_raw.listings + asc_raw.listings
+      normalized = all_raw.filter_map { |raw| @normalizer.call(raw, store_id: store.id) }
+      SyncStrategies::Result.new(listings: normalized, complete: false)
+    end
+
     def fetch_listings(store, sort_order:, max_pages:, progress: nil)
       fetcher = StoreSync::InventoryFetcher.new(store, client: @client, progress: progress)
       fetcher.fetch(sort_order:, max_pages:)
-    end
-
-    def normalize(raw, store)
-      @normalizer.call(raw, store_id: store.id)
     end
   end
 end

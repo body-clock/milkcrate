@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe DashboardPresenter do
-  it "exposes a concise sync error summary without raw OAuth credentials" do
+  it "exposes a concise sync error summary without owner contact data or raw OAuth credentials" do
     owner = create(:store_owner, owner_email: "owner@example.com")
     store = create(
       :store,
@@ -20,9 +20,8 @@ RSpec.describe DashboardPresenter do
       storefront_url: "/#{store.discogs_username}",
       last_sync_error_summary: "Discogs timeout",
       last_sync_error_at: store.last_sync_error_at,
-      owner_email: "owner@example.com",
       oauth_authorized_at: store.oauth_authorized_at
     )
-    expect(props).not_to include(:last_sync_error, :discogs_oauth_token, :discogs_oauth_token_secret)
+    expect(props).not_to include(:owner_email, :last_sync_error, :discogs_oauth_token, :discogs_oauth_token_secret)
   end
 end

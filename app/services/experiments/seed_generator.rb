@@ -16,21 +16,29 @@ module Experiments
     end
 
     def call
+      scored, excluded_count = fetch_and_score
+      top_n = scored.sort_by { |e| -e[:score] }.first(crate_size)
+      build_result(top_n, excluded_count)
+    end
+
+    private
+
+    def fetch_and_score
       listings = fetch_listings
       raise Error, "No LP listings found for store #{store_id}" if listings.empty?
 
       excluded_ids = previously_labeled_ids
-      scored = score_listings(listings)
-      scored.reject! { |e| excluded_ids.include?(e[:listing].discogs_release_id) }
-      excluded_count = excluded_ids.size
+      [ filter_scored(listings, excluded_ids), excluded_ids.size ]
+    end
 
-      top_n = scored.sort_by { |e| -e[:score] }.first(crate_size)
+    def build_result(top_n, excluded_count)
       seed_data = build_seed_data(top_n)
-
       Result.new(seed_data:, total_records: seed_data.size, excluded_count:)
     end
 
-    private
+    def filter_scored(listings, excluded_ids)
+      score_listings(listings).reject { |e| excluded_ids.include?(e[:listing].discogs_release_id) }
+    end
 
     attr_reader :store_id, :crate_name
 
@@ -49,16 +57,14 @@ module Experiments
     end
 
     def scorer
-      @scorer ||= begin
-        strategies = RecordScorer.default_strategies(genre_counts:, today: Date.today)
-        if Settings.experiments.disable_desirability
-          strategies = strategies.except(:desirability)
-        end
-        if Settings.experiments.disable_freshness
-          strategies = strategies.except(:freshness)
-        end
-        RecordScorer.new(strategies:, genre_counts:)
-      end
+      @scorer ||= RecordScorer.new(strategies:, genre_counts:)
+    end
+
+    def strategies
+      base = RecordScorer.default_strategies(genre_counts:, today: Date.today)
+      base = base.except(:desirability) if Settings.experiments.disable_desirability
+      base = base.except(:freshness) if Settings.experiments.disable_freshness
+      base
     end
 
     # ── De-duplication ──────────────────────────────────
@@ -87,33 +93,26 @@ module Experiments
     end
 
     def build_seed_data(top_n)
-      top_n.each_with_index.map do |entry, position|
-        listing = entry[:listing]
-        score = entry[:score]
-        breakdown = entry[:breakdown]
+      top_n.each_with_index.map { |entry, position| seed_entry(entry, position) }
+    end
 
-        {
-          position:,
-          crate: crate_name,
-          discogs_release_id: listing.discogs_release_id,
-          artist: listing.artist,
-          title: listing.title,
-          year: listing.year,
-          genres: listing.genres,
-          styles: listing.styles,
-          condition: listing.condition,
-          price: listing.price,
-          format: listing.format,
-          label: listing.label,
-          want_count: listing.want_count,
-          have_count: listing.have_count,
-          cover_image_url: listing.cover_image_url,
-          thumbnail_url: listing.thumbnail_url,
-          algorithm_score: score,
-          score_breakdown: breakdown,
-          is_duplicate_of: nil
-        }
-      end
+    def seed_entry(entry, position)
+      listing = entry[:listing]
+      {
+        position:, crate: crate_name,
+        discogs_release_id: listing.discogs_release_id,
+        artist: listing.artist, title: listing.title,
+        year: listing.year, genres: listing.genres,
+        styles: listing.styles, condition: listing.condition,
+        price: listing.price, format: listing.format,
+        label: listing.label,
+        want_count: listing.want_count, have_count: listing.have_count,
+        cover_image_url: listing.cover_image_url,
+        thumbnail_url: listing.thumbnail_url,
+        algorithm_score: entry[:score],
+        score_breakdown: entry[:breakdown],
+        is_duplicate_of: nil
+      }
     end
   end
 end

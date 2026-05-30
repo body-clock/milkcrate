@@ -31,14 +31,20 @@ module CsvExportSync
     private
 
     def normalize_row(row, store_id:)
-      record = { store_id:, last_seen_at: Time.current }
+      record = base_record(store_id)
+      apply_fields(record, row)
+      record
+    end
 
+    def base_record(store_id)
+      { store_id:, last_seen_at: Time.current }
+    end
+
+    def apply_fields(record, row)
       HEADER_TO_FIELD.each do |header, config|
         value = row[header]
         record[config[:field]] = value.nil? ? nil : config[:coerce].call(value)
       end
-
-      record
     end
 
     def self.parse_time(str)

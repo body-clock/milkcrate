@@ -1,41 +1,48 @@
-import React, { useState, useRef, type KeyboardEvent } from "react"
-import { router } from "@inertiajs/react"
-import Button from "@/components/ui/button"
-import Field from "@/components/ui/field"
-import FeedbackMessage from "@/components/ui/feedback_message"
-import BrandMark from "@/components/brand_mark"
+import React, { useState, type KeyboardEvent } from "react";
+import { router } from "@inertiajs/react";
+import Button from "@/components/ui/button";
+import Field from "@/components/ui/field";
+import FeedbackMessage from "@/components/ui/feedback_message";
+import BrandMark from "@/components/brand_mark";
 
 interface TotpSetupErrors {
-  code?: string[]
+  code?: string[];
 }
 
 interface TotpSetupPageProps {
-  qr_code: string
-  secret: string
-  already_enabled: boolean
-  errors?: TotpSetupErrors
-  notice?: string
-  alert?: string
+  qr_code: string;
+  secret: string;
+  already_enabled: boolean;
+  errors?: TotpSetupErrors;
+  notice?: string;
+  alert?: string;
 }
 
-export default function AdminTotpSetup({ qr_code, secret, already_enabled, errors, notice, alert }: TotpSetupPageProps) {
-  const [code, setCode] = useState("")
-  const [submitting, setSubmitting] = useState(false)
+export default function AdminTotpSetup({
+  qr_code,
+  secret,
+  already_enabled,
+  errors,
+  notice,
+  alert,
+}: TotpSetupPageProps) {
+  const [code, setCode] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    const trimmed = code.trim()
-    if (trimmed.length < 6) return
+    e.preventDefault();
+    const trimmed = code.trim();
+    if (trimmed.length < 6) return;
 
-    setSubmitting(true)
+    setSubmitting(true);
     router.post(
       "/admin/totp/setup",
       { code: trimmed },
       {
         onFinish: () => setSubmitting(false),
         preserveState: true,
-      }
-    )
+      },
+    );
   }
 
   function handleKeyDown(e: KeyboardEvent<HTMLInputElement>) {
@@ -43,9 +50,9 @@ export default function AdminTotpSetup({ qr_code, secret, already_enabled, error
       /^\d$/.test(e.key) ||
       ["Backspace", "Delete", "Tab", "ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)
     ) {
-      return
+      return;
     }
-    e.preventDefault()
+    e.preventDefault();
   }
 
   // Already set up — admins should not be re-prompted to set up
@@ -59,13 +66,11 @@ export default function AdminTotpSetup({ qr_code, secret, already_enabled, error
             Two-factor authentication is already active on this account.
           </p>
           <div className="mt-6">
-            <Button onClick={() => router.get("/admin/totp")}>
-              Enter authentication code
-            </Button>
+            <Button onClick={() => router.get("/admin/totp")}>Enter authentication code</Button>
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -83,23 +88,23 @@ export default function AdminTotpSetup({ qr_code, secret, already_enabled, error
         {/* Flash messages */}
         {notice && (
           <div className="mb-4">
-            <FeedbackMessage tone="success" live="polite">{notice}</FeedbackMessage>
+            <FeedbackMessage tone="success" live="polite">
+              {notice}
+            </FeedbackMessage>
           </div>
         )}
         {alert && (
           <div className="mb-4">
-            <FeedbackMessage tone="danger" live="assertive">{alert}</FeedbackMessage>
+            <FeedbackMessage tone="danger" live="assertive">
+              {alert}
+            </FeedbackMessage>
           </div>
         )}
 
         {/* QR Code */}
         <div className="mb-6 flex justify-center">
           <div className="rounded-lg border border-mc-border bg-white p-4">
-            <img
-              src={qr_code}
-              alt="QR code for authenticator app setup"
-              className="h-48 w-48"
-            />
+            <img src={qr_code} alt="QR code for authenticator app setup" className="h-48 w-48" />
           </div>
         </div>
 
@@ -116,22 +121,19 @@ export default function AdminTotpSetup({ qr_code, secret, already_enabled, error
         {/* Verification */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <p className="text-xs text-center text-mc-text-dim">
-            After scanning, enter the 6-digit code from your app to confirm it&apos;s set up correctly.
+            After scanning, enter the 6-digit code from your app to confirm it&apos;s set up
+            correctly.
           </p>
 
-          <Field
-            id="totp-setup-code"
-            label="Verification code"
-            error={errors?.code?.[0]}
-          >
+          <Field id="totp-setup-code" label="Verification code" error={errors?.code?.[0]}>
             <input
               type="text"
               inputMode="numeric"
               name="code"
               value={code}
               onChange={(e) => {
-                const digitsOnly = e.target.value.replace(/\D/g, "").slice(0, 6)
-                setCode(digitsOnly)
+                const digitsOnly = e.target.value.replace(/\D/g, "").slice(0, 6);
+                setCode(digitsOnly);
               }}
               onKeyDown={handleKeyDown}
               placeholder="000000"
@@ -143,16 +145,11 @@ export default function AdminTotpSetup({ qr_code, secret, already_enabled, error
             />
           </Field>
 
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={code.length < 6}
-            busy={submitting}
-          >
+          <Button type="submit" className="w-full" disabled={code.length < 6} busy={submitting}>
             {submitting ? "Verifying..." : "Enable two-factor authentication"}
           </Button>
         </form>
       </div>
     </div>
-  )
+  );
 }

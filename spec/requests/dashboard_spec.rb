@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "Dashboard", type: :request do
-  let(:store_owner) { create(:store_owner, owner_email: "owner@example.com") }
+  let(:store_owner) { create(:store_owner) }
   let!(:store) do
     create(
       :store,

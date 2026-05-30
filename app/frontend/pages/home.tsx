@@ -1,48 +1,48 @@
-import { Link } from "@inertiajs/react"
-import { motion } from "framer-motion"
-import type { Variants } from "framer-motion"
-import MarketingLayout from "@/layouts/marketing_layout"
-import CrateView from "@/components/crate_view"
-import DiscogsSellerLookupInput from "@/components/discogs_seller_lookup_input"
-import { actionClassName } from "@/components/ui/action"
-import { PileProvider } from "@/contexts/pile_context"
-import type { HomepagePreview } from "@/types/inertia"
+import { Link } from "@inertiajs/react";
+import { motion } from "framer-motion";
+import type { Variants } from "framer-motion";
+import MarketingLayout from "@/layouts/marketing_layout";
+import CrateView from "@/components/crate_view";
+import DiscogsSellerLookupInput from "@/components/discogs_seller_lookup_input";
+import { actionClassName } from "@/components/ui/action";
+import { PileProvider } from "@/contexts/pile_context";
+import type { HomepagePreview } from "@/types/inertia";
 
 interface Props {
   copy: {
-    headline: string
-    subhead: string
-    cta_demo: string
-    hero_subhead: string
+    headline: string;
+    subhead: string;
+    cta_demo: string;
+    hero_subhead: string;
     steps: {
-      step1_title: string
-      step1_body: string
-      step2_title: string
-      step2_body: string
-      step3_title: string
-      step3_body: string
-    }
-    preview_blurb: string
-    preview_label: string
-    store_character_title: string
-    seller_section_title: string
-    seller_section_body: string
-    seller_input_label: string
-    seller_input_placeholder: string
-    seller_submit: string
-    seller_preview_claim: string
-    seller_not_found: string
-    seller_already_active: string
-    seller_applicant_exists: string
-    seller_waitlist_fallback: string
-    seller_min_listings: string
-    seller_lookup_error: string
-    bottom_signoff: string
-  }
-  preview: HomepagePreview
+      step1_title: string;
+      step1_body: string;
+      step2_title: string;
+      step2_body: string;
+      step3_title: string;
+      step3_body: string;
+    };
+    preview_blurb: string;
+    preview_label: string;
+    store_character_title: string;
+    seller_section_title: string;
+    seller_section_body: string;
+    seller_input_label: string;
+    seller_input_placeholder: string;
+    seller_submit: string;
+    seller_preview_claim: string;
+    seller_not_found: string;
+    seller_already_active: string;
+    seller_applicant_exists: string;
+    seller_waitlist_fallback: string;
+    seller_min_listings: string;
+    seller_lookup_error: string;
+    bottom_signoff: string;
+  };
+  preview: HomepagePreview;
 }
 
-const easeOut = [0.25, 0.46, 0.45, 0.94] as const
+const easeOut = [0.25, 0.46, 0.45, 0.94] as const;
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 12 },
@@ -51,7 +51,7 @@ const fadeUp: Variants = {
     y: 0,
     transition: { duration: 0.5, ease: easeOut },
   },
-}
+};
 
 const fadeIn: Variants = {
   hidden: { opacity: 0 },
@@ -59,13 +59,76 @@ const fadeIn: Variants = {
     opacity: 1,
     transition: { duration: 0.4, ease: easeOut },
   },
+};
+
+// ── Feature card data ───────────────────────────────────────
+
+interface FeatureData {
+  title: string;
+  description: string;
 }
 
+const FEATURES: FeatureData[] = [
+  { title: "Milkcrate Picks", description: "Interesting finds from the whole collection." },
+  {
+    title: "Featured Crates",
+    description: "Spotlight new arrivals, randomized sub-genres, and hidden gems.",
+  },
+  { title: "Genre Bins", description: "Records organized by genre, just like a real shop." },
+  {
+    title: "Start a Pile",
+    description: "Collect records as you browse, then carry them over to Discogs.",
+  },
+];
+
+// ── Sub-components ───────────────────────────────────────────
+
+function FeatureCard({ title, description }: FeatureData) {
+  return (
+    <motion.div
+      variants={fadeIn}
+      className="flex flex-col items-center text-center gap-3 p-5 rounded-xl bg-mc-bg-raised border border-mc-border"
+    >
+      <h3 className="text-base font-semibold text-mc-text">{title}</h3>
+      <p className="text-sm text-mc-text-dim leading-relaxed">{description}</p>
+    </motion.div>
+  );
+}
+
+function StepCard({
+  number,
+  title,
+  description,
+}: {
+  number: number;
+  title: string;
+  description: string;
+}) {
+  return (
+    <motion.div variants={fadeUp} className="flex flex-col items-center text-center gap-3">
+      <div className="w-10 h-10 rounded-full bg-mc-accent text-mc-on-accent flex items-center justify-center font-bold text-sm">
+        {number}
+      </div>
+      <h3 className="text-sm font-semibold text-mc-text">{title}</h3>
+      <p className="text-xs text-mc-text-dim leading-relaxed max-w-[220px]">{description}</p>
+    </motion.div>
+  );
+}
+
+// ── Main component ───────────────────────────────────────────
+
 export default function Home({ copy, preview }: Props) {
-  const hasPreview = preview.sections.length > 0
-  const picksSection = preview.sections.find((section) => section.key === "picks_wall")
-  const picksCrate = picksSection?.key === "picks_wall" ? picksSection.crate : undefined
-  const demoHref = hasPreview && preview.store_slug ? `/${preview.store_slug}` : "/philadelphiamusic"
+  const hasPreview = preview.sections.length > 0;
+  const picksSection = preview.sections.find((section) => section.key === "picks_wall");
+  const picksCrate = picksSection?.key === "picks_wall" ? picksSection.crate : undefined;
+  const demoHref =
+    hasPreview && preview.store_slug ? `/${preview.store_slug}` : "/philadelphiamusic";
+
+  const steps = [
+    { number: 1, title: copy.steps.step1_title, description: copy.steps.step1_body },
+    { number: 2, title: copy.steps.step2_title, description: copy.steps.step2_body },
+    { number: 3, title: copy.steps.step3_title, description: copy.steps.step3_body },
+  ];
 
   return (
     <MarketingLayout>
@@ -94,7 +157,10 @@ export default function Home({ copy, preview }: Props) {
         <motion.div variants={fadeUp}>
           <Link
             href={demoHref}
-            className={actionClassName({ size: "lg", className: "w-full text-center tracking-wide sm:w-auto" })}
+            className={actionClassName({
+              size: "lg",
+              className: "w-full text-center tracking-wide sm:w-auto",
+            })}
           >
             {copy.cta_demo}
           </Link>
@@ -141,14 +207,22 @@ export default function Home({ copy, preview }: Props) {
               {preview.store_slug ? (
                 <Link
                   href={`/${preview.store_slug}`}
-                  className={actionClassName({ variant: "ghost", size: "sm", className: "uppercase tracking-widest text-mc-accent" })}
+                  className={actionClassName({
+                    variant: "ghost",
+                    size: "sm",
+                    className: "uppercase tracking-widest text-mc-accent",
+                  })}
                 >
                   See the full store →
                 </Link>
               ) : (
                 <Link
                   href="/philadelphiamusic"
-                  className={actionClassName({ variant: "ghost", size: "sm", className: "uppercase tracking-widest text-mc-accent" })}
+                  className={actionClassName({
+                    variant: "ghost",
+                    size: "sm",
+                    className: "uppercase tracking-widest text-mc-accent",
+                  })}
                 >
                   See the full store →
                 </Link>
@@ -158,12 +232,16 @@ export default function Home({ copy, preview }: Props) {
         ) : (
           <div className="text-center max-w-md mx-auto">
             <p className="text-sm text-mc-text-dim mb-4">
-              We&apos;ll show the full Milkcrate experience in the demo store. Start with a
-              curated picks crate.
+              We&apos;ll show the full Milkcrate experience in the demo store. Start with a curated
+              picks crate.
             </p>
             <Link
               href="/philadelphiamusic"
-              className={actionClassName({ variant: "ghost", size: "sm", className: "uppercase tracking-widest text-mc-accent" })}
+              className={actionClassName({
+                variant: "ghost",
+                size: "sm",
+                className: "uppercase tracking-widest text-mc-accent",
+              })}
             >
               Philadelphia Music →
             </Link>
@@ -188,45 +266,13 @@ export default function Home({ copy, preview }: Props) {
         </motion.h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-4xl mx-auto">
-          <motion.div
-            variants={fadeIn}
-            className="flex flex-col items-center text-center gap-3 p-5 rounded-xl bg-mc-bg-raised border border-mc-border"
-          >
-            <h3 className="text-base font-semibold text-mc-text">Milkcrate Picks</h3>
-            <p className="text-sm text-mc-text-dim leading-relaxed">
-              Interesting finds from the whole collection.
-            </p>
-          </motion.div>
-
-          <motion.div
-            variants={fadeIn}
-            className="flex flex-col items-center text-center gap-3 p-5 rounded-xl bg-mc-bg-raised border border-mc-border"
-          >
-            <h3 className="text-base font-semibold text-mc-text">Featured Crates</h3>
-            <p className="text-sm text-mc-text-dim leading-relaxed">
-              Spotlight new arrivals, randomized sub-genres, and hidden gems.
-            </p>
-          </motion.div>
-
-          <motion.div
-            variants={fadeIn}
-            className="flex flex-col items-center text-center gap-3 p-5 rounded-xl bg-mc-bg-raised border border-mc-border"
-          >
-            <h3 className="text-base font-semibold text-mc-text">Genre Bins</h3>
-            <p className="text-sm text-mc-text-dim leading-relaxed">
-              Records organized by genre, just like a real shop.
-            </p>
-          </motion.div>
-
-          <motion.div
-            variants={fadeIn}
-            className="flex flex-col items-center text-center gap-3 p-5 rounded-xl bg-mc-bg-raised border border-mc-border"
-          >
-            <h3 className="text-base font-semibold text-mc-text">Start a Pile</h3>
-            <p className="text-sm text-mc-text-dim leading-relaxed">
-              Collect records as you browse, then carry them over to Discogs.
-            </p>
-          </motion.div>
+          {FEATURES.map((feature) => (
+            <FeatureCard
+              key={feature.title}
+              title={feature.title}
+              description={feature.description}
+            />
+          ))}
         </div>
       </motion.section>
 
@@ -268,14 +314,8 @@ export default function Home({ copy, preview }: Props) {
               }}
             />
           </motion.div>
-          <motion.div
-            variants={fadeUp}
-            className="text-center mt-4"
-          >
-            <Link
-              href="/apply"
-              className={actionClassName({ variant: "ghost", size: "sm" })}
-            >
+          <motion.div variants={fadeUp} className="text-center mt-4">
+            <Link href="/apply" className={actionClassName({ variant: "ghost", size: "sm" })}>
               {copy.seller_waitlist_fallback}
             </Link>
           </motion.div>
@@ -292,50 +332,14 @@ export default function Home({ copy, preview }: Props) {
       >
         <div className="max-w-4xl mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-10">
-            <motion.div
-              variants={fadeUp}
-              className="flex flex-col items-center text-center gap-3"
-            >
-              <div className="w-10 h-10 rounded-full bg-mc-accent text-mc-on-accent flex items-center justify-center font-bold text-sm">
-                1
-              </div>
-              <h3 className="text-sm font-semibold text-mc-text">
-                {copy.steps.step1_title}
-              </h3>
-              <p className="text-xs text-mc-text-dim leading-relaxed max-w-[220px]">
-                {copy.steps.step1_body}
-              </p>
-            </motion.div>
-
-            <motion.div
-              variants={fadeUp}
-              className="flex flex-col items-center text-center gap-3"
-            >
-              <div className="w-10 h-10 rounded-full bg-mc-accent text-mc-on-accent flex items-center justify-center font-bold text-sm">
-                2
-              </div>
-              <h3 className="text-sm font-semibold text-mc-text">
-                {copy.steps.step2_title}
-              </h3>
-              <p className="text-xs text-mc-text-dim leading-relaxed max-w-[220px]">
-                {copy.steps.step2_body}
-              </p>
-            </motion.div>
-
-            <motion.div
-              variants={fadeUp}
-              className="flex flex-col items-center text-center gap-3"
-            >
-              <div className="w-10 h-10 rounded-full bg-mc-accent text-mc-on-accent flex items-center justify-center font-bold text-sm">
-                3
-              </div>
-              <h3 className="text-sm font-semibold text-mc-text">
-                {copy.steps.step3_title}
-              </h3>
-              <p className="text-xs text-mc-text-dim leading-relaxed max-w-[220px]">
-                {copy.steps.step3_body}
-              </p>
-            </motion.div>
+            {steps.map((step) => (
+              <StepCard
+                key={step.number}
+                number={step.number}
+                title={step.title}
+                description={step.description}
+              />
+            ))}
           </div>
         </div>
       </motion.section>
@@ -348,14 +352,11 @@ export default function Home({ copy, preview }: Props) {
         className="border-t border-mc-border py-8 sm:py-10"
       >
         <div className="max-w-md mx-auto text-center">
-          <motion.p
-            variants={fadeUp}
-            className="text-sm text-mc-text-dim leading-relaxed"
-          >
+          <motion.p variants={fadeUp} className="text-sm text-mc-text-dim leading-relaxed">
             {copy.bottom_signoff}
           </motion.p>
         </div>
       </motion.section>
     </MarketingLayout>
-  )
+  );
 }

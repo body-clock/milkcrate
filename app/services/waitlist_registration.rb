@@ -10,24 +10,34 @@ class WaitlistRegistration
   end
 
   def call
-    unless turnstile_verified?
-      return Result.new(success: false, waitlist: nil, errors: {
-        turnstile: [ { error: "Please confirm you are human.", value: nil } ]
-      })
-    end
-
+    return turnstile_failure unless turnstile_verified?
     entry = Waitlist.new(waitlist_params)
-
-    if entry.save
-      SellerMailer.confirmation(entry).deliver_later
-      SellerMailer.admin_notification(entry).deliver_later
-      Result.new(success: true, waitlist: entry, errors: nil)
-    else
-      Result.new(success: false, waitlist: entry, errors: serialize_errors(entry.errors))
-    end
+    persist(entry)
   end
 
   private
+
+  def turnstile_failure
+    Result.new(success: false, waitlist: nil, errors: {
+      turnstile: [ { error: "Please confirm you are human.", value: nil } ]
+    })
+  end
+
+  def persist(entry)
+    return invalid_result(entry) unless entry.save
+
+    deliver_confirmations(entry)
+    Result.new(success: true, waitlist: entry, errors: nil)
+  end
+
+  def invalid_result(entry)
+    Result.new(success: false, waitlist: entry, errors: serialize_errors(entry.errors))
+  end
+
+  def deliver_confirmations(entry)
+    SellerMailer.confirmation(entry).deliver_later
+    SellerMailer.admin_notification(entry).deliver_later
+  end
 
   def turnstile_verified?
     return true unless @turnstile_verifier.enabled?

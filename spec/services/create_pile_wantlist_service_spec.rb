@@ -160,12 +160,10 @@ RSpec.describe CreatePileWantlistService do
       before do
         allow(store.listings).to receive(:where).and_call_original
         # Stub the listing resolution to return 51 unique releases
-        listings = item_ids.map.with_index do |id, i|
-          instance_double(Listing, discogs_release_id: 20_000 + i)
-        end
+        listings = item_ids.map.with_index { |id, i| [ id, 20_000 + i ] }
         relation = double("Relation")
         allow(store.listings).to receive(:where).with(discogs_listing_id: item_ids).and_return(relation)
-        allow(relation).to receive(:pluck).with(:discogs_release_id).and_return(listings.map(&:discogs_release_id))
+        allow(relation).to receive(:pluck).with(:discogs_listing_id, :discogs_release_id).and_return(listings)
       end
 
       it "returns an error" do
@@ -266,6 +264,19 @@ RSpec.describe CreatePileWantlistService do
       end
 
       it "stops processing on rate limit" do
+        result = service.call
+
+        expect(result).to be_success
+        expect(result.added_count).to eq(1)
+        expect(result.skipped_count).to eq(1)
+      end
+
+      it "processes releases in pile order when records resolve in another order" do
+        relation = instance_double(ActiveRecord::Relation)
+        allow(store.listings).to receive(:where).with(discogs_listing_id: item_ids).and_return(relation)
+        allow(relation).to receive(:pluck).with(:discogs_listing_id, :discogs_release_id)
+          .and_return([ [ "222", 10_002 ], [ "111", 10_001 ] ])
+
         result = service.call
 
         expect(result).to be_success

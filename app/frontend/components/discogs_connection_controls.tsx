@@ -1,23 +1,26 @@
-import { actionClassName } from "./ui/action"
+import { actionClassName } from "./ui/action";
+import { csrfToken } from "@/lib/csrf_token";
 
 interface FormProps {
-  className?: string
-  buttonClassName?: string
+  className?: string;
+  buttonClassName?: string;
 }
 
 interface ConnectFormProps extends FormProps {
-  storeSlug: string
+  storeSlug: string;
+  crateSlug?: string;
 }
 
-const defaultConnectButtonClassName = actionClassName({ size: "lg" })
-const defaultDisconnectButtonClassName = actionClassName({ variant: "ghost", size: "sm", className: "min-h-11" })
-
-function csrfToken() {
-  return document.querySelector<HTMLMetaElement>("meta[name='csrf-token']")?.content ?? ""
-}
+const defaultConnectButtonClassName = actionClassName({ size: "lg" });
+const defaultDisconnectButtonClassName = actionClassName({
+  variant: "ghost",
+  size: "sm",
+  className: "min-h-11",
+});
 
 export function DiscogsConnectForm({
   storeSlug,
+  crateSlug,
   className,
   buttonClassName = defaultConnectButtonClassName,
 }: ConnectFormProps) {
@@ -25,11 +28,12 @@ export function DiscogsConnectForm({
     <form method="POST" action="/auth/discogs/shopper/authorize" className={className}>
       <input type="hidden" name="authenticity_token" value={csrfToken()} />
       <input type="hidden" name="store_slug" value={storeSlug} />
+      {crateSlug && <input type="hidden" name="crate_slug" value={crateSlug} />}
       <button type="submit" className={buttonClassName}>
         Connect with Discogs
       </button>
     </form>
-  )
+  );
 }
 
 export function DiscogsDisconnectForm({
@@ -44,5 +48,5 @@ export function DiscogsDisconnectForm({
         Disconnect
       </button>
     </form>
-  )
+  );
 }

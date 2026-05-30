@@ -11,10 +11,21 @@ module CrateStrategies
   #   - Picks (genre-diversity sort + seed shuffle)
   #   - Thematic (tuple return + multi-step theme discovery)
   module SelectionPipeline
+    private
+
     def score_and_sort(pool, excluded_ids:, scorer:)
+      candidates = exclude_and_filter(pool, excluded_ids) { |c| yield(c) }
+      rank(candidates, scorer)
+    end
+
+    def exclude_and_filter(pool, excluded_ids)
       pool
         .reject { |l| excluded_ids.include?(l.id) }
         .yield_self { |candidates| yield(candidates) }
+    end
+
+    def rank(candidates, scorer)
+      candidates
         .map { |l| [ l, scorer.score(l) ] }
         .sort_by { |_, s| -s }
         .map(&:first)

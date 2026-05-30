@@ -1,11 +1,4 @@
-require "set"
-
-# Namespace for storefront curation and cache management.
 class StorefrontCuration
-  # Delegates cache operations to StorefrontCuration::CacheManager.
-  # This keeps the curation class focused on building crate groupings while
-  # cache lifecycle (fetch, write, key construction) lives in the extracted
-  # concern.
   def self.cached_curation(...) = CacheManager.cached_curation(...)
   def self.write_curation_cache(...) = CacheManager.write_curation_cache(...)
 
@@ -15,17 +8,14 @@ class StorefrontCuration
   end
 
   def crates
-    picks_list = picks_strategy.select(eligible_listings, excluded_ids: Set.new, count: 12)
-    picks_ids = picks_list.map(&:id).to_set
-
+    picks_list, picks_ids = picks_setup
     featured_crates = build_featured_crates(excluded_ids: picks_ids)
     featured_ids = featured_crates.flat_map(&:listings).map(&:id).to_set
-    all_excluded = picks_ids | featured_ids
 
     [
       CuratedCrate.new(slug: "picks", name: "Milkcrate Picks", listings: picks_list),
       *featured_crates,
-      *build_genre_crates(excluded_ids: all_excluded)
+      *build_genre_crates(excluded_ids: picks_ids | featured_ids)
     ]
   end
 
@@ -54,30 +44,23 @@ class StorefrontCuration
 
   private
 
-  # -----------------------------------------------------------------------
-  # Featured crates (New Arrivals + Thematic + Hidden Gems)
-  # -----------------------------------------------------------------------
+  def picks_setup
+    picks_list = picks_strategy.select(eligible_listings, excluded_ids: Set.new, count: 12)
+    [ picks_list, picks_list.map(&:id).to_set ]
+  end
 
   def build_featured_crates(excluded_ids:)
-    crates = []
-    seen   = excluded_ids.dup
-
-    new_arrivals = build_new_arrivals_crate(excluded_ids: seen)
-    if new_arrivals
-      crates << new_arrivals
-      new_arrivals.listings.each { |l| seen.add(l.id) }
-    end
-
-    thematic = build_thematic_crate(excluded_ids: seen)
-    if thematic
-      crates << thematic
-      thematic.listings.each { |l| seen.add(l.id) }
-    end
-
-    hidden_gems = build_hidden_gems_crate(excluded_ids: seen)
-    crates << hidden_gems if hidden_gems
-
+    seen = excluded_ids.dup
+    crates = add_crate(seen, build_new_arrivals_crate(excluded_ids: seen))
+    crates += add_crate(seen, build_thematic_crate(excluded_ids: seen))
+    crates += add_crate(seen, build_hidden_gems_crate(excluded_ids: seen))
     crates
+  end
+
+  def add_crate(seen, crate)
+    return [] unless crate
+    crate.listings.each { |l| seen.add(l.id) }
+    [ crate ]
   end
 
   def build_new_arrivals_crate(excluded_ids:)
@@ -95,44 +78,46 @@ class StorefrontCuration
     return if result.nil?
 
     name, listings = result
-    capped = listings.first(CuratedCrate::CRATE_SIZE)
-    crate = CuratedCrate.new(slug: "thematic", name:, listings: capped)
+    viable_crate(slug: "thematic", name:, listings:)
+  end
+
+  def viable_crate(slug:, name:, listings:, size: CuratedCrate::CRATE_SIZE)
+    capped = listings.first(size)
+    crate = CuratedCrate.new(slug:, name:, listings: capped)
     return unless crate.viable?
 
     crate
   end
 
-  # -----------------------------------------------------------------------
-  # Genre crates
-  # -----------------------------------------------------------------------
-
   def build_genre_crates(excluded_ids:)
     seen_ids = excluded_ids.dup
 
     genre_counts.sort_by { |_, count| -count }.filter_map do |genre, _|
-      strategy = CrateStrategies::Genre.new(genre:, genre_counts:, today: Date.today)
-      listings = strategy.select(eligible_listings, excluded_ids: seen_ids)
-      next if listings.empty?
-
-      crate = CuratedCrate.new(slug: genre.parameterize, name: genre, listings:)
-      next unless crate.viable?
-
-      listings.each { |listing| seen_ids.add(listing.id) }
-      crate
+      genre_crate(genre:, seen_ids:)
     end
   end
 
-  # -----------------------------------------------------------------------
-  # Strategies (lazy)
-  # -----------------------------------------------------------------------
-
-  def picks_strategy
-    @picks_strategy ||= CrateStrategies::Picks.new(genre_counts:, today: Date.today)
+  def genre_crate(genre:, seen_ids:)
+    listings = genre_listings(genre, seen_ids)
+    return if listings.empty?
+    build_and_track(genre, listings, seen_ids)
   end
 
-  def new_arrivals_strategy
-    @new_arrivals_strategy ||= CrateStrategies::NewArrivals.new(genre_counts:, today: Date.today)
+  def build_and_track(genre, listings, seen_ids)
+    crate = CuratedCrate.new(slug: genre.parameterize, name: genre, listings:)
+    return unless crate.viable?
+
+    seen_ids.merge(listings.map(&:id))
+    crate
   end
+  def genre_listings(genre, seen_ids)
+    strategy = CrateStrategies::Genre.new(genre:, genre_counts:, today: Date.today)
+    strategy.select(eligible_listings, excluded_ids: seen_ids)
+  end
+  # Strategies
+  def picks_strategy = @picks_strategy ||= CrateStrategies::Picks.new(genre_counts:, today: Date.today)
+
+  def new_arrivals_strategy = @new_arrivals_strategy ||= CrateStrategies::NewArrivals.new(genre_counts:, today: Date.today)
 
   def thematic_strategy
     @thematic_strategy ||= CrateStrategies::Thematic.new(
@@ -142,25 +127,15 @@ class StorefrontCuration
     )
   end
 
-  def hidden_gems_strategy
-    @hidden_gems_strategy ||= CrateStrategies::HiddenGems.new(genre_counts:, today: Date.today)
-  end
+  def hidden_gems_strategy = @hidden_gems_strategy ||= CrateStrategies::HiddenGems.new(genre_counts:, today: Date.today)
 
   def build_hidden_gems_crate(excluded_ids:)
     listings = hidden_gems_strategy.select(eligible_listings, excluded_ids:)
     return if listings.empty?
 
-    capped = listings.first(CuratedCrate::CRATE_SIZE)
-    crate = CuratedCrate.new(slug: "hidden-gems", name: "Hidden Gems", listings: capped)
-    return unless crate.viable?
-
-    crate
+    viable_crate(slug: "hidden-gems", name: "Hidden Gems", listings:)
   end
-
-  # -----------------------------------------------------------------------
   # Data sources
-  # -----------------------------------------------------------------------
-
   def eligible_listings
     @eligible_listings ||= begin
       scope = @store.listings
@@ -169,7 +144,5 @@ class StorefrontCuration
     end
   end
 
-  def genre_counts
-    @genre_counts ||= eligible_listings.map(&:primary_genre).compact.tally
-  end
+  def genre_counts = @genre_counts ||= eligible_listings.map(&:primary_genre).compact.tally
 end

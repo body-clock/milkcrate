@@ -12,20 +12,27 @@ class StoreOnboarding
   end
 
   def call
-    raise Error, "Discogs username is required" if discogs_username.blank?
-    raise Error, "Store already exists for #{discogs_username}" if Store.with_discogs_username(discogs_username).exists?
-
-    profile = client.seller_profile(discogs_username)
-    name = profile["name"].presence || discogs_username
-    discogs_id = profile["id"] if profile["id"].is_a?(Integer)
-    store = Store.create!(discogs_username:, name:, discogs_user_id: discogs_id)
-
+    validate!
+    store = create_store!
     FullStoreSyncJob.perform_later(store.id)
-
     Result.new(store:)
   end
 
   private
+
+  def validate!
+    raise Error, "Discogs username is required" if discogs_username.blank?
+    raise Error, "Store already exists for #{discogs_username}" if Store.with_discogs_username(discogs_username).exists?
+  end
+
+  def create_store!
+    profile = client.seller_profile(discogs_username)
+    Store.create!(
+      discogs_username:,
+      name: profile["name"].presence || discogs_username,
+      discogs_user_id: profile["id"].is_a?(Integer) ? profile["id"] : nil
+    )
+  end
 
   attr_reader :discogs_username, :waitlist
 

@@ -14,18 +14,23 @@ class StoresController < ApplicationController
     return redirect_to slug.present? ? store_path(slug) : root_path, alert: "Invalid username" if slug.blank?
 
     result = AuthorizeStoreService.new(slug:, callback_url: discogs_oauth_callback_url).call
+    return redirect_to store_path(slug), alert: result.error unless result.success?
 
-    if result.success?
-      session[:oauth_request_token] = result.request_token
-      session[:oauth_request_token_secret] = result.request_token_secret
-      session[:oauth_store_slug] = slug
-      redirect_to result.authorize_url, allow_other_host: true
-    else
-      redirect_to store_path(slug), alert: result.error
-    end
+    redirect_to_discogs(slug, result)
   end
 
   private
+
+  def redirect_to_discogs(slug, result)
+    store_owner_oauth_session(slug, result)
+    redirect_to result.authorize_url, allow_other_host: true
+  end
+
+  def store_owner_oauth_session(slug, result)
+    session[:oauth_request_token] = result.request_token
+    session[:oauth_request_token_secret] = result.request_token_secret
+    session[:oauth_store_slug] = slug
+  end
 
   def render_store(store)
     cached = StorefrontCuration.cached_curation(store,

@@ -1,0 +1,34 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["import", "react", "jest", "unicorn", "oxc", "typescript"],
+  "env": {
+    "browser": true,
+    "node": true,
+    "vitest": true
+  },
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn",
+    "perf": "warn",
+    "restriction": "off",
+    "nursery": "warn",
+    "style": "off"
+  },
+  "rules": {
+    "no-unused-vars": "off",
+    "no-console": "off",
+    "typescript/no-unused-vars": "error",
+    "react/react-in-jsx-scope": "off",
+    "import/no-named-export": "off",
+    "unicorn/filename-case": "off",
+    "unicorn/no-null": "off",
+    "react/jsx-key": "error",
+    "sort-imports": "off",
+    "sort-keys": "off",
+    "func-style": "off",
+    "no-magic-numbers": "off",
+    "jest/no-hooks": "off",
+    "jest/prefer-lowercase-title": "off",
+    "react/jsx-max-depth": "off"
+  }
+}

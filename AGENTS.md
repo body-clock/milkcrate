@@ -57,10 +57,11 @@ unstructured and must be synthesized into the final report (same treatment as
 
 | Agent | Select when diff touches... |
 |-------|---------------------------|
+| `sandi-metz-js-reviewer` | JavaScript/TypeScript files (`*.js`, `*.jsx`, `*.ts`, `*.tsx`) with React components, hooks, or module-level abstractions. Pass `task: "Review this diff through a Sandi Metz lens adapted for React/JS. Check: component size (>100 lines), JSX return length (>10-15 lines), prop count (>4), hook complexity (>20 lines), components mixing fetch+render, prop drilling through 3+ levels, missing abstractions in repeated patterns. Report findings with file:line references."` |
 | `ce-dhh-rails-reviewer` | Rails architecture, service objects, session/auth choices, Hotwire-vs-SPA boundaries, abstractions that fight Rails conventions |
 | `ce-kieran-rails-reviewer` | Rails controllers, models, views, jobs, components, routes, or other application-layer Ruby code where clarity and conventions matter |
 
-For on-demand Sandi Metz review (outside the code review pipeline), use the `/ce-sandi-metz-review` skill — dispatches the same reviewer to analyze a specific file, directory, or the current diff.
+For on-demand Sandi Metz review (outside the code review pipeline), use the `/ce-sandi-metz-review` skill for Ruby/Rails code, or `/sandi-metz-js-review` for JavaScript/React/TypeScript code — each dispatches its respective reviewer to analyze a specific file, directory, or the current diff.
 
 These Rails reviewers complement the standard persona catalog. They are opinionated lenses
 on Rails-specific patterns — dispatch them in addition to (not instead of) the standard

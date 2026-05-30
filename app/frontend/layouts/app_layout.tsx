@@ -1,61 +1,75 @@
-import React, { useState } from "react"
-import { Link, usePage } from "@inertiajs/react"
-import { useTheme } from "@/hooks/use_theme"
-import { PileProvider, usePileContext } from "@/contexts/pile_context"
-import PileSheet from "@/components/pile_sheet"
-import StorefrontMotionConfig from "@/components/storefront_motion_config"
-import { ViewportProvider } from "@/contexts/viewport_context"
-import { useViewport } from "@/hooks/use_viewport"
-import BrandMark from "@/components/brand_mark"
-import MilkcrateShell from "@/layouts/milkcrate_shell"
-import { ShopperProvider, useShopperContext } from "@/contexts/shopper_context"
-import { DiscogsDisconnectForm } from "@/components/discogs_connection_controls"
-import FeedbackMessage from "@/components/ui/feedback_message"
-import type { Store } from "@/types/inertia"
+import React, { useState } from "react";
+import { Link, usePage } from "@inertiajs/react";
+import { useTheme } from "@/hooks/use_theme";
+import { PileProvider, usePileContext } from "@/contexts/pile_context";
+import PileSheet from "@/components/pile_sheet";
+import StorefrontMotionConfig from "@/components/storefront_motion_config";
+import { ViewportProvider } from "@/contexts/viewport_context";
+import { useViewport } from "@/hooks/use_viewport";
+import BrandMark from "@/components/brand_mark";
+import { IconBackButton } from "@/components/back_button";
+import MilkcrateShell from "@/layouts/milkcrate_shell";
+import { ShopperProvider, useShopperContext } from "@/contexts/shopper_context";
+import { DiscogsDisconnectForm } from "@/components/discogs_connection_controls";
+import FeedbackMessage from "@/components/ui/feedback_message";
+import type { Store } from "@/types/inertia";
 
 export interface CompactStoreLocation {
-  name: string
-  count: number
-  onBack: () => void
+  name: string;
+  count: number;
+  onBack: () => void;
 }
 
 interface AppLayoutProps {
-  children: React.ReactNode
-  compactLocation?: CompactStoreLocation
+  children: React.ReactNode;
+  compactLocation?: CompactStoreLocation;
 }
 
-export function AppLayoutContent({ children, compactLocation }: AppLayoutProps) {
-  const page = usePage<{ notice?: string; alert?: string; store?: Pick<Store, "name" | "discogs_username">; shopper?: { discogs_username: string } | null }>()
-  const notice = page.props.notice
-  const alertMsg = page.props.alert
-  const storeName = page.props.store?.name
-  const discogsUsername = page.props.store?.discogs_username
-  const { theme, toggle } = useTheme()
-  const { isCompact } = useViewport()
-  const { pile } = usePileContext()
-  const { shopper } = useShopperContext()
-  const [pileOpen, setPileOpen] = useState(false)
-  const handleClosePile = React.useCallback(() => setPileOpen(false), [])
-  const compactCrateLocation = isCompact ? compactLocation : undefined
-  const contextFocusRef = React.useRef<HTMLElement>(null)
+// ── Internal sub-components ───────────────────────────────────
 
-  const header = (
-    <header ref={contextFocusRef} tabIndex={-1} className="mc-header flex items-center justify-between px-4 py-2 sm:py-3 border-b border-mc-border sticky top-0 z-30 bg-mc-bg-raised/95 backdrop-blur-sm">
+interface AppHeaderProps {
+  compactCrateLocation?: CompactStoreLocation;
+  storeName?: string;
+  discogsUsername?: string;
+  isCompact: boolean;
+  pile: { length: number };
+  pileOpen: boolean;
+  theme: "light" | "dark";
+  toggle: () => void;
+  setPileOpen: (open: boolean) => void;
+  contextFocusRef: React.RefObject<HTMLElement | null>;
+}
+
+function AppHeader({
+  compactCrateLocation,
+  storeName,
+  discogsUsername,
+  isCompact,
+  pile,
+  pileOpen,
+  theme,
+  toggle,
+  setPileOpen,
+  contextFocusRef,
+}: AppHeaderProps) {
+  return (
+    <header
+      ref={contextFocusRef}
+      tabIndex={-1}
+      className="mc-header flex items-center justify-between px-4 py-2 sm:py-3 border-b border-mc-border sticky top-0 z-30 bg-mc-bg-raised/95 backdrop-blur-sm"
+    >
       <div className="flex min-w-0 items-center leading-none">
         {compactCrateLocation ? (
           <>
-            <button
-              type="button"
-              onClick={compactCrateLocation.onBack}
-              className="mr-3 flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-mc-border bg-mc-bg-raised text-lg leading-none text-mc-text-dim transition-[color,border-color,transform] hover:border-mc-accent hover:text-mc-accent active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
-              aria-label="Back to store"
-            >
-              <span aria-hidden="true" className="-translate-y-px">←</span>
-            </button>
+            <IconBackButton label="store" onClick={compactCrateLocation.onBack} className="mr-3" />
             <div className="min-w-0">
-              <span className="mc-brand-title block truncate text-base font-bold text-mc-text">{compactCrateLocation.name}</span>
+              <span className="mc-brand-title block truncate text-base font-bold text-mc-text">
+                {compactCrateLocation.name}
+              </span>
               <span className="block text-[10px] tracking-widest uppercase text-mc-text-dim">
-                {compactCrateLocation.count === 1 ? "1 record" : `${compactCrateLocation.count} records`}
+                {compactCrateLocation.count === 1
+                  ? "1 record"
+                  : `${compactCrateLocation.count} records`}
               </span>
             </div>
           </>
@@ -65,7 +79,9 @@ export function AppLayoutContent({ children, compactLocation }: AppLayoutProps) 
               href={`/${discogsUsername}`}
               className="rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
             >
-              <span className="mc-brand-title block truncate text-base font-bold text-mc-text">{storeName}</span>
+              <span className="mc-brand-title block truncate text-base font-bold text-mc-text">
+                {storeName}
+              </span>
             </Link>
             <Link
               href="/"
@@ -90,7 +106,7 @@ export function AppLayoutContent({ children, compactLocation }: AppLayoutProps) 
           <button
             type="button"
             onClick={() => setPileOpen(true)}
-            className="inline-flex min-h-10 items-center gap-2 rounded-md px-3 text-xs font-semibold text-mc-accent hover:bg-mc-accent/10 select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
+            className="inline-flex min-h-10 items-center gap-2 rounded-md border border-mc-border bg-mc-bg-card px-3 text-xs font-semibold text-mc-accent hover:bg-mc-accent/10 hover:border-mc-accent/30 select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
             aria-label={`Pile (${pile.length})`}
             aria-expanded={pileOpen}
             aria-controls="pile-sheet"
@@ -110,7 +126,45 @@ export function AppLayoutContent({ children, compactLocation }: AppLayoutProps) 
         )}
       </div>
     </header>
-  )
+  );
+}
+
+export function AppLayoutContent({ children, compactLocation }: AppLayoutProps) {
+  const page = usePage<{
+    notice?: string;
+    alert?: string;
+    store?: Pick<Store, "name" | "discogs_username">;
+    shopper?: { discogs_username: string } | null;
+  }>();
+  const notice = page.props.notice;
+  const alertMsg = page.props.alert;
+  const storeName = page.props.store?.name;
+  const discogsUsername = page.props.store?.discogs_username;
+  const { theme, toggle } = useTheme();
+  const { isCompact } = useViewport();
+  const { pile } = usePileContext();
+  const { shopper } = useShopperContext();
+  const autoOpenPile =
+    typeof window !== "undefined" && new URLSearchParams(window.location.search).has("open_pile");
+  const [pileOpen, setPileOpen] = useState(autoOpenPile);
+  const handleClosePile = React.useCallback(() => setPileOpen(false), []);
+  const compactCrateLocation = isCompact ? compactLocation : undefined;
+  const contextFocusRef = React.useRef<HTMLElement>(null);
+
+  const header = (
+    <AppHeader
+      compactCrateLocation={compactCrateLocation}
+      storeName={storeName}
+      discogsUsername={discogsUsername}
+      isCompact={isCompact}
+      pile={pile}
+      pileOpen={pileOpen}
+      theme={theme}
+      toggle={toggle}
+      setPileOpen={setPileOpen}
+      contextFocusRef={contextFocusRef}
+    />
+  );
 
   const footer = (
     <footer className="flex flex-col items-center gap-3 px-4 py-4 border-t border-mc-border text-center">
@@ -124,9 +178,9 @@ export function AppLayoutContent({ children, compactLocation }: AppLayoutProps) 
         Powered by <span className="font-medium">Milkcrate.</span>
       </span>
     </footer>
-  )
+  );
 
-  const flashMsg = notice || alertMsg
+  const flashMsg = notice || alertMsg;
   const afterHeader = flashMsg ? (
     <FeedbackMessage
       tone={notice ? "success" : "danger"}
@@ -135,7 +189,7 @@ export function AppLayoutContent({ children, compactLocation }: AppLayoutProps) 
     >
       {flashMsg}
     </FeedbackMessage>
-  ) : undefined
+  ) : undefined;
 
   return (
     <>
@@ -150,21 +204,29 @@ export function AppLayoutContent({ children, compactLocation }: AppLayoutProps) 
           {children}
         </MilkcrateShell>
       </div>
-      <PileSheet open={pileOpen} onClose={handleClosePile} returnFocusRef={contextFocusRef} />
+      <PileSheet
+        open={pileOpen}
+        onClose={handleClosePile}
+        returnFocusRef={contextFocusRef}
+        highlightOnMount={autoOpenPile}
+      />
     </>
-  )
+  );
 }
 
 export default function AppLayout({ children, compactLocation }: AppLayoutProps) {
+  const page = usePage<{ store?: { discogs_username?: string } }>();
+  const storeSlug = page.props.store?.discogs_username;
+
   return (
     <StorefrontMotionConfig>
       <ViewportProvider>
-        <PileProvider>
+        <PileProvider storeSlug={storeSlug}>
           <ShopperProvider>
             <AppLayoutContent compactLocation={compactLocation}>{children}</AppLayoutContent>
           </ShopperProvider>
         </PileProvider>
       </ViewportProvider>
     </StorefrontMotionConfig>
-  )
+  );
 }

@@ -61,12 +61,12 @@ RSpec.describe RecordScorer do
       expect(scorer.score(never_surfaced)).to be > scorer.score(recently_surfaced)
     end
 
-    it "gives a mild bonus to records not surfaced in 14+ days" do
-      scorer     = build(:record_scorer, genre_counts: { "Jazz" => 5 }, today: Date.new(2026, 5, 5))
-      long_unseen = build_listing(id: 1, genres: [ "Jazz" ], last_surfaced_at: Date.new(2026, 4, 15))
-      recently    = build_listing(id: 1, genres: [ "Jazz" ], last_surfaced_at: Date.new(2026, 4, 27))
+    it "treats all surfaced records the same regardless of recency" do
+      scorer = build(:record_scorer, genre_counts: { "Jazz" => 5 }, today: Date.new(2026, 5, 5))
+      old    = build_listing(id: 1, genres: [ "Jazz" ], last_surfaced_at: Date.new(2026, 4, 15))
+      recent = build_listing(id: 1, genres: [ "Jazz" ], last_surfaced_at: Date.new(2026, 4, 27))
 
-      expect(scorer.score(long_unseen)).to be > scorer.score(recently)
+      expect(scorer.score(old)).to eq(scorer.score(recent))
     end
 
     it "gives the highest freshness bonus to never-surfaced records" do

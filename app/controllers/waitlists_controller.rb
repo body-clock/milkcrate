@@ -3,23 +3,21 @@ class WaitlistsController < ApplicationController
   layout "inertia_application"
 
   def create
-    result = WaitlistRegistration.new(
-      waitlist_params,
-      turnstile_token:,
-      remote_ip: request.remote_ip
-    ).call
+    result = register_waitlist
+    return redirect_on_success if result.success
 
-    if result.success
-      redirect_to apply_path, flash: { notice: "You're on the list! We'll be in touch.", submitted: true }
-    else
-      render inertia: "apply", props: apply_props.merge(
-        submitted: false,
-        errors: result.errors
-      )
-    end
+    render inertia: "apply", props: apply_props.merge(submitted: false, errors: result.errors)
   end
 
   private
+
+  def redirect_on_success
+    redirect_to apply_path, flash: { notice: "You're on the list! We'll be in touch.", submitted: true }
+  end
+
+  def register_waitlist
+    WaitlistRegistration.new(waitlist_params, turnstile_token:, remote_ip: request.remote_ip).call
+  end
 
   def turnstile_token
     params[:turnstile_token].presence || params[:"cf-turnstile-response"].presence

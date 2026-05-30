@@ -15,40 +15,52 @@ class TurnstileVerifier
 
   def self.verify(token:, remote_ip:)
     return false if token.blank? || secret_key.blank?
+    verify_token(token, remote_ip)
+  rescue Faraday::ConnectionFailed, Faraday::TimeoutError, Faraday::Error => e
+    log_faraday_error(e)
+  end
 
+  def self.verify_token(token, remote_ip)
     response = connection.post do |request|
-      request.body = {
-        secret: secret_key,
-        response: token,
-        remoteip: remote_ip
-      }
+      request.body = { secret: secret_key, response: token, remoteip: remote_ip }
     end
-
     response.body["success"] == true
-  rescue Faraday::ConnectionFailed => e
-    Rails.logger.warn "[TurnstileVerifier] Upstream connection failed: #{e.message}"
+  end
+
+  def self.log_faraday_error(error)
+    prefix = error_class_prefix(error)
+    Rails.logger.warn "[TurnstileVerifier] #{prefix}: #{error.message}"
     false
-  rescue Faraday::TimeoutError => e
-    Rails.logger.warn "[TurnstileVerifier] Upstream timeout: #{e.message}"
-    false
-  rescue Faraday::Error => e
-    Rails.logger.warn "[TurnstileVerifier] Upstream error: #{e.message}"
-    false
+  end
+
+  def self.error_class_prefix(error)
+    return "Upstream connection failed" if error.is_a?(Faraday::ConnectionFailed)
+    return "Upstream timeout" if error.is_a?(Faraday::TimeoutError)
+    "Upstream error"
   end
 
   def self.secret_key
     Rails.application.credentials.dig(:turnstile, :secret_key)
   end
-  private_class_method :secret_key
 
   def self.connection
-    Faraday.new(url: SITEVERIFY_URL) do |faraday|
-      faraday.request :url_encoded
-      faraday.response :json
-      faraday.options.open_timeout = OPEN_TIMEOUT
-      faraday.options.timeout = READ_TIMEOUT
-      faraday.options.write_timeout = WRITE_TIMEOUT
+    Faraday.new(url: SITEVERIFY_URL) do |f|
+      f.request :url_encoded
+      f.response :json
+      faraday_defaults(f)
     end
   end
-  private_class_method :connection
+
+  def self.faraday_defaults(f)
+    f.options.open_timeout = OPEN_TIMEOUT
+    set_faraday_timeouts(f)
+  end
+
+  def self.set_faraday_timeouts(f)
+    f.options.timeout = READ_TIMEOUT
+    f.options.write_timeout = WRITE_TIMEOUT
+  end
+
+  private_class_method :verify_token, :log_faraday_error, :error_class_prefix,
+    :secret_key, :connection, :faraday_defaults, :set_faraday_timeouts
 end

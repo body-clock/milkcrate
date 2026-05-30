@@ -50,12 +50,14 @@ class MarketingPreviewPresenter
   # ── Bounded section capping ──────────────────────────────────
 
   def cap_sections(sections)
-    sections.filter_map do |section|
-      if section[:crate]
-        cap_single_crate_section(section)
-      elsif section[:crates]
-        cap_multi_crate_section(section)
-      end
+    sections.filter_map { |section| cap_section(section) }
+  end
+
+  def cap_section(section)
+    if section[:crate]
+      cap_single_crate_section(section)
+    elsif section[:crates]
+      cap_multi_crate_section(section)
     end
   end
 

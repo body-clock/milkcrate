@@ -1,61 +1,33 @@
-import { useState, useEffect, useMemo } from "react"
-import { motion } from "framer-motion"
-import AppLayout from "@/layouts/app_layout"
-import CrateView from "@/components/crate_view"
-import StoreFloor from "@/components/store_floor"
-import FeedbackMessage from "@/components/ui/feedback_message"
-import type { StoreShowProps } from "@/types/inertia"
+import { motion } from "framer-motion";
+import AppLayout from "@/layouts/app_layout";
+import CrateView from "@/components/crate_view";
+import StoreFloor from "@/components/store_floor";
+import Spinner from "@/components/spinner";
+import FeedbackMessage from "@/components/ui/feedback_message";
+import { useCrateRouting } from "@/hooks/use_crate_routing";
+import type { StoreShowProps } from "@/types/inertia";
 
 export default function StoreShow({ store, crates, storefront_sections }: StoreShowProps) {
-  const [activeSlug, setActiveSlug] = useState<string | null>(() => {
-    const raw = history.state?.crateSlug
-    return typeof raw === "string" && raw.length > 0 ? raw : null
-  })
-  const [startIndex, setStartIndex] = useState(() => {
-    const raw = history.state?.startIndex
-    return Number.isFinite(raw) && (raw as number) >= 0 ? raw as number : 0
-  })
-
-  const allCrates = useMemo(() => {
-    if (crates.length > 0) return crates
-    if (!storefront_sections?.length) return []
-    return storefront_sections.flatMap((s) => ("crate" in s ? [s.crate] : s.crates))
-  }, [crates, storefront_sections])
-  const activeCrate = activeSlug === null
-    ? null
-    : (allCrates.find((crate) => crate.slug === activeSlug) ?? allCrates[0])
-
-  const handleSelectCrate = (slug: string, index = 0) => {
-    setStartIndex(index)
-    setActiveSlug(slug)
-    // Push on first entry; replace on subsequent switches so back
-    // always returns to the store floor regardless of browsing depth.
-    if (activeSlug === null) {
-      history.pushState({ crateSlug: slug, startIndex: index }, "")
-    } else {
-      history.replaceState({ crateSlug: slug, startIndex: index }, "")
-    }
-  }
-
-  useEffect(() => {
-    const handlePop = (e: PopStateEvent) => {
-      const slug = e.state?.crateSlug ?? null
-      setActiveSlug(slug)
-      setStartIndex(e.state?.startIndex ?? 0)
-    }
-    window.addEventListener("popstate", handlePop)
-    return () => window.removeEventListener("popstate", handlePop)
-  }, [])
+  const { activeSlug, activeCrate, startIndex, selectCrate, backToStore, allCrates } = useCrateRouting({
+    crates,
+    storefront_sections: storefront_sections ?? [],
+  });
+  const listingCount = store.total_listings ?? 0;
+  const hasStoreSummary = Boolean(store.description) || listingCount > 0;
 
   return (
     <AppLayout
-      compactLocation={activeCrate ? {
-        name: activeCrate.name,
-        count: activeCrate.records.length,
-        onBack: () => history.back(),
-      } : undefined}
+      compactLocation={
+        activeCrate
+          ? {
+              name: activeCrate.name,
+              count: activeCrate.records.length,
+              onBack: backToStore,
+            }
+          : undefined
+      }
     >
-      {activeSlug === null && (store.description || store.total_listings) && (
+      {activeSlug === null && hasStoreSummary ? (
         <motion.div
           initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: 1, y: 0 }}
@@ -63,17 +35,15 @@ export default function StoreShow({ store, crates, storefront_sections }: StoreS
           className="mb-6"
         >
           {store.description && (
-            <p className="text-sm text-mc-text leading-relaxed max-w-prose">
-              {store.description}
-            </p>
+            <p className="text-sm text-mc-text leading-relaxed max-w-prose">{store.description}</p>
           )}
-          {store.total_listings && (
+          {listingCount > 0 ? (
             <p className="text-xs text-mc-text-dim mt-1.5">
-              {store.total_listings.toLocaleString()} vinyl listings
+              {listingCount.toLocaleString()} vinyl listings
             </p>
-          )}
+          ) : null}
         </motion.div>
-      )}
+      ) : null}
 
       {store.sync_status === "failed" && (
         <FeedbackMessage tone="danger" live="assertive" className="mb-6 px-4 py-3">
@@ -89,29 +59,13 @@ export default function StoreShow({ store, crates, storefront_sections }: StoreS
         </FeedbackMessage>
       )}
 
-      {(store.sync_status === "syncing" || store.enrichment_status === "enriching") ? (
-        <FeedbackMessage tone="progress" live="polite" className="border-0 bg-transparent py-16 text-center">
-          <svg
-            className="motion-safe:animate-spin h-8 w-8 mx-auto mb-4 text-mc-accent"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            />
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-            />
-          </svg>
+      {store.sync_status === "syncing" || store.enrichment_status === "enriching" ? (
+        <FeedbackMessage
+          tone="progress"
+          live="polite"
+          className="border-0 bg-transparent py-16 text-center"
+        >
+          <Spinner size="lg" className="mx-auto mb-4" />
           <p className="text-sm">
             {store.sync_status === "syncing"
               ? "Syncing inventory… check back in a moment."
@@ -128,20 +82,17 @@ export default function StoreShow({ store, crates, storefront_sections }: StoreS
           </p>
         </div>
       ) : activeSlug === null ? (
-        <StoreFloor
-          sections={storefront_sections ?? []}
-          onSelectCrate={handleSelectCrate}
-        />
+        <StoreFloor sections={storefront_sections ?? []} onSelectCrate={selectCrate} />
       ) : (
         <CrateView
           crates={allCrates}
           activeSlug={activeSlug}
           startIndex={startIndex}
           compactHeaderOwnedByLayout
-          onSelectCrate={handleSelectCrate}
-          onBack={() => history.back()}
+          onSelectCrate={selectCrate}
+          onBack={backToStore}
         />
       )}
     </AppLayout>
-  )
+  );
 }

@@ -245,6 +245,7 @@ end
 
 ## Related
 
+- Refactor-helper convention: [Keep refactor helpers private and retire protocol specs after the refactor stabilizes](/Users/pperkins/code/p/milkcrate/docs/solutions/best-practices/sandi-metz-refactor-helpers-stay-private-and-behavior-specs.md)
 - Middleware: `app/services/discogs_rate_limit_middleware.rb`
 - Client: `app/services/discogs_client.rb`
 - Jobs: `app/jobs/sync_all_stores_job.rb`, `app/jobs/full_store_sync_job.rb`, `app/jobs/enrichment_job.rb`
