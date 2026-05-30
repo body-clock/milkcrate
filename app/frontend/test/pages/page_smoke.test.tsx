@@ -181,6 +181,17 @@ describe("page smoke tests", () => {
     expect(screen.getByText(/No vinyl found yet/)).toBeInTheDocument()
   })
 
+  it("does not render zero listing count as stray text", () => {
+    render(
+      <StoreShow
+        {...storeShowProps}
+        store={{ ...storeShowProps.store, description: null, total_listings: 0 }}
+      />,
+    )
+
+    expect(screen.queryByText("0")).not.toBeInTheDocument()
+  })
+
   it("renders the admin dashboard", () => {
     render(<Dashboard {...adminProps} />)
 

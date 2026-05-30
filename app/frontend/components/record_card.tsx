@@ -1,61 +1,131 @@
-import React, { useEffect, useRef, useState } from "react"
-import { motion } from "framer-motion"
-import { usePileContext } from "../contexts/pile_context"
-import { springFlip } from "@/lib/motion_tokens"
-import { formatPrice } from "@/lib/format_price"
-import Button from "@/components/ui/button"
-import { ActionLink } from "@/components/ui/action"
-import type { Listing } from "../types/inertia"
+import { useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
+import { usePileContext } from "../contexts/pile_context";
+import { springFlip } from "@/lib/motion_tokens";
+import { formatPrice } from "@/lib/format_price";
+import Button from "@/components/ui/button";
+import { ActionLink } from "@/components/ui/action";
+import type { Listing } from "../types/inertia";
 
-interface Props {
-  listing: Listing
-  resetKey?: string | number
-  className?: string
-  imageLoading?: "eager" | "lazy"
-  disableFlip?: boolean
-  framed?: boolean
+interface RecordCardProps {
+  listing: Listing;
+  resetKey?: string | number;
+  className?: string;
+  imageLoading?: "eager" | "lazy";
+  disableFlip?: boolean;
+  framed?: boolean;
 }
 
-export default function RecordCard({ listing, resetKey, className = "", imageLoading = "lazy", disableFlip = false, framed = false }: Props) {
-  const [flipped, setFlipped] = useState(false)
-  const pointerDown = useRef<{ x: number; y: number } | null>(null)
-  const { inPile, addToPile, removeFromPile } = usePileContext()
-  const canFlip = !disableFlip
+interface RecordCardBackProps {
+  listing: Listing;
+  meta: string;
+  inPile: (id: number) => boolean;
+  addToPile: (listing: Listing) => void;
+  removeFromPile: (id: number) => void;
+}
+
+function RecordCardBack({ listing, meta, inPile, addToPile, removeFromPile }: RecordCardBackProps) {
+  return (
+    <div
+      className="rounded-lg overflow-hidden shadow-xl bg-mc-bg-card"
+      style={{
+        position: "absolute",
+        inset: 0,
+        backfaceVisibility: "hidden",
+        WebkitBackfaceVisibility: "hidden",
+        transform: "rotateY(180deg)",
+        contain: "paint",
+      }}
+    >
+      <div className="flex flex-col h-full p-4 gap-2">
+        <div className="text-sm font-semibold leading-tight line-clamp-3">{listing.title}</div>
+        <div className="text-xs text-mc-text leading-tight">{listing.artist}</div>
+        {meta && <div className="text-xs text-mc-text-dim">{meta}</div>}
+        {listing.genres.length > 0 && (
+          <div className="flex gap-1 flex-wrap">
+            {listing.genres.slice(0, 3).map((g) => (
+              <span
+                key={g}
+                className="text-[10px] px-1.5 py-0.5 rounded bg-mc-bg-raised text-mc-text-dim"
+              >
+                {g}
+              </span>
+            ))}
+          </div>
+        )}
+        <div className="text-sm font-medium mt-auto">{formatPrice(listing)}</div>
+        <div className="flex gap-1 mt-1" onClick={(e) => e.stopPropagation()}>
+          {inPile(listing.id) ? (
+            <Button variant="secondary" size="sm" onClick={() => removeFromPile(listing.id)}>
+              ✓ In pile
+            </Button>
+          ) : (
+            <Button size="sm" onClick={() => addToPile(listing)}>
+              + Pile
+            </Button>
+          )}
+          <ActionLink
+            variant="secondary"
+            size="sm"
+            href={listing.discogs_url}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Discogs ↗
+          </ActionLink>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function RecordCard({
+  listing,
+  resetKey,
+  className = "",
+  imageLoading = "lazy",
+  disableFlip = false,
+  framed = false,
+}: RecordCardProps) {
+  const [flipped, setFlipped] = useState(false);
+  const pointerDown = useRef<{ x: number; y: number } | null>(null);
+  const { inPile, addToPile, removeFromPile } = usePileContext();
+  const canFlip = !disableFlip;
 
   useEffect(() => {
-    setFlipped(false)
-  }, [resetKey])
+    setFlipped(false);
+  }, [resetKey]);
 
   const handlePointerDown = (e: React.PointerEvent) => {
-    pointerDown.current = { x: e.clientX, y: e.clientY }
-  }
+    pointerDown.current = { x: e.clientX, y: e.clientY };
+  };
 
   const movedSincePointerDown = (e: React.MouseEvent) => {
-    if (!pointerDown.current) return false
-    const deltaX = Math.abs(e.clientX - pointerDown.current.x)
-    const deltaY = Math.abs(e.clientY - pointerDown.current.y)
-    pointerDown.current = null
-    return Math.hypot(deltaX, deltaY) > 8
-  }
+    if (!pointerDown.current) return false;
+    const deltaX = Math.abs(e.clientX - pointerDown.current.x);
+    const deltaY = Math.abs(e.clientY - pointerDown.current.y);
+    pointerDown.current = null;
+    return Math.hypot(deltaX, deltaY) > 8;
+  };
 
   const handleFlip = (e: React.MouseEvent) => {
-    if (!canFlip) return
-    if ((e.target as HTMLElement).closest("a, button, form")) return
-    if (movedSincePointerDown(e)) return
-    setFlipped((f) => !f)
-  }
+    if (!canFlip) return;
+    if ((e.target as HTMLElement).closest("a, button, form")) return;
+    if (movedSincePointerDown(e)) return;
+    setFlipped((f) => !f);
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!canFlip) return
-    if ((e.target as HTMLElement).closest("a, button, form")) return
+    if (!canFlip) return;
+    if ((e.target as HTMLElement).closest("a, button, form")) return;
 
     if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault()
-      setFlipped((f) => !f)
+      e.preventDefault();
+      setFlipped((f) => !f);
     }
-  }
+  };
 
-  const meta = [listing.label, listing.year, listing.condition].filter(Boolean).join(" · ")
+  const meta = [listing.label, listing.year, listing.condition].filter(Boolean).join(" · ");
 
   return (
     <div
@@ -63,7 +133,11 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
       style={{ perspective: 800, touchAction: "none" }}
       role={canFlip ? "button" : undefined}
       tabIndex={canFlip ? 0 : undefined}
-      aria-label={canFlip ? `${flipped ? "Show cover for" : "Show details for"} ${listing.title ?? "record"}` : undefined}
+      aria-label={
+        canFlip
+          ? `${flipped ? "Show cover for" : "Show details for"} ${listing.title ?? "record"}`
+          : undefined
+      }
       aria-pressed={canFlip ? flipped : undefined}
       onPointerDown={handlePointerDown}
       onDragStart={(e) => e.preventDefault()}
@@ -106,61 +180,20 @@ export default function RecordCard({ listing, resetKey, className = "", imageLoa
               decoding="async"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-mc-bg-raised text-mc-text-dim text-5xl">♪</div>
+            <div className="w-full h-full flex items-center justify-center bg-mc-bg-raised text-mc-text-dim text-5xl">
+              ♪
+            </div>
           )}
         </div>
 
-        {/* Back */}
-        <div
-          className="rounded-lg overflow-hidden shadow-xl bg-mc-bg-card"
-          style={{
-            position: "absolute",
-            inset: 0,
-            backfaceVisibility: "hidden",
-            WebkitBackfaceVisibility: "hidden",
-            transform: "rotateY(180deg)",
-            contain: "paint",
-          }}
-        >
-          <div className="flex flex-col h-full p-4 gap-2">
-            <div className="text-sm font-semibold leading-tight line-clamp-3">
-              {listing.title}
-            </div>
-            <div className="text-xs text-mc-text leading-tight">
-              {listing.artist}
-            </div>
-            {meta && (
-              <div className="text-xs text-mc-text-dim">{meta}</div>
-            )}
-            {listing.genres.length > 0 && (
-              <div className="flex gap-1 flex-wrap">
-                {listing.genres.slice(0, 3).map((g) => (
-                  <span key={g} className="text-[10px] px-1.5 py-0.5 rounded bg-mc-bg-raised text-mc-text-dim">
-                    {g}
-                  </span>
-                ))}
-              </div>
-            )}
-            <div className="text-sm font-medium mt-auto">
-              {formatPrice(listing)}
-            </div>
-            <div className="flex gap-1 mt-1" onClick={(e) => e.stopPropagation()}>
-              {inPile(listing.id) ? (
-                <Button variant="secondary" size="sm" onClick={() => removeFromPile(listing.id)}>
-                  ✓ In pile
-                </Button>
-              ) : (
-                <Button size="sm" onClick={() => addToPile(listing)}>
-                  + Pile
-                </Button>
-              )}
-              <ActionLink variant="secondary" size="sm" href={listing.discogs_url} target="_blank" rel="noopener noreferrer">
-                Discogs ↗
-              </ActionLink>
-            </div>
-          </div>
-        </div>
+        <RecordCardBack
+          listing={listing}
+          meta={meta}
+          inPile={inPile}
+          addToPile={addToPile}
+          removeFromPile={removeFromPile}
+        />
       </motion.div>
     </div>
-  )
+  );
 }

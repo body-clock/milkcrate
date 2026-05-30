@@ -1,64 +1,52 @@
-import { useEffect, useRef } from "react"
-import { useForm } from "@inertiajs/react"
-import { motion } from "framer-motion"
-import MarketingLayout from "@/layouts/marketing_layout"
-import BrandMark from "@/components/brand_mark"
-import Button from "@/components/ui/button"
-import FeedbackMessage from "@/components/ui/feedback_message"
-import Field from "@/components/ui/field"
-import { springTactile } from "@/lib/motion_tokens"
-
-type TurnstileWidgetId = string | number
-
-declare global {
-  interface Window {
-    turnstile?: {
-      render: (
-        element: HTMLElement,
-        options: {
-          sitekey: string
-          callback: (token: string) => void
-          "expired-callback": () => void
-          "error-callback": () => void
-        }
-      ) => TurnstileWidgetId
-      remove?: (widgetId: TurnstileWidgetId) => void
-    }
-  }
-}
+import { useForm } from "@inertiajs/react";
+import { motion } from "framer-motion";
+import MarketingLayout from "@/layouts/marketing_layout";
+import BrandMark from "@/components/brand_mark";
+import Button from "@/components/ui/button";
+import FeedbackMessage from "@/components/ui/feedback_message";
+import Field from "@/components/ui/field";
+import Spinner from "@/components/spinner";
+import { springTactile } from "@/lib/motion_tokens";
+import { useTurnstile } from "@/hooks/use_turnstile";
 
 type Props = {
-  submitted?: boolean
-  errors?: Record<string, { error: string; value: string }[]>
+  submitted?: boolean;
+  errors?: Record<string, { error: string; value: string }[]>;
   turnstile?: {
-    enabled: boolean
-    site_key: string | null
-  }
-  initial_discogs_username?: string
+    enabled: boolean;
+    site_key: string | null;
+  };
+  initial_discogs_username?: string;
   copy: {
-    headline: string
-    subhead: string
-    submit: string
-    submitting: string
-    confirmation_headline: string
-    confirmation_body: string
-    context_title: string
-    context_discogs_why: string
-    context_what_happens: string
-    context_no_commitment: string
-    field_hint_discogs: string
-    field_hint_email: string
+    headline: string;
+    subhead: string;
+    submit: string;
+    submitting: string;
+    confirmation_headline: string;
+    confirmation_body: string;
+    context_title: string;
+    context_discogs_why: string;
+    context_what_happens: string;
+    context_no_commitment: string;
+    field_hint_discogs: string;
+    field_hint_email: string;
     fields: {
-      name: string
-      discogs_username: string
-      email: string
-      inventory_size: string
-      notes: string
-    }
-  }
-}
+      name: string;
+      discogs_username: string;
+      email: string;
+      inventory_size: string;
+      notes: string;
+    };
+  };
+};
 
-export default function Apply({ submitted = false, errors = {}, turnstile, copy, initial_discogs_username }: Props) {
+export default function Apply({
+  submitted = false,
+  errors = {},
+  turnstile,
+  copy,
+  initial_discogs_username,
+}: Props) {
   const { data, setData, post, processing } = useForm({
     name: "",
     discogs_username: initial_discogs_username || "",
@@ -66,51 +54,13 @@ export default function Apply({ submitted = false, errors = {}, turnstile, copy,
     inventory_size: "",
     notes: "",
     turnstile_token: "",
-  })
-  const widgetRef = useRef<HTMLDivElement>(null)
-  const widgetIdRef = useRef<TurnstileWidgetId | null>(null)
-  const turnstileEnabled = turnstile?.enabled === true
-  const turnstileSiteKey = turnstile?.site_key
+  });
 
-  useEffect(() => {
-    if (!turnstileEnabled || !turnstileSiteKey || !widgetRef.current) return
-
-    const renderWidget = () => {
-      if (!window.turnstile || !widgetRef.current || widgetIdRef.current !== null) return
-
-      widgetIdRef.current = window.turnstile.render(widgetRef.current, {
-        sitekey: turnstileSiteKey,
-        callback: (token: string) => setData("turnstile_token", token),
-        "expired-callback": () => setData("turnstile_token", ""),
-        "error-callback": () => setData("turnstile_token", ""),
-      })
-    }
-
-    const existingScript = document.querySelector<HTMLScriptElement>("script[data-turnstile-script]")
-    if (existingScript) {
-      if (window.turnstile) {
-        renderWidget()
-      } else {
-        existingScript.addEventListener("load", renderWidget, { once: true })
-      }
-    } else {
-      const script = document.createElement("script")
-      script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
-      script.async = true
-      script.defer = true
-      script.dataset.turnstileScript = "true"
-      script.onload = renderWidget
-      document.head.appendChild(script)
-    }
-
-    return () => {
-      existingScript?.removeEventListener("load", renderWidget)
-      if (widgetIdRef.current !== null) {
-        window.turnstile?.remove?.(widgetIdRef.current)
-        widgetIdRef.current = null
-      }
-    }
-  }, [setData, turnstileEnabled, turnstileSiteKey])
+  const { turnstileRef, isReady } = useTurnstile({
+    enabled: turnstile?.enabled === true,
+    siteKey: turnstile?.site_key,
+    onToken: (token: string) => setData("turnstile_token", token),
+  });
 
   if (submitted) {
     return (
@@ -142,39 +92,45 @@ export default function Apply({ submitted = false, errors = {}, turnstile, copy,
           </motion.p>
         </div>
       </MarketingLayout>
-    )
+    );
   }
 
-  const errorCount = Object.keys(errors).length
-  const fieldErrors = Object.entries(errors).filter(([key]) => key !== "turnstile")
+  const errorCount = Object.keys(errors).length;
+  const fieldErrors = Object.entries(errors).filter(([key]) => key !== "turnstile");
 
   return (
     <MarketingLayout>
       <div className="max-w-md mx-auto">
         <h1 className="text-2xl font-bold text-mc-text mb-2">{copy.headline}</h1>
-        <p className="text-sm text-mc-text-dim mb-6 leading-relaxed">
-          {copy.subhead}
-        </p>
+        <p className="text-sm text-mc-text-dim mb-6 leading-relaxed">{copy.subhead}</p>
 
-        {/* Vendor context panel — explains what we're asking and why */}
         <section
           aria-labelledby="apply-context-title"
           className="mb-8 px-5 py-4 rounded-lg bg-mc-bg-card border border-mc-border"
         >
-          <h2 id="apply-context-title" className="text-xs font-semibold uppercase tracking-widest text-mc-text-dim mb-3">
+          <h2
+            id="apply-context-title"
+            className="text-xs font-semibold uppercase tracking-widest text-mc-text-dim mb-3"
+          >
             {copy.context_title}
           </h2>
           <ul className="flex flex-col gap-2.5 text-xs text-mc-text-dim leading-relaxed list-none">
             <li className="flex gap-2">
-              <span className="text-mc-accent flex-shrink-0 select-none mt-px" aria-hidden="true">•</span>
+              <span className="text-mc-accent flex-shrink-0 select-none mt-px" aria-hidden="true">
+                •
+              </span>
               <span>{copy.context_discogs_why}</span>
             </li>
             <li className="flex gap-2">
-              <span className="text-mc-accent flex-shrink-0 select-none mt-px" aria-hidden="true">•</span>
+              <span className="text-mc-accent flex-shrink-0 select-none mt-px" aria-hidden="true">
+                •
+              </span>
               <span>{copy.context_what_happens}</span>
             </li>
             <li className="flex gap-2">
-              <span className="text-mc-accent flex-shrink-0 select-none mt-px" aria-hidden="true">•</span>
+              <span className="text-mc-accent flex-shrink-0 select-none mt-px" aria-hidden="true">
+                •
+              </span>
               <span>{copy.context_no_commitment}</span>
             </li>
           </ul>
@@ -182,8 +138,8 @@ export default function Apply({ submitted = false, errors = {}, turnstile, copy,
 
         <form
           onSubmit={(e) => {
-            e.preventDefault()
-            post("/apply")
+            e.preventDefault();
+            post("/apply");
           }}
           className="flex flex-col gap-6"
           noValidate
@@ -191,24 +147,27 @@ export default function Apply({ submitted = false, errors = {}, turnstile, copy,
           {errorCount > 0 && (
             <FeedbackMessage tone="danger" live="assertive" className="px-4 py-3">
               <p className="font-semibold mb-1">
-                {errorCount === 1 ? "There's a problem with your submission." : `There are ${errorCount} problems with your submission.`}
+                {errorCount === 1
+                  ? "There's a problem with your submission."
+                  : `There are ${errorCount} problems with your submission.`}
               </p>
               <ul className="list-disc list-inside text-xs text-mc-text-dim space-y-0.5">
                 {fieldErrors.map(([field, errs]) =>
                   errs.map((e, i) => {
-                    const label = copy.fields[field as keyof typeof copy.fields]
-                    return <li key={`${field}-${i}`}>{label ? `${label} ` : ""}{e.error}</li>
-                  })
+                    const label = copy.fields[field as keyof typeof copy.fields];
+                    return (
+                      <li key={`${field}-${i}`}>
+                        {label ? `${label} ` : ""}
+                        {e.error}
+                      </li>
+                    );
+                  }),
                 )}
               </ul>
             </FeedbackMessage>
           )}
 
-          <Field
-            id="apply-name"
-            label={copy.fields.name}
-            error={errors.name?.[0]?.error}
-          >
+          <Field id="apply-name" label={copy.fields.name} error={errors.name?.[0]?.error}>
             <input
               type="text"
               value={data.name}
@@ -251,11 +210,7 @@ export default function Apply({ submitted = false, errors = {}, turnstile, copy,
             />
           </Field>
 
-          <Field
-            id="apply-inventory_size"
-            label={copy.fields.inventory_size}
-            hint="Optional"
-          >
+          <Field id="apply-inventory_size" label={copy.fields.inventory_size} hint="Optional">
             <select
               value={data.inventory_size}
               onChange={(e) => setData("inventory_size", e.target.value)}
@@ -268,11 +223,7 @@ export default function Apply({ submitted = false, errors = {}, turnstile, copy,
             </select>
           </Field>
 
-          <Field
-            id="apply-notes"
-            label={copy.fields.notes}
-            hint="Optional"
-          >
+          <Field id="apply-notes" label={copy.fields.notes} hint="Optional">
             <textarea
               value={data.notes}
               onChange={(e) => setData("notes", e.target.value)}
@@ -282,49 +233,29 @@ export default function Apply({ submitted = false, errors = {}, turnstile, copy,
             />
           </Field>
 
-          {turnstileEnabled && turnstileSiteKey && (
+          {isReady && (
             <div className="flex flex-col gap-1">
               <div
-                ref={widgetRef}
+                ref={turnstileRef}
                 data-testid="turnstile-widget"
-                data-sitekey={turnstileSiteKey}
+                data-sitekey={turnstile?.site_key}
                 className="min-h-[65px]"
                 role="presentation"
               />
               {errors.turnstile?.[0]?.error && (
-                <FeedbackMessage
-                  tone="danger"
-                  live="assertive"
-                  className="text-xs"
-                >
+                <FeedbackMessage tone="danger" live="assertive" className="text-xs">
                   {errors.turnstile[0].error}
                 </FeedbackMessage>
               )}
             </div>
           )}
 
-          <Button
-            type="submit"
-            busy={processing}
-            size="lg"
-            className="tracking-wide"
-          >
-            {processing && (
-              <svg
-                className="motion-safe:animate-spin h-4 w-4 text-mc-on-accent/80"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-              </svg>
-            )}
+          <Button type="submit" busy={processing} size="lg" className="tracking-wide">
+            {processing && <Spinner size="sm" />}
             <span>{processing ? copy.submitting : copy.submit}</span>
           </Button>
         </form>
       </div>
     </MarketingLayout>
-  )
+  );
 }

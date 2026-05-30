@@ -11,36 +11,36 @@ export const springTactile = {
   type: "spring" as const,
   stiffness: 300,
   damping: 26,
-}
+};
 
 export const springPress = {
   type: "spring" as const,
   stiffness: 400,
   damping: 28,
-}
+};
 
 export const springFlip = {
   type: "spring" as const,
   stiffness: 260,
   damping: 24,
-}
+};
 
 export const springDrawer = {
   type: "spring" as const,
   stiffness: 300,
   damping: 32,
-}
+};
 
 // ── Scale constants ───────────────────────────────────────────
 
-export const SCALE_PRESS = 0.985
-export const SCALE_HOVER = 1.025
-export const SCALE_INNER_HOVER = 1.015
+export const SCALE_PRESS = 0.985;
+export const SCALE_HOVER = 1.025;
+export const SCALE_INNER_HOVER = 1.015;
 
 // ── Lift / tilt magnitudes ────────────────────────────────────
 
-export const LIFT_HOVER = 2 // px
-export const TILT_HOVER = 1.5 // deg
+export const LIFT_HOVER = 2; // px
+export const TILT_HOVER = 1.5; // deg
 
 // ── Transition presets ────────────────────────────────────────
 // Convenience exports so consumers reference the preset, not the
@@ -50,17 +50,40 @@ export const transitionCrate = {
   type: "spring" as const,
   stiffness: 350,
   damping: 30,
-}
+};
 
 /** Bouncier crate transition for desktop — slight overshoot feels organic. */
 export const transitionCrateDesktop = {
   type: "spring" as const,
   stiffness: 280,
   damping: 22,
-}
+};
 
 // ── Reduced-motion overrides ──────────────────────────────────
 // When prefers-reduced-motion is active, transitions collapse to
 // instant and scales collapse to identity.
 
-export const reducedMotionTransition = { duration: 0 } as const
+export const reducedMotionTransition = { duration: 0 } as const;
+
+// ── Composited layer styles ────────────────────────────────────
+// Shared CSS style objects for card stack layers.
+// CSSProperties cant be imported in this file without adding a React dep;
+// use a record type that satisfies the style contract.
+
+/**
+ * Returns a composited layer style object with will-change and backface-visibility.
+ * Pass `contain: true` for hint/background cards that benefit from containment.
+ */
+export function compositedLayer(contain = false) {
+  const base = {
+    willChange: "transform, opacity" as const,
+    backfaceVisibility: "hidden" as const,
+    WebkitBackfaceVisibility: "hidden" as const,
+  };
+
+  if (contain) {
+    return { ...base, contain: "layout paint style" as const };
+  }
+
+  return base;
+}
