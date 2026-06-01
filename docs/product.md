@@ -1,8 +1,32 @@
 # Product
 
-## Register
+## Unified Storefront Experience
 
-product
+Milkcrate is one connected storefront session, not a set of separate page
+tools. The shopper moves through a store, reads the wall for taste, enters a
+crate, inspects a record, adds intent to the pile, and leaves through a
+Discogs handoff when they are ready to act.
+
+Core shopper-facing nouns:
+
+- **Store:** The seller's owned space and browsing context.
+- **Wall:** The curated Milkcrate Picks surface that previews the store's
+  taste.
+- **Crate:** The immersive browsing mode and primary interaction.
+- **Record:** The unit of inspection and decision.
+- **Pile:** The shopper's persistent intent layer, not a cart and not a
+  checkout claim.
+- **Handoff:** The transition from Milkcrate intent to Discogs action.
+
+Do not use "register" as a primary shopper-facing noun. Milkcrate does not
+provide checkout. Shopper copy can use tactile store language, while Discogs
+integration code keeps precise external-system names such as OAuth, Wantlist,
+listing, release, and seller.
+
+Mobile-first means the compact sequence defines the product hierarchy. Desktop
+and larger layouts adapt that sequence outward by revealing context, previews,
+and parallel inspection while preserving the same loop, vocabulary, and state
+model.
 
 ## Users
 
@@ -34,6 +58,17 @@ Three words: warm, curious, tactile.
 3. **Record store warmth.** Physical, textured, tangible. Dark warm tones, serif type, the feeling of being in a shop at golden hour.
 4. **Digger's delight.** Reward exploration. Every interaction should surface something surprising. No dead ends.
 5. **Owner's character.** Each storefront feels like the store's own space. Premium tier unlocks customization that lets a store's personality come through. Never a white-label template.
+6. **One storefront loop.** Store floor, wall, crate, record, pile, and Discogs handoff should preserve context and shopper intent as one continuous browsing session.
+
+## Frontend Confidence
+
+Evaluate shopper-facing frontend confidence at the system level before
+prioritizing isolated component polish. The current gap is cohesion across
+hierarchy, copy, motion, affordance, responsive adaptation, and accessibility,
+not backend comprehensiveness.
+
+Targeted hierarchy docs, copy, aria-label, and test updates are preferred
+before broader component or data-model renames.
 
 ## Accessibility & Inclusion
 
