@@ -114,6 +114,37 @@ This system explicitly rejects: Discogs-style data density, SaaS-generic blue-an
 - Spring-based motion, reduced-motion first
 - Every interaction lands with weight
 
+## 1.1 Unified Storefront Experience
+
+The storefront is designed as one connected browsing session. The shopper
+enters a store, reads the wall for taste, enters a crate, inspects a record,
+adds intent to the pile, reviews that pile, and leaves through a Discogs
+handoff. These are not separate tools competing for attention; they are
+moments in the same loop.
+
+Use the core nouns where they clarify the experience:
+
+- **Store:** The seller's owned environment and orientation layer.
+- **Wall:** The Milkcrate Picks surface, a quick read on the store's taste.
+- **Crate:** The immersive browsing surface.
+- **Record:** The inspection object.
+- **Pile:** The persistent shopper-intent layer.
+- **Handoff:** The transition from Milkcrate browsing to Discogs action.
+
+"Register" is not a primary shopper-facing noun because Milkcrate does not
+provide checkout. Presentation code and copy may use tactile store language,
+but Discogs integration boundaries should keep exact external-system names:
+OAuth, Wantlist, listing, release, seller, and related API terms.
+
+Mobile-first means the compact sequence is the source hierarchy, not the only
+designed environment. Comfy, wide, and larger layouts adapt outward from that
+sequence by revealing more context, previews, and parallel inspection while
+preserving the same vocabulary and state model.
+
+Before polishing isolated components, evaluate storefront confidence across
+hierarchy, copy, motion, affordance, responsive adaptation, and accessibility.
+The current product risk is whether the shopper loop feels cohesive.
+
 ## 2. Colors
 
 The palette splits across two themes. Dark mode (default) uses deep charcoals and oxblood red. Light mode uses warm kraft-paper tones and amber. Both share the same neutral family — warm browns — tinted away from pure black or white.
