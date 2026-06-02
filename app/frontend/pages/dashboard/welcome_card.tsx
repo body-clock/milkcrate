@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
 import { router } from "@inertiajs/react";
 import Button from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import Card from "@/components/ui/card";
+import CardContent from "@/components/ui/card_content";
 
 interface WelcomeCardProps {
   storefrontUrl: string;

@@ -11,24 +11,18 @@ const variants: Record<BadgeVariant, string> = {
   neutral: "border-mc-feedback-neutral-border bg-mc-feedback-neutral-bg text-mc-feedback-neutral",
 }
 
-export default function Badge({
-  variant = "neutral",
-  className,
-  children,
-}: {
-  variant?: BadgeVariant
-  className?: string
-  children: React.ReactNode
-}) {
+export default function Badge({ variant = "neutral", className, children }: BadgeProps) {
   return (
     <span
-      className={cn(
-        "inline-flex max-w-full items-center rounded-md border px-2 py-1 text-xs font-semibold leading-none",
-        variants[variant],
-        className
-      )}
+      className={cn("inline-flex max-w-full items-center rounded-md border px-2 py-1 text-xs font-semibold leading-none", variants[variant], className)}
     >
       {children}
     </span>
   )
+}
+
+interface BadgeProps {
+  variant?: BadgeVariant
+  className?: string
+  children: React.ReactNode
 }

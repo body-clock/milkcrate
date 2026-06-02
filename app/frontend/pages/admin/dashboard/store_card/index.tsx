@@ -1,6 +1,8 @@
 import type { AdminStoreSummary } from "@/types/inertia";
 import Badge from "@/components/ui/badge";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import Card from "@/components/ui/card";
+import CardHeader from "@/components/ui/card_header";
+import CardContent from "@/components/ui/card_content";
 import FeedbackMessage from "@/components/ui/feedback_message";
 import StoreHealthBar from "./health_bar";
 import { severityVariant } from "./health_bar";

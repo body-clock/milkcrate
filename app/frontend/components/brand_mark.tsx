@@ -20,14 +20,10 @@ export default function BrandMark({
       ? "text-3xl sm:text-4xl"
       : "text-lg sm:text-xl"
 
-  const weightClass = size === "large" ? "font-semibold" : "font-medium"
-
   return (
-    <span
-      className={`${className ?? ""}`.trim()}
-    >
+    <span className={`${className ?? ""}`.trim()}>
       <span
-        className={`mc-wordmark ${weightClass} whitespace-nowrap ${wordmarkClass}`}
+        className={`mc-wordmark ${size === "large" ? "font-semibold" : "font-medium"} whitespace-nowrap ${wordmarkClass}`}
       >
         Milkcrate.
       </span>

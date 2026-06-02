@@ -11,24 +11,16 @@ const tones: Record<FeedbackTone, string> = {
   progress: "border-mc-feedback-progress-border bg-mc-feedback-progress-bg text-mc-feedback-progress",
 }
 
-export default function FeedbackMessage({
-  tone = "neutral",
-  live,
-  role,
-  className,
-  children,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement> & {
-  tone?: FeedbackTone
-  live?: "polite" | "assertive"
-}) {
+function pickRole(live: "polite" | "assertive" | undefined, role: string | undefined): string | undefined {
+  if (role) {return role}
+  if (live === "assertive") {return "alert"}
+  if (live) {return "status"}
+  return undefined
+}
+
+export default function FeedbackMessage({ tone = "neutral", live, role, className, children, ...props }: React.HTMLAttributes<HTMLDivElement> & { tone?: FeedbackTone; live?: "polite" | "assertive" }) {
   return (
-    <div
-      {...props}
-      className={cn("rounded-md border px-3 py-2 text-sm", tones[tone], className)}
-      role={role ?? (live === "assertive" ? "alert" : live ? "status" : undefined)}
-      aria-live={live}
-    >
+    <div {...props} className={cn("rounded-md border px-3 py-2 text-sm", tones[tone], className)} role={pickRole(live, role)} aria-live={live}>
       {children}
     </div>
   )

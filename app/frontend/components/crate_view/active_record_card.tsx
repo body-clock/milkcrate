@@ -30,11 +30,7 @@ function pickTransition(prefersReducedMotion: boolean, isCompact: boolean) {
 export default function ActiveRecordCard(props: ActiveRecordCardProps) {
   const { slot, prefersReducedMotion, direction } = props;
   const activeTransition = pickTransition(prefersReducedMotion, props.isCompact);
-  const variants = {
-    initial: (d: RiffleDirection) => riffleActiveCardMotion(d, prefersReducedMotion).initial,
-    animate: { opacity: 1, y: 0, rotate: 0, scale: 1 },
-    exit: (d: RiffleDirection) => riffleActiveCardMotion(d, prefersReducedMotion).exit,
-  }
+  const variants = { initial: (d: RiffleDirection) => riffleActiveCardMotion(d, prefersReducedMotion).initial, animate: { opacity: 1, y: 0, rotate: 0, scale: 1 }, exit: (d: RiffleDirection) => riffleActiveCardMotion(d, prefersReducedMotion).exit }
   return (
     <motion.div
       key={`active-${slot.record.id}`}

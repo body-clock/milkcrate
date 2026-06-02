@@ -1,20 +1,13 @@
 import React from "react"
 import { actionClassName, type ActionSize, type ActionVariant } from "./action"
 
-export default function Button({
-  variant = "primary",
-  size = "md",
-  busy = false,
-  disabled,
-  className,
-  children,
-  type = "button",
-  ...props
-}: React.ButtonHTMLAttributes<HTMLButtonElement> & {
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ActionVariant
   size?: ActionSize
   busy?: boolean
-}) {
+}
+
+export default function Button({ variant = "primary", size = "md", busy = false, disabled, className, children, type = "button", ...props }: ButtonProps) {
   return (
     <button
       type={type}

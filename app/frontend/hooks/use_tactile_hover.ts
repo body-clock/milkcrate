@@ -58,28 +58,18 @@ function usePressState(reducedMotion: boolean) {
 }
 
 function useTactileHandlers(
-  proximityHandlers: ReturnType<typeof usePointerProximity>["handlers"],
+  ph: ReturnType<typeof usePointerProximity>["handlers"],
   down: () => void,
   up: () => void,
 ): TactileHandlers {
-  const leaveWithPressReset = useCallback(
-    (e: React.PointerEvent) => {
-      proximityHandlers.onPointerLeave(e);
-      up();
-    },
-    [proximityHandlers, up],
-  );
-
-  return useMemo<TactileHandlers>(
-    () => ({
-      onPointerEnter: proximityHandlers.onPointerEnter,
-      onPointerLeave: leaveWithPressReset,
-      onPointerDown: down,
-      onPointerUp: up,
-      onPointerMove: proximityHandlers.onPointerMove,
-    }),
-    [proximityHandlers.onPointerEnter, proximityHandlers.onPointerMove, leaveWithPressReset, down, up],
-  );
+  const leave = useCallback((e: React.PointerEvent) => { ph.onPointerLeave(e); up(); }, [ph, up]);
+  return useMemo(() => ({
+    onPointerEnter: ph.onPointerEnter,
+    onPointerLeave: leave,
+    onPointerDown: down,
+    onPointerUp: up,
+    onPointerMove: ph.onPointerMove,
+  }), [ph.onPointerEnter, ph.onPointerMove, leave, down, up]);
 }
 
 export function useTactileHover(options: UseTactileHoverOptions = {}): TactileState {

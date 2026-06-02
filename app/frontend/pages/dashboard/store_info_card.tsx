@@ -1,4 +1,5 @@
-import { Card, CardContent } from "@/components/ui/card";
+import Card from "@/components/ui/card";
+import CardContent from "@/components/ui/card_content";
 import Row from "./row";
 import StatusDot from "@/components/ui/status_dot";
 import Button from "@/components/ui/button";

@@ -1,4 +1,6 @@
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import Card from "@/components/ui/card";
+import CardHeader from "@/components/ui/card_header";
+import CardTitle from "@/components/ui/card_title";
 import { useDiscogsOnboarding } from "./discogs_onboarding/use_discogs_onboarding";
 import { PanelView } from "./discogs_onboarding/panel_view";
 

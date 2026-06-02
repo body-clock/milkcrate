@@ -1,4 +1,7 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Card from "@/components/ui/card";
+import CardHeader from "@/components/ui/card_header";
+import CardTitle from "@/components/ui/card_title";
+import CardContent from "@/components/ui/card_content";
 import FeedbackMessage from "@/components/ui/feedback_message";
 
 interface SyncErrorCardProps {

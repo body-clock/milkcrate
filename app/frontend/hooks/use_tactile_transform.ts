@@ -29,6 +29,8 @@ interface UseTactileTransformResult {
  * Pure computation hook: derives Framer Motion style values from proximity
  * and press state. Does not track pointer position — pair with usePointerProximity.
  */
+const TILT_HOVER_ADJUST = 1.5
+
 export function useTactileTransform(
   proximity: number,
   isPressed: boolean,
@@ -37,23 +39,10 @@ export function useTactileTransform(
   const { restingTilt = 0, disableTilt = false, reducedMotion = false } = options
 
   const transform = useMemo<MotionStyle>(() => {
-    if (reducedMotion) {
-      return { rotate: 0, scale: 1, y: 0 }
-    }
-
-    // Tilt: straightens as cursor approaches
-    const rotate = disableTilt
-      ? 0
-      : restingTilt * (TILT_HOVER / 1.5) * (1 - proximity)
-
-    // Scale: SCALE_PRESS when pressed, otherwise interpolate
-    const scale = isPressed
-      ? SCALE_PRESS
-      : 1 + (SCALE_HOVER - 1) * proximity
-
-    // Lift: increases as cursor approaches
+    if (reducedMotion) { return { rotate: 0, scale: 1, y: 0 } }
+    const rotate = disableTilt ? 0 : restingTilt * (TILT_HOVER / TILT_HOVER_ADJUST) * (1 - proximity)
+    const scale = isPressed ? SCALE_PRESS : 1 + (SCALE_HOVER - 1) * proximity
     const y = proximity === 0 ? 0 : -LIFT_HOVER * proximity
-
     return { rotate, scale, y }
   }, [reducedMotion, disableTilt, isPressed, restingTilt, proximity])
 

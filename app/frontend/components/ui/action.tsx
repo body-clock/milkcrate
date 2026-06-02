@@ -37,41 +37,26 @@ export function actionClassName({
   );
 }
 
-export function ActionLink({
-  variant = "primary",
-  size = "md",
-  className,
-  busy = false,
-  disabled = false,
-  tabIndex,
-  onClick,
-  children,
-  ...props
-}: React.AnchorHTMLAttributes<HTMLAnchorElement> & {
-  variant?: ActionVariant;
-  size?: ActionSize;
-  busy?: boolean;
-  disabled?: boolean;
-}) {
-  const unavailable = disabled || busy;
+interface ActionLinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
+  variant?: ActionVariant
+  size?: ActionSize
+  busy?: boolean
+  disabled?: boolean
+}
+
+function handleClick(onClick: React.MouseEventHandler<HTMLAnchorElement> | undefined, unavailable: boolean) {
+  return (event: React.MouseEvent<HTMLAnchorElement>) => {
+    if (unavailable) {event.preventDefault(); return}
+    onClick?.(event)
+  }
+}
+
+export function ActionLink({ variant = "primary", size = "md", className, busy = false, disabled = false, tabIndex, onClick, children, ...props }: ActionLinkProps) {
+  const unavailable = disabled || busy
 
   return (
-    <a
-      {...props}
-      className={actionClassName({ variant, size, className })}
-      aria-busy={busy || undefined}
-      aria-disabled={unavailable || undefined}
-      tabIndex={unavailable ? -1 : tabIndex}
-      onClick={(event) => {
-        if (unavailable) {
-          event.preventDefault();
-          return;
-        }
-
-        onClick?.(event);
-      }}
-    >
+    <a {...props} className={actionClassName({ variant, size, className })} aria-busy={busy || undefined} aria-disabled={unavailable || undefined} tabIndex={unavailable ? -1 : tabIndex} onClick={handleClick(onClick, unavailable)}>
       {children}
     </a>
-  );
+  )
 }

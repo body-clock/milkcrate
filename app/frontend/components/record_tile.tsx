@@ -1,5 +1,6 @@
 import { useReducedMotionContext } from "@/components/storefront_motion_config"
 import type { Listing } from "../types/inertia"
+import { RecordCover } from "./record_cover"
 
 export interface RecordTileProps {
   listing: Listing
@@ -38,20 +39,7 @@ export default function RecordTile({
     <div
       className={`aspect-square w-full h-full rounded-sm overflow-hidden border border-mc-border/50 ${hoverClass} ${className}`}
     >
-      {src ? (
-        <img
-          src={src}
-          alt={listing.title ?? ""}
-          className="w-full h-full object-cover"
-          draggable={false}
-          loading={imageLoading}
-          decoding="async"
-        />
-      ) : (
-        <div className="w-full h-full flex items-center justify-center bg-mc-bg-raised text-mc-text-dim text-lg">
-          ♪
-        </div>
-      )}
+      <RecordCover src={src} alt={listing.title ?? ""} imageLoading={imageLoading} />
     </div>
   )
 }

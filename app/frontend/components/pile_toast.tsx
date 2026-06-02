@@ -1,8 +1,8 @@
 import { useEffect } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { usePileContext } from "@/contexts/pile_context";
 import { useReducedMotionContext } from "@/components/storefront_motion_config";
-import { springTactile } from "@/lib/motion_tokens";
+import { ToastMotion } from "./toast_motion";
 
 const TOAST_DURATION_MS = 2000;
 const TITLE_MAX_CHARS = 30;
@@ -30,20 +30,7 @@ export default function PileToast() {
 
   return (
     <AnimatePresence>
-      {lastAdded && (
-        <motion.div
-          key={lastAdded.id}
-          role="status"
-          aria-live="polite"
-          initial={reducedMotion ? { opacity: 1 } : { opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={reducedMotion ? { opacity: 0 } : { opacity: 0, y: -8 }}
-          transition={springTactile}
-          className="fixed top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-mc-bg-raised border border-mc-border shadow-lg text-sm font-medium text-mc-text pointer-events-none select-none whitespace-nowrap"
-        >
-          Added {title} to pile
-        </motion.div>
-      )}
+      {lastAdded && <ToastMotion lastAdded={lastAdded} title={title} reducedMotion={reducedMotion} />}
     </AnimatePresence>
   );
 }

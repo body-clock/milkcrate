@@ -1,4 +1,5 @@
 import type { Listing } from "@/types/inertia"
+import { ScoreRow, ScoreTotalRow } from "./score_row"
 
 interface Props {
   listing: Listing
@@ -27,24 +28,11 @@ export default function ScoreBreakdown({ listing }: Props) {
         Score
       </div>
       <div className="grid grid-cols-[1fr_auto] gap-x-2 gap-y-px">
-        {Object.entries(breakdown).flatMap(([key, value]) => [
-          <span key={`l-${key}`} className="truncate tabular-nums text-mc-text-dim/80">
-            {STRATEGY_LABELS[key] ?? key}
-          </span>,
-          <span
-            key={`v-${key}`}
-            className={`text-right tabular-nums ${value >= 0 ? "text-mc-feedback-success" : "text-mc-feedback-danger"}`}
-          >
-            {value >= 0 ? "+" : ""}{value.toFixed(1)}
-          </span>,
-        ])}
+        {Object.entries(breakdown).flatMap(([key, value]) => (
+          <ScoreRow key={key} label={STRATEGY_LABELS[key] ?? key} value={value} />
+        ))}
       </div>
-      <div className="mt-0.5 flex justify-between border-t border-mc-border/20 pt-0.5 text-mc-text font-semibold tabular-nums">
-        <span>Total</span>
-        <span className={total >= 0 ? "text-mc-feedback-success" : "text-mc-feedback-danger"}>
-          {total >= 0 ? "+" : ""}{total.toFixed(1)}
-        </span>
-      </div>
+      <ScoreTotalRow total={total} />
     </div>
   )
 }

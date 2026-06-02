@@ -1,19 +1,15 @@
 import React from "react"
 import { cn } from "./class_names"
 
-export default function SectionHeader({
-  id,
-  title,
-  description,
-  action,
-  className,
-}: {
+interface SectionHeaderProps {
   id?: string
   title: string
   description?: string
   action?: React.ReactNode
   className?: string
-}) {
+}
+
+export default function SectionHeader({ id, title, description, action, className }: SectionHeaderProps) {
   return (
     <div className={cn("mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between", className)}>
       <div className="min-w-0">

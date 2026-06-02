@@ -1,4 +1,4 @@
-import { CardContent } from "@/components/ui/card";
+import CardContent from "@/components/ui/card_content";
 import type { useAdminDiscogsLookup } from "@/hooks/use_admin_discogs_lookup";
 import { LookupForm } from "./lookup_form";
 import { StatusMessages } from "./status_messages";
