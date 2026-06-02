@@ -84,7 +84,7 @@ export default function BrowseShell({
         className={
           isCompact
             ? "mx-auto max-w-md rounded-[1.5rem] border border-mc-border bg-mc-bg-card/96 p-1.5 shadow-[0_20px_40px_-24px_rgba(0,0,0,0.45)] backdrop-blur"
-            : "flex gap-1 rounded-xl border border-mc-border bg-mc-bg-card p-1"
+            : "flex gap-1 rounded-2xl border border-mc-border bg-mc-bg-card p-1"
         }
       >
         <div className={isCompact ? "grid grid-cols-3 gap-1" : "contents"}>
