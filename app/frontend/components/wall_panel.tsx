@@ -9,9 +9,9 @@ import WallRecordPeekSheet from "./wall_record_peek_sheet";
 import type { Crate, Listing } from "../types/inertia";
 
 const TIER_DENSITY = {
-  compact: { tilesPerPage: 6, gridCols: "grid-cols-2", aspectRatio: "2/3" },
-  comfy: { tilesPerPage: 9, gridCols: "grid-cols-3", aspectRatio: "1/1" },
-  wide: { tilesPerPage: 12, gridCols: "grid-cols-4", aspectRatio: "4/3" },
+  compact: { tilesPerPage: 6, gridCols: "grid-cols-2" },
+  comfy: { tilesPerPage: 9, gridCols: "grid-cols-3" },
+  wide: { tilesPerPage: 12, gridCols: "grid-cols-4" },
 } as const;
 const SWIPE_THRESHOLD = 8000;
 
@@ -37,7 +37,7 @@ interface Props {
 
 export default function WallPanel({ crate }: Props) {
   const { tier, isCompact } = useViewport();
-  const { tilesPerPage, gridCols, aspectRatio } = TIER_DENSITY[tier];
+  const { tilesPerPage, gridCols } = TIER_DENSITY[tier];
   const prefersReducedMotion = useReducedMotionContext();
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
   const returnFocusRef = useRef<HTMLButtonElement | null>(null);
@@ -104,12 +104,8 @@ export default function WallPanel({ crate }: Props) {
       </div>
 
       <div
-        className="overflow-hidden"
-        style={{
-          position: "relative",
-          aspectRatio,
-          maxHeight: isCompact ? undefined : "60vh",
-        }}
+        className={`overflow-hidden ${isCompact ? "" : "w-full"}`}
+        style={isCompact ? { position: "relative", aspectRatio: "2/3" } : undefined}
       >
         <AnimatePresence custom={direction}>
           <motion.div
@@ -124,8 +120,8 @@ export default function WallPanel({ crate }: Props) {
             dragConstraints={{ left: 0, right: 0 }}
             dragElastic={0.3}
             onDragEnd={handleDragEnd}
-            className={`grid ${gridCols} gap-2`}
-            style={{ position: "absolute", inset: 0 }}
+            className={`grid ${gridCols} gap-2 ${isCompact ? "" : "grid-rows-3"}`}
+            style={isCompact ? { position: "absolute", inset: 0 } : undefined}
           >
             {currentPage.map((listing) => (
               <motion.button
