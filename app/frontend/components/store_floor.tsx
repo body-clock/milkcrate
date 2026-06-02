@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import CrateShelf from "./crate_shelf";
 import FeaturedCratesRow from "./featured_crates_row";
 import GenreGrid from "./genre_grid";
+import WallGlowCue from "./wall_glow_cue";
 import { useTactileHover } from "@/hooks/use_tactile_hover";
 import { useViewport } from "@/hooks/use_viewport";
 import {
@@ -62,30 +63,36 @@ function PicksShelf({
   // Comfy/wide: wrap in a hover-animated motion container (no rotate, Wall is editorial)
   if (!isCompact) {
     return (
-      <motion.div
-        className="w-full rounded-lg overflow-hidden"
-        animate={{
-          scale: isPressed ? SCALE_PRESS : isHovered ? SCALE_HOVER : 1,
-          y: isHovered ? -3 : 0,
-        }}
-        transition={isPressed ? springPress : springTactile}
-        {...handlers}
-      >
-        {shelf}
-      </motion.div>
+      <div className="relative">
+        <WallGlowCue />
+        <motion.div
+          className="w-full rounded-lg overflow-hidden"
+          animate={{
+            scale: isPressed ? SCALE_PRESS : isHovered ? SCALE_HOVER : 1,
+            y: isHovered ? -3 : 0,
+          }}
+          transition={isPressed ? springPress : springTactile}
+          {...handlers}
+        >
+          {shelf}
+        </motion.div>
+      </div>
     );
   }
 
   // Compact: wrap in press-only motion container (no hover, no lift — tap feedback only)
   return (
-    <motion.div
-      className="w-full"
-      animate={{ scale: isPressed ? SCALE_PRESS : 1 }}
-      transition={springPress}
-      {...handlers}
-    >
-      {shelf}
-    </motion.div>
+    <div className="relative">
+      <WallGlowCue />
+      <motion.div
+        className="w-full"
+        animate={{ scale: isPressed ? SCALE_PRESS : 1 }}
+        transition={springPress}
+        {...handlers}
+      >
+        {shelf}
+      </motion.div>
+    </div>
   );
 }
 
