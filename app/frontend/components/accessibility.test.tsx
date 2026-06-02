@@ -4,7 +4,6 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import RecordCard from "./record_card";
 import CrateView from "./crate_view";
-import CrateShelf from "./crate_shelf";
 import InlineCrateStage from "./inline_crate_stage";
 import WallPanel from "./wall_panel";
 import PileSheet from "./pile_sheet";
@@ -274,40 +273,6 @@ describe("no nested interactive controls", () => {
     expect(screen.getByRole("link", { name: /Discogs/ })).toHaveClass(
       "focus-visible:ring-mc-focus",
     );
-  });
-
-  it("CrateShelf interactive mode does not nest button elements inside button elements", () => {
-    const crate = makeCrate();
-    render(
-      <StorefrontMotionConfig>
-        <PileProvider>
-          <ViewportProvider>
-            <CrateShelf crate={crate} interactive={true} onSelectCrate={vi.fn()} />
-          </ViewportProvider>
-        </PileProvider>
-      </StorefrontMotionConfig>,
-    );
-
-    // The header is a div with role="button"; thumbnails are <button>s.
-    // No <button> should contain another <button>.
-    const buttons = document.querySelectorAll("button");
-    buttons.forEach((btn) => {
-      const nestedButtons = btn.querySelectorAll("button");
-      expect(nestedButtons.length).toBe(0);
-    });
-  });
-
-  it("CrateShelf non-interactive mode renders no buttons", () => {
-    const crate = makeCrate();
-    render(
-      <StorefrontMotionConfig>
-        <CrateShelf crate={crate} interactive={false} />
-      </StorefrontMotionConfig>,
-    );
-
-    // Non-interactive mode should not render any buttons.
-    const buttons = document.querySelectorAll("button");
-    expect(buttons.length).toBe(0);
   });
 
   it("WallPanel tiles stay semantic and do not nest interactive controls", () => {
