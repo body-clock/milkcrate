@@ -57,7 +57,7 @@ The ideas below lead with the compact experience. Desktop descriptions follow as
 
 **Complexity:** Medium
 
-**Status:** Unexplored
+**Status:** Explored
 
 ---
 
