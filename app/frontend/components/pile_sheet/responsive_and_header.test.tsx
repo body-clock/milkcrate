@@ -1,7 +1,7 @@
 import React from "react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { render, screen, waitFor } from "@testing-library/react"
-import userEvent from "@testing-library/user-event"
+// import userEvent from "@testing-library/user-event"
 import PileSheet from "../pile_sheet"
 import { PileProvider, usePileContext } from "../../contexts/pile_context"
 import { ViewportProvider } from "../../contexts/viewport_context"

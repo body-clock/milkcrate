@@ -1,6 +1,6 @@
 import React from "react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { render, screen, waitFor } from "@testing-library/react"
+import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import PileSheet from "../pile_sheet"
 import { PileProvider } from "../../contexts/pile_context"
@@ -92,7 +92,7 @@ describe("PileSheet dialog mechanics", () => {
     )
     const backdrop = container.querySelector('[aria-hidden="true"]')
     expect(backdrop).toBeInTheDocument()
-    if (backdrop) await userEvent.click(backdrop)
+    if (backdrop) {await userEvent.click(backdrop)}
     expect(onClose).toHaveBeenCalledOnce()
   })
 

@@ -148,7 +148,6 @@ describe("AppLayout pile button", () => {
 describe("AppLayout pile close focus", () => {
   beforeEach(setupTest);
   afterEach(cleanup);
-
   it("focuses banner after last record removed", async () => {
     const user = userEvent.setup();
     renderCompact([listing]);
@@ -157,7 +156,6 @@ describe("AppLayout pile close focus", () => {
     await user.click(screen.getByRole("button", { name: "Close pile" }));
     expect(document.activeElement).toBe(screen.getByRole("banner"));
   });
-
   it("returns focus to trigger after close", async () => {
     const user = userEvent.setup();
     renderCompact([listing]);
