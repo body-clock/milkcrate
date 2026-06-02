@@ -1,36 +1,36 @@
-import React, { useEffect, useRef } from "react"
-import type { Crate } from "../types/inertia"
+import React, { useEffect, useRef } from "react";
+import type { Crate } from "../types/inertia";
 
 interface Props {
-  crates: Crate[]
-  activeSlug: string
-  onSelect: (slug: string) => void
-  compact?: boolean
+  crates: Crate[];
+  activeSlug: string | null;
+  onSelect: (slug: string) => void;
+  compact?: boolean;
 }
 
 export default function CrateTabs({ crates, activeSlug, onSelect, compact = false }: Props) {
-  const tabsRef = useRef<HTMLDivElement>(null)
-  const activeTabRef = useRef<HTMLButtonElement>(null)
+  const tabsRef = useRef<HTMLDivElement>(null);
+  const activeTabRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     activeTabRef.current?.scrollIntoView?.({
       behavior: "smooth",
       block: "nearest",
       inline: "center",
-    })
-  }, [activeSlug])
+    });
+  }, [activeSlug]);
 
   const handleKeyDown = (e: React.KeyboardEvent, currentIndex: number) => {
-    let nextIndex = currentIndex
-    if (e.key === "ArrowRight") nextIndex = (currentIndex + 1) % crates.length
-    else if (e.key === "ArrowLeft") nextIndex = (currentIndex - 1 + crates.length) % crates.length
-    else return
+    let nextIndex = currentIndex;
+    if (e.key === "ArrowRight") nextIndex = (currentIndex + 1) % crates.length;
+    else if (e.key === "ArrowLeft") nextIndex = (currentIndex - 1 + crates.length) % crates.length;
+    else return;
 
-    e.preventDefault()
-    const tab = tabsRef.current?.querySelectorAll<HTMLButtonElement>("[role='tab']")[nextIndex]
-    tab?.focus()
-    onSelect(crates[nextIndex].slug)
-  }
+    e.preventDefault();
+    const tab = tabsRef.current?.querySelectorAll<HTMLButtonElement>("[role='tab']")[nextIndex];
+    tab?.focus();
+    onSelect(crates[nextIndex].slug);
+  };
 
   return (
     <div
@@ -41,7 +41,7 @@ export default function CrateTabs({ crates, activeSlug, onSelect, compact = fals
       style={{ scrollbarWidth: compact ? "none" : "thin" }}
     >
       {crates.map((crate, i) => {
-        const selected = crate.slug === activeSlug
+        const selected = crate.slug === activeSlug;
         return (
           <button
             key={crate.slug}
@@ -61,8 +61,8 @@ export default function CrateTabs({ crates, activeSlug, onSelect, compact = fals
           >
             {crate.name}
           </button>
-        )
+        );
       })}
     </div>
-  )
+  );
 }

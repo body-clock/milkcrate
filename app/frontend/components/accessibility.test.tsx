@@ -5,7 +5,7 @@ import userEvent from "@testing-library/user-event";
 import RecordCard from "./record_card";
 import CrateView from "./crate_view";
 import CrateShelf from "./crate_shelf";
-import CompactCrateStage from "./compact_crate_stage";
+import InlineCrateStage from "./inline_crate_stage";
 import WallPanel from "./wall_panel";
 import PileSheet from "./pile_sheet";
 import BrandMark from "./brand_mark";
@@ -319,12 +319,12 @@ describe("no nested interactive controls", () => {
     });
   });
 
-  it("CompactCrateStage exposes riffle controls without a nested crate tab strip", () => {
+  it("InlineCrateStage exposes riffle controls without a nested crate tab strip", () => {
     render(
       <StorefrontMotionConfig>
         <ViewportProvider>
           <PileProvider>
-            <CompactCrateStage
+            <InlineCrateStage
               crates={[makeCrate()]}
               activeSlug="test-crate"
               startIndex={1}

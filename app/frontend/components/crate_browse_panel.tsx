@@ -1,5 +1,5 @@
 import CrateChipBar from "./crate_chip_bar";
-import CompactCrateStage from "./compact_crate_stage";
+import InlineCrateStage from "./inline_crate_stage";
 import type { Crate } from "../types/inertia";
 
 export type CrateBrowseMode = "featured" | "genres";
@@ -41,7 +41,7 @@ export default function CrateBrowsePanel({
       />
 
       {activeCrate ? (
-        <CompactCrateStage
+        <InlineCrateStage
           crates={crates}
           activeSlug={activeSlug}
           startIndex={startIndex}

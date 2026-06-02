@@ -26,7 +26,7 @@ export default function CrateChipBar({
   }
 
   const selectedSlug =
-    activeSlug && crates.some((crate) => crate.slug === activeSlug) ? activeSlug : crates[0].slug;
+    activeSlug && crates.some((crate) => crate.slug === activeSlug) ? activeSlug : null;
 
   return (
     <div className="rounded-2xl border border-mc-border bg-mc-bg-card px-3 py-3 shadow-sm">
