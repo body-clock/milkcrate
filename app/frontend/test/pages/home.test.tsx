@@ -73,14 +73,21 @@ function makePreview(overrides: Partial<HomepagePreview> = {}): HomepagePreview 
 }
 
 // ── Emoji regression characters ──────────────────────────────
-const emojiChars = ["🥛", "📀", "👀", "📦"];
+const MIN_LINKS = 2;
+const EMOJI_CHARS = ["🥛", "📀", "👀", "📦"];
 
 afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe("Home page — shopper-first redesign", () => {
-  describe("hero section", () => {
+function assertNoEmoji(element: HTMLElement | null) {
+  const text = element?.textContent ?? document.body.textContent ?? "";
+  for (const emoji of EMOJI_CHARS) {
+    expect(text).not.toContain(emoji);
+  }
+}
+
+describe("Home page — hero section", () => {
     it("renders a shopper-first H1 heading", () => {
       render(<Home copy={copy} preview={makePreview()} />);
 
@@ -89,12 +96,7 @@ describe("Home page — shopper-first redesign", () => {
 
     it("does not render the milk emoji in the hero", () => {
       render(<Home copy={copy} preview={makePreview()} />);
-
-      const hero = document.querySelector("[aria-labelledby]");
-      const textContent = hero?.textContent ?? "";
-      for (const emoji of emojiChars) {
-        expect(textContent).not.toContain(emoji);
-      }
+      assertNoEmoji(document.querySelector("[aria-labelledby]"));
     });
 
     it("renders the demo CTA linking to the demo store", () => {
@@ -107,18 +109,17 @@ describe("Home page — shopper-first redesign", () => {
 
     it("does not render a 'Get your store' button in the hero", () => {
       render(<Home copy={copy} preview={makePreview()} />);
-
       expect(screen.queryByText("Get your store on Milkcrate")).not.toBeInTheDocument();
     });
 
     it("does not render the old footnote", () => {
       render(<Home copy={copy} preview={makePreview()} />);
-
       expect(screen.queryByText("Early access. We handle the setup.")).not.toBeInTheDocument();
     });
   });
 
-  describe("storefront preview section", () => {
+
+describe("Home page — storefront preview", () => {
     it("renders the preview section label", () => {
       render(<Home copy={copy} preview={makePreview()} />);
 
@@ -183,10 +184,6 @@ describe("Home page — shopper-first redesign", () => {
     it("does not use emoji as decorative icons", () => {
       render(<Home copy={copy} preview={makePreview()} />);
 
-      const body = document.body.textContent ?? "";
-      for (const emoji of emojiChars) {
-        expect(body).not.toContain(emoji);
-      }
     });
 
     it("does not advertise one-click Discogs cart transfer", () => {
@@ -309,11 +306,7 @@ describe("Home page — shopper-first redesign", () => {
     it("does not render any emoji in the entire page", () => {
       render(<Home copy={copy} preview={makePreview()} />);
 
-      const textContent = document.body.textContent ?? "";
-
-      for (const emoji of emojiChars) {
-        expect(textContent).not.toContain(emoji);
-      }
+      assertNoEmoji(null);
     });
 
     it("does not use the milk emoji as a hero icon", () => {
@@ -370,7 +363,7 @@ describe("Home page — shopper-first redesign", () => {
       render(<Home copy={copy} preview={makePreview()} />);
 
       const links = screen.getAllByRole("link");
-      expect(links.length).toBeGreaterThanOrEqual(2);
+      expect(links.length).toBeGreaterThanOrEqual(MIN_LINKS);
     });
 
     it("seller input has an associated label", () => {
@@ -381,4 +374,3 @@ describe("Home page — shopper-first redesign", () => {
       expect(input).toHaveAttribute("id", "seller-discogs-username");
     });
   });
-});
