@@ -62,9 +62,9 @@ export default function RecordDetails({ listing, direction }: RecordDetailsProps
                 href={listing.discogs_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label={`View listing for ${listing.title ?? "this record"} on ******* (opens in new tab)`}
+                aria-label={`View listing for ${listing.title ?? "this record"} on Discogs (opens in new tab)`}
               >
-                View listing on ******* ↗
+                View listing on Discogs ↗
               </ActionLink>
             </div>
           </div>
