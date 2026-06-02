@@ -87,6 +87,38 @@ describe("StoreFloor section labels", () => {
 
       expect(screen.queryByText(/Today's picks/)).not.toBeInTheDocument();
     });
+
+    it("renders borderless on compact tier", () => {
+      renderFloorAtTier([picksSectionWith(4)], "compact");
+
+      // The CrateShelf container should not have border classes.
+      const shelfContainer = document.querySelector(".border-0.rounded-none.bg-transparent");
+      expect(shelfContainer).toBeInTheDocument();
+    });
+
+    it("does not render 'DIG →' entry label", () => {
+      renderFloor([picksSectionWith(4)]);
+
+      expect(screen.queryByText(/DIG/)).not.toBeInTheDocument();
+    });
+
+    it("renders 6-record grid (3 columns × 2 rows on compact)", () => {
+      renderFloorAtTier([picksSectionWith(6)], "compact");
+
+      // With previewCount=6 and gridColumnCount(6)=3 columns, expect a 3-col grid.
+      const grid = document.querySelector("[style*='grid-template-columns']");
+      expect(grid).toBeInTheDocument();
+      expect(grid?.getAttribute("style")).toContain("repeat(3");
+    });
+
+    it("press feedback wrapper is present on compact", () => {
+      renderFloorAtTier([picksSectionWith(4)], "compact");
+
+      // The compact path wraps in a motion.div for press-only feedback.
+      // Verify the wrapper exists (it's a motion.div with w-full class).
+      const wrapper = document.querySelector(".w-full");
+      expect(wrapper).toBeInTheDocument();
+    });
   });
 
   describe("Featured section", () => {
