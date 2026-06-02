@@ -1,36 +1,36 @@
-# Progress
+# feat/sandi-metz-oxlint — Progress
 
-## Status
-In Progress
+## Current status
+Branch: feat/sandi-metz-oxlint (from development)
+Config added: 23 oxlint rules + sortImports in oxfmt
 
-## Tasks
-- Fix Sandi Metz warnings in app/frontend/pages/admin/dashboard.tsx — DONE ✅
-- Fix Sandi Metz warnings in app/frontend/components/crate_view/crate_header.tsx — DONE ✅
+## Fix progress (579 → 433 → ongoing)
 
-## Files Changed
+### Batch 0 — Auto-fix
+- 109 warnings fixed via `oxlint --fix` (curly, prefer-const, no-else-return, etc.)
 
-### Created
-- app/frontend/pages/admin/dashboard/use_resync.ts — Extracted polling hook, POLL_INTERVAL_MS constant
-- app/frontend/pages/admin/dashboard/dashboard_header_title.tsx — Title "Milkcrate admin" + "Store operations" + Sign out
-- app/frontend/pages/admin/dashboard/dashboard_header.tsx — Full header with metrics
-- app/frontend/pages/admin/dashboard/flash_banner.tsx — After-header flash messages
-- app/frontend/pages/admin/dashboard/active_stores_section.tsx — Active stores section
-- app/frontend/pages/admin/dashboard/applicants_section.tsx — Applicants section
+### Batch 1 — Source file refactors ✓
+- pages/apply.tsx → split into 6 files (24→1 warnings)
+- wall_record_peek_sheet.tsx (21→4)
+- pages/stores/invitation.tsx → split into 7 files (19→0)
+- pages/dashboard/index.tsx → split into 8 files (18→1)
+- components/pile_sheet.tsx → split into 5 sub-components (17→1)
+- hooks/use_discogs_lookup.ts (16→0)
+- components/record_card.tsx → split into 3 files (16→5)
+- components/discogs_seller_lookup_input.tsx (24→0)
 
-### Modified
-- app/frontend/pages/admin/dashboard.tsx — Slimmed from 139 lines to ~20, all Sandi Metz warnings resolved
-- app/frontend/components/crate_view/crate_header.tsx — complexity 16→6, 66→16 lines, jsx-max-depth resolved via component extraction
+### Batch 2 — Source file refactors ✓
+- pages/home.tsx → extracted components (14→0)
+- hooks/use_admin_discogs_lookup.ts (16→0)
+- hooks/use_pointer_proximity.ts (10→0)
+- components/browse_shell.tsx → split into 12 files (14→0)
+- admin/discogs_onboarding_panel.tsx → split into 7 files (11→0)
+- components/record_details.tsx → extracted sub-components (11→0)
+- layouts/app_layout.tsx → split into 10 files (10→0)
 
-### Created (crate_header)
-- app/frontend/components/crate_view/crate_header/types.ts — Shared types
-- app/frontend/components/crate_view/crate_header/crate_header_info.tsx — Name + record count
-- app/frontend/components/crate_view/crate_header/compact_crate_header.tsx — Compact layout
-- app/frontend/components/crate_view/crate_header/wide_crate_header.tsx — Wide layout
+### Batch 3 — In progress
+- hooks/use_preload.ts ✅ fixed (3→0)
 
-### Modified
-- app/frontend/components/crate_view/crate_header.tsx — Slimmed from 100 lines to ~15, all 6 Sandi Metz warnings resolved
-
-## Notes
-- 3000 → POLL_INTERVAL_MS in use_resync.ts
-- Dashboard function now <20 lines
-- JSX max depth resolved via component extraction
+### Remaining (433 total: 202 source + 231 test)
+- Top source files still needing fixes
+- All test files (231 warnings) — deferred
