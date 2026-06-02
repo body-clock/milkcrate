@@ -162,7 +162,7 @@ Records are filtered **after** parsing by `RecordFilter`:
 | `app/services/csv_export_sync/csv_parser.rb` | Parses Discogs CSV into normalized records |
 | `app/services/csv_export_sync/record_filter.rb` | Filters parsed records (vinyl, available, has ID) |
 | `app/services/csv_export_sync/export_requester.rb` | Trigger → poll → download loop |
-| `app/services/csv_export_sync_service.rb` | Orchestrates full CSV import pipeline |
+| `app/services/sync_strategies/csv_export.rb` | Orchestrates full CSV import pipeline (replaced `csv_export_sync_service.rb`) |
 
 ## Why This Matters
 
