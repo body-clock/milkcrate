@@ -3,9 +3,9 @@ import { useDiscogsLookup } from "@/hooks/use_discogs_lookup";
 import Button from "@/components/ui/button";
 import Spinner from "@/components/spinner";
 import Field from "@/components/ui/field";
-import { LookupStatus } from "./status_components";
-import type { Props } from "./types";
-import { MIN_USERNAME_LENGTH } from "./types";
+import { LookupStatus } from "./discogs_seller_lookup_input/status_components";
+import type { Props } from "./discogs_seller_lookup_input/types";
+import { MIN_USERNAME_LENGTH } from "./discogs_seller_lookup_input/types";
 
 export default function DiscogsSellerLookupInput({ copy }: Props) {
   const [username, setUsername] = useState("");
