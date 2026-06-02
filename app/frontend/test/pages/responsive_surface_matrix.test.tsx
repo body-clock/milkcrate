@@ -452,8 +452,8 @@ describe("responsive surface matrix", () => {
 
     const { container } = renderStoreShowAtTier("wide", propsWithCrates);
     expect(container).toBeTruthy();
-    // Store floor should render when crates exist
-    expect(screen.getByText("Milkcrate Picks")).toBeInTheDocument();
+    // Browse shell renders Wall panel when crates exist
+    expect(screen.getByRole("region", { name: "The Wall" })).toBeInTheDocument();
   });
 
   it("store sync failure exposes semantic danger feedback without hiding fallback content", () => {
@@ -575,21 +575,16 @@ describe("responsive surface matrix", () => {
       ],
     };
 
-    // compact tier: browse shell with Wall region
-    cleanup();
-    renderStoreShowAtTier("compact", propsWithSections);
-    expect(screen.getByRole("region", { name: "The Wall" })).toBeInTheDocument();
-    expect(screen.getByText(/Today's picks, the store's taste at a glance/i)).toBeInTheDocument();
-
-    // comfy and wide tiers: classic store floor
-    for (const tier of ["comfy", "wide"] as const) {
+    // all tiers render the same browse shell with Wall region
+    for (const tier of tiers) {
       cleanup();
       renderStoreShowAtTier(tier, propsWithSections);
-      expect(screen.getByText("Milkcrate Picks")).toBeInTheDocument();
+      expect(screen.getByRole("region", { name: "The Wall" })).toBeInTheDocument();
+      expect(screen.getByText(/Today's picks, the store's taste at a glance/i)).toBeInTheDocument();
     }
   });
 
-  it("compact tier renders the browse shell navigation and wall surface", () => {
+  it("compact tier renders the browse shell with bottom-anchored navigation", () => {
     renderStoreShowAtTier("compact", compactStoreProps);
 
     expect(screen.getByRole("navigation", { name: "Browse modes" })).toHaveClass("fixed");
@@ -603,7 +598,7 @@ describe("responsive surface matrix", () => {
     expect(screen.getByText(/Today's picks, the store's taste at a glance/i)).toBeInTheDocument();
   });
 
-  it("compact tier auto-selects the first crate when switching to Featured or Genres", async () => {
+  it("switching browse modes clears active crate and shows the panel prompt", async () => {
     const user = userEvent.setup();
     renderStoreShowAtTier("compact", compactStoreProps);
 
@@ -613,41 +608,41 @@ describe("responsive surface matrix", () => {
       "aria-pressed",
       "true",
     );
-    expect(
-      screen.getByRole("progressbar", { name: "Record 1 of 3, front to deeper" }),
-    ).toBeInTheDocument();
-    expect(screen.queryByText(/Pick a Featured crate/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/Pick a Featured crate/i)).toBeInTheDocument();
+    expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Genres" }));
 
     expect(screen.getByRole("button", { name: "Genres" })).toHaveAttribute("aria-pressed", "true");
-    expect(
-      screen.getByRole("progressbar", { name: "Record 1 of 2, front to deeper" }),
-    ).toBeInTheDocument();
-    expect(screen.queryByText(/Pick a genre crate/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/Pick a genre crate/i)).toBeInTheDocument();
+    expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
   });
 
-  it("compact tier renders an inline crate stage for deep-linked crates", () => {
+  it("deep-linked crates render through the browse shell at all tiers", () => {
     history.replaceState({ crateSlug: "jazz", startIndex: 1 }, "", "/stores/test?crate=jazz");
 
-    renderStoreShowAtTier("compact", compactStoreProps);
+    for (const tier of tiers) {
+      cleanup();
+      renderStoreShowAtTier(tier, compactStoreProps);
 
-    expect(screen.getByRole("tablist", { name: "Crates" })).toBeInTheDocument();
-    expect(
-      screen.getByRole("progressbar", { name: "Record 2 of 3, front to deeper" }),
-    ).toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: "Jazz" })).not.toBeInTheDocument();
-  });
+      // Browse shell is present with its navigation at all tiers
+      expect(screen.getByRole("button", { name: "The Wall" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Featured" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Genres" })).toBeInTheDocument();
 
-  it("wide tier still renders the full crate experience on deep links", () => {
-    history.replaceState({ crateSlug: "jazz", startIndex: 1 }, "", "/stores/test?crate=jazz");
+      // Featured mode is active because jazz is in the featured section
+      expect(screen.getByRole("button", { name: "Featured" })).toHaveAttribute(
+        "aria-pressed",
+        "true",
+      );
 
-    renderStoreShowAtTier("wide", compactStoreProps);
+      // Crate chip bar with tabs is rendered
+      expect(screen.getByRole("tablist", { name: "Crates" })).toBeInTheDocument();
 
-    expect(screen.getByRole("tablist", { name: "Crates" })).toBeInTheDocument();
-    expect(
-      screen.getByRole("progressbar", { name: "Record 2 of 3, front to deeper" }),
-    ).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "The Wall" })).not.toBeInTheDocument();
+      // Inline crate stage shows the deep-linked crate's records at the specified start index
+      expect(
+        screen.getByRole("progressbar", { name: "Record 2 of 3, front to deeper" }),
+      ).toBeInTheDocument();
+    }
   });
 });
