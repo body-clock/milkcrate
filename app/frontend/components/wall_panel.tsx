@@ -36,7 +36,7 @@ interface Props {
 }
 
 export default function WallPanel({ crate }: Props) {
-  const { tier } = useViewport();
+  const { tier, isCompact } = useViewport();
   const { tilesPerPage, gridCols, aspectRatio } = TIER_DENSITY[tier];
   const prefersReducedMotion = useReducedMotionContext();
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
@@ -103,7 +103,14 @@ export default function WallPanel({ crate }: Props) {
         <p className="text-xs text-mc-text-dim leading-relaxed">{COPY.wall.description}</p>
       </div>
 
-      <div className="overflow-hidden" style={{ position: "relative", aspectRatio }}>
+      <div
+        className="overflow-hidden"
+        style={{
+          position: "relative",
+          aspectRatio: isCompact ? aspectRatio : undefined,
+          maxHeight: isCompact ? undefined : "60vh",
+        }}
+      >
         <AnimatePresence custom={direction}>
           <motion.div
             key={pageIndex}

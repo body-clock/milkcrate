@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { usePileContext } from "@/contexts/pile_context";
 import { useDialogFocusTrap } from "@/hooks/use_dialog_focus_trap";
 import { useReducedMotionContext } from "./storefront_motion_config";
+import { useViewport } from "@/hooks/use_viewport";
 import { springDrawer, reducedMotionTransition } from "@/lib/motion_tokens";
 import { formatPrice } from "@/lib/format_price";
 import { COPY } from "@/lib/copy";
@@ -19,6 +20,7 @@ interface Props {
 }
 
 export default function WallRecordPeekSheet({ open, listing, onClose, returnFocusRef }: Props) {
+  const { isCompact } = useViewport();
   const prefersReducedMotion = useReducedMotionContext();
   const { dialogRef, titleRef } = useDialogFocusTrap(open, onClose, { returnFocusRef });
   const { inPile, addToPile, removeFromPile } = usePileContext();
@@ -56,10 +58,14 @@ export default function WallRecordPeekSheet({ open, listing, onClose, returnFocu
             aria-modal="true"
             aria-labelledby="wall-peek-title"
             aria-describedby={meta ? "wall-peek-meta" : undefined}
-            className="fixed inset-x-0 bottom-0 z-50 max-h-[calc(100dvh-0.75rem)] overflow-hidden rounded-t-[1.75rem] border-t border-mc-border bg-mc-bg shadow-2xl pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
+            className={
+              isCompact
+                ? "fixed inset-x-0 bottom-0 z-50 max-h-[calc(100dvh-0.75rem)] overflow-hidden rounded-t-[1.75rem] border-t border-mc-border bg-mc-bg shadow-2xl pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
+                : "fixed top-0 right-0 bottom-0 z-50 w-96 overflow-hidden border-l border-mc-border bg-mc-bg shadow-2xl flex flex-col"
+            }
+            initial={isCompact ? { y: "100%" } : { x: "100%" }}
+            animate={isCompact ? { y: 0 } : { x: 0 }}
+            exit={isCompact ? { y: "100%" } : { x: "100%" }}
             transition={transition}
           >
             <div className="flex items-start justify-between gap-3 border-b border-mc-border px-4 py-3">
@@ -85,9 +91,9 @@ export default function WallRecordPeekSheet({ open, listing, onClose, returnFocu
               </button>
             </div>
 
-            <div className="max-h-[calc(100dvh-9rem)] overflow-y-auto px-4 py-4">
+            <div className="flex-1 overflow-y-auto px-4 py-4">
               <div className="grid gap-4">
-                <div className="mx-auto w-full max-w-[16rem]">
+                <div className={isCompact ? "mx-auto w-full max-w-[16rem]" : "w-full"}>
                   <RecordTile listing={listing} imageLoading="eager" className="rounded-xl" />
                 </div>
 

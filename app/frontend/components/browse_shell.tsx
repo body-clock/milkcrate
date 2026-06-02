@@ -135,7 +135,7 @@ export default function BrowseShell({
   }
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-3">
       {browseNav}
       <motion.div
         key={mode}
