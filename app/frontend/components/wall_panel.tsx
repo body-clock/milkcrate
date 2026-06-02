@@ -11,7 +11,7 @@ import type { Crate, Listing } from "../types/inertia";
 const TIER_DENSITY = {
   compact: { tilesPerPage: 6, gridCols: "grid-cols-2" },
   comfy: { tilesPerPage: 8, gridCols: "grid-cols-4" },
-  wide: { tilesPerPage: 12, gridCols: "grid-cols-6" },
+  wide: { tilesPerPage: 15, gridCols: "grid-cols-5" },
 } as const;
 const SWIPE_THRESHOLD = 8000;
 
