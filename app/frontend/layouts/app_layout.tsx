@@ -113,7 +113,7 @@ export function AppLayoutContent({ children }: AppLayoutProps) {
     store?: Pick<Store, "name" | "discogs_username">;
     shopper?: { discogs_username: string } | null;
   }>();
-  const notice = page.props.notice;
+  const {notice} = page.props;
   const alertMsg = page.props.alert;
   const storeName = page.props.store?.name;
   const discogsUsername = page.props.store?.discogs_username;

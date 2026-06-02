@@ -41,7 +41,7 @@ export default function CrateHeader({
   const compactOwnedByLayout = layoutMode === "compact" || layoutMode === "minimal";
 
   if (isCompact) {
-    if (layoutMode === "minimal") return null;
+    if (layoutMode === "minimal") {return null;}
 
     return (
       <div className="mb-3">

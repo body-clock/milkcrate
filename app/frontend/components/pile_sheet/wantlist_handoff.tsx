@@ -15,7 +15,7 @@ export function WantlistHandoffAction({
   const [pulsing, setPulsing] = useState(highlight);
 
   useEffect(() => {
-    if (!pulsing) return;
+    if (!pulsing) {return;}
     const timer = setTimeout(() => setPulsing(false), 2500);
     return () => clearTimeout(timer);
   }, [pulsing]);

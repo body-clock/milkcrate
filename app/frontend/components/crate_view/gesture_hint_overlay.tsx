@@ -18,9 +18,9 @@ export default function GestureHintOverlay({
   total,
   prefersReducedMotion,
 }: GestureHintOverlayProps) {
-  if (!isCompact) return null;
-  if (!showGestureHint) return null;
-  if (!isLessonEligible({ isCompact, isPopulated: total > 0 })) return null;
+  if (!isCompact) {return null;}
+  if (!showGestureHint) {return null;}
+  if (!isLessonEligible({ isCompact, isPopulated: total > 0 })) {return null;}
 
   return <GhostFingerCue reducedMotion={prefersReducedMotion} />;
 }

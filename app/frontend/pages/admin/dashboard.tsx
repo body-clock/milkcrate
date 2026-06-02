@@ -27,7 +27,7 @@ export default function Dashboard({
     (s) => s.sync_status === "syncing" || s.enrichment_status === "enriching",
   );
   useEffect(() => {
-    if (!hasActiveJobs) return;
+    if (!hasActiveJobs) {return;}
     const interval = setInterval(() => {
       router.reload({ only: ["active_stores"] });
     }, 3000);

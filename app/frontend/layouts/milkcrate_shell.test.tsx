@@ -102,7 +102,7 @@ describe("MilkcrateShell", () => {
     // skip link (A), header (DIV), afterHeader (DIV), main (MAIN)
     expect(indices[0]).toBe("A"); // skip link
     expect(indices[1]).toBe("DIV"); // header
-    if (indices[2]) expect(indices[2]).toBe("DIV"); // afterHeader
+    if (indices[2]) {expect(indices[2]).toBe("DIV");} // afterHeader
   });
 
   it("applies default content width class", () => {

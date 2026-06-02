@@ -38,7 +38,7 @@ function computeProximityFromRect(rect: DOMRect | {
 
 function computeProximity(e: React.PointerEvent): number {
   const el = e.currentTarget as HTMLElement | null
-  if (!el) return 0
+  if (!el) {return 0}
   const rect = el.getBoundingClientRect()
 
   return computeProximityFromRect(rect, e.clientX, e.clientY)
@@ -59,7 +59,7 @@ export function usePointerProximity(
 
   const enter = useCallback(
     (e: React.PointerEvent) => {
-      if (!isBrowser || disabled) return
+      if (!isBrowser || disabled) {return}
       const isTouch = e.pointerType !== "mouse"
       isTouchRef.current = isTouch
       if (isTouch) {
@@ -73,9 +73,9 @@ export function usePointerProximity(
 
   const move = useCallback(
     (e: React.PointerEvent) => {
-      if (!isBrowser || disabled || isTouchRef.current) return
+      if (!isBrowser || disabled || isTouchRef.current) {return}
       const target = e.currentTarget as HTMLElement | null
-      if (!target) return
+      if (!target) {return}
       const rect = target.getBoundingClientRect()
       const { clientX, clientY } = e
 
@@ -92,7 +92,7 @@ export function usePointerProximity(
   )
 
   const leave = useCallback(() => {
-    if (!isBrowser) return
+    if (!isBrowser) {return}
     if (rafRef.current !== null) {
       cancelAnimationFrame(rafRef.current)
       rafRef.current = null
@@ -104,7 +104,7 @@ export function usePointerProximity(
 
   useEffect(() => {
     return () => {
-      if (rafRef.current === null) return
+      if (rafRef.current === null) {return}
 
       cancelAnimationFrame(rafRef.current)
       rafRef.current = null

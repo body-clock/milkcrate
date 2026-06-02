@@ -57,14 +57,14 @@ export function useAdminDiscogsLookup(
   useEffect(() => {
     return () => {
       abortRef.current?.abort();
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (timeoutRef.current) {clearTimeout(timeoutRef.current);}
     };
   }, []);
 
   const lookup = useCallback(
     (username: string) => {
       abortRef.current?.abort();
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (timeoutRef.current) {clearTimeout(timeoutRef.current);}
 
       const controller = new AbortController();
       abortRef.current = controller;
@@ -75,7 +75,7 @@ export function useAdminDiscogsLookup(
       url.searchParams.set("username", username);
 
       timeoutRef.current = setTimeout(() => {
-        if (abortRef.current !== controller) return;
+        if (abortRef.current !== controller) {return;}
         controller.abort();
         abortRef.current = null;
         timeoutRef.current = null;
@@ -87,22 +87,22 @@ export function useAdminDiscogsLookup(
         signal: controller.signal,
       })
         .then((res) => {
-          if (!res.ok) throw new Error(`Lookup failed with ${res.status}`);
+          if (!res.ok) {throw new Error(`Lookup failed with ${res.status}`);}
           return res.json() as Promise<AdminDiscogsLookupResponse>;
         })
         .then((data) => {
-          if (abortRef.current !== controller) return;
-          if (controller.signal.aborted) return;
-          if (timeoutRef.current) clearTimeout(timeoutRef.current);
+          if (abortRef.current !== controller) {return;}
+          if (controller.signal.aborted) {return;}
+          if (timeoutRef.current) {clearTimeout(timeoutRef.current);}
           timeoutRef.current = null;
           abortRef.current = null;
           setState({ status: "result", result: data });
         })
         .catch((err) => {
-          if (abortRef.current !== controller) return;
-          if (controller.signal.aborted) return;
-          if (err instanceof DOMException && err.name === "AbortError") return;
-          if (timeoutRef.current) clearTimeout(timeoutRef.current);
+          if (abortRef.current !== controller) {return;}
+          if (controller.signal.aborted) {return;}
+          if (err instanceof DOMException && err.name === "AbortError") {return;}
+          if (timeoutRef.current) {clearTimeout(timeoutRef.current);}
           timeoutRef.current = null;
           abortRef.current = null;
           setState({ status: "error" });
@@ -114,7 +114,7 @@ export function useAdminDiscogsLookup(
   const reset = useCallback(() => {
     abortRef.current?.abort();
     abortRef.current = null;
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    if (timeoutRef.current) {clearTimeout(timeoutRef.current);}
     timeoutRef.current = null;
     setState({ status: "idle" });
   }, []);

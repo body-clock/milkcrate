@@ -32,7 +32,7 @@ export default function AdminTotpSetup({
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const trimmed = code.trim();
-    if (trimmed.length < 6) return;
+    if (trimmed.length < 6) {return;}
 
     setSubmitting(true);
     router.post(

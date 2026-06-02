@@ -4,7 +4,7 @@ type Theme = "dark" | "light"
 
 export function useTheme() {
   const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window === "undefined") return "dark"
+    if (typeof window === "undefined") {return "dark"}
     const stored = localStorage.getItem("mc-theme")
     return stored === "light" ? "light" : "dark"
   })

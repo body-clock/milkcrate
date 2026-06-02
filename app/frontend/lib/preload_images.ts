@@ -23,7 +23,7 @@ export function preloadImage(
         ? requestIdleCallback
         : (cb: IdleRequestCallback) => setTimeout(cb, 0)
     const deferred = () => {
-      if (signal?.aborted) return
+      if (signal?.aborted) {return}
       const img = new Image()
       img.decoding = "async"
       img.src = url

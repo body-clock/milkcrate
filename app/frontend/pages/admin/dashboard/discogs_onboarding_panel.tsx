@@ -110,13 +110,13 @@ export function DiscogsOnboardingPanel({
 
   function handleUsernameChange(event: React.ChangeEvent<HTMLInputElement>) {
     setUsername(event.target.value);
-    if (state.status !== "idle") reset();
+    if (state.status !== "idle") {reset();}
   }
 
   function handleLookup(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const trimmedUsername = username.trim();
-    if (!trimmedUsername) return;
+    if (!trimmedUsername) {return;}
     lookup(trimmedUsername);
   }
 

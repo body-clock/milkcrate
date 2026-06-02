@@ -24,17 +24,17 @@ export function formatPriceValue(
   price: string | null | undefined,
   currency: string = "USD",
 ): string {
-  if (!price) return "—"
+  if (!price) {return "—"}
 
   const num = parseFloat(price)
-  if (isNaN(num)) return "—"
+  if (isNaN(num)) {return "—"}
 
   const symbol = currencySymbol(currency)
   return `${symbol}${num.toFixed(2)}`
 }
 
 function currencySymbol(currency: string): string {
-  if (currency === "GBP") return "£"
-  if (currency === "EUR") return "€"
+  if (currency === "GBP") {return "£"}
+  if (currency === "EUR") {return "€"}
   return "$"
 }

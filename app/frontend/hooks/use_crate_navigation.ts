@@ -35,7 +35,7 @@ interface DragEndInfo {
 }
 
 function isEditableTarget(target: EventTarget | null) {
-  if (!(target instanceof HTMLElement)) return false;
+  if (!(target instanceof HTMLElement)) {return false;}
 
   return (
     target instanceof HTMLInputElement ||
@@ -54,7 +54,7 @@ function useDragNavigation(navigate: (direction: RiffleDirection) => void) {
         velocityY: info.velocity.y,
       });
 
-      if (!riffleDirection) return;
+      if (!riffleDirection) {return;}
 
       navigate(riffleDirection);
     },
@@ -65,10 +65,10 @@ function useDragNavigation(navigate: (direction: RiffleDirection) => void) {
 function useKeyboardNavigation(navigate: (direction: RiffleDirection) => void) {
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (isEditableTarget(e.target)) return;
-      if (document.querySelector('[role="dialog"][aria-modal="true"]')) return;
-      if (e.key === "ArrowDown") navigate("deeper");
-      if (e.key === "ArrowUp") navigate("front");
+      if (isEditableTarget(e.target)) {return;}
+      if (document.querySelector('[role="dialog"][aria-modal="true"]')) {return;}
+      if (e.key === "ArrowDown") {navigate("deeper");}
+      if (e.key === "ArrowUp") {navigate("front");}
     },
     [navigate],
   );

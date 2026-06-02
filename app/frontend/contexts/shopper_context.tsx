@@ -34,7 +34,7 @@ export function ShopperProvider({ children }: { children: React.ReactNode }) {
 
   const addToWantlist = useCallback(
     async (items: { discogs_listing_id: string }[], storeSlug: string) => {
-      if (!isConnected) return null
+      if (!isConnected) {return null}
 
       setState("creating")
       setWantlistResult(null)
@@ -96,6 +96,6 @@ export function ShopperProvider({ children }: { children: React.ReactNode }) {
 
 export function useShopperContext() {
   const context = useContext(ShopperContext)
-  if (!context) throw new Error("useShopperContext must be used within ShopperContext")
+  if (!context) {throw new Error("useShopperContext must be used within ShopperContext")}
   return context
 }

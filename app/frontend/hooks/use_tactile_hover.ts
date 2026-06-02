@@ -53,7 +53,7 @@ export function useTactileHover(options: UseTactileHoverOptions = {}): TactileSt
   const [isPressed, setIsPressed] = useState(false);
 
   const down = useCallback(() => {
-    if (reducedMotion) return;
+    if (reducedMotion) {return;}
     setIsPressed(true);
   }, [reducedMotion]);
 

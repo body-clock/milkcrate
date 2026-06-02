@@ -69,7 +69,7 @@ export function resolveRiffleDrag({
   const absX = Math.abs(offsetX)
   const absY = Math.abs(offsetY)
 
-  if (absX > absY) return null
+  if (absX > absY) {return null}
 
   if (absY >= RIFFLE_THRESHOLDS.committedDistance) {
     return directionFromVertical(offsetY)

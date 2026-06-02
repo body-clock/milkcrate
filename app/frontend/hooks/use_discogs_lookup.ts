@@ -55,14 +55,14 @@ export function useDiscogsLookup(
   useEffect(() => {
     return () => {
       abortRef.current?.abort();
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (timeoutRef.current) {clearTimeout(timeoutRef.current);}
     };
   }, []);
 
   const lookup = useCallback(
     (username: string) => {
       abortRef.current?.abort();
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (timeoutRef.current) {clearTimeout(timeoutRef.current);}
 
       const controller = new AbortController();
       abortRef.current = controller;
@@ -75,7 +75,7 @@ export function useDiscogsLookup(
         : `/api/discogs/lookup/${encodeURIComponent(username)}`;
 
       timeoutRef.current = setTimeout(() => {
-        if (abortRef.current !== controller) return;
+        if (abortRef.current !== controller) {return;}
 
         controller.abort();
         abortRef.current = null;
@@ -86,13 +86,13 @@ export function useDiscogsLookup(
 
       fetch(url, { signal: controller.signal })
         .then((res) => {
-          if (!res.ok) throw new Error(`Lookup failed: ${res.status}`);
+          if (!res.ok) {throw new Error(`Lookup failed: ${res.status}`);}
           return res.json() as Promise<DiscogsLookupResult>;
         })
         .then((data) => {
-          if (abortRef.current !== controller) return;
-          if (controller.signal.aborted) return;
-          if (timeoutRef.current) clearTimeout(timeoutRef.current);
+          if (abortRef.current !== controller) {return;}
+          if (controller.signal.aborted) {return;}
+          if (timeoutRef.current) {clearTimeout(timeoutRef.current);}
           timeoutRef.current = null;
           abortRef.current = null;
 
@@ -117,10 +117,10 @@ export function useDiscogsLookup(
           }
         })
         .catch((err) => {
-          if (abortRef.current !== controller) return;
-          if (controller.signal.aborted) return;
-          if (err instanceof DOMException && err.name === "AbortError") return;
-          if (timeoutRef.current) clearTimeout(timeoutRef.current);
+          if (abortRef.current !== controller) {return;}
+          if (controller.signal.aborted) {return;}
+          if (err instanceof DOMException && err.name === "AbortError") {return;}
+          if (timeoutRef.current) {clearTimeout(timeoutRef.current);}
           timeoutRef.current = null;
           abortRef.current = null;
 
@@ -134,7 +134,7 @@ export function useDiscogsLookup(
   const reset = useCallback(() => {
     abortRef.current?.abort();
     abortRef.current = null;
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    if (timeoutRef.current) {clearTimeout(timeoutRef.current);}
     timeoutRef.current = null;
     setState({ status: "idle" });
   }, []);

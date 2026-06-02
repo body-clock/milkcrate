@@ -25,7 +25,7 @@ export function useDialogFocusTrap(
   const previousFocusRef = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
-    if (!open) return
+    if (!open) {return}
 
     previousFocusRef.current = document.activeElement as HTMLElement | null
     titleRef.current?.focus()
@@ -37,10 +37,10 @@ export function useDialogFocusTrap(
         return
       }
 
-      if (event.key !== "Tab") return
+      if (event.key !== "Tab") {return}
 
       const dialog = dialogRef.current
-      if (!dialog) return
+      if (!dialog) {return}
 
       const focusable = Array.from(
         dialog.querySelectorAll<HTMLElement>(

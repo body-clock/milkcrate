@@ -7,7 +7,7 @@ import JobProgressBar from "@/components/ui/job_progress_bar";
 import Metric from "@/components/ui/metric";
 
 function formatTime(value: string | null) {
-  if (!value) return "Not yet";
+  if (!value) {return "Not yet";}
   return new Intl.DateTimeFormat(undefined, {
     month: "short",
     day: "numeric",
@@ -17,7 +17,7 @@ function formatTime(value: string | null) {
 }
 
 function listingText(count: number | null) {
-  if (count === null) return "Listings pending";
+  if (count === null) {return "Listings pending";}
   return `${count.toLocaleString()} ${count === 1 ? "listing" : "listings"}`;
 }
 

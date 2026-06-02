@@ -34,7 +34,7 @@ export default function PileSheet({ open, onClose, returnFocusRef, highlightOnMo
   const [confirmClear, setConfirmClear] = useState(false);
 
   const page = usePage<PageProps>();
-  const store = page.props.store;
+  const {store} = page.props;
   const storeSlug = store?.discogs_username;
   const handoffAvailable = store?.handoff_available ?? false;
 
@@ -51,16 +51,16 @@ export default function PileSheet({ open, onClose, returnFocusRef, highlightOnMo
   const { dialogRef, titleRef } = useDialogFocusTrap(open, handleClose, { returnFocusRef });
 
   useEffect(() => {
-    if (!open) resetResult();
+    if (!open) {resetResult();}
   }, [open, resetResult]);
 
   useEffect(() => {
-    if (!open || dialogRef.current?.contains(document.activeElement)) return;
+    if (!open || dialogRef.current?.contains(document.activeElement)) {return;}
     titleRef.current?.focus();
   }, [open, pile.length, confirmClear, state, dialogRef, titleRef]);
 
   const handleSendToWantlist = useCallback(async () => {
-    if (!isConnected || !storeSlug) return;
+    if (!isConnected || !storeSlug) {return;}
     const items = pile.map((l) => ({ discogs_listing_id: l.discogs_listing_id }));
     await addToWantlist(items, storeSlug);
   }, [isConnected, storeSlug, pile, addToWantlist]);

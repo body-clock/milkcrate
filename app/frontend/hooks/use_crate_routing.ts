@@ -39,7 +39,7 @@ export function useCrateRouting({
       typeof window !== "undefined"
         ? new URLSearchParams(window.location.search).get("crate")
         : null;
-    if (fromParam) return fromParam;
+    if (fromParam) {return fromParam;}
 
     const raw = history.state?.crateSlug;
     return typeof raw === "string" && raw.length > 0 ? raw : null;
@@ -52,7 +52,7 @@ export function useCrateRouting({
 
   // True when activeSlug came from URL query or popstate (direct entry), not in-session selection
   const [directEntry, setDirectEntry] = useState(() => {
-    if (typeof window === "undefined") return false;
+    if (typeof window === "undefined") {return false;}
     const fromParam = new URLSearchParams(window.location.search).get("crate");
     return Boolean(fromParam);
   });
@@ -60,8 +60,8 @@ export function useCrateRouting({
   const activeSlugRef = useRef(activeSlug);
 
   const allCrates = useMemo(() => {
-    if (crates.length > 0) return crates;
-    if (!storefront_sections?.length) return [];
+    if (crates.length > 0) {return crates;}
+    if (!storefront_sections?.length) {return [];}
     return storefront_sections.flatMap((s) => ("crate" in s ? [s.crate] : s.crates));
   }, [crates, storefront_sections]);
 

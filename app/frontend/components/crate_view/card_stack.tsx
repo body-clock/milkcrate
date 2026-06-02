@@ -11,7 +11,7 @@ import type { Listing } from "../../types/inertia";
 const FLIP_DISCOVERED_KEY = "mc-flip-discovered";
 
 function loadFlipDiscovered(): boolean {
-  if (typeof window === "undefined") return false;
+  if (typeof window === "undefined") {return false;}
   try {
     return localStorage.getItem(FLIP_DISCOVERED_KEY) === "true";
   } catch {

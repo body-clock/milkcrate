@@ -45,11 +45,11 @@ export function useTurnstile({
   onTokenRef.current = onToken;
 
   useEffect(() => {
-    if (!enabled || !siteKey || !turnstileRef.current) return;
+    if (!enabled || !siteKey || !turnstileRef.current) {return;}
     let scriptWithListener: HTMLScriptElement | null = null;
 
     const renderWidget = () => {
-      if (!window.turnstile || !turnstileRef.current || widgetIdRef.current !== null) return;
+      if (!window.turnstile || !turnstileRef.current || widgetIdRef.current !== null) {return;}
 
       widgetIdRef.current = window.turnstile.render(turnstileRef.current, {
         sitekey: siteKey,

@@ -3,7 +3,7 @@ import Button from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 function formatTime(value: string | null) {
-  if (!value) return "Not yet";
+  if (!value) {return "Not yet";}
   return new Intl.DateTimeFormat(undefined, {
     month: "short",
     day: "numeric",

@@ -14,14 +14,14 @@ const COMPACT_MAX = 767
 const COMFY_MAX = 1023
 
 function tierFromWidth(width: number): ViewportTier {
-  if (width <= COMPACT_MAX) return "compact"
-  if (width <= COMFY_MAX) return "comfy"
+  if (width <= COMPACT_MAX) {return "compact"}
+  if (width <= COMFY_MAX) {return "comfy"}
   return "wide"
 }
 
 export function ViewportProvider({ children }: { children: ReactNode }) {
   const [tier, setTier] = useState<ViewportTier>(() => {
-    if (typeof window === "undefined") return "compact"
+    if (typeof window === "undefined") {return "compact"}
     return tierFromWidth(window.innerWidth)
   })
 

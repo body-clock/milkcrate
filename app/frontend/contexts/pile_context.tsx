@@ -43,6 +43,6 @@ export function PileProvider({
 
 export function usePileContext() {
   const pileContext = useContext(PileContext);
-  if (!pileContext) throw new Error("usePileContext must be used within PileProvider");
+  if (!pileContext) {throw new Error("usePileContext must be used within PileProvider");}
   return pileContext;
 }

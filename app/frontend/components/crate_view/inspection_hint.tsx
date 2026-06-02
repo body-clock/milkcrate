@@ -3,7 +3,7 @@ import { useReducedMotionContext } from "@/components/storefront_motion_config";
 const FLIP_DISCOVERED_KEY = "mc-flip-discovered";
 
 export function markFlipDiscovered(): void {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined") {return;}
   try {
     localStorage.setItem(FLIP_DISCOVERED_KEY, "true");
   } catch {
@@ -24,7 +24,7 @@ interface InspectionHintProps {
 export default function InspectionHint({ discovered }: InspectionHintProps) {
   const reducedMotion = useReducedMotionContext();
 
-  if (discovered) return null;
+  if (discovered) {return null;}
 
   return (
     <p

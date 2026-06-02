@@ -9,7 +9,7 @@ interface Props {
 }
 
 export default function InlineCrateStage({ crates, activeSlug, startIndex, onSelectCrate }: Props) {
-  if (!activeSlug) return null;
+  if (!activeSlug) {return null;}
 
   return (
     <CrateView

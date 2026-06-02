@@ -32,7 +32,7 @@ function safeGetStorage(): Storage | null {
 export function isLessonLearned(): boolean {
   try {
     const storage = safeGetStorage()
-    if (!storage) return false
+    if (!storage) {return false}
     return storage.getItem(FIRST_SWIPE_STORAGE_KEY) === "1"
   } catch {
     return false
@@ -46,7 +46,7 @@ export function isLessonLearned(): boolean {
 export function markLessonLearned(): void {
   try {
     const storage = safeGetStorage()
-    if (!storage) return
+    if (!storage) {return}
     storage.setItem(FIRST_SWIPE_STORAGE_KEY, "1")
   } catch {
     // Storage write failure is non-critical; the lesson remains
@@ -67,9 +67,9 @@ export interface LessonEligibilityInput {
  * learned during this browser session.
  */
 export function isLessonEligible({ isCompact, isPopulated }: LessonEligibilityInput): boolean {
-  if (!isCompact) return false
-  if (!isPopulated) return false
-  if (isLessonLearned()) return false
+  if (!isCompact) {return false}
+  if (!isPopulated) {return false}
+  if (isLessonLearned()) {return false}
   return true
 }
 
@@ -99,10 +99,10 @@ export function classifyDragAttempt({ offsetX, offsetY }: DragAttemptInput): Dra
   const absY = Math.abs(offsetY)
 
   // Must be mostly horizontal: horizontal distance dominates vertical.
-  if (absX <= absY) return "none"
+  if (absX <= absY) {return "none"}
 
   // Must exceed minimum distance to avoid classifying taps / tiny flicks.
-  if (absX < HORIZONTAL_MIN_DISTANCE) return "none"
+  if (absX < HORIZONTAL_MIN_DISTANCE) {return "none"}
 
   return "horizontal-recovery"
 }

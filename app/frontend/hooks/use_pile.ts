@@ -8,11 +8,11 @@ function storageKey(storeSlug?: string): string {
 }
 
 function loadStoredPile(key: string): Listing[] {
-  if (typeof window === "undefined") return [];
+  if (typeof window === "undefined") {return [];}
 
   try {
     const storedPile = localStorage.getItem(key);
-    if (storedPile) return JSON.parse(storedPile);
+    if (storedPile) {return JSON.parse(storedPile);}
     return [];
   } catch {
     return [];

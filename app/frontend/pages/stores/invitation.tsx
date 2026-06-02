@@ -66,8 +66,8 @@ function InvitationContent({ slug, oauth_available }: { slug: string; oauth_avai
   const csrfToken = document.querySelector<HTMLMetaElement>("meta[name='csrf-token']")?.content;
 
   const shouldProbe = useMemo(() => {
-    if (slug.length < 3 || slug.length > 40) return false;
-    if (!/^[a-zA-Z0-9][a-zA-Z0-9_-]*[a-zA-Z0-9]$/.test(slug)) return false;
+    if (slug.length < 3 || slug.length > 40) {return false;}
+    if (!/^[a-zA-Z0-9][a-zA-Z0-9_-]*[a-zA-Z0-9]$/.test(slug)) {return false;}
     const reserved = [
       "admin",
       "apply",
@@ -94,7 +94,7 @@ function InvitationContent({ slug, oauth_available }: { slug: string; oauth_avai
   }, [slug]);
 
   useEffect(() => {
-    if (shouldProbe) lookup(slug);
+    if (shouldProbe) {lookup(slug);}
   }, [slug, shouldProbe, lookup]);
 
   const displayStatus: "loading" | "found" | "not_found" = !shouldProbe

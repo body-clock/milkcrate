@@ -21,7 +21,7 @@ export default function PileToast() {
   const reducedMotion = useReducedMotionContext();
 
   useEffect(() => {
-    if (!lastAdded) return;
+    if (!lastAdded) {return;}
     const timer = setTimeout(clearLastAdded, TOAST_DURATION_MS);
     return () => clearTimeout(timer);
   }, [lastAdded, clearLastAdded]);

@@ -10,7 +10,7 @@ export function buildCrateWindow<TRecord>(
   activeIndex: number,
   radius = 2,
 ): CrateWindowSlot<TRecord>[] {
-  if (records.length === 0) return []
+  if (records.length === 0) {return []}
 
   const clampedIndex = Math.min(Math.max(activeIndex, 0), records.length - 1)
   const start = Math.max(0, clampedIndex - radius)

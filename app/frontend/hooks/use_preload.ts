@@ -17,16 +17,16 @@ export function usePreload(records: PreloadableRecord[], index: number) {
     const abort = new AbortController()
 
     for (let offset = -3; offset <= 3; offset++) {
-      if (offset === 0) continue
+      if (offset === 0) {continue}
 
       const r = records[index + offset]
-      if (!r) continue
+      if (!r) {continue}
 
       const absOffset = Math.abs(offset)
 
       if (absOffset <= 1) {
         // Adjacent slots: preload full-res cover (cache-warming for the decode gate)
-        if (r.cover_image_url) preloadImage(r.cover_image_url, "high")
+        if (r.cover_image_url) {preloadImage(r.cover_image_url, "high")}
       } else {
         // Edge slots: preload thumbnail only (full-res at idle priority)
         if (r.thumbnail_url) {

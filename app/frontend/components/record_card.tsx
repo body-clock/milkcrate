@@ -106,7 +106,7 @@ export default function RecordCard({
   };
 
   const movedSincePointerDown = (e: React.MouseEvent) => {
-    if (!pointerDown.current) return false;
+    if (!pointerDown.current) {return false;}
     const deltaX = Math.abs(e.clientX - pointerDown.current.x);
     const deltaY = Math.abs(e.clientY - pointerDown.current.y);
     pointerDown.current = null;
@@ -121,23 +121,23 @@ export default function RecordCard({
   };
 
   const handleFlip = (e: React.MouseEvent) => {
-    if (!canFlip) return;
-    if ((e.target as HTMLElement).closest("a, button, form")) return;
-    if (movedSincePointerDown(e)) return;
+    if (!canFlip) {return;}
+    if ((e.target as HTMLElement).closest("a, button, form")) {return;}
+    if (movedSincePointerDown(e)) {return;}
     setFlipped((f) => {
-      if (!f) fireOnFlip();
+      if (!f) {fireOnFlip();}
       return !f;
     });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!canFlip) return;
-    if ((e.target as HTMLElement).closest("a, button, form")) return;
+    if (!canFlip) {return;}
+    if ((e.target as HTMLElement).closest("a, button, form")) {return;}
 
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       setFlipped((f) => {
-        if (!f) fireOnFlip();
+        if (!f) {fireOnFlip();}
         return !f;
       });
     }

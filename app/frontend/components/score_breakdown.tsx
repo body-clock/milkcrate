@@ -16,7 +16,7 @@ const STRATEGY_LABELS: Record<string, string> = {
 }
 
 export default function ScoreBreakdown({ listing }: Props) {
-  if (!listing.score_breakdown) return null
+  if (!listing.score_breakdown) {return null}
 
   const breakdown = listing.score_breakdown
   const total = Object.values(breakdown).reduce((sum, v) => sum + v, 0)
