@@ -79,13 +79,21 @@ export default function StoreFloor({ sections, onSelectCrate }: Props) {
 
           return (
             picks.records.length > 0 && (
-              <PicksShelf
+              <div
                 key="picks"
-                crate={picks}
-                onSelectCrate={onSelectCrate}
-                picksPreviewCount={picksPreviewCount}
-                today={today}
-              />
+                role="region"
+                aria-label="Wall — Today's picks, the store's taste at a glance"
+              >
+                <p className="text-xs text-mc-text-dim mb-3">
+                  Today's picks — the store's taste at a glance
+                </p>
+                <PicksShelf
+                  crate={picks}
+                  onSelectCrate={onSelectCrate}
+                  picksPreviewCount={picksPreviewCount}
+                  today={today}
+                />
+              </div>
             )
           );
         }
