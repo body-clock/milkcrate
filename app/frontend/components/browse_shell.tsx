@@ -1,8 +1,10 @@
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { useReducedMotionContext } from "./storefront_motion_config";
 import { useViewport } from "@/hooks/use_viewport";
 import WallPanel from "./wall_panel";
 import CrateBrowsePanel from "./crate_browse_panel";
+import CrateView from "./crate_view";
 import type { StorefrontSection } from "../types/inertia";
 import { useBrowseRouting } from "../hooks/use_browse_routing";
 import type { BrowseMode } from "../hooks/use_browse_routing";
@@ -21,6 +23,8 @@ interface Props {
   startIndex: number;
   selectCrate: (slug: string, startIndex?: number) => void;
   backToStore: () => void;
+  /** True when activeSlug came from a ?crate= URL query — render full CrateView header. */
+  directEntry?: boolean;
 }
 
 export default function BrowseShell({
@@ -29,11 +33,30 @@ export default function BrowseShell({
   startIndex,
   selectCrate,
   backToStore,
+  directEntry = false,
 }: Props) {
   const { isCompact } = useViewport();
   const prefersReducedMotion = useReducedMotionContext();
   const { mode, wall, featured, genres, handleWallSelected, handleBrowseModeSelected } =
     useBrowseRouting({ sections, activeSlug, backToStore });
+
+  const allCrates = useMemo(() => {
+    return sections.flatMap((s) => ("crate" in s ? [s.crate] : s.crates));
+  }, [sections]);
+
+  // Direct entry: render full CrateView with header/tabs (R11, AE6)
+  if (directEntry && activeSlug) {
+    return (
+      <CrateView
+        crates={allCrates}
+        activeSlug={activeSlug}
+        startIndex={startIndex}
+        compactHeaderOwnedByLayout
+        onSelectCrate={selectCrate}
+        onBack={backToStore}
+      />
+    );
+  }
 
   const panel =
     mode === "wall" ? (

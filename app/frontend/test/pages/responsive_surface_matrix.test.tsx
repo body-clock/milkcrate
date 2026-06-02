@@ -618,28 +618,17 @@ describe("responsive surface matrix", () => {
     expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
   });
 
-  it("deep-linked crates render through the browse shell at all tiers", () => {
+  it("deep-linked crates render full CrateView at all tiers (direct entry)", () => {
     history.replaceState({ crateSlug: "jazz", startIndex: 1 }, "", "/stores/test?crate=jazz");
 
     for (const tier of tiers) {
       cleanup();
       renderStoreShowAtTier(tier, compactStoreProps);
 
-      // Browse shell is present with its navigation at all tiers
-      expect(screen.getByRole("button", { name: "The Wall" })).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "Featured" })).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: "Genres" })).toBeInTheDocument();
-
-      // Featured mode is active because jazz is in the featured section
-      expect(screen.getByRole("button", { name: "Featured" })).toHaveAttribute(
-        "aria-pressed",
-        "true",
-      );
-
-      // Crate chip bar with tabs is rendered
+      // Direct entry: full CrateView with crate tabs (not inline stage)
       expect(screen.getByRole("tablist", { name: "Crates" })).toBeInTheDocument();
 
-      // Inline crate stage shows the deep-linked crate's records at the specified start index
+      // Crate records at the specified start index
       expect(
         screen.getByRole("progressbar", { name: "Record 2 of 3, front to deeper" }),
       ).toBeInTheDocument();

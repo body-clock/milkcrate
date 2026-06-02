@@ -184,9 +184,11 @@ describe("BrowseShell", () => {
   describe("browse mode switching (AE2)", () => {
     it("clicking The Wall from an active Featured crate clears the active crate", async () => {
       const user = userEvent.setup();
-      // Start in Featured mode with an active crate
-      history.replaceState({ crateSlug: "jazz" }, "", "/stores/test?crate=jazz");
       renderStoreAtTier("compact");
+
+      // Select a Featured crate via chip bar (in-session, not direct entry)
+      await user.click(screen.getByRole("button", { name: "Featured" }));
+      await user.click(screen.getByRole("tab", { name: "Jazz" }));
 
       // Verify Featured mode is active with a crate
       expect(screen.getByRole("button", { name: "Featured" })).toHaveAttribute(
@@ -231,8 +233,11 @@ describe("BrowseShell", () => {
 
     it("clicking Genres from an active Featured crate clears active state", async () => {
       const user = userEvent.setup();
-      history.replaceState({ crateSlug: "jazz" }, "", "/stores/test?crate=jazz");
       renderStoreAtTier("compact");
+
+      // Select a Featured crate via chip bar (in-session, not direct entry)
+      await user.click(screen.getByRole("button", { name: "Featured" }));
+      await user.click(screen.getByRole("tab", { name: "Jazz" }));
 
       expect(screen.getByRole("progressbar")).toBeInTheDocument();
 
@@ -272,6 +277,51 @@ describe("BrowseShell", () => {
 
       expect(screen.getByRole("navigation", { name: "Browse modes" })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "The Wall" })).toBeInTheDocument();
+    });
+  });
+
+  describe("direct entry contract (AE5, AE6)", () => {
+    it("direct entry renders full CrateView with crate tabs at all tiers (AE6)", () => {
+      history.replaceState({ crateSlug: "jazz", startIndex: 1 }, "", "/stores/test?crate=jazz");
+
+      for (const tier of ["compact", "comfy", "wide"] as const) {
+        cleanup();
+        renderStoreAtTier(tier);
+
+        // Full CrateView header with crate tabs
+        expect(screen.getByRole("tablist", { name: "Crates" })).toBeInTheDocument();
+        // Records at the specified start index
+        expect(
+          screen.getByRole("progressbar", { name: "Record 2 of 3, front to deeper" }),
+        ).toBeInTheDocument();
+      }
+    });
+
+    it("direct entry at wide tier renders CrateView with full header (AE5)", () => {
+      history.replaceState({ crateSlug: "jazz" }, "", "/stores/test?crate=jazz");
+      renderStoreAtTier("wide");
+
+      // Full CrateView header with crate tabs (direct entry = full header)
+      expect(screen.getByRole("tablist", { name: "Crates" })).toBeInTheDocument();
+      expect(screen.getByRole("progressbar")).toBeInTheDocument();
+      // R11: direct entry renders CrateView with crate-switching tabs
+      // No browse nav (shell chrome) when in direct entry mode
+      expect(screen.queryByRole("navigation", { name: "Browse modes" })).not.toBeInTheDocument();
+    });
+
+    it("in-session crate selection renders InlineCrateStage with riffle controls", async () => {
+      const user = userEvent.setup();
+      renderStoreAtTier("compact");
+
+      // Select a Featured crate via chip bar
+      await user.click(screen.getByRole("button", { name: "Featured" }));
+      await user.click(screen.getByRole("tab", { name: "Jazz" }));
+
+      // InlineCrateStage: riffle controls present (no separate CrateView header)
+      expect(screen.getByRole("progressbar")).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Dig one record deeper in the crate" }),
+      ).toBeInTheDocument();
     });
   });
 });
