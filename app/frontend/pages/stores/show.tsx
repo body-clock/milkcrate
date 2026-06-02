@@ -8,10 +8,11 @@ import { useCrateRouting } from "@/hooks/use_crate_routing";
 import type { StoreShowProps } from "@/types/inertia";
 
 export default function StoreShow({ store, crates, storefront_sections }: StoreShowProps) {
-  const { activeSlug, activeCrate, startIndex, selectCrate, backToStore, allCrates } = useCrateRouting({
-    crates,
-    storefront_sections: storefront_sections ?? [],
-  });
+  const { activeSlug, activeCrate, startIndex, selectCrate, backToStore, allCrates } =
+    useCrateRouting({
+      crates,
+      storefront_sections: storefront_sections ?? [],
+    });
   const listingCount = store.total_listings ?? 0;
   const hasStoreSummary = Boolean(store.description) || listingCount > 0;
 
@@ -54,7 +55,7 @@ export default function StoreShow({ store, crates, storefront_sections }: StoreS
               : ""}
           </p>
           <p className="text-xs text-mc-text-dim mt-1">
-            Inventory may be stale. Try running the sync again from the Rails console.
+            Inventory may be out of date. The store owner has been notified.
           </p>
         </FeedbackMessage>
       )}

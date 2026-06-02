@@ -1,17 +1,19 @@
-import React from "react"
-import { describe, expect, it, vi } from "vitest"
-import { render, screen, waitFor, within } from "@testing-library/react"
-import userEvent from "@testing-library/user-event"
-import Home from "../../pages/home"
-import Apply from "../../pages/apply"
-import StoreShow from "../../pages/stores/show"
-import Invitation from "../../pages/stores/invitation"
-import Dashboard from "../../pages/admin/dashboard"
-import type { AdminDashboardProps, StoreShowProps, InvitationProps } from "../../types/inertia"
+import React from "react";
+import { describe, expect, it, vi } from "vitest";
+import { render, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import Home from "../../pages/home";
+import Apply from "../../pages/apply";
+import StoreShow from "../../pages/stores/show";
+import Invitation from "../../pages/stores/invitation";
+import Dashboard from "../../pages/admin/dashboard";
+import type { AdminDashboardProps, StoreShowProps, InvitationProps } from "../../types/inertia";
 
 vi.mock("@inertiajs/react", () => ({
   Link: ({ children, href, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
-    <a href={href} {...props}>{children}</a>
+    <a href={href} {...props}>
+      {children}
+    </a>
   ),
   useForm: () => ({
     data: {
@@ -35,11 +37,12 @@ vi.mock("@inertiajs/react", () => ({
       },
     },
   }),
-}))
+}));
 
 const homeCopy = {
   headline: "Your Discogs inventory, now a storefront.",
-  subhead: "Milkcrate turns your existing Discogs listings into a warm, browsable record shop that you can share in seconds.",
+  subhead:
+    "Milkcrate turns your existing Discogs listings into a warm, browsable record shop that you can share in seconds.",
   cta_demo: "Browse a store \u2192",
   cta_apply: "Get your store on Milkcrate",
   footnote: "Early access. We handle the setup.",
@@ -57,13 +60,13 @@ const homeCopy = {
   record_fair_body:
     "QR codes on cards, bags, and signage turn foot traffic into return visitors, long after the fair ends.",
   store_character_title: "Your shop. Crated for browsing.",
-}
+};
 
 const previewFallback = {
   store_name: "Philadelphia Music",
   store_slug: null,
   sections: [],
-}
+};
 
 const applyCopy = {
   headline: "Get your store on Milkcrate",
@@ -73,9 +76,12 @@ const applyCopy = {
   confirmation_headline: "You're on the list.",
   confirmation_body: "We'll review your store and reach out to you directly.",
   context_title: "What you need to know",
-  context_discogs_why: "We start with your Discogs username to review inventory quickly. API-key based onboarding is part of our deeper integration direction.",
-  context_what_happens: "After you submit, we review your store, curate your inventory into browsable crates, and reach out when your storefront is live.",
-  context_no_commitment: "No commitment. We're onboarding stores one at a time to make sure every storefront gets personal attention.",
+  context_discogs_why:
+    "We start with your Discogs username to review inventory quickly. API-key based onboarding is part of our deeper integration direction.",
+  context_what_happens:
+    "After you submit, we review your store, curate your inventory into browsable crates, and reach out when your storefront is live.",
+  context_no_commitment:
+    "No commitment. We're onboarding stores one at a time to make sure every storefront gets personal attention.",
   field_hint_discogs: "We pull your inventory from your public Discogs storefront.",
   field_hint_email: "We'll reach out when your Milkcrate storefront is ready.",
   fields: {
@@ -85,7 +91,7 @@ const applyCopy = {
     inventory_size: "Approximate inventory size",
     notes: "Anything else?",
   },
-}
+};
 
 const storeShowProps: StoreShowProps = {
   store: {
@@ -100,7 +106,7 @@ const storeShowProps: StoreShowProps = {
     last_enriched_at: null,
   },
   crates: [],
-}
+};
 
 const adminProps: AdminDashboardProps = {
   discogs_onboarding: {
@@ -142,44 +148,44 @@ const adminProps: AdminDashboardProps = {
       submitted_at: "2026-05-15T12:00:00Z",
     },
   ],
-}
+};
 
 describe("page smoke tests", () => {
   it("renders the home page", () => {
-    render(<Home copy={homeCopy} preview={previewFallback} />)
+    render(<Home copy={homeCopy} preview={previewFallback} />);
 
-    expect(screen.getByRole("heading", { name: homeCopy.headline })).toBeInTheDocument()
-  })
+    expect(screen.getByRole("heading", { name: homeCopy.headline })).toBeInTheDocument();
+  });
 
   it("home page header does not render emoji wordmark", () => {
-    render(<Home copy={homeCopy} preview={previewFallback} />)
+    render(<Home copy={homeCopy} preview={previewFallback} />);
 
     // The layout header link should use BrandMark, not the old emoji wordmark.
     // The wordmark text is plain "Milkcrate" without emoji prefix.
-    const header = document.querySelector("header")
-    expect(header?.textContent).toContain("Milkcrate.")
-    expect(header?.textContent).not.toContain("🥛")
-  })
+    const header = document.querySelector("header");
+    expect(header?.textContent).toContain("Milkcrate.");
+    expect(header?.textContent).not.toContain("🥛");
+  });
 
   it("renders the apply page", () => {
-    render(<Apply copy={applyCopy} turnstile={{ enabled: false, site_key: null }} />)
+    render(<Apply copy={applyCopy} turnstile={{ enabled: false, site_key: null }} />);
 
-    expect(screen.getByRole("heading", { name: applyCopy.headline })).toBeInTheDocument()
-  })
+    expect(screen.getByRole("heading", { name: applyCopy.headline })).toBeInTheDocument();
+  });
 
   it("apply page does not render emoji branding", () => {
-    render(<Apply copy={applyCopy} turnstile={{ enabled: false, site_key: null }} />)
+    render(<Apply copy={applyCopy} turnstile={{ enabled: false, site_key: null }} />);
 
-    const textContent = document.body.textContent || ""
-    expect(textContent).not.toContain("🥛")
-    expect(textContent).not.toContain("📦")
-  })
+    const textContent = document.body.textContent || "";
+    expect(textContent).not.toContain("🥛");
+    expect(textContent).not.toContain("📦");
+  });
 
   it("renders the store page", () => {
-    render(<StoreShow {...storeShowProps} />)
+    render(<StoreShow {...storeShowProps} />);
 
-    expect(screen.getByText(/No vinyl found yet/)).toBeInTheDocument()
-  })
+    expect(screen.getByText(/No vinyl found yet/)).toBeInTheDocument();
+  });
 
   it("does not render zero listing count as stray text", () => {
     render(
@@ -187,67 +193,82 @@ describe("page smoke tests", () => {
         {...storeShowProps}
         store={{ ...storeShowProps.store, description: null, total_listings: 0 }}
       />,
-    )
+    );
 
-    expect(screen.queryByText("0")).not.toBeInTheDocument()
-  })
+    expect(screen.queryByText("0")).not.toBeInTheDocument();
+  });
+
+  it("shows shopper-safe copy when sync_status is failed", () => {
+    render(
+      <StoreShow
+        {...storeShowProps}
+        store={{ ...storeShowProps.store, sync_status: "failed", last_sync_error_at: null }}
+      />,
+    );
+
+    expect(screen.getByText(/Inventory may be out of date/)).toBeInTheDocument();
+    expect(screen.queryByText(/Rails console/)).not.toBeInTheDocument();
+  });
 
   it("renders the admin dashboard", () => {
-    render(<Dashboard {...adminProps} />)
+    render(<Dashboard {...adminProps} />);
 
-    expect(screen.getByRole("heading", { name: "Store operations" })).toBeInTheDocument()
-    expect(screen.getByText("Healthy Records")).toBeInTheDocument()
-    expect(screen.getByText("Applicant Records")).toBeInTheDocument()
-  })
+    expect(screen.getByRole("heading", { name: "Store operations" })).toBeInTheDocument();
+    expect(screen.getByText("Healthy Records")).toBeInTheDocument();
+    expect(screen.getByText("Applicant Records")).toBeInTheDocument();
+  });
 
   it("store page footer does not render emoji branding", () => {
-    render(<StoreShow {...storeShowProps} />)
+    render(<StoreShow {...storeShowProps} />);
 
     // The footer "Powered by Milkcrate" should be plain text — no emoji.
-    const footer = document.querySelector("footer")
-    expect(footer).toBeInTheDocument()
-    expect(footer?.textContent).not.toContain("🥛")
-    expect(footer?.textContent).toContain("Milkcrate.")
-  })
+    const footer = document.querySelector("footer");
+    expect(footer).toBeInTheDocument();
+    expect(footer?.textContent).not.toContain("🥛");
+    expect(footer?.textContent).toContain("Milkcrate.");
+  });
 
   // Cross-surface emoji regression matrix — guards against any page
   // re-introducing milk emoji or emoji-based wordmarks.
   describe.each([
     ["home", () => render(<Home copy={homeCopy} preview={previewFallback} />)],
-    ["apply", () => render(<Apply copy={applyCopy} turnstile={{ enabled: false, site_key: null }} />)],
+    [
+      "apply",
+      () => render(<Apply copy={applyCopy} turnstile={{ enabled: false, site_key: null }} />),
+    ],
     ["store", () => render(<StoreShow {...storeShowProps} />)],
     ["admin", () => render(<Dashboard {...adminProps} />)],
   ])("emoji regression: %s page", (_label, renderPage) => {
     it("does not render the milk emoji (🥛)", () => {
-      renderPage()
-      expect(document.body.textContent).not.toContain("🥛")
-    })
+      renderPage();
+      expect(document.body.textContent).not.toContain("🥛");
+    });
 
     it("does not render the old emoji wordmark (🥛 Milkcrate)", () => {
-      renderPage()
-      expect(document.body.textContent).not.toContain("🥛 Milkcrate")
-    })
+      renderPage();
+      expect(document.body.textContent).not.toContain("🥛 Milkcrate");
+    });
 
     it("does not render decorative emoji icons (📀, 👀, 📦, ♪)", () => {
-      renderPage()
-      const text = document.body.textContent || ""
-      expect(text).not.toContain("📀")
-      expect(text).not.toContain("👀")
-      expect(text).not.toContain("📦")
-    })
+      renderPage();
+      const text = document.body.textContent || "";
+      expect(text).not.toContain("📀");
+      expect(text).not.toContain("👀");
+      expect(text).not.toContain("📦");
+    });
 
     it("does not render deprecated control or feedback recipe classes", () => {
-      const { container } = renderPage()
-      expect(container.innerHTML).not.toMatch(/\bmc-(?:btn|input|notice)\b/)
-    })
-  })
+      const { container } = renderPage();
+      expect(container.innerHTML).not.toMatch(/\bmc-(?:btn|input|notice)\b/);
+    });
+  });
 
   it("hides store description after entering a crate", async () => {
-    const user = userEvent.setup()
+    const user = userEvent.setup();
     Object.defineProperty(window, "innerWidth", {
       configurable: true,
       value: 390,
-    })
+    });
     const props: StoreShowProps = {
       ...storeShowProps,
       crates: [
@@ -307,70 +328,86 @@ describe("page smoke tests", () => {
           },
         },
       ],
-    }
+    };
 
-    render(<StoreShow {...props} />)
+    render(<StoreShow {...props} />);
 
-    expect(screen.getByText("Independent record store in South Philly.")).toBeInTheDocument()
+    expect(screen.getByText("Independent record store in South Philly.")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "Open Milkcrate Picks" }))
+    await user.click(screen.getByRole("button", { name: "Open Milkcrate Picks" }));
 
-    expect(screen.queryByText("Independent record store in South Philly.")).not.toBeInTheDocument()
-    expect(screen.queryByText("120 vinyl listings")).not.toBeInTheDocument()
-    expect(within(screen.getByRole("banner")).getByRole("button", { name: "Back to store" })).toBeInTheDocument()
-    expect(within(screen.getByRole("main")).queryByRole("button", { name: "Back to store" })).not.toBeInTheDocument()
-  })
+    expect(screen.queryByText("Independent record store in South Philly.")).not.toBeInTheDocument();
+    expect(screen.queryByText("120 vinyl listings")).not.toBeInTheDocument();
+    expect(
+      within(screen.getByRole("banner")).getByRole("button", { name: "Back to store" }),
+    ).toBeInTheDocument();
+    expect(
+      within(screen.getByRole("main")).queryByRole("button", { name: "Back to store" }),
+    ).not.toBeInTheDocument();
+  });
 
   describe("invitation page", () => {
     const inviteProps: InvitationProps = {
       waitlist_present: false,
       slug: "test-slug",
-    }
+    };
 
     it("renders the invitation page without crashing", async () => {
-      render(<Invitation {...inviteProps} />)
+      render(<Invitation {...inviteProps} />);
       // Fetch fails in test env, so probe settles on error → generic invitation
       await waitFor(() => {
-        expect(screen.getByRole("heading", { name: /This page is available/i })).toBeInTheDocument()
-      })
-    })
+        expect(
+          screen.getByRole("heading", { name: /This page is available/i }),
+        ).toBeInTheDocument();
+      });
+    });
 
     it("renders waitlist acknowledgment when waitlist_present is true", async () => {
-      render(<Invitation {...inviteProps} waitlist_present={true} />)
+      render(<Invitation {...inviteProps} waitlist_present={true} />);
       await waitFor(() => {
-        expect(screen.getByRole("heading", { name: /This URL has been claimed/i })).toBeInTheDocument()
-      })
+        expect(
+          screen.getByRole("heading", { name: /This URL has been claimed/i }),
+        ).toBeInTheDocument();
+      });
       // BrandMark wordmark appears at least once (header + possibly hero area)
-      expect(screen.getAllByText("Milkcrate.").length).toBeGreaterThanOrEqual(1)
-    })
+      expect(screen.getAllByText("Milkcrate.").length).toBeGreaterThanOrEqual(1);
+    });
 
     it("handles fetch error gracefully for valid slugs", async () => {
-      render(<Invitation {...inviteProps} slug="valid-store" />)
+      render(<Invitation {...inviteProps} slug="valid-store" />);
       // The fetch will fail in test (no server), so it should settle on generic invitation
       await waitFor(() => {
-        expect(screen.getByRole("heading", { name: /This page is available/i })).toBeInTheDocument()
-      })
-    })
+        expect(
+          screen.getByRole("heading", { name: /This page is available/i }),
+        ).toBeInTheDocument();
+      });
+    });
 
     it("skips probe and shows generic invitation for short slugs", async () => {
-      render(<Invitation {...inviteProps} slug="ab" />)
+      render(<Invitation {...inviteProps} slug="ab" />);
       await waitFor(() => {
-        expect(screen.getByRole("heading", { name: /This page is available/i })).toBeInTheDocument()
-      })
-    })
+        expect(
+          screen.getByRole("heading", { name: /This page is available/i }),
+        ).toBeInTheDocument();
+      });
+    });
 
     it("skips probe for reserved slugs", async () => {
-      render(<Invitation {...inviteProps} slug="admin" />)
+      render(<Invitation {...inviteProps} slug="admin" />);
       await waitFor(() => {
-        expect(screen.getByRole("heading", { name: /This page is available/i })).toBeInTheDocument()
-      })
-    })
+        expect(
+          screen.getByRole("heading", { name: /This page is available/i }),
+        ).toBeInTheDocument();
+      });
+    });
 
     it("skips probe for slugs with invalid characters", async () => {
-      render(<Invitation {...inviteProps} slug="bad!slug" />)
+      render(<Invitation {...inviteProps} slug="bad!slug" />);
       await waitFor(() => {
-        expect(screen.getByRole("heading", { name: /This page is available/i })).toBeInTheDocument()
-      })
-    })
-  })
-})
+        expect(
+          screen.getByRole("heading", { name: /This page is available/i }),
+        ).toBeInTheDocument();
+      });
+    });
+  });
+});
