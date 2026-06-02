@@ -12,17 +12,21 @@ function setUrl(path: string, state: object = {}) {
   history.replaceState(state, "", path);
 }
 
-describe("useCrateRouting", () => {
-  afterEach(() => {
-    vi.restoreAllMocks();
-    setUrl("/stores/test");
-  });
+function setupCrateRouting() {
+  return renderHook(() => useCrateRouting({ crates, storefront_sections: [] }));
+}
 
+afterEach(() => {
+  vi.restoreAllMocks();
+  setUrl("/stores/test");
+});
+
+describe("useCrateRouting / history state", () => {
   it("preserves existing history state when selecting a crate", () => {
     setUrl("/stores/test", { inertia: "keep-me" });
     const pushState = vi.spyOn(history, "pushState");
 
-    const { result } = renderHook(() => useCrateRouting({ crates, storefront_sections: [] }));
+    const { result } = setupCrateRouting();
 
     act(() => {
       result.current.selectCrate("jazz", 1);
@@ -39,7 +43,7 @@ describe("useCrateRouting", () => {
     const pushState = vi.spyOn(history, "pushState");
     const replaceState = vi.spyOn(history, "replaceState");
 
-    const { result } = renderHook(() => useCrateRouting({ crates, storefront_sections: [] }));
+    const { result } = setupCrateRouting();
 
     act(() => {
       result.current.selectCrate("jazz");
@@ -49,12 +53,14 @@ describe("useCrateRouting", () => {
     expect(pushState).toHaveBeenCalledTimes(1);
     expect(replaceState).toHaveBeenCalledWith({ crateSlug: "soul", startIndex: 0 }, "");
   });
+});
 
+describe("useCrateRouting / navigation", () => {
   it("returns to the store floor without leaving the app for direct crate links", () => {
     setUrl("/stores/test?crate=jazz");
     const replaceState = vi.spyOn(history, "replaceState");
 
-    const { result } = renderHook(() => useCrateRouting({ crates, storefront_sections: [] }));
+    const { result } = setupCrateRouting();
 
     expect(result.current.activeSlug).toBe("jazz");
 

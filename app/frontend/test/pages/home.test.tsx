@@ -183,7 +183,7 @@ describe("Home page — storefront preview", () => {
 
     it("does not use emoji as decorative icons", () => {
       render(<Home copy={copy} preview={makePreview()} />);
-
+      assertNoEmoji(null);
     });
 
     it("does not advertise one-click Discogs cart transfer", () => {
