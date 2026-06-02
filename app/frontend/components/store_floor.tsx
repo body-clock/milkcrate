@@ -42,6 +42,7 @@ function PicksShelf({
   today: string;
 }) {
   const { isCompact } = useViewport();
+  const { isHovered, isPressed, handlers } = useTactileHover();
 
   // Wall is always borderless — the only unbordered surface on the store floor.
   const shelf = (
@@ -60,8 +61,6 @@ function PicksShelf({
 
   // Comfy/wide: wrap in a hover-animated motion container (no rotate, Wall is editorial)
   if (!isCompact) {
-    const { isHovered, isPressed, handlers } = useTactileHover();
-
     return (
       <motion.div
         className="w-full rounded-lg overflow-hidden"
@@ -77,8 +76,17 @@ function PicksShelf({
     );
   }
 
-  // Compact: plain shelf, no hover wrapper
-  return shelf;
+  // Compact: wrap in press-only motion container (no hover, no lift — tap feedback only)
+  return (
+    <motion.div
+      className="w-full"
+      animate={{ scale: isPressed ? SCALE_PRESS : 1 }}
+      transition={springPress}
+      {...handlers}
+    >
+      {shelf}
+    </motion.div>
+  );
 }
 
 export default function StoreFloor({ sections, onSelectCrate }: Props) {
