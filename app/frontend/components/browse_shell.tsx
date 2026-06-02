@@ -38,7 +38,7 @@ export default function BrowseShell({
   const { isCompact } = useViewport();
   const prefersReducedMotion = useReducedMotionContext();
   const { mode, wall, featured, genres, handleWallSelected, handleBrowseModeSelected } =
-    useBrowseRouting({ sections, activeSlug, backToStore });
+    useBrowseRouting({ sections, activeSlug, selectCrate, backToStore });
 
   const allCrates = useMemo(() => {
     return sections.flatMap((s) => ("crate" in s ? [s.crate] : s.crates));
@@ -99,6 +99,8 @@ export default function BrowseShell({
                   item.mode === "wall" ? handleWallSelected() : handleBrowseModeSelected(item.mode)
                 }
                 className={`flex min-h-11 items-center justify-center rounded-[1rem] px-3 py-2 text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg ${
+                  isCompact ? "" : "flex-1"
+                } ${
                   selected
                     ? "bg-mc-accent text-mc-on-accent"
                     : "bg-transparent text-mc-text-dim hover:bg-mc-bg-raised hover:text-mc-text"

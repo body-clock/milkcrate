@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Crate, StorefrontSection } from "../types/inertia";
 
 export type BrowseMode = "wall" | "featured" | "genres";
@@ -15,6 +15,7 @@ export interface BrowseRoutingState {
 interface Params {
   sections: StorefrontSection[];
   activeSlug: string | null;
+  selectCrate: (slug: string, startIndex?: number) => void;
   backToStore: () => void;
 }
 
@@ -40,18 +41,14 @@ function modeForSlug(slug: string | null, featured: Crate[], genres: Crate[]): B
 export function useBrowseRouting({
   sections,
   activeSlug,
+  selectCrate,
   backToStore,
 }: Params): BrowseRoutingState {
   const { wall, featured, genres } = useMemo(() => sectionCrateMap(sections), [sections]);
 
-  const userSelectedRef = useRef(false);
   const [mode, setMode] = useState<BrowseMode>(() => modeForSlug(activeSlug, featured, genres));
 
   useEffect(() => {
-    if (userSelectedRef.current) {
-      userSelectedRef.current = false;
-      return;
-    }
     if (activeSlug) {
       setMode(modeForSlug(activeSlug, featured, genres));
     } else {
@@ -59,16 +56,22 @@ export function useBrowseRouting({
     }
   }, [activeSlug, featured, genres]);
 
+  const cratesByMode: Record<"featured" | "genres", Crate[]> = {
+    featured,
+    genres,
+  };
+
   const handleWallSelected = () => {
     if (activeSlug) backToStore();
     setMode("wall");
   };
 
   const handleBrowseModeSelected = (nextMode: "featured" | "genres") => {
-    userSelectedRef.current = true;
     setMode(nextMode);
-    if (activeSlug) {
-      backToStore();
+    const crates = cratesByMode[nextMode];
+    const activeCrateIsInMode = activeSlug ? crates.some((c) => c.slug === activeSlug) : false;
+    if (!activeCrateIsInMode && crates[0]) {
+      selectCrate(crates[0].slug);
     }
   };
 

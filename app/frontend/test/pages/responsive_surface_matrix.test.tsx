@@ -598,7 +598,7 @@ describe("responsive surface matrix", () => {
     expect(screen.getByText(/Today's picks, the store's taste at a glance/i)).toBeInTheDocument();
   });
 
-  it("switching browse modes clears active crate and shows the panel prompt", async () => {
+  it("switching browse modes auto-selects the first crate in the new mode", async () => {
     const user = userEvent.setup();
     renderStoreShowAtTier("compact", compactStoreProps);
 
@@ -608,14 +608,14 @@ describe("responsive surface matrix", () => {
       "aria-pressed",
       "true",
     );
-    expect(screen.getByText(/Pick a Featured crate/i)).toBeInTheDocument();
-    expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+    // Auto-selects first Featured crate
+    expect(screen.getByRole("progressbar")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Genres" }));
 
     expect(screen.getByRole("button", { name: "Genres" })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByText(/Pick a genre crate/i)).toBeInTheDocument();
-    expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+    // Auto-selects first Genre crate
+    expect(screen.getByRole("progressbar")).toBeInTheDocument();
   });
 
   it("deep-linked crates render full CrateView at all tiers (direct entry)", () => {

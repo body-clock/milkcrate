@@ -209,7 +209,7 @@ describe("BrowseShell", () => {
       expect(screen.getByRole("region", { name: "The Wall" })).toBeInTheDocument();
     });
 
-    it("clicking Featured from Wall shows the panel prompt without opening a crate", async () => {
+    it("clicking Featured from Wall auto-selects the first Featured crate", async () => {
       const user = userEvent.setup();
       renderStoreAtTier("compact");
 
@@ -222,20 +222,19 @@ describe("BrowseShell", () => {
       // Click Featured
       await user.click(screen.getByRole("button", { name: "Featured" }));
 
-      // Should show the Featured prompt, NOT auto-open a crate
+      // Should auto-select the first Featured crate
       expect(screen.getByRole("button", { name: "Featured" })).toHaveAttribute(
         "aria-pressed",
         "true",
       );
-      expect(screen.getByText(/Pick a Featured crate/i)).toBeInTheDocument();
-      expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+      expect(screen.getByRole("progressbar")).toBeInTheDocument();
     });
 
-    it("clicking Genres from an active Featured crate clears active state", async () => {
+    it("clicking Genres from an active Featured crate switches to first genre crate", async () => {
       const user = userEvent.setup();
       renderStoreAtTier("compact");
 
-      // Select a Featured crate via chip bar (in-session, not direct entry)
+      // Select a Featured crate via chip bar
       await user.click(screen.getByRole("button", { name: "Featured" }));
       await user.click(screen.getByRole("tab", { name: "Jazz" }));
 
@@ -243,12 +242,12 @@ describe("BrowseShell", () => {
 
       await user.click(screen.getByRole("button", { name: "Genres" }));
 
+      // Should auto-select the first Genre crate
       expect(screen.getByRole("button", { name: "Genres" })).toHaveAttribute(
         "aria-pressed",
         "true",
       );
-      expect(screen.getByText(/Pick a genre crate/i)).toBeInTheDocument();
-      expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+      expect(screen.getByRole("progressbar")).toBeInTheDocument();
     });
   });
 

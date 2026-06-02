@@ -10,8 +10,8 @@ import type { Crate, Listing } from "../types/inertia";
 
 const TIER_DENSITY = {
   compact: { tilesPerPage: 6, gridCols: "grid-cols-2", aspectRatio: "2/3" },
-  comfy: { tilesPerPage: 9, gridCols: "grid-cols-3", aspectRatio: "3/4" },
-  wide: { tilesPerPage: 12, gridCols: "grid-cols-4", aspectRatio: "4/5" },
+  comfy: { tilesPerPage: 9, gridCols: "grid-cols-3", aspectRatio: "1/1" },
+  wide: { tilesPerPage: 12, gridCols: "grid-cols-4", aspectRatio: "4/3" },
 } as const;
 const SWIPE_THRESHOLD = 8000;
 
