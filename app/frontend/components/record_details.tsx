@@ -1,14 +1,14 @@
-import { motion, AnimatePresence } from "framer-motion"
-import { usePileContext } from "@/contexts/pile_context"
-import { formatPrice } from "@/lib/format_price"
-import { type RiffleDirection } from "@/lib/riffle_navigation"
-import Button from "@/components/ui/button"
-import { ActionLink } from "@/components/ui/action"
-import type { Listing } from "@/types/inertia"
+import { motion, AnimatePresence } from "framer-motion";
+import { usePileContext } from "@/contexts/pile_context";
+import { formatPrice } from "@/lib/format_price";
+import { type RiffleDirection } from "@/lib/riffle_navigation";
+import Button from "@/components/ui/button";
+import { ActionLink } from "@/components/ui/action";
+import type { Listing } from "@/types/inertia";
 
 interface RecordDetailsProps {
-  listing: Listing
-  direction: RiffleDirection
+  listing: Listing;
+  direction: RiffleDirection;
 }
 
 /**
@@ -17,15 +17,17 @@ interface RecordDetailsProps {
  * and a Discogs link.
  */
 export default function RecordDetails({ listing, direction }: RecordDetailsProps) {
-  const meta = [listing.format, listing.label, listing.year, listing.condition].filter(Boolean).join(" · ")
-  const enterY = direction === "deeper" ? -16 : 16
-  const exitY = direction === "deeper" ? 16 : -16
-  const { inPile, addToPile, removeFromPile } = usePileContext()
+  const meta = [listing.format, listing.label, listing.year, listing.condition]
+    .filter(Boolean)
+    .join(" · ");
+  const enterY = direction === "deeper" ? -16 : 16;
+  const exitY = direction === "deeper" ? 16 : -16;
+  const { inPile, addToPile, removeFromPile } = usePileContext();
 
   const allTags = [
     ...listing.genres.slice(0, 4).map((g) => ({ label: g, dim: false })),
     ...listing.styles.slice(0, 4).map((s) => ({ label: s, dim: true })),
-  ]
+  ];
 
   return (
     <AnimatePresence mode="wait" custom={direction}>
@@ -46,16 +48,24 @@ export default function RecordDetails({ listing, direction }: RecordDetailsProps
             {meta && <div className="text-xs text-mc-text-dim mt-2">{meta}</div>}
           </div>
           <div className="flex flex-col items-end gap-2">
-            <span className="text-2xl font-medium whitespace-nowrap">
-              {formatPrice(listing)}
-            </span>
+            <span className="text-2xl font-medium whitespace-nowrap">{formatPrice(listing)}</span>
             <div className="flex gap-2">
               {inPile(listing.id) ? (
-                <Button variant="secondary" onClick={() => removeFromPile(listing.id)}>✓ In pile</Button>
+                <Button variant="secondary" onClick={() => removeFromPile(listing.id)}>
+                  ✓ In pile
+                </Button>
               ) : (
                 <Button onClick={() => addToPile(listing)}>+ Pile</Button>
               )}
-              <ActionLink variant="secondary" href={listing.discogs_url} target="_blank" rel="noopener noreferrer">Discogs ↗</ActionLink>
+              <ActionLink
+                variant="secondary"
+                href={listing.discogs_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`View listing for ${listing.title ?? "this record"} on ******* (opens in new tab)`}
+              >
+                View listing on ******* ↗
+              </ActionLink>
             </div>
           </div>
         </div>
@@ -81,5 +91,5 @@ export default function RecordDetails({ listing, direction }: RecordDetailsProps
         )}
       </motion.div>
     </AnimatePresence>
-  )
+  );
 }
