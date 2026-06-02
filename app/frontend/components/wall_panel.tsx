@@ -10,8 +10,8 @@ import type { Crate, Listing } from "../types/inertia";
 
 const TIER_DENSITY = {
   compact: { tilesPerPage: 6, gridCols: "grid-cols-2" },
-  comfy: { tilesPerPage: 9, gridCols: "grid-cols-3" },
-  wide: { tilesPerPage: 12, gridCols: "grid-cols-4" },
+  comfy: { tilesPerPage: 8, gridCols: "grid-cols-4" },
+  wide: { tilesPerPage: 12, gridCols: "grid-cols-6" },
 } as const;
 const SWIPE_THRESHOLD = 8000;
 
@@ -120,7 +120,7 @@ export default function WallPanel({ crate }: Props) {
             dragConstraints={{ left: 0, right: 0 }}
             dragElastic={0.3}
             onDragEnd={handleDragEnd}
-            className={`grid ${gridCols} gap-2 ${isCompact ? "" : "grid-rows-3"}`}
+            className={`grid ${gridCols} gap-2`}
             style={isCompact ? { position: "absolute", inset: 0 } : undefined}
           >
             {currentPage.map((listing) => (

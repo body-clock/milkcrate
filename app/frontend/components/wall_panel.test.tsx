@@ -189,7 +189,7 @@ describe("WallPanel", () => {
       expect(screen.queryByRole("tablist", { name: "Wall pages" })).not.toBeInTheDocument();
     });
 
-    it("comfy Wall with 13 records renders 9 visible tiles and a second page indicator", () => {
+    it("comfy Wall with 13 records renders 8 visible tiles and a second page indicator", () => {
       renderWithTier(
         "comfy",
         <StorefrontMotionConfig>
@@ -200,7 +200,7 @@ describe("WallPanel", () => {
       );
 
       const tiles = screen.getAllByRole("button", { name: /Inspect Record/ });
-      expect(tiles).toHaveLength(9);
+      expect(tiles).toHaveLength(8);
 
       const tablist = screen.getByRole("tablist", { name: "Wall pages" });
       const tabs = within(tablist).getAllByRole("tab");

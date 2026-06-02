@@ -35,7 +35,7 @@ export default function MilkcrateShell({
   contentPadding = "px-4 sm:px-6 lg:px-8 py-6 sm:py-12",
 }: MilkcrateShellProps) {
   return (
-    <div className="h-dvh flex flex-col overflow-hidden">
+    <div className="min-h-screen flex flex-col">
       {/* Skip-to-content link — exactly matches existing pattern from both layouts */}
       <a
         href="#main-content"
@@ -48,7 +48,7 @@ export default function MilkcrateShell({
 
       {afterHeader}
 
-      <main className="flex-1 overflow-y-auto" id="main-content">
+      <main className="flex-1" id="main-content">
         <div className={`mx-auto w-full ${contentWidth} ${contentPadding}`}>{children}</div>
       </main>
 

@@ -94,7 +94,7 @@ describe("MilkcrateShell", () => {
     expect(screen.getByText("Flash Notice")).toBeInTheDocument();
 
     // Verify DOM order: header -> afterHeader -> main
-    const shell = document.querySelector(".h-dvh.flex.flex-col");
+    const shell = document.querySelector(".min-h-screen.flex.flex-col");
     expect(shell).toBeInTheDocument();
     const children = Array.from(shell!.children);
     // children[0] = skip link (a), [1] = header div, [2] = afterHeader div, [3] = main
@@ -149,7 +149,7 @@ describe("MilkcrateShell", () => {
     );
 
     // There should be exactly one A (skip link), one DIV (header), and one MAIN
-    const shell = document.querySelector(".h-dvh.flex.flex-col");
+    const shell = document.querySelector(".min-h-screen.flex.flex-col");
     const children = Array.from(shell!.children);
     // Without afterHeader: A, header div, MAIN (3 elements)
     // With afterHeader: A, header div, afterHeader div, MAIN (4 elements)
