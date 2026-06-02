@@ -67,11 +67,12 @@ const renderFloorAtTier = (sections: StorefrontSection[], tier: "compact" | "com
 
 describe("StoreFloor section labels", () => {
   describe("Wall section", () => {
-    it("renders picks description text when wall has records", () => {
+    it("does not render picks description text when wall has records", () => {
       renderFloor([picksSectionWith(4)]);
 
-      expect(screen.getByText(/Today's picks/)).toBeInTheDocument();
-      expect(screen.getByText(/the store's taste at a glance/)).toBeInTheDocument();
+      // Description paragraph was removed — identity is carried by aria-label.
+      expect(screen.queryByText(/Today's picks/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/the store's taste at a glance/)).not.toBeInTheDocument();
     });
 
     it("has role=region with accessible label for the wall section", () => {
@@ -141,7 +142,7 @@ describe("StoreFloor section labels", () => {
     it("compact tier renders all section descriptions", () => {
       renderFloorAtTier([picksSectionWith(2), featuredSection(2), genreSection(2)], "compact");
 
-      expect(screen.getByText(/Today's picks/)).toBeInTheDocument();
+      // Wall section does not render visible description — identity is aria-label only.
       expect(screen.getByText(/Curated crates hand-picked by the store/)).toBeInTheDocument();
       expect(screen.getByText(/Browse the full collection by genre/)).toBeInTheDocument();
     });

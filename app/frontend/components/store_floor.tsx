@@ -13,6 +13,17 @@ interface Props {
   onSelectCrate: (slug: string, startIndex?: number) => void;
 }
 
+/**
+ * Returns the column count for the Wall grid based on record count.
+ * Adaptive: fewer records use fewer columns so the grid always looks filled.
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- used by column override (U3)
+function wallGridColumns(recordCount: number, isCompact: boolean): number {
+  if (recordCount <= 2) return 1;
+  if (recordCount <= 4) return 2;
+  return isCompact ? 2 : 3;
+}
+
 function PicksShelf({
   crate,
   onSelectCrate,
@@ -26,6 +37,7 @@ function PicksShelf({
 }) {
   const { isCompact } = useViewport();
 
+  // Wall is always borderless — the only unbordered surface on the store floor.
   const shelf = (
     <CrateShelf
       crate={crate}
@@ -33,24 +45,21 @@ function PicksShelf({
       onSelectCrate={onSelectCrate}
       previewCount={picksPreviewCount}
       meta={today}
-      openLabel="DIG →"
       tactileThumbnails={!isCompact}
-      className={!isCompact ? "border-0 rounded-none" : undefined}
+      className="border-0 rounded-none bg-transparent"
     />
   );
 
-  // Desktop: wrap in a hover-animated motion container
+  // Comfy/wide: wrap in a hover-animated motion container (no rotate, Wall is editorial)
   if (!isCompact) {
     const { isHovered, isPressed, handlers } = useTactileHover();
 
     return (
       <motion.div
-        className="w-full rounded-lg overflow-hidden border"
+        className="w-full rounded-lg overflow-hidden"
         animate={{
-          borderColor: isHovered ? "var(--mc-accent)" : "var(--mc-border)",
           scale: isPressed ? SCALE_PRESS : isHovered ? SCALE_HOVER : 1,
           y: isHovered ? -3 : 0,
-          rotate: isHovered ? 0 : -0.5,
         }}
         transition={isPressed ? springPress : springTactile}
         {...handlers}
@@ -65,10 +74,9 @@ function PicksShelf({
 }
 
 export default function StoreFloor({ sections, onSelectCrate }: Props) {
-  const { isCompact } = useViewport();
-
-  // Tier-specific preview density: compact shows fewer, wide shows more
-  const picksPreviewCount = isCompact ? 4 : 8;
+  // Wall preview density: always 6 records (2×3 compact, 3×2 comfy/wide).
+  // Column count adapts dynamically via wallGridColumns in CrateShelf (U3).
+  const picksPreviewCount = 6;
 
   return (
     <div className="flex flex-col gap-8 sm:gap-10">
@@ -84,9 +92,6 @@ export default function StoreFloor({ sections, onSelectCrate }: Props) {
                 role="region"
                 aria-label="Wall — Today's picks, the store's taste at a glance"
               >
-                <p className="text-xs text-mc-text-dim mb-3">
-                  Today's picks — the store's taste at a glance
-                </p>
                 <PicksShelf
                   crate={picks}
                   onSelectCrate={onSelectCrate}
