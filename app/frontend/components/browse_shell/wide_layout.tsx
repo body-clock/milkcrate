@@ -24,7 +24,7 @@ export default function WideLayout({ mode, listingCount, genreCount, currentCrat
         panelTitle={mode === "wall" ? undefined : COPY.cratePanels[mode].title}
         currentCrates={currentCrates} activeSlug={activeSlug}
         onSelectCrate={selectCrate} onWallSelect={onWallSelect}
-        onBrowseModeSelected={onBrowseModeSelect} />
+        onBrowseModeSelect={onBrowseModeSelect} />
       <PanelContent mode={mode} wall={wall} currentCrates={currentCrates}
         activeSlug={activeSlug} startIndex={startIndex}
         selectCrate={selectCrate} hideChipBar />
