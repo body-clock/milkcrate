@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { usePileContext } from "@/contexts/pile_context";
 import { useReducedMotionContext } from "@/components/storefront_motion_config";
