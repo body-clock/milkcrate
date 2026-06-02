@@ -578,7 +578,7 @@ describe("responsive surface matrix", () => {
     // compact tier: browse shell with Wall region
     cleanup();
     renderStoreShowAtTier("compact", propsWithSections);
-    expect(screen.getByRole("region", { name: "Wall" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "The Wall" })).toBeInTheDocument();
     expect(screen.getByText(/Today's picks, the store's taste at a glance/i)).toBeInTheDocument();
 
     // comfy and wide tiers: classic store floor
@@ -594,7 +594,10 @@ describe("responsive surface matrix", () => {
 
     expect(screen.getByRole("navigation", { name: "Browse modes" })).toHaveClass("fixed");
     expect(screen.queryByRole("contentinfo")).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Wall" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "The Wall" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
     expect(screen.getByRole("button", { name: "Featured" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Genres" })).toBeInTheDocument();
     expect(screen.getByText(/Today's picks, the store's taste at a glance/i)).toBeInTheDocument();
@@ -645,6 +648,6 @@ describe("responsive surface matrix", () => {
     expect(
       screen.getByRole("progressbar", { name: "Record 2 of 3, front to deeper" }),
     ).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Wall" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "The Wall" })).not.toBeInTheDocument();
   });
 });

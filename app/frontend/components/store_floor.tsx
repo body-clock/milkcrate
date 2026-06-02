@@ -4,6 +4,7 @@ import FeaturedCratesRow from "./featured_crates_row";
 import GenreGrid from "./genre_grid";
 import { useTactileHover } from "@/hooks/use_tactile_hover";
 import { springTactile, springPress, SCALE_HOVER, SCALE_PRESS } from "@/lib/motion_tokens";
+import { COPY } from "@/lib/copy";
 import type { Crate } from "../types/inertia";
 import type { StorefrontSection } from "../types/inertia";
 
@@ -67,14 +68,8 @@ export default function StoreFloor({ sections, onSelectCrate }: Props) {
 
           return (
             picks.records.length > 0 && (
-              <div
-                key="picks"
-                role="region"
-                aria-label="Wall — Today's picks, the store's taste at a glance"
-              >
-                <p className="text-xs text-mc-text-dim mb-3">
-                  Today's picks — the store's taste at a glance
-                </p>
+              <div key="picks" role="region" aria-label={COPY.storeFloor.wallRegionLabel}>
+                <p className="text-xs text-mc-text-dim mb-3">{COPY.storeFloor.wallDescription}</p>
                 <PicksShelf
                   crate={picks}
                   onSelectCrate={onSelectCrate}

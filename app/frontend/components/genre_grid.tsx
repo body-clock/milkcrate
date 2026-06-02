@@ -1,4 +1,5 @@
 import CrateSectionGrid from "./crate_section_grid";
+import { COPY } from "@/lib/copy";
 import type { Crate } from "../types/inertia";
 
 interface Props {
@@ -16,7 +17,7 @@ export default function GenreGrid({ crates, onSelectCrate }: Props) {
       columnCount={(isCompact, isComfy) => (isCompact ? 2 : isComfy ? 3 : 4)}
       onSelectCrate={onSelectCrate}
       gap="gap-3 sm:gap-4"
-      description="Inventory grouped by genre"
+      description={COPY.storeFloor.genreDescription}
     />
   );
 }

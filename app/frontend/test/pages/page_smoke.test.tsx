@@ -478,7 +478,7 @@ describe("page smoke tests", () => {
         ],
       });
 
-      expect(screen.getByRole("button", { name: "Wall" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "The Wall" })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Featured" })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Genres" })).toBeInTheDocument();
       expect(screen.getByText(/Today's picks, the store's taste at a glance/i)).toBeInTheDocument();

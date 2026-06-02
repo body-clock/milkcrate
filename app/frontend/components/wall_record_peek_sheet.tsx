@@ -5,6 +5,7 @@ import { useDialogFocusTrap } from "@/hooks/use_dialog_focus_trap";
 import { useReducedMotionContext } from "./storefront_motion_config";
 import { springDrawer, reducedMotionTransition } from "@/lib/motion_tokens";
 import { formatPrice } from "@/lib/format_price";
+import { COPY } from "@/lib/copy";
 import Button from "./ui/button";
 import { ActionLink } from "./ui/action";
 import RecordTile from "./record_tile";
@@ -71,16 +72,14 @@ export default function WallRecordPeekSheet({ open, listing, onClose, returnFocu
                 >
                   Wall peek
                 </span>
-                <p className="mt-1 text-xs text-mc-text-dim">
-                  Inspect the record, check the pile, or head straight to Discogs.
-                </p>
+                <p className="mt-1 text-xs text-mc-text-dim">{COPY.peekSheet.description}</p>
               </div>
 
               <button
                 type="button"
                 onClick={onClose}
                 className="inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full text-xl leading-none text-mc-text-dim transition-colors hover:bg-mc-bg-raised hover:text-mc-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"
-                aria-label="Close wall peek"
+                aria-label={COPY.peekSheet.closeLabel}
               >
                 ×
               </button>
@@ -94,17 +93,26 @@ export default function WallRecordPeekSheet({ open, listing, onClose, returnFocu
 
                 <div className="flex flex-col gap-4">
                   <div>
-                    <div className="text-lg font-semibold leading-tight">{listing.title ?? "Untitled record"}</div>
-                    <div className="mt-1 text-sm text-mc-text-dim">{listing.artist ?? "Unknown artist"}</div>
+                    <div className="text-lg font-semibold leading-tight">
+                      {listing.title ?? COPY.peekSheet.untitledRecord}
+                    </div>
+                    <div className="mt-1 text-sm text-mc-text-dim">
+                      {listing.artist ?? COPY.peekSheet.unknownArtist}
+                    </div>
                     {meta && (
-                      <p id="wall-peek-meta" className="mt-2 text-xs text-mc-text-dim leading-relaxed">
+                      <p
+                        id="wall-peek-meta"
+                        className="mt-2 text-xs text-mc-text-dim leading-relaxed"
+                      >
                         {meta}
                       </p>
                     )}
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-2xl font-semibold whitespace-nowrap">{formatPrice(listing)}</span>
+                    <span className="text-2xl font-semibold whitespace-nowrap">
+                      {formatPrice(listing)}
+                    </span>
                     {inPile(listing.id) ? (
                       <Button variant="secondary" onClick={() => removeFromPile(listing.id)}>
                         ✓ In pile
@@ -117,9 +125,9 @@ export default function WallRecordPeekSheet({ open, listing, onClose, returnFocu
                       href={listing.discogs_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      aria-label={`View listing for ${listing.title ?? "this record"} on Discogs (opens in new tab)`}
+                      aria-label={COPY.discogsLinkLabel(listing.title)}
                     >
-                      View listing on Discogs ↗
+                      {COPY.discogsLinkText}
                     </ActionLink>
                   </div>
 
