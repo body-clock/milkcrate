@@ -67,38 +67,22 @@ function cleanRefs(at: AbortController | null, tt: ReturnType<typeof setTimeout>
 
 /** Manages admin Discogs username lookup lifecycle: fetch, abort, timeout. */
 export function useAdminDiscogsLookup(lookupPath: string): UseAdminDiscogsLookupResult {
-  const [state, setState] = useState<AdminLookupState>({ status: "idle" });
-  const abortRef = useRef<AbortController | null>(null);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => () => { abortRef.current?.abort(); if (timeoutRef.current) {clearTimeout(timeoutRef.current);} }, []);
-
+  const [st, setSt] = useState<AdminLookupState>({ status: "idle" }); const ar = useRef<AbortController | null>(null);
+  const tr = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { ar.current?.abort(); if (tr.current) {clearTimeout(tr.current);} }, []);
   const lookup = useCallback((username: string) => {
-    abortRef.current?.abort(); if (timeoutRef.current) {clearTimeout(timeoutRef.current);}
-    const controller = new AbortController();
-    abortRef.current = controller; timeoutRef.current = startTimeout(controller);
-    setState({ status: "loading" });
-    const url = new URL(lookupPath, window.location.origin);
-    url.searchParams.set("username", username);
-    runLookupFetch(url.toString(), controller.signal).then((data) => {
-      if (abortRef.current !== controller || controller.signal.aborted) {return;}
-      cleanRefs(abortRef.current, timeoutRef.current);
-      abortRef.current = null; timeoutRef.current = null;
-      setState({ status: "result", result: data });
-    }, (err) => {
-      if (abortRef.current !== controller || controller.signal.aborted) {return;}
-      if (err instanceof DOMException && err.name === "AbortError") {return;}
-      cleanRefs(abortRef.current, timeoutRef.current);
-      abortRef.current = null; timeoutRef.current = null;
-      setState({ status: "error" });
+    ar.current?.abort(); if (tr.current) {clearTimeout(tr.current);}
+    const c = new AbortController(); ar.current = c; tr.current = startTimeout(c); setSt({ status: "loading" });
+    const u = new URL(lookupPath, window.location.origin); u.searchParams.set("username", username);
+    runLookupFetch(u.toString(), c.signal).then(d => {
+      if (ar.current !== c || c.signal.aborted) {return;}
+      cleanRefs(ar.current, tr.current); ar.current = null; tr.current = null; setSt({ status: "result", result: d });
+    }, e => {
+      if (ar.current !== c || c.signal.aborted) {return;}
+      if (e instanceof DOMException && e.name === "AbortError") {return;}
+      cleanRefs(ar.current, tr.current); ar.current = null; tr.current = null; setSt({ status: "error" });
     });
   }, [lookupPath]);
-
-  const reset = useCallback(() => {
-    abortRef.current?.abort();
-    abortRef.current = null; if (timeoutRef.current) {clearTimeout(timeoutRef.current);}
-    timeoutRef.current = null; setState({ status: "idle" });
-  }, []);
-
-  return { state, lookup, reset };
+  const reset = () => { ar.current?.abort(); ar.current = null; if (tr.current) {clearTimeout(tr.current);} tr.current = null; setSt({ status: "idle" }); };
+  return { state: st, lookup, reset };
 }

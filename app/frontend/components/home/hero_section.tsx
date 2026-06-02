@@ -25,46 +25,28 @@ interface Props {
   demoHref: string;
 }
 
-function HeroHeading({ headline, subhead }: { headline: string; subhead: string }) {
+function HeroCta({ ctaDemo, demoHref }: { ctaDemo: string; demoHref: string }) {
   return (
-    <>
-      <motion.h1
-        variants={fadeUp}
-        id="home-headline"
-        className="text-2xl sm:text-3xl font-bold text-mc-text mb-3 leading-tight max-w-md"
+    <motion.div variants={fadeUp}>
+      <Link
+        href={demoHref}
+        className={actionClassName({
+          size: "lg",
+          className: "w-full text-center tracking-wide sm:w-auto",
+        })}
       >
-        {headline}
-      </motion.h1>
-      <motion.p
-        variants={fadeUp}
-        className="text-sm sm:text-base text-mc-text-dim mb-8 leading-relaxed max-w-md"
-      >
-        {subhead}
-      </motion.p>
-    </>
+        {ctaDemo}
+      </Link>
+    </motion.div>
   );
 }
 
 export default function HeroSection({ headline, subhead, ctaDemo, demoHref }: Props) {
   return (
-    <motion.section
-      initial="hidden"
-      animate="visible"
-      aria-labelledby="home-headline"
-      className="flex flex-col items-center text-center pt-4 pb-10 sm:pb-16"
-    >
-      <HeroHeading headline={headline} subhead={subhead} />
-      <motion.div variants={fadeUp}>
-        <Link
-          href={demoHref}
-          className={actionClassName({
-            size: "lg",
-            className: "w-full text-center tracking-wide sm:w-auto",
-          })}
-        >
-          {ctaDemo}
-        </Link>
-      </motion.div>
+    <motion.section initial="hidden" animate="visible" aria-labelledby="home-headline" className="flex flex-col items-center text-center pt-4 pb-10 sm:pb-16">
+      <motion.h1 variants={fadeUp} id="home-headline" className="text-2xl sm:text-3xl font-bold text-mc-text mb-3 leading-tight max-w-md">{headline}</motion.h1>
+      <motion.p variants={fadeUp} className="text-sm sm:text-base text-mc-text-dim mb-8 leading-relaxed max-w-md">{subhead}</motion.p>
+      <HeroCta ctaDemo={ctaDemo} demoHref={demoHref} />
     </motion.section>
   );
 }

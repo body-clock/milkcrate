@@ -1,9 +1,3 @@
-// Animation constants — cubic bezier curve values for framer-motion
-const EASE_X1 = 0.25;
-const EASE_Y1 = 0.46;
-const EASE_X2 = 0.45;
-const EASE_Y2 = 0.94;
-
 interface Props {
   number: number;
   title: string;
