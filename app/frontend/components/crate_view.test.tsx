@@ -508,11 +508,11 @@ describe("CrateView", () => {
     const stack = screen.getByTestId("crate-stack");
     expect(stack).toBeInTheDocument();
 
-    // Verify hint cards are positioned at the expected offsets inside the stack
-    const stackContainer = stack.firstElementChild;
-    expect(stackContainer).not.toBeNull();
+    // Hint cards live inside the relative positioned container within the flex wrapper
+    const relativeContainer = stack.firstElementChild!.firstElementChild;
+    expect(relativeContainer).not.toBeNull();
     // Should have multiple child elements for hint cards
-    expect(stackContainer!.children.length).toBeGreaterThan(1);
+    expect(relativeContainer!.children.length).toBeGreaterThan(1);
   });
 
   it("renders active card with thumbnail backdrop when thumbnail_url is present", () => {

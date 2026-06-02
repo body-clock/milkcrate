@@ -114,7 +114,7 @@ export default function CardStack(props: CardStackProps) {
             />
           </div>
 
-          {isCompact && <InspectionHint discovered={flipDiscovered} />}
+          {isCompact && !showGestureHint && <InspectionHint discovered={flipDiscovered} />}
         </div>
       </div>
     </>
