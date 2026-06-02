@@ -1,6 +1,7 @@
 import React from "react";
-import { describe, expect, it, vi } from "vitest";
-import { screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { cleanup, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { renderWithTier } from "../viewport-test-utils";
 import type { ViewportTier } from "@/contexts/viewport_context";
 
@@ -64,7 +65,9 @@ import type {
   DashboardProps,
   StoreShowProps,
   HomepagePreview,
+  Listing,
 } from "../../types/inertia";
+import { PileProvider } from "../../contexts/pile_context";
 
 // ── Shared test data ────────────────────────────────────────────
 
@@ -79,7 +82,7 @@ const homeCopy = {
     step1_title: "Share your Discogs",
     step1_body: "Tell us your Discogs username. That\u2019s it.",
     step2_title: "We sync & curate",
-    step2_body: "Your inventory becomes curated crates: picks, featured bins, and genre bins.",
+    step2_body: "Your inventory becomes browsable crates: picks, featured bins, and genre bins.",
     step3_title: "Share your store",
     step3_body: "One link. Your customers browse like they\u2019re in the shop.",
   },
@@ -136,6 +139,80 @@ const storeShowProps: StoreShowProps = {
   },
   crates: [],
 };
+
+const makeListing = (id: number, title: string): Listing => ({
+  id,
+  discogs_listing_id: String(id),
+  artist: `Artist ${id}`,
+  title,
+  label: null,
+  year: null,
+  format: null,
+  genres: [],
+  styles: [],
+  condition: null,
+  price: `${10 + id}.00`,
+  currency: "USD",
+  cover_image_url: null,
+  thumbnail_url: null,
+  notes: null,
+  discogs_url: `https://www.discogs.com/sell/item/${id}`,
+});
+
+const makeCrate = (
+  slug: string,
+  name: string,
+  recordTitles: string[],
+): StoreShowProps["crates"][number] => ({
+  slug,
+  name,
+  count: recordTitles.length,
+  records: recordTitles.map((title, index) => makeListing(index + 1, title)),
+});
+
+const compactStoreProps: StoreShowProps = {
+  ...storeShowProps,
+  crates: [
+    makeCrate("picks", "Milkcrate Picks", ["Wall One", "Wall Two", "Wall Three"]),
+    makeCrate("jazz", "Jazz", ["Jazzy One", "Jazzy Two", "Jazzy Three"]),
+    makeCrate("rock", "Rock", ["Rock One", "Rock Two"]),
+    makeCrate("soul", "Soul", ["Soul One", "Soul Two"]),
+    makeCrate("funk", "Funk", ["Funk One"]),
+  ],
+  storefront_sections: [
+    {
+      key: "picks_wall",
+      crate: makeCrate("picks", "Milkcrate Picks", ["Wall One", "Wall Two", "Wall Three"]),
+    },
+    {
+      key: "featured_crates",
+      crates: [
+        makeCrate("jazz", "Jazz", ["Jazzy One", "Jazzy Two", "Jazzy Three"]),
+        makeCrate("rock", "Rock", ["Rock One", "Rock Two"]),
+      ],
+    },
+    {
+      key: "genre_grid",
+      crates: [
+        makeCrate("soul", "Soul", ["Soul One", "Soul Two"]),
+        makeCrate("funk", "Funk", ["Funk One"]),
+      ],
+    },
+  ],
+};
+
+afterEach(() => {
+  history.replaceState({}, "", "/stores/test");
+});
+
+function renderStoreShowAtTier(tier: ViewportTier, props: StoreShowProps) {
+  return renderWithTier(
+    tier,
+    <PileProvider>
+      <StoreShow {...props} />
+    </PileProvider>,
+  );
+}
 
 const adminProps: AdminDashboardProps = {
   discogs_onboarding: {
@@ -220,7 +297,7 @@ describe("responsive surface matrix", () => {
     });
 
     it("renders the store page without crashing", () => {
-      const { container } = renderWithTier(tier, <StoreShow {...storeShowProps} />);
+      const { container } = renderStoreShowAtTier(tier, storeShowProps);
       expect(container).toBeTruthy();
       // The store page shows empty state when no crates exist
       expect(screen.getByText(/No vinyl found yet/)).toBeInTheDocument();
@@ -373,7 +450,7 @@ describe("responsive surface matrix", () => {
       ],
     };
 
-    const { container } = renderWithTier("wide", <StoreShow {...propsWithCrates} />);
+    const { container } = renderStoreShowAtTier("wide", propsWithCrates);
     expect(container).toBeTruthy();
     // Store floor should render when crates exist
     expect(screen.getByText("Milkcrate Picks")).toBeInTheDocument();
@@ -389,7 +466,7 @@ describe("responsive surface matrix", () => {
       },
     };
 
-    renderWithTier("wide", <StoreShow {...failedStoreProps} />);
+    renderStoreShowAtTier("wide", failedStoreProps);
 
     expect(screen.getByText(/Sync failed/).closest("[role='alert']")).toHaveClass(
       "text-mc-feedback-danger",
@@ -498,7 +575,79 @@ describe("responsive surface matrix", () => {
       ],
     };
 
-    renderWithTier("compact", <StoreShow {...propsWithSections} />);
-    expect(screen.getByText("Milkcrate Picks")).toBeInTheDocument();
+    // compact tier: browse shell with Wall region
+    cleanup();
+    renderStoreShowAtTier("compact", propsWithSections);
+    expect(screen.getByRole("region", { name: "The Wall" })).toBeInTheDocument();
+    expect(screen.getByText(/Today's picks, the store's taste at a glance/i)).toBeInTheDocument();
+
+    // comfy and wide tiers: classic store floor
+    for (const tier of ["comfy", "wide"] as const) {
+      cleanup();
+      renderStoreShowAtTier(tier, propsWithSections);
+      expect(screen.getByText("Milkcrate Picks")).toBeInTheDocument();
+    }
+  });
+
+  it("compact tier renders the browse shell navigation and wall surface", () => {
+    renderStoreShowAtTier("compact", compactStoreProps);
+
+    expect(screen.getByRole("navigation", { name: "Browse modes" })).toHaveClass("fixed");
+    expect(screen.queryByRole("contentinfo")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "The Wall" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(screen.getByRole("button", { name: "Featured" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Genres" })).toBeInTheDocument();
+    expect(screen.getByText(/Today's picks, the store's taste at a glance/i)).toBeInTheDocument();
+  });
+
+  it("compact tier auto-selects the first crate when switching to Featured or Genres", async () => {
+    const user = userEvent.setup();
+    renderStoreShowAtTier("compact", compactStoreProps);
+
+    await user.click(screen.getByRole("button", { name: "Featured" }));
+
+    expect(screen.getByRole("button", { name: "Featured" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(
+      screen.getByRole("progressbar", { name: "Record 1 of 3, front to deeper" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Pick a Featured crate/i)).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Genres" }));
+
+    expect(screen.getByRole("button", { name: "Genres" })).toHaveAttribute("aria-pressed", "true");
+    expect(
+      screen.getByRole("progressbar", { name: "Record 1 of 2, front to deeper" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Pick a genre crate/i)).not.toBeInTheDocument();
+  });
+
+  it("compact tier renders an inline crate stage for deep-linked crates", () => {
+    history.replaceState({ crateSlug: "jazz", startIndex: 1 }, "", "/stores/test?crate=jazz");
+
+    renderStoreShowAtTier("compact", compactStoreProps);
+
+    expect(screen.getByRole("tablist", { name: "Crates" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("progressbar", { name: "Record 2 of 3, front to deeper" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Jazz" })).not.toBeInTheDocument();
+  });
+
+  it("wide tier still renders the full crate experience on deep links", () => {
+    history.replaceState({ crateSlug: "jazz", startIndex: 1 }, "", "/stores/test?crate=jazz");
+
+    renderStoreShowAtTier("wide", compactStoreProps);
+
+    expect(screen.getByRole("tablist", { name: "Crates" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("progressbar", { name: "Record 2 of 3, front to deeper" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "The Wall" })).not.toBeInTheDocument();
   });
 });

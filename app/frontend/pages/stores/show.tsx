@@ -1,33 +1,66 @@
 import { motion } from "framer-motion";
 import AppLayout from "@/layouts/app_layout";
 import CrateView from "@/components/crate_view";
+import CompactBrowseShell from "@/components/compact_browse_shell";
 import StoreFloor from "@/components/store_floor";
 import Spinner from "@/components/spinner";
 import FeedbackMessage from "@/components/ui/feedback_message";
 import { useCrateRouting } from "@/hooks/use_crate_routing";
+import { useViewport } from "@/hooks/use_viewport";
 import type { StoreShowProps } from "@/types/inertia";
 
 export default function StoreShow({ store, crates, storefront_sections }: StoreShowProps) {
-  const { activeSlug, activeCrate, startIndex, selectCrate, backToStore, allCrates } =
-    useCrateRouting({
-      crates,
-      storefront_sections: storefront_sections ?? [],
-    });
+  const { activeSlug, startIndex, selectCrate, backToStore, allCrates } = useCrateRouting({
+    crates,
+    storefront_sections: storefront_sections ?? [],
+  });
   const listingCount = store.total_listings ?? 0;
+
+  return (
+    <AppLayout>
+      <StoreShowContent
+        store={store}
+        crates={crates}
+        storefront_sections={storefront_sections ?? []}
+        listingCount={listingCount}
+        activeSlug={activeSlug}
+        startIndex={startIndex}
+        selectCrate={selectCrate}
+        backToStore={backToStore}
+        allCrates={allCrates}
+      />
+    </AppLayout>
+  );
+}
+
+interface StoreShowContentProps {
+  store: StoreShowProps["store"];
+  crates: StoreShowProps["crates"];
+  storefront_sections: NonNullable<StoreShowProps["storefront_sections"]>;
+  listingCount: number;
+  activeSlug: string | null;
+  startIndex: number;
+  selectCrate: (slug: string, startIndex?: number) => void;
+  backToStore: () => void;
+  allCrates: StoreShowProps["crates"];
+}
+
+function StoreShowContent({
+  store,
+  crates,
+  storefront_sections,
+  listingCount,
+  activeSlug,
+  startIndex,
+  selectCrate,
+  backToStore,
+  allCrates,
+}: StoreShowContentProps) {
+  const { isCompact } = useViewport();
   const hasStoreSummary = Boolean(store.description) || listingCount > 0;
 
   return (
-    <AppLayout
-      compactLocation={
-        activeCrate
-          ? {
-              name: activeCrate.name,
-              count: activeCrate.records.length,
-              onBack: backToStore,
-            }
-          : undefined
-      }
-    >
+    <>
       {activeSlug === null && hasStoreSummary ? (
         <motion.div
           initial={{ opacity: 0, y: -6 }}
@@ -79,11 +112,19 @@ export default function StoreShow({ store, crates, storefront_sections }: StoreS
             🎵
           </span>
           <p className="text-sm text-mc-text-dim">
-            No vinyl found yet. Once the store syncs, curated crates will appear here.
+            No vinyl found yet. Once the store syncs, browsable crates will appear here.
           </p>
         </div>
+      ) : isCompact ? (
+        <CompactBrowseShell
+          sections={storefront_sections}
+          activeSlug={activeSlug}
+          startIndex={startIndex}
+          selectCrate={selectCrate}
+          backToStore={backToStore}
+        />
       ) : activeSlug === null ? (
-        <StoreFloor sections={storefront_sections ?? []} onSelectCrate={selectCrate} />
+        <StoreFloor sections={storefront_sections} onSelectCrate={selectCrate} />
       ) : (
         <CrateView
           crates={allCrates}
@@ -94,6 +135,6 @@ export default function StoreShow({ store, crates, storefront_sections }: StoreS
           onBack={backToStore}
         />
       )}
-    </AppLayout>
+    </>
   );
 }

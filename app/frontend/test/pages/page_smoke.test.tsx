@@ -7,6 +7,7 @@ import Apply from "../../pages/apply";
 import StoreShow from "../../pages/stores/show";
 import Invitation from "../../pages/stores/invitation";
 import Dashboard from "../../pages/admin/dashboard";
+import { ViewportProvider } from "../../contexts/viewport_context";
 import type { AdminDashboardProps, StoreShowProps, InvitationProps } from "../../types/inertia";
 
 vi.mock("@inertiajs/react", () => ({
@@ -50,7 +51,7 @@ const homeCopy = {
     step1_title: "Share your Discogs",
     step1_body: "Tell us your Discogs username. That's it.",
     step2_title: "We sync & curate",
-    step2_body: "Your inventory becomes curated crates: picks, featured bins, and genre bins.",
+    step2_body: "Your inventory becomes browsable crates: picks, featured bins, and genre bins.",
     step3_title: "Share your store",
     step3_body: "One link. Your customers browse like they're in the shop.",
   },
@@ -108,6 +109,14 @@ const storeShowProps: StoreShowProps = {
   crates: [],
 };
 
+function renderStoreShow(props: StoreShowProps) {
+  return render(
+    <ViewportProvider>
+      <StoreShow {...props} />
+    </ViewportProvider>,
+  );
+}
+
 const adminProps: AdminDashboardProps = {
   discogs_onboarding: {
     lookup_path: "/admin/discogs_lookup",
@@ -151,6 +160,12 @@ const adminProps: AdminDashboardProps = {
 };
 
 describe("page smoke tests", () => {
+  it("renders the store page without an external viewport provider", () => {
+    render(<StoreShow {...storeShowProps} />);
+
+    expect(screen.getByText("Independent record store in South Philly.")).toBeInTheDocument();
+  });
+
   it("renders the home page", () => {
     render(<Home copy={homeCopy} preview={previewFallback} />);
 
@@ -182,29 +197,25 @@ describe("page smoke tests", () => {
   });
 
   it("renders the store page", () => {
-    render(<StoreShow {...storeShowProps} />);
+    renderStoreShow(storeShowProps);
 
     expect(screen.getByText(/No vinyl found yet/)).toBeInTheDocument();
   });
 
   it("does not render zero listing count as stray text", () => {
-    render(
-      <StoreShow
-        {...storeShowProps}
-        store={{ ...storeShowProps.store, description: null, total_listings: 0 }}
-      />,
-    );
+    renderStoreShow({
+      ...storeShowProps,
+      store: { ...storeShowProps.store, description: null, total_listings: 0 },
+    });
 
     expect(screen.queryByText("0")).not.toBeInTheDocument();
   });
 
   it("shows shopper-safe copy when sync_status is failed", () => {
-    render(
-      <StoreShow
-        {...storeShowProps}
-        store={{ ...storeShowProps.store, sync_status: "failed", last_sync_error_at: null }}
-      />,
-    );
+    renderStoreShow({
+      ...storeShowProps,
+      store: { ...storeShowProps.store, sync_status: "failed", last_sync_error_at: null },
+    });
 
     expect(screen.getByText(/Inventory may be out of date/)).toBeInTheDocument();
     expect(screen.queryByText(/Rails console/)).not.toBeInTheDocument();
@@ -219,7 +230,7 @@ describe("page smoke tests", () => {
   });
 
   it("store page footer does not render emoji branding", () => {
-    render(<StoreShow {...storeShowProps} />);
+    renderStoreShow(storeShowProps);
 
     // The footer "Powered by Milkcrate" should be plain text — no emoji.
     const footer = document.querySelector("footer");
@@ -236,7 +247,7 @@ describe("page smoke tests", () => {
       "apply",
       () => render(<Apply copy={applyCopy} turnstile={{ enabled: false, site_key: null }} />),
     ],
-    ["store", () => render(<StoreShow {...storeShowProps} />)],
+    ["store", () => renderStoreShow(storeShowProps)],
     ["admin", () => render(<Dashboard {...adminProps} />)],
   ])("emoji regression: %s page", (_label, renderPage) => {
     it("does not render the milk emoji (🥛)", () => {
@@ -267,7 +278,7 @@ describe("page smoke tests", () => {
     const user = userEvent.setup();
     Object.defineProperty(window, "innerWidth", {
       configurable: true,
-      value: 390,
+      value: 1280,
     });
     const props: StoreShowProps = {
       ...storeShowProps,
@@ -330,20 +341,162 @@ describe("page smoke tests", () => {
       ],
     };
 
-    render(<StoreShow {...props} />);
+    renderStoreShow(props);
 
     expect(screen.getByText("Independent record store in South Philly.")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Open Milkcrate Picks" }));
 
+    expect(window.history.state?.crateSlug).toBe("picks");
     expect(screen.queryByText("Independent record store in South Philly.")).not.toBeInTheDocument();
     expect(screen.queryByText("120 vinyl listings")).not.toBeInTheDocument();
-    expect(
-      within(screen.getByRole("banner")).getByRole("button", { name: "Back to store" }),
-    ).toBeInTheDocument();
-    expect(
-      within(screen.getByRole("main")).queryByRole("button", { name: "Back to store" }),
-    ).not.toBeInTheDocument();
+  });
+
+  it("renders the compact browse shell on a narrow viewport", async () => {
+    const user = userEvent.setup();
+    const originalWidth = window.innerWidth;
+    Object.defineProperty(window, "innerWidth", {
+      configurable: true,
+      value: 390,
+    });
+
+    try {
+      renderStoreShow({
+        ...storeShowProps,
+        crates: [
+          {
+            slug: "jazz",
+            name: "Jazz",
+            count: 1,
+            records: [
+              {
+                id: 1,
+                discogs_listing_id: "jazz-1",
+                artist: "Artist 1",
+                title: "Jazz One",
+                label: null,
+                year: null,
+                format: null,
+                genres: [],
+                styles: [],
+                condition: null,
+                price: "10.00",
+                currency: "USD",
+                cover_image_url: null,
+                thumbnail_url: null,
+                notes: null,
+                discogs_url: "https://www.discogs.com/sell/item/jazz-1",
+              },
+            ],
+          },
+          {
+            slug: "rock",
+            name: "Rock",
+            count: 1,
+            records: [
+              {
+                id: 2,
+                discogs_listing_id: "rock-1",
+                artist: "Artist 2",
+                title: "Rock One",
+                label: null,
+                year: null,
+                format: null,
+                genres: [],
+                styles: [],
+                condition: null,
+                price: "12.00",
+                currency: "USD",
+                cover_image_url: null,
+                thumbnail_url: null,
+                notes: null,
+                discogs_url: "https://www.discogs.com/sell/item/rock-1",
+              },
+            ],
+          },
+        ],
+        storefront_sections: [
+          {
+            key: "picks_wall",
+            crate: {
+              slug: "picks",
+              name: "Milkcrate Picks",
+              count: 1,
+              records: [
+                {
+                  id: 1,
+                  discogs_listing_id: "wall-1",
+                  artist: "Artist 1",
+                  title: "Wall One",
+                  label: null,
+                  year: null,
+                  format: null,
+                  genres: [],
+                  styles: [],
+                  condition: null,
+                  price: "10.00",
+                  currency: "USD",
+                  cover_image_url: null,
+                  thumbnail_url: null,
+                  notes: null,
+                  discogs_url: "https://www.discogs.com/sell/item/wall-1",
+                },
+              ],
+            },
+          },
+          {
+            key: "featured_crates",
+            crates: [
+              {
+                slug: "jazz",
+                name: "Jazz",
+                count: 1,
+                records: [
+                  {
+                    id: 1,
+                    discogs_listing_id: "jazz-1",
+                    artist: "Artist 1",
+                    title: "Jazz One",
+                    label: null,
+                    year: null,
+                    format: null,
+                    genres: [],
+                    styles: [],
+                    condition: null,
+                    price: "10.00",
+                    currency: "USD",
+                    cover_image_url: null,
+                    thumbnail_url: null,
+                    notes: null,
+                    discogs_url: "https://www.discogs.com/sell/item/jazz-1",
+                  },
+                ],
+              },
+            ],
+          },
+          { key: "genre_grid", crates: [] },
+        ],
+      });
+
+      expect(screen.getByRole("button", { name: "The Wall" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Featured" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Genres" })).toBeInTheDocument();
+      expect(screen.getByText(/Today's picks, the store's taste at a glance/i)).toBeInTheDocument();
+
+      await user.click(screen.getByRole("button", { name: "Featured" }));
+
+      expect(
+        within(screen.getByRole("banner")).getByText("Philadelphia Music"),
+      ).toBeInTheDocument();
+      expect(
+        within(screen.getByRole("banner")).queryByRole("button", { name: "Back to store" }),
+      ).not.toBeInTheDocument();
+    } finally {
+      Object.defineProperty(window, "innerWidth", {
+        configurable: true,
+        value: originalWidth,
+      });
+    }
   });
 
   describe("invitation page", () => {
