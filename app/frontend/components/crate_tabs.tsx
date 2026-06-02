@@ -103,16 +103,16 @@ const sharedState = (crates: Crate[], activeSlug: string | null, onSelect: (slug
   return { tabsRef, activeTabRef, hasSelection, handleKeyDown };
 };
 
-const vertical = (s: ReturnType<typeof sharedState>, crates: Crate[], activeSlug: string | null) => (
-  <VerticalTabs crates={crates} activeSlug={activeSlug} hasSelection={s.hasSelection} tabsRef={s.tabsRef} activeTabRef={s.activeTabRef} handleKeyDown={s.handleKeyDown} tabIndexValue={tabIndexValue} classesFn={verticalTabClasses} />
+const vertical = (s: ReturnType<typeof sharedState>, crates: Crate[], activeSlug: string | null, onSelect: (slug: string) => void) => (
+  <VerticalTabs crates={crates} activeSlug={activeSlug} hasSelection={s.hasSelection} onSelect={onSelect} tabsRef={s.tabsRef} activeTabRef={s.activeTabRef} handleKeyDown={s.handleKeyDown} tabIndexValue={tabIndexValue} classesFn={verticalTabClasses} />
 );
 
-const horizontal = (s: ReturnType<typeof sharedState>, crates: Crate[], activeSlug: string | null, compact: boolean) => (
-  <HorizontalTabs crates={crates} activeSlug={activeSlug} hasSelection={s.hasSelection} compact={compact} tabsRef={s.tabsRef} activeTabRef={s.activeTabRef} handleKeyDown={s.handleKeyDown} tabIndexValue={tabIndexValue} classesFn={horizontalTabClasses} />
+const horizontal = (s: ReturnType<typeof sharedState>, crates: Crate[], activeSlug: string | null, compact: boolean, onSelect: (slug: string) => void) => (
+  <HorizontalTabs crates={crates} activeSlug={activeSlug} hasSelection={s.hasSelection} compact={compact} onSelect={onSelect} tabsRef={s.tabsRef} activeTabRef={s.activeTabRef} handleKeyDown={s.handleKeyDown} tabIndexValue={tabIndexValue} classesFn={horizontalTabClasses} />
 );
 
 export default function CrateTabs({ crates, activeSlug, onSelect, compact = false, vertical: isVertical = false }: Props) {
   const s = sharedState(crates, activeSlug, onSelect, isVertical);
-  if (isVertical) {return vertical(s, crates, activeSlug);}
-  return horizontal(s, crates, activeSlug, compact);
+  if (isVertical) {return vertical(s, crates, activeSlug, onSelect);}
+  return horizontal(s, crates, activeSlug, compact, onSelect);
 }
