@@ -119,13 +119,21 @@ export default function WallRecordPeekSheet({ open, listing, onClose, returnFocu
                     <span className="text-2xl font-semibold whitespace-nowrap">
                       {formatPrice(listing)}
                     </span>
-                    {inPile(listing.id) ? (
-                      <Button variant="secondary" onClick={() => removeFromPile(listing.id)}>
-                        ✓ In pile
-                      </Button>
-                    ) : (
-                      <Button onClick={() => addToPile(listing)}>+ Pile</Button>
-                    )}
+                    <div className="w-28">
+                      {inPile(listing.id) ? (
+                        <Button
+                          variant="secondary"
+                          className="w-full"
+                          onClick={() => removeFromPile(listing.id)}
+                        >
+                          ✓ In pile
+                        </Button>
+                      ) : (
+                        <Button className="w-full" onClick={() => addToPile(listing)}>
+                          + Pile
+                        </Button>
+                      )}
+                    </div>
                     <ActionLink
                       variant="secondary"
                       href={listing.discogs_url}
