@@ -51,6 +51,8 @@ When a subagent extracts a child component from a parent, prop names that were f
 
 Scan the diff for renamed props where the parent forwards a prop that differs from the child's interface definition by more than just a prefix convention (e.g., `onX` → `handleX` is intentional; `onX` → `onXed` is a typo).
 
+*Verify by:* grepping the prop name across all files in the component chain. Each file should reference the same spelling.
+
 **2. Verify callback props are functions, not values.**
 
 When a subagent extracts an iterative pattern (`.map()`) into its own component, callback invocations inside the loop are often replaced with prop-passing. Verify that the prop is passed as a closure or function reference, not as the raw value.
@@ -65,6 +67,8 @@ When a subagent extracts an iterative pattern (`.map()`) into its own component,
 
 A quick grep for patterns like `onSelect={variable}` or `onClick={variable}` (where variable is not a function reference) catches this.
 
+*Verify by:* looking at every `onSelect`, `onClick`, `onChange`, or `on*` prop on extracted sub-components. Confirm the value is a function reference or closure, not a scalar.
+
 **3. Verify import paths after file restructuring.**
 
 When a subagent creates a subdirectory with the same name as an existing file, the original file's relative imports to the subdirectory need updating.
@@ -78,6 +82,8 @@ import { LookupStatus } from "./discogs_seller_lookup_input/status_components";
 ```
 
 A grep for all relative imports in any file that was NOT moved but whose siblings DID move will surface these. The pattern: if `ComponentName/` directory exists, files outside it should not reference `./` paths that resolve inside it.
+
+*Verify by:* running the dev server or a type check (`tsc --noEmit`) after subagent refactoring. Don't rely on the subagent to update imports — they have no awareness that the parent file remains in the original location.
 
 ## Why This Matters
 
@@ -132,4 +138,5 @@ Root cause: Subagent moved dependency files into a subdirectory but didn't updat
 ## Related
 
 - Issue #225 — oxlint: Enforce Sandi Metz JS/React rules (the refactoring this workflow was applied to)
+- docs/solutions/logic-errors/responsive-branching-guard-condition-drift-2026-05-13.md — same class of bug (refactoring silently drops code paths), different vector (human responsive refactoring vs subagent component extraction)
 - docs/solutions/best-practices/sandi-metz-refactor-helpers-stay-private-and-behavior-specs.md — related Sandi Metz refactoring guidance for Ruby
