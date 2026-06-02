@@ -103,9 +103,10 @@ describe("CrateView", () => {
 
     expect(screen.getByRole("button", { name: "Back to store" })).toBeInTheDocument();
     expect(screen.getAllByText("One").length).toBeGreaterThan(1);
-    // On wide, flip is disabled on the card, so only RecordDetails exposes the Discogs link
-    const discogsLink = screen.getByRole("link", { name: /Discogs/ });
-    expect(discogsLink).toHaveClass("focus-visible:ring-mc-focus");
+    // Card back face + RecordDetails panel both have Discogs links
+    const discogsLinks = screen.getAllByRole("link", { name: /Discogs/ });
+    expect(discogsLinks.length).toBeGreaterThanOrEqual(1);
+    discogsLinks.forEach((link) => expect(link).toHaveClass("focus-visible:ring-mc-focus"));
   });
 
   it("renders score direction using semantic success and danger roles", () => {
