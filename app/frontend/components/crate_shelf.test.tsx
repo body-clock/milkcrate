@@ -184,7 +184,6 @@ describe("CrateShelf", () => {
 
       expect(onSelectCrate).toHaveBeenCalledWith("jazz-crate");
     });
-
   });
 
   describe("product-browsing variant", () => {
@@ -330,7 +329,6 @@ describe("CrateShelf", () => {
 
       expect(screen.getByRole("button", { name: "Open Jazz" })).toBeInTheDocument();
     });
-
   });
 
   describe("type contract", () => {
@@ -348,14 +346,16 @@ describe("CrateShelf", () => {
   });
 
   describe("accessibility", () => {
-    it("interactive header has tabIndex 0", () => {
+    it("interactive header is a native button and focusable by default", () => {
       const crate = makeCrate();
       const onSelectCrate = vi.fn();
 
       renderShelf(<CrateShelf crate={crate} interactive onSelectCrate={onSelectCrate} />);
 
       const button = screen.getByRole("button", { name: "Open Jazz" });
-      expect(button).toHaveAttribute("tabindex", "0");
+      // Native <button> is focusable by default — no tabIndex attribute needed
+      expect(button.tagName).toBe("BUTTON");
+      expect(button).not.toHaveAttribute("role", "button");
     });
 
     it("non-interactive mode has no interactive elements", () => {
