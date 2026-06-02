@@ -23,7 +23,7 @@ class StorefrontCuration
     picks_crate = CuratedCrate.new(
       slug: "picks",
       name: "Milkcrate Picks",
-      listings: picks_strategy.select(eligible_listings, excluded_ids: Set.new, count: 12)
+      listings: picks_strategy.select(eligible_listings, excluded_ids: Set.new, count: 15)
     )
     seen_ids = picks_crate.listings.map(&:id).to_set
 
@@ -45,7 +45,7 @@ class StorefrontCuration
   private
 
   def picks_setup
-    picks_list = picks_strategy.select(eligible_listings, excluded_ids: Set.new, count: 12)
+    picks_list = picks_strategy.select(eligible_listings, excluded_ids: Set.new, count: 15)
     [ picks_list, picks_list.map(&:id).to_set ]
   end
 

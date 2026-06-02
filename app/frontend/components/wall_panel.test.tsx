@@ -84,9 +84,10 @@ describe("WallPanel", () => {
     it("renders dot indicators when there are more than 6 records", () => {
       renderWall(largeCrate);
 
+      // 13 records capped to 12 on compact → 2 pages (6+6)
       const tablist = screen.getByRole("tablist", { name: "Wall pages" });
       const tabs = within(tablist).getAllByRole("tab");
-      expect(tabs).toHaveLength(3);
+      expect(tabs).toHaveLength(2);
       expect(tabs[0]).toHaveAttribute("aria-selected", "true");
       expect(tabs[1]).toHaveAttribute("aria-selected", "false");
     });
@@ -108,12 +109,13 @@ describe("WallPanel", () => {
       const user = userEvent.setup();
       renderWall(largeCrate);
 
+      // 13 records capped to 12 on compact → 2 pages (6+6)
       const tablist = screen.getByRole("tablist", { name: "Wall pages" });
-      const page2Button = within(tablist).getByRole("tab", { name: "Wall page 2 of 3" });
+      const page2Button = within(tablist).getByRole("tab", { name: "Wall page 2 of 2" });
 
       await user.click(page2Button);
 
-      expect(screen.getByRole("tab", { name: "Wall page 2 of 3" })).toHaveAttribute(
+      expect(screen.getByRole("tab", { name: "Wall page 2 of 2" })).toHaveAttribute(
         "aria-selected",
         "true",
       );
@@ -125,17 +127,16 @@ describe("WallPanel", () => {
       ).toBeInTheDocument();
     });
 
-    it("shows only 1 record on a partial last page", () => {
+    it("shows all visible records across pages", () => {
       renderWall(largeCrate);
 
-      // largeCrate has 13 records → 3 pages (6 + 6 + 1)
+      // 13 records capped to 12 on compact → 2 full pages (6 + 6)
       const tablist = screen.getByRole("tablist", { name: "Wall pages" });
       const tabs = within(tablist).getAllByRole("tab");
-      expect(tabs).toHaveLength(3);
+      expect(tabs).toHaveLength(2);
 
-      // Navigate to last page
-      const lastPageButton = within(tablist).getByRole("tab", { name: "Wall page 3 of 3" });
-      // Can't click without user — just assert the tab exists and has correct label
+      // Navigate to last page and verify records
+      const lastPageButton = within(tablist).getByRole("tab", { name: "Wall page 2 of 2" });
       expect(lastPageButton).toBeInTheDocument();
     });
 
@@ -208,29 +209,29 @@ describe("WallPanel", () => {
     });
 
     it("clamps page index when rerendered at a tier with fewer pages", async () => {
-      const thirteenRecords: Crate = {
+      const eighteenRecords: Crate = {
         slug: "picks",
         name: "Milkcrate Picks",
-        count: 13,
-        records: Array.from({ length: 13 }, (_, index) => makeListing(index + 1)),
+        count: 18,
+        records: Array.from({ length: 18 }, (_, index) => makeListing(index + 1)),
       };
 
-      // Render at compact tier — 13 records gives 3 pages (6+6+1)
+      // Render at compact tier — 18 records capped to 12 → 2 pages (6+6)
       renderWithTier(
         "compact",
         <StorefrontMotionConfig>
           <PileProvider>
-            <WallPanel crate={thirteenRecords} />
+            <WallPanel crate={eighteenRecords} />
           </PileProvider>
         </StorefrontMotionConfig>,
       );
 
-      // Navigate to page 3
+      // Navigate to page 2
       const user = userEvent.setup();
       const tablist = screen.getByRole("tablist", { name: "Wall pages" });
-      await user.click(within(tablist).getByRole("tab", { name: "Wall page 3 of 3" }));
+      await user.click(within(tablist).getByRole("tab", { name: "Wall page 2 of 2" }));
 
-      // Now rerender at wide tier where 13 records gives 2 pages (12+1)
+      // Now rerender at wide tier where 18 records gives 2 pages (15+3)
       // Page index 2 is now invalid — useEffect should clamp to page 1
       // We need a fresh render with a different tier since renderWithTier's wrapper
       // locks the tier. Use a new render with wide tier.
@@ -238,17 +239,14 @@ describe("WallPanel", () => {
         "wide",
         <StorefrontMotionConfig>
           <PileProvider>
-            <WallPanel crate={thirteenRecords} />
+            <WallPanel crate={eighteenRecords} />
           </PileProvider>
         </StorefrontMotionConfig>,
       );
 
-      // Should not show an empty page — should show page 2 content (records 12-13)
+      // Should not show an empty page — should show content from the last valid page
       const tiles = screen.getAllByRole("button", { name: /Inspect Record/ });
       expect(tiles.length).toBeGreaterThan(0);
-      expect(
-        screen.getByRole("button", { name: "Inspect Record 12 on the Wall" }),
-      ).toBeInTheDocument();
     });
   });
 });

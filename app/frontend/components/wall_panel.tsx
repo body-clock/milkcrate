@@ -43,14 +43,20 @@ export default function WallPanel({ crate }: Props) {
   const returnFocusRef = useRef<HTMLButtonElement | null>(null);
   const [[pageIndex, direction], setPageState] = useState([0, 0]);
 
-  const pages = useMemo(() => {
+  // Compact shows max 12 records (2 pages); comfy/wide show all
+  const visibleRecords = useMemo(() => {
     if (!crate || crate.records.length === 0) return [];
+    return isCompact ? crate.records.slice(0, 12) : crate.records;
+  }, [crate, isCompact]);
+
+  const pages = useMemo(() => {
+    if (visibleRecords.length === 0) return [];
     const result: Listing[][] = [];
-    for (let i = 0; i < crate.records.length; i += tilesPerPage) {
-      result.push(crate.records.slice(i, i + tilesPerPage));
+    for (let i = 0; i < visibleRecords.length; i += tilesPerPage) {
+      result.push(visibleRecords.slice(i, i + tilesPerPage));
     }
     return result;
-  }, [crate, tilesPerPage]);
+  }, [visibleRecords, tilesPerPage]);
 
   // Clamp page index when tier changes and page count shrinks
   useEffect(() => {
