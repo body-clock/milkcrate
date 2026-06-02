@@ -29,6 +29,8 @@ interface Props {
   /** Store-level stats shown in the wide sidebar on Wall mode. */
   listingCount?: number;
   genreCount?: number;
+  /** Full crate list fallback for direct entry when sections are empty. */
+  crates?: Crate[];
 }
 
 export default function BrowseShell({
@@ -40,6 +42,7 @@ export default function BrowseShell({
   directEntry = false,
   listingCount,
   genreCount,
+  crates: allCratesProp,
 }: Props) {
   const { isWide } = useViewport();
   const prefersReducedMotion = useReducedMotionContext();
@@ -47,8 +50,9 @@ export default function BrowseShell({
     useBrowseRouting({ sections, activeSlug, selectCrate, backToStore });
 
   const allCrates = useMemo(() => {
-    return sections.flatMap((s) => ("crate" in s ? [s.crate] : s.crates));
-  }, [sections]);
+    const fromSections = sections.flatMap((s) => ("crate" in s ? [s.crate] : s.crates));
+    return fromSections.length > 0 ? fromSections : (allCratesProp ?? []);
+  }, [sections, allCratesProp]);
 
   // Direct entry: render full CrateView with header/tabs (R11, AE6)
   if (directEntry && activeSlug) {
@@ -57,7 +61,6 @@ export default function BrowseShell({
         crates={allCrates}
         activeSlug={activeSlug}
         startIndex={startIndex}
-        compactHeaderOwnedByLayout
         onSelectCrate={selectCrate}
         onBack={backToStore}
       />

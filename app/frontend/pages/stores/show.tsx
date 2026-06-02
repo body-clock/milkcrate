@@ -121,6 +121,7 @@ function StoreShowContent({
           selectCrate={selectCrate}
           backToStore={backToStore}
           directEntry={directEntry}
+          crates={crates}
           listingCount={listingCount}
           genreCount={storefront_sections.find((s) => s.key === "genre_grid")?.crates?.length ?? 0}
         />

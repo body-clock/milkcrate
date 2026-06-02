@@ -19,6 +19,8 @@ export default function CrateTabs({
 }: Props) {
   const tabsRef = useRef<HTMLDivElement>(null);
   const activeTabRef = useRef<HTMLButtonElement>(null);
+  const selectedIndex = crates.findIndex((c) => c.slug === activeSlug);
+  const hasSelection = selectedIndex !== -1;
 
   useEffect(() => {
     if (vertical) {
@@ -67,7 +69,7 @@ export default function CrateTabs({
               key={crate.slug}
               role="tab"
               aria-selected={selected}
-              tabIndex={selected ? 0 : -1}
+              tabIndex={selected ? 0 : !hasSelection && i === 0 ? 0 : -1}
               ref={selected ? activeTabRef : null}
               onClick={() => onSelect(crate.slug)}
               onKeyDown={(e) => handleKeyDown(e, i)}
@@ -100,7 +102,7 @@ export default function CrateTabs({
             key={crate.slug}
             role="tab"
             aria-selected={selected}
-            tabIndex={selected ? 0 : -1}
+            tabIndex={selected ? 0 : !hasSelection && i === 0 ? 0 : -1}
             ref={selected ? activeTabRef : null}
             onClick={() => onSelect(crate.slug)}
             onKeyDown={(e) => handleKeyDown(e, i)}

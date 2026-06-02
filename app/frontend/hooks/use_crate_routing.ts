@@ -75,7 +75,6 @@ export function useCrateRouting({
     activeSlugRef.current = slug;
     setStartIndex(index);
     setActiveSlug(slug);
-    setDirectEntry(false); // in-session selection, not direct entry
 
     const nextState = historyStateWithCrate(slug, index);
     if (wasOnStoreFloor) {
@@ -100,7 +99,9 @@ export function useCrateRouting({
       activeSlugRef.current = slug;
       setActiveSlug(slug);
       setStartIndex(e.state?.startIndex ?? 0);
-      setDirectEntry(Boolean(slug)); // popstate with crate = direct entry (URL navigation)
+      // Only set directEntry when the URL itself carries a crate param
+      const urlParam = new URLSearchParams(window.location.search).get("crate");
+      setDirectEntry(Boolean(urlParam));
     };
     window.addEventListener("popstate", handlePop);
     return () => window.removeEventListener("popstate", handlePop);
