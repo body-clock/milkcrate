@@ -1,7 +1,7 @@
 ---
 title: "feat: Wall as Editorial Marquee — borderless grid with ghost cue and tap feedback"
 type: feat
-status: active
+status: completed
 date: 2026-06-01
 origin: docs/brainstorms/2026-06-01-wall-editorial-marquee-requirements.md
 ---
