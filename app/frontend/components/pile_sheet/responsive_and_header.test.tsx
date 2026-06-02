@@ -1,7 +1,7 @@
 import React from "react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { render, screen, waitFor } from "@testing-library/react"
-// import userEvent from "@testing-library/user-event"
+
 import PileSheet from "../pile_sheet"
 import { PileProvider, usePileContext } from "../../contexts/pile_context"
 import { ViewportProvider } from "../../contexts/viewport_context"
@@ -116,27 +116,27 @@ describe("PileSheet responsive layout", () => {
   })
 })
 
-describe("PileSheet pile count in header", () => {
-  function renderPileSheet(pileRecords: Listing[]) {
-    function PilePopulator({ children }: { children: React.ReactNode }) {
-      const { addToPile } = usePileContext()
-      React.useEffect(() => { pileRecords.forEach((r) => addToPile(r)) }, [])
-      return <>{children}</>
-    }
-
-    return render(
-      <ViewportProvider>
-        <ShopperProvider>
-          <PileProvider>
-            <PilePopulator>
-              <PileSheet open={true} onClose={vi.fn()} />
-            </PilePopulator>
-          </PileProvider>
-        </ShopperProvider>
-      </ViewportProvider>,
-    )
+function renderPileSheet(pileRecords: Listing[]) {
+  function PilePopulator({ children }: { children: React.ReactNode }) {
+    const { addToPile } = usePileContext()
+    React.useEffect(() => { pileRecords.forEach((r) => addToPile(r)) }, [addToPile])
+    return <>{children}</>
   }
 
+  return render(
+    <ViewportProvider>
+      <ShopperProvider>
+        <PileProvider>
+          <PilePopulator>
+            <PileSheet open={true} onClose={vi.fn()} />
+          </PilePopulator>
+        </PileProvider>
+      </ShopperProvider>
+    </ViewportProvider>,
+  )
+}
+
+describe("PileSheet pile count in header", () => {
   it("shows record count in the header", async () => {
     renderPileSheet([makeListing(), makeListing(), makeListing()])
 

@@ -87,17 +87,14 @@ function cleanup() {
 describe("AppLayout compact", () => {
   beforeEach(setupTest);
   afterEach(cleanup);
-
   it("shows store name for compact", () => {
     renderCompact();
     expect(within(screen.getByRole("banner")).getByText("Philadelphia Music")).toBeInTheDocument();
   });
-
   it("hides pile when empty", () => {
     renderCompact();
     expect(within(screen.getByRole("banner")).queryByRole("button", { name: /Pile/ })).not.toBeInTheDocument();
   });
-
   it("hides footer on compact", () => {
     mockedPage.props.shopper = { discogs_username: "shopper1" };
     renderCompact();
@@ -105,7 +102,7 @@ describe("AppLayout compact", () => {
   });
 });
 
-describe("AppLayout wide", () => {
+describe("AppLayout wide chrome", () => {
   beforeEach(setupTest);
   afterEach(cleanup);
   it("shows theme toggle", () => {
@@ -117,6 +114,11 @@ describe("AppLayout wide", () => {
     renderWide();
     expect(within(screen.getByRole("contentinfo")).getByText(/Connected to Discogs/)).toBeInTheDocument();
   });
+});
+
+describe("AppLayout wide feedback", () => {
+  beforeEach(setupTest);
+  afterEach(cleanup);
   it("shows notice and alert", () => {
     mockedPage.props.notice = "Inventory updated";
     const { unmount } = renderWide();
@@ -145,7 +147,7 @@ describe("AppLayout pile button", () => {
   });
 });
 
-describe("AppLayout pile close focus", () => {
+describe("AppLayout pile close empty", () => {
   beforeEach(setupTest);
   afterEach(cleanup);
   it("focuses banner after last record removed", async () => {
@@ -156,6 +158,11 @@ describe("AppLayout pile close focus", () => {
     await user.click(screen.getByRole("button", { name: "Close pile" }));
     expect(document.activeElement).toBe(screen.getByRole("banner"));
   });
+});
+
+describe("AppLayout pile close with records", () => {
+  beforeEach(setupTest);
+  afterEach(cleanup);
   it("returns focus to trigger after close", async () => {
     const user = userEvent.setup();
     renderCompact([listing]);
