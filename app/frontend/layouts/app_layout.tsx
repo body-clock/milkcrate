@@ -3,6 +3,7 @@ import { Link, usePage } from "@inertiajs/react";
 import { useTheme } from "@/hooks/use_theme";
 import { PileProvider, usePileContext } from "@/contexts/pile_context";
 import PileSheet from "@/components/pile_sheet";
+import PileToast from "@/components/pile_toast";
 import StorefrontMotionConfig from "@/components/storefront_motion_config";
 import { ViewportProvider } from "@/contexts/viewport_context";
 import { useViewport } from "@/hooks/use_viewport";
@@ -204,6 +205,7 @@ export function AppLayoutContent({ children, compactLocation }: AppLayoutProps) 
           {children}
         </MilkcrateShell>
       </div>
+      <PileToast />
       <PileSheet
         open={pileOpen}
         onClose={handleClosePile}

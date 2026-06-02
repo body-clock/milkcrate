@@ -15,6 +15,7 @@ export default function FeaturedCratesRow({ crates, onSelectCrate }: Props) {
       variant="featured"
       columnCount={(isCompact, isComfy) => (isCompact ? 1 : isComfy ? 2 : 3)}
       onSelectCrate={onSelectCrate}
+      description="Curated crates hand-picked by the store"
     />
   );
 }

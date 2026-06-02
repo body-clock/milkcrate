@@ -24,6 +24,8 @@ interface ActiveRecordCardProps {
     offset: { x: number; y: number };
     velocity: { x: number; y: number };
   }) => void;
+  /** Called the first time the active card is flipped (compact only). */
+  onFlip?: () => void;
 }
 
 /**
@@ -39,6 +41,7 @@ export default function ActiveRecordCard({
   direction,
   dragRotationRef,
   handleDragEnd,
+  onFlip,
 }: ActiveRecordCardProps) {
   const activeTransition = prefersReducedMotion
     ? reducedMotionTransition
@@ -111,6 +114,7 @@ export default function ActiveRecordCard({
           imageLoading="eager"
           disableFlip={!isCompact}
           framed
+          onFlip={onFlip}
         />
       </motion.div>
     </motion.div>

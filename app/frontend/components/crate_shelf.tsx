@@ -62,13 +62,13 @@ function CrateShelfLayout({
   header,
   interaction,
   grid,
-  headerProps: { className: headerClassName, ...headerProps },
+  headerProps: { className: headerClassName, as: HeaderTag = "div", ...headerProps },
 }: {
   crate: Crate;
   header: ShelfHeaderConfig;
   interaction: ShelfInteractionConfig;
   grid: ShelfGridConfig;
-  headerProps: React.HTMLAttributes<HTMLDivElement>;
+  headerProps: React.HTMLAttributes<HTMLElement> & { as?: "div" | "button" };
 }) {
   const { headerSize = "genre", meta, openLabel, previewCount } = header;
   const { interactive, onSelectCrate, isHovered, tactileThumbnails } = interaction;
@@ -102,9 +102,12 @@ function CrateShelfLayout({
   return (
     <>
       {/* Header */}
-      <div className={`px-3 pt-3 pb-1.5 ${headerClassName ?? ""}`} {...headerProps}>
+      <HeaderTag
+        className={`px-3 pt-3 pb-1.5 ${headerClassName ?? ""}`}
+        {...(headerProps as React.HTMLAttributes<HTMLElement>)}
+      >
         {headerContent}
-      </div>
+      </HeaderTag>
 
       {/* Record grid */}
       {crate.records.length > 0 ? (
@@ -223,14 +226,6 @@ function InteractiveCrateShelf(params: InteractiveCrateShelfProps) {
     onSelectCrate?.(crate.slug);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if ((e.target as HTMLElement).closest("button, a")) return;
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      handleSelectCrate();
-    }
-  };
-
   return (
     <motion.div
       className={containerClassName}
@@ -246,10 +241,8 @@ function InteractiveCrateShelf(params: InteractiveCrateShelfProps) {
         interaction={{ interactive: true, onSelectCrate, isHovered, tactileThumbnails }}
         grid={{ gridCols }}
         headerProps={{
-          role: "button",
-          tabIndex: 0,
+          as: "button",
           onClick: handleSelectCrate,
-          onKeyDown: handleKeyDown,
           className:
             "cursor-pointer rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus focus-visible:ring-offset-1 focus-visible:ring-offset-mc-bg-card",
           "aria-label": `Open ${crate.name}`,

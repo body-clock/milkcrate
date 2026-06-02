@@ -1,11 +1,23 @@
-import React from "react";
+import React, { useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import HintCardStack from "./hint_card_stack";
 import ActiveRecordCard from "./active_record_card";
 import GestureHintOverlay from "./gesture_hint_overlay";
+import InspectionHint, { markFlipDiscovered } from "./inspection_hint";
 import { buildCrateWindow } from "../../lib/crate_window";
 import { type RiffleDirection } from "../../lib/riffle_navigation";
 import type { Listing } from "../../types/inertia";
+
+const FLIP_DISCOVERED_KEY = "mc-flip-discovered";
+
+function loadFlipDiscovered(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return localStorage.getItem(FLIP_DISCOVERED_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
 
 interface CardStackProps {
   isCompact: boolean;
@@ -40,6 +52,13 @@ export default function CardStack(props: CardStackProps) {
     handleDragEnd,
   } = props;
 
+  const [flipDiscovered, setFlipDiscovered] = useState(() => loadFlipDiscovered());
+
+  const handleFlip = () => {
+    markFlipDiscovered();
+    setFlipDiscovered(true);
+  };
+
   return (
     <>
       <div
@@ -53,37 +72,49 @@ export default function CardStack(props: CardStackProps) {
         style={{ touchAction: "none", overscrollBehavior: "contain" }}
       >
         <div
-          className="relative"
+          className="flex flex-col items-center"
           style={{
             width: isCompact ? "min(80vw, 340px, 54svh)" : "min(82vw, 400px)",
-            height: isCompact ? "min(80vw, 340px, 54svh)" : "min(82vw, 400px)",
           }}
         >
-          <HintCardStack visibleRecords={visibleRecords} prefersReducedMotion={prefersReducedMotion} />
+          <div
+            className="relative w-full"
+            style={{
+              height: isCompact ? "min(80vw, 340px, 54svh)" : "min(82vw, 400px)",
+            }}
+          >
+            <HintCardStack
+              visibleRecords={visibleRecords}
+              prefersReducedMotion={prefersReducedMotion}
+            />
 
-          <AnimatePresence initial={!prefersReducedMotion} custom={direction.current}>
-            {visibleRecords
-              .filter((s) => s.isActive)
-              .map((slot) => (
-                <ActiveRecordCard
-                  key={`active-${slot.record.id}`}
-                  slot={slot}
-                  isCompact={isCompact}
-                  activeSlug={activeSlug}
-                  prefersReducedMotion={prefersReducedMotion}
-                  direction={direction}
-                  dragRotationRef={dragRotationRef}
-                  handleDragEnd={handleDragEnd}
-                />
-              ))}
-          </AnimatePresence>
+            <AnimatePresence initial={!prefersReducedMotion} custom={direction.current}>
+              {visibleRecords
+                .filter((s) => s.isActive)
+                .map((slot) => (
+                  <ActiveRecordCard
+                    key={`active-${slot.record.id}`}
+                    slot={slot}
+                    isCompact={isCompact}
+                    activeSlug={activeSlug}
+                    prefersReducedMotion={prefersReducedMotion}
+                    direction={direction}
+                    dragRotationRef={dragRotationRef}
+                    handleDragEnd={handleDragEnd}
+                    onFlip={isCompact ? handleFlip : undefined}
+                  />
+                ))}
+            </AnimatePresence>
 
-          <GestureHintOverlay
-            isCompact={isCompact}
-            showGestureHint={showGestureHint}
-            total={total}
-            prefersReducedMotion={prefersReducedMotion}
-          />
+            <GestureHintOverlay
+              isCompact={isCompact}
+              showGestureHint={showGestureHint}
+              total={total}
+              prefersReducedMotion={prefersReducedMotion}
+            />
+          </div>
+
+          {isCompact && !showGestureHint && <InspectionHint discovered={flipDiscovered} />}
         </div>
       </div>
     </>

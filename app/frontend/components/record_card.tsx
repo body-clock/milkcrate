@@ -14,6 +14,8 @@ interface RecordCardProps {
   imageLoading?: "eager" | "lazy";
   disableFlip?: boolean;
   framed?: boolean;
+  /** Called the first time the card flips to the back face. */
+  onFlip?: () => void;
 }
 
 interface RecordCardBackProps {
@@ -70,8 +72,9 @@ function RecordCardBack({ listing, meta, inPile, addToPile, removeFromPile }: Re
             href={listing.discogs_url}
             target="_blank"
             rel="noopener noreferrer"
+            aria-label={`View listing for ${listing.title ?? "this record"} on Discogs (opens in new tab)`}
           >
-            Discogs ↗
+            View on Discogs ↗
           </ActionLink>
         </div>
       </div>
@@ -86,8 +89,10 @@ export default function RecordCard({
   imageLoading = "lazy",
   disableFlip = false,
   framed = false,
+  onFlip,
 }: RecordCardProps) {
   const [flipped, setFlipped] = useState(false);
+  const hasCalledOnFlip = useRef(false);
   const pointerDown = useRef<{ x: number; y: number } | null>(null);
   const { inPile, addToPile, removeFromPile } = usePileContext();
   const canFlip = !disableFlip;
@@ -108,11 +113,21 @@ export default function RecordCard({
     return Math.hypot(deltaX, deltaY) > 8;
   };
 
+  const fireOnFlip = () => {
+    if (!hasCalledOnFlip.current) {
+      hasCalledOnFlip.current = true;
+      onFlip?.();
+    }
+  };
+
   const handleFlip = (e: React.MouseEvent) => {
     if (!canFlip) return;
     if ((e.target as HTMLElement).closest("a, button, form")) return;
     if (movedSincePointerDown(e)) return;
-    setFlipped((f) => !f);
+    setFlipped((f) => {
+      if (!f) fireOnFlip();
+      return !f;
+    });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -121,7 +136,10 @@ export default function RecordCard({
 
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
-      setFlipped((f) => !f);
+      setFlipped((f) => {
+        if (!f) fireOnFlip();
+        return !f;
+      });
     }
   };
 
