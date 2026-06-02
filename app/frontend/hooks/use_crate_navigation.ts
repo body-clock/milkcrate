@@ -11,7 +11,6 @@ interface UseCrateNavigationOptions {
   total: number;
   isCompact: boolean;
   initialIndex: number;
-  /** Changing this key resets index, edge, and gesture state (e.g., activeSlug). */
   resetKey: string;
 }
 
@@ -34,9 +33,17 @@ interface DragEndInfo {
   velocity: { x: number; y: number };
 }
 
+interface NavigateCtx {
+  total: number;
+  isCompact: boolean;
+  indexRef: React.RefObject<number>;
+  direction: React.RefObject<RiffleDirection>;
+}
+
+const PROGRESS_PCT_BASE = 100;
+
 function isEditableTarget(target: EventTarget | null) {
   if (!(target instanceof HTMLElement)) {return false;}
-
   return (
     target instanceof HTMLInputElement ||
     target instanceof HTMLTextAreaElement ||
@@ -53,9 +60,7 @@ function useDragNavigation(navigate: (direction: RiffleDirection) => void) {
         offsetY: info.offset.y,
         velocityY: info.velocity.y,
       });
-
       if (!riffleDirection) {return;}
-
       navigate(riffleDirection);
     },
     [navigate],
@@ -72,19 +77,40 @@ function useKeyboardNavigation(navigate: (direction: RiffleDirection) => void) {
     },
     [navigate],
   );
-
   useEffect(() => {
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
 }
 
-/**
- * Owns the crate navigation state machine: index, direction, edge detection,
- * keyboard bindings, gesture-hint lifecycle, and progress computation.
- * Exposes a ref-based index (indexRef) so the navigate callback always reads
- * the latest index — critical for rapid keyboard navigation.
- */
+function useNavigate(
+  { total, isCompact, indexRef, direction }: NavigateCtx,
+  setIndex: React.Dispatch<React.SetStateAction<number>>,
+  setShowGestureHint: React.Dispatch<React.SetStateAction<boolean>>,
+  setEdgeStatus: React.Dispatch<React.SetStateAction<string | null>>,
+) {
+  return useCallback(
+    (riffleDirection: RiffleDirection) => {
+      const move = resolveRiffleMove({
+        currentIndex: indexRef.current,
+        total,
+        direction: riffleDirection,
+      });
+      if (!move.moved) {
+        setEdgeStatus(RIFFLE_LANGUAGE.edgeStatus[riffleDirection]);
+        return;
+      }
+      direction.current = riffleDirection;
+      indexRef.current = move.nextIndex;
+      setIndex(move.nextIndex);
+      setShowGestureHint(false);
+      setEdgeStatus(null);
+      if (isCompact) {markLessonLearned();}
+    },
+    [total, isCompact, indexRef, direction, setIndex, setShowGestureHint, setEdgeStatus],
+  );
+}
+
 export function useCrateNavigation({
   total,
   isCompact,
@@ -94,13 +120,9 @@ export function useCrateNavigation({
   const [index, setIndex] = useState(initialIndex);
   const [showGestureHint, setShowGestureHint] = useState(() => !isLessonLearned());
   const [edgeStatus, setEdgeStatus] = useState<string | null>(null);
-
   const direction = useRef<RiffleDirection>("deeper");
   const indexRef = useRef(index);
   const dragRotationRef = useRef<HTMLDivElement>(null);
-
-  // Keep indexRef in sync so navigate callback reads the latest index
-  // even before React re-renders (critical for rapid keyboard navigation)
   indexRef.current = index;
 
   useEffect(() => {
@@ -109,46 +131,11 @@ export function useCrateNavigation({
     setEdgeStatus(null);
   }, [initialIndex, resetKey]);
 
-  const navigate = useCallback(
-    (riffleDirection: RiffleDirection) => {
-      const move = resolveRiffleMove({
-        currentIndex: indexRef.current,
-        total,
-        direction: riffleDirection,
-      });
-
-      if (!move.moved) {
-        setEdgeStatus(RIFFLE_LANGUAGE.edgeStatus[riffleDirection]);
-        return;
-      }
-
-      direction.current = riffleDirection;
-      indexRef.current = move.nextIndex;
-      setIndex(move.nextIndex);
-      setShowGestureHint(false);
-      setEdgeStatus(null);
-
-      // Mark the first-swipe lesson learned on successful vertical riffle
-      if (isCompact) {
-        markLessonLearned();
-      }
-    },
-    [total, isCompact],
-  );
-
+  const ctx: NavigateCtx = { total, isCompact, indexRef, direction };
+  const navigate = useNavigate(ctx, setIndex, setShowGestureHint, setEdgeStatus);
   const handleDragEnd = useDragNavigation(navigate);
   useKeyboardNavigation(navigate);
+  const progress = total > 0 ? ((index + 1) / total) * PROGRESS_PCT_BASE : 0;
 
-  const progress = total > 0 ? ((index + 1) / total) * 100 : 0;
-
-  return {
-    index,
-    direction,
-    navigate,
-    handleDragEnd,
-    edgeStatus,
-    showGestureHint,
-    progress,
-    dragRotationRef,
-  };
+  return { index, direction, navigate, handleDragEnd, edgeStatus, showGestureHint, progress, dragRotationRef };
 }

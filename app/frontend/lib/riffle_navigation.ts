@@ -92,25 +92,25 @@ export function resolveRiffleMove({
 }: RiffleMoveInput): RiffleMoveResult {
   const delta = RIFFLE_DELTAS[direction]
   const nextIndex = currentIndex + delta
-
-  if (total <= 0 || nextIndex < 0 || nextIndex >= total) {
-    return {
-      direction,
-      delta,
-      nextIndex: currentIndex,
-      moved: false,
-      edge: direction,
-    }
-  }
+  const moved = total > 0 && nextIndex >= 0 && nextIndex < total
 
   return {
     direction,
     delta,
-    nextIndex,
-    moved: true,
-    edge: null,
+    nextIndex: moved ? nextIndex : currentIndex,
+    moved,
+    edge: moved ? null : direction,
   }
 }
+
+const MOTION_REDUCED_DEEPER: RiffleCardMotionState = { opacity: 0, y: -42, scale: 0.98 }
+const MOTION_REDUCED_EXIT_DEEPER: RiffleCardMotionState = { opacity: 0, y: 54, scale: 0.96 }
+const MOTION_REDUCED_FRONT: RiffleCardMotionState = { opacity: 0, y: 42, scale: 0.98 }
+const MOTION_REDUCED_EXIT_FRONT: RiffleCardMotionState = { opacity: 0, y: -54, scale: 0.96 }
+const MOTION_NORMAL_DEEPER: RiffleCardMotionState = { opacity: 0, y: -78, rotate: -3 }
+const MOTION_NORMAL_EXIT_DEEPER: RiffleCardMotionState = { opacity: 0, y: 66, rotate: 4 }
+const MOTION_NORMAL_FRONT: RiffleCardMotionState = { opacity: 0, y: 78, rotate: 3 }
+const MOTION_NORMAL_EXIT_FRONT: RiffleCardMotionState = { opacity: 0, y: -66, rotate: -4 }
 
 export function riffleActiveCardMotion(
   direction: RiffleDirection,
@@ -118,23 +118,11 @@ export function riffleActiveCardMotion(
 ): RiffleCardMotion {
   if (reducedMotion) {
     return direction === "deeper"
-      ? {
-          initial: { opacity: 0, y: -42, scale: 0.98 },
-          exit: { opacity: 0, y: 54, scale: 0.96 },
-        }
-      : {
-          initial: { opacity: 0, y: 42, scale: 0.98 },
-          exit: { opacity: 0, y: -54, scale: 0.96 },
-        }
+      ? { initial: MOTION_REDUCED_DEEPER, exit: MOTION_REDUCED_EXIT_DEEPER }
+      : { initial: MOTION_REDUCED_FRONT, exit: MOTION_REDUCED_EXIT_FRONT }
   }
 
   return direction === "deeper"
-    ? {
-        initial: { opacity: 0, y: -78, rotate: -3 },
-        exit: { opacity: 0, y: 66, rotate: 4 },
-      }
-    : {
-        initial: { opacity: 0, y: 78, rotate: 3 },
-        exit: { opacity: 0, y: -66, rotate: -4 },
-      }
+    ? { initial: MOTION_NORMAL_DEEPER, exit: MOTION_NORMAL_EXIT_DEEPER }
+    : { initial: MOTION_NORMAL_FRONT, exit: MOTION_NORMAL_EXIT_FRONT }
 }

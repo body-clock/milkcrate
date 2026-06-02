@@ -42,14 +42,7 @@ interface TactileState {
  * Composes usePointerProximity (pointer tracking) and
  * useTactileTransform (motion value computation).
  */
-export function useTactileHover(options: UseTactileHoverOptions = {}): TactileState {
-  const { restingTilt = 0, disableTilt = false } = options;
-  const reducedMotion = useReducedMotionContext();
-
-  const { proximity, handlers: proximityHandlers } = usePointerProximity({
-    disabled: reducedMotion,
-  });
-
+function usePressState(reducedMotion: boolean) {
   const [isPressed, setIsPressed] = useState(false);
 
   const down = useCallback(() => {
@@ -61,15 +54,23 @@ export function useTactileHover(options: UseTactileHoverOptions = {}): TactileSt
     setIsPressed(false);
   }, []);
 
+  return { isPressed, down, up };
+}
+
+function useTactileHandlers(
+  proximityHandlers: ReturnType<typeof usePointerProximity>["handlers"],
+  down: () => void,
+  up: () => void,
+): TactileHandlers {
   const leaveWithPressReset = useCallback(
     (e: React.PointerEvent) => {
       proximityHandlers.onPointerLeave(e);
-      setIsPressed(false);
+      up();
     },
-    [proximityHandlers],
+    [proximityHandlers, up],
   );
 
-  const handlers = useMemo<TactileHandlers>(
+  return useMemo<TactileHandlers>(
     () => ({
       onPointerEnter: proximityHandlers.onPointerEnter,
       onPointerLeave: leaveWithPressReset,
@@ -77,29 +78,21 @@ export function useTactileHover(options: UseTactileHoverOptions = {}): TactileSt
       onPointerUp: up,
       onPointerMove: proximityHandlers.onPointerMove,
     }),
-    [
-      proximityHandlers.onPointerEnter,
-      proximityHandlers.onPointerMove,
-      leaveWithPressReset,
-      down,
-      up,
-    ],
+    [proximityHandlers.onPointerEnter, proximityHandlers.onPointerMove, leaveWithPressReset, down, up],
   );
+}
 
+export function useTactileHover(options: UseTactileHoverOptions = {}): TactileState {
+  const { restingTilt = 0, disableTilt = false } = options;
+  const reducedMotion = useReducedMotionContext();
+  const { proximity, handlers: proximityHandlers } = usePointerProximity({ disabled: reducedMotion });
+  const { isPressed, down, up } = usePressState(reducedMotion);
+  const handlers = useTactileHandlers(proximityHandlers, down, up);
   const { transform, transition } = useTactileTransform(proximity, isPressed, {
     restingTilt,
     disableTilt,
     reducedMotion,
   });
 
-  const isHovered = proximity > 0;
-
-  return {
-    isHovered,
-    isPressed,
-    proximity,
-    transform,
-    transition,
-    handlers,
-  };
+  return { isHovered: proximity > 0, isPressed, proximity, transform, transition, handlers };
 }

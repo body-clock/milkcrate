@@ -1,7 +1,10 @@
 import { formatPriceValue } from "../../lib/format_price";
-import { ConnectedAccount } from "./wantlist_handoff";
-import { WantlistResultView, WantlistErrorView, WantlistInProgressView } from "./wantlist_views";
-import { WantlistHandoffAction, DisconnectedCta } from "./wantlist_handoff";
+import { ConnectedAccount } from "./wantlist_connected_account";
+import { WantlistResultView } from "./wantlist_views";
+import { WantlistErrorView } from "./wantlist_error_view";
+import { WantlistInProgressView } from "./wantlist_in_progress_view";
+import { WantlistHandoffAction } from "./wantlist_handoff";
+import { DisconnectedCta } from "./wantlist_disconnected_cta";
 
 interface PileHeaderInfo {
   total: number;

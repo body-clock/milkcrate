@@ -30,8 +30,10 @@ export function formatPriceValue(
   if (isNaN(num)) {return "—"}
 
   const symbol = currencySymbol(currency)
-  return `${symbol}${num.toFixed(2)}`
+  return `${symbol}${num.toFixed(PRICE_DECIMAL_PLACES)}`
 }
+
+const PRICE_DECIMAL_PLACES = 2
 
 function currencySymbol(currency: string): string {
   if (currency === "GBP") {return "£"}

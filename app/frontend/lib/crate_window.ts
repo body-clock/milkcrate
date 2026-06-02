@@ -5,10 +5,12 @@ export interface CrateWindowSlot<TRecord> {
   isActive: boolean
 }
 
+const DEFAULT_BUILD_RADIUS = 2
+
 export function buildCrateWindow<TRecord>(
   records: TRecord[],
   activeIndex: number,
-  radius = 2,
+  radius = DEFAULT_BUILD_RADIUS,
 ): CrateWindowSlot<TRecord>[] {
   if (records.length === 0) {return []}
 

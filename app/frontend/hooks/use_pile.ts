@@ -19,14 +19,21 @@ function loadStoredPile(key: string): Listing[] {
   }
 }
 
+function applyAddToPile(setPile: React.Dispatch<React.SetStateAction<Listing[]>>, listing: Listing) {
+  setPile((current) =>
+    current.some((s) => s.id === listing.id) ? current : [...current, listing],
+  );
+}
+
+function applyRemoveFromPile(setPile: React.Dispatch<React.SetStateAction<Listing[]>>, id: number) {
+  setPile((current) => current.filter((l) => l.id !== id));
+}
+
 export function usePile(storeSlug?: string) {
   const currentKey = storageKey(storeSlug);
   const initialKey = useRef(currentKey).current;
-
   const [pile, setPile] = useState<Listing[]>(() => loadStoredPile(currentKey));
 
-  // Re-initialize when store changes (navigate to a different store)
-  // Skip initial mount — useState lazy init already handles that
   useEffect(() => {
     if (currentKey !== initialKey) {
       setPile(loadStoredPile(currentKey));
@@ -37,18 +44,9 @@ export function usePile(storeSlug?: string) {
     localStorage.setItem(currentKey, JSON.stringify(pile));
   }, [pile, currentKey]);
 
-  const addToPile = (listing: Listing) =>
-    setPile((currentPile) =>
-      currentPile.some((savedListing) => savedListing.id === listing.id)
-        ? currentPile
-        : [...currentPile, listing],
-    );
-
-  const removeFromPile = (id: number) =>
-    setPile((currentPile) => currentPile.filter((listing) => listing.id !== id));
-
-  const inPile = (id: number) => pile.some((listing) => listing.id === id);
-
+  const addToPile = (listing: Listing) => applyAddToPile(setPile, listing);
+  const removeFromPile = (id: number) => applyRemoveFromPile(setPile, id);
+  const inPile = (id: number) => pile.some((l) => l.id === id);
   const clearPile = () => setPile([]);
 
   return { pile, addToPile, removeFromPile, inPile, clearPile };
