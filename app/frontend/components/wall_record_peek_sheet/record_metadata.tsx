@@ -1,13 +1,7 @@
 import { COPY } from "@/lib/copy";
 import type { Listing } from "@/types/inertia";
 
-export function RecordMetadata({
-  listing,
-  meta,
-}: {
-  listing: Listing;
-  meta: string;
-}) {
+export function RecordMetadata({ listing, meta }: { listing: Listing; meta: string }) {
   return (
     <div>
       <div className="text-lg font-semibold leading-tight">

@@ -49,9 +49,9 @@ export function DisconnectedCta({
   storeSlug: string;
 }) {
   const crateSlug =
-    typeof window !== "undefined"
-      ? (window.history.state as { crateSlug?: string } | null)?.crateSlug
-      : undefined;
+    typeof window === "undefined"
+      ? undefined
+      : (window.history.state as { crateSlug?: string } | null)?.crateSlug;
 
   return (
     <div className="flex flex-col gap-2">

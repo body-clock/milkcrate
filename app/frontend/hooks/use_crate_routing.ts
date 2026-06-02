@@ -36,9 +36,9 @@ export function useCrateRouting({
 }: UseCrateRoutingOptions): UseCrateRoutingResult {
   const [activeSlug, setActiveSlug] = useState<string | null>(() => {
     const fromParam =
-      typeof window !== "undefined"
-        ? new URLSearchParams(window.location.search).get("crate")
-        : null;
+      typeof window === "undefined"
+        ? null
+        : new URLSearchParams(window.location.search).get("crate");
     if (fromParam) {return fromParam;}
 
     const raw = history.state?.crateSlug;

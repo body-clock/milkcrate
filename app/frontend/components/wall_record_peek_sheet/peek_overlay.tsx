@@ -2,7 +2,13 @@ import { motion } from "framer-motion";
 
 const FADE_DURATION = 0.15;
 
-export function PeekOverlay({ reducedMotion, onClose }: { reducedMotion: boolean; onClose: () => void }) {
+export function PeekOverlay({
+  reducedMotion,
+  onClose,
+}: {
+  reducedMotion: boolean;
+  onClose: () => void;
+}) {
   return (
     <motion.div
       className="fixed inset-0 z-40 bg-black/55"

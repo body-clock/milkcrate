@@ -18,9 +18,9 @@ export default function ApplicantCard({
   applicant: AdminApplicantSummary;
 }) {
   const csrfToken =
-    typeof document !== "undefined"
-      ? document.querySelector<HTMLMetaElement>("meta[name='csrf-token']")?.content
-      : undefined;
+    typeof document === "undefined"
+      ? undefined
+      : document.querySelector<HTMLMetaElement>("meta[name='csrf-token']")?.content;
 
   return (
     <Card>
