@@ -1,13 +1,18 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, type PanInfo } from "framer-motion";
 import { useReducedMotionContext } from "./storefront_motion_config";
+import { useViewport } from "@/hooks/use_viewport";
 import { SCALE_PRESS, springPress, springTactile } from "@/lib/motion_tokens";
 import { COPY } from "@/lib/copy";
 import RecordTile from "./record_tile";
 import WallRecordPeekSheet from "./wall_record_peek_sheet";
 import type { Crate, Listing } from "../types/inertia";
 
-const TILES_PER_PAGE = 6;
+const TIER_DENSITY = {
+  compact: { tilesPerPage: 6, gridCols: "grid-cols-2", aspectRatio: "2/3" },
+  comfy: { tilesPerPage: 9, gridCols: "grid-cols-3", aspectRatio: "3/4" },
+  wide: { tilesPerPage: 12, gridCols: "grid-cols-4", aspectRatio: "4/5" },
+} as const;
 const SWIPE_THRESHOLD = 8000;
 
 function swipePower(offset: number, velocity: number) {
@@ -31,6 +36,8 @@ interface Props {
 }
 
 export default function WallPanel({ crate }: Props) {
+  const { tier } = useViewport();
+  const { tilesPerPage, gridCols, aspectRatio } = TIER_DENSITY[tier];
   const prefersReducedMotion = useReducedMotionContext();
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
   const returnFocusRef = useRef<HTMLButtonElement | null>(null);
@@ -39,11 +46,18 @@ export default function WallPanel({ crate }: Props) {
   const pages = useMemo(() => {
     if (!crate || crate.records.length === 0) return [];
     const result: Listing[][] = [];
-    for (let i = 0; i < crate.records.length; i += TILES_PER_PAGE) {
-      result.push(crate.records.slice(i, i + TILES_PER_PAGE));
+    for (let i = 0; i < crate.records.length; i += tilesPerPage) {
+      result.push(crate.records.slice(i, i + tilesPerPage));
     }
     return result;
-  }, [crate]);
+  }, [crate, tilesPerPage]);
+
+  // Clamp page index when tier changes and page count shrinks
+  useEffect(() => {
+    if (pages.length > 0 && pageIndex > pages.length - 1) {
+      setPageState([pages.length - 1, -1]);
+    }
+  }, [pages.length, pageIndex]);
 
   if (!crate || crate.records.length === 0) {
     return (
@@ -89,7 +103,7 @@ export default function WallPanel({ crate }: Props) {
         <p className="text-xs text-mc-text-dim leading-relaxed">{COPY.wall.description}</p>
       </div>
 
-      <div className="overflow-hidden" style={{ position: "relative", aspectRatio: "2/3" }}>
+      <div className="overflow-hidden" style={{ position: "relative", aspectRatio }}>
         <AnimatePresence custom={direction}>
           <motion.div
             key={pageIndex}
@@ -103,7 +117,7 @@ export default function WallPanel({ crate }: Props) {
             dragConstraints={{ left: 0, right: 0 }}
             dragElastic={0.3}
             onDragEnd={handleDragEnd}
-            className="grid grid-cols-2 gap-2"
+            className={`grid ${gridCols} gap-2`}
             style={{ position: "absolute", inset: 0 }}
           >
             {currentPage.map((listing) => (

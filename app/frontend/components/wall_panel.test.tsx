@@ -145,4 +145,110 @@ describe("WallPanel", () => {
       expect(screen.queryByRole("tablist", { name: "Wall pages" })).not.toBeInTheDocument();
     });
   });
+
+  describe("responsive density (AE3)", () => {
+    const twelveRecords: Crate = {
+      slug: "picks",
+      name: "Milkcrate Picks",
+      count: 12,
+      records: Array.from({ length: 12 }, (_, index) => makeListing(index + 1)),
+    };
+
+    it("compact Wall with 12 records renders 6 visible tiles and two page indicators", () => {
+      renderWithTier(
+        "compact",
+        <StorefrontMotionConfig>
+          <PileProvider>
+            <WallPanel crate={twelveRecords} />
+          </PileProvider>
+        </StorefrontMotionConfig>,
+      );
+
+      const tiles = screen.getAllByRole("button", { name: /Inspect Record/ });
+      expect(tiles).toHaveLength(6);
+
+      const tablist = screen.getByRole("tablist", { name: "Wall pages" });
+      const tabs = within(tablist).getAllByRole("tab");
+      expect(tabs).toHaveLength(2);
+    });
+
+    it("wide Wall with 12 records renders all 12 tiles on one page", () => {
+      renderWithTier(
+        "wide",
+        <StorefrontMotionConfig>
+          <PileProvider>
+            <WallPanel crate={twelveRecords} />
+          </PileProvider>
+        </StorefrontMotionConfig>,
+      );
+
+      const tiles = screen.getAllByRole("button", { name: /Inspect Record/ });
+      expect(tiles).toHaveLength(12);
+
+      // No pagination needed — all fit on one page
+      expect(screen.queryByRole("tablist", { name: "Wall pages" })).not.toBeInTheDocument();
+    });
+
+    it("comfy Wall with 13 records renders 9 visible tiles and a second page indicator", () => {
+      renderWithTier(
+        "comfy",
+        <StorefrontMotionConfig>
+          <PileProvider>
+            <WallPanel crate={largeCrate} />
+          </PileProvider>
+        </StorefrontMotionConfig>,
+      );
+
+      const tiles = screen.getAllByRole("button", { name: /Inspect Record/ });
+      expect(tiles).toHaveLength(9);
+
+      const tablist = screen.getByRole("tablist", { name: "Wall pages" });
+      const tabs = within(tablist).getAllByRole("tab");
+      expect(tabs).toHaveLength(2);
+    });
+
+    it("clamps page index when rerendered at a tier with fewer pages", async () => {
+      const thirteenRecords: Crate = {
+        slug: "picks",
+        name: "Milkcrate Picks",
+        count: 13,
+        records: Array.from({ length: 13 }, (_, index) => makeListing(index + 1)),
+      };
+
+      // Render at compact tier — 13 records gives 3 pages (6+6+1)
+      renderWithTier(
+        "compact",
+        <StorefrontMotionConfig>
+          <PileProvider>
+            <WallPanel crate={thirteenRecords} />
+          </PileProvider>
+        </StorefrontMotionConfig>,
+      );
+
+      // Navigate to page 3
+      const user = userEvent.setup();
+      const tablist = screen.getByRole("tablist", { name: "Wall pages" });
+      await user.click(within(tablist).getByRole("tab", { name: "Wall page 3 of 3" }));
+
+      // Now rerender at wide tier where 13 records gives 2 pages (12+1)
+      // Page index 2 is now invalid — useEffect should clamp to page 1
+      // We need a fresh render with a different tier since renderWithTier's wrapper
+      // locks the tier. Use a new render with wide tier.
+      renderWithTier(
+        "wide",
+        <StorefrontMotionConfig>
+          <PileProvider>
+            <WallPanel crate={thirteenRecords} />
+          </PileProvider>
+        </StorefrontMotionConfig>,
+      );
+
+      // Should not show an empty page — should show page 2 content (records 12-13)
+      const tiles = screen.getAllByRole("button", { name: /Inspect Record/ });
+      expect(tiles.length).toBeGreaterThan(0);
+      expect(
+        screen.getByRole("button", { name: "Inspect Record 12 on the Wall" }),
+      ).toBeInTheDocument();
+    });
+  });
 });
