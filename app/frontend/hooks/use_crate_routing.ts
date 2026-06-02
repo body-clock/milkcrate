@@ -54,7 +54,7 @@ export function useCrateRouting({
   const [directEntry, setDirectEntry] = useState(() => {
     if (typeof window === "undefined") return false;
     const fromParam = new URLSearchParams(window.location.search).get("crate");
-    return Boolean(fromParam || history.state?.crateSlug);
+    return Boolean(fromParam);
   });
 
   const activeSlugRef = useRef(activeSlug);

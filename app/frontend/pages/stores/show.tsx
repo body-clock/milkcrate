@@ -55,7 +55,7 @@ function StoreShowContent({
   directEntry,
 }: StoreShowContentProps) {
   const { isWide } = useViewport();
-  const hasStoreSummary = Boolean(store.description) || listingCount > 0;
+  const hasStoreSummary = !isWide && (Boolean(store.description) || listingCount > 0);
 
   return (
     <>

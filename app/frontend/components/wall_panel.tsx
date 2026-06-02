@@ -125,10 +125,10 @@ export default function WallPanel({ crate }: Props) {
           <motion.div
             key={pageIndex}
             custom={direction}
-            variants={prefersReducedMotion ? undefined : pageVariants}
-            initial={prefersReducedMotion ? undefined : "enter"}
+            variants={prefersReducedMotion || !showPagination ? undefined : pageVariants}
+            initial={prefersReducedMotion || !showPagination ? undefined : "enter"}
             animate="center"
-            exit={prefersReducedMotion ? undefined : "exit"}
+            exit={prefersReducedMotion || !showPagination ? undefined : "exit"}
             transition={transition}
             drag={prefersReducedMotion || !showPagination ? undefined : "x"}
             dragConstraints={{ left: 0, right: 0 }}

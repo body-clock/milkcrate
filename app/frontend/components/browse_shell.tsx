@@ -132,9 +132,9 @@ export default function BrowseShell({
   if (isWide) {
     return (
       <div className="flex gap-8 items-start">
-        <aside className="w-52 flex-shrink-0 sticky top-4 space-y-6">
+        <aside className="w-52 flex-shrink-0 sticky top-4">
           {/* Browse mode selector */}
-          <nav aria-label={COPY.browseNavLabel} className="flex flex-col gap-1">
+          <nav aria-label={COPY.browseNavLabel} className="flex flex-col gap-1 mb-4">
             {BROWSE_MODES.map((item) => {
               const selected = mode === item.mode;
               return (
@@ -176,17 +176,24 @@ export default function BrowseShell({
 
           {/* Store stats — fills sidebar space when Wall is active */}
           {mode === "wall" && listingCount != null && (
-            <div className="rounded-lg border border-mc-border bg-mc-bg-card/60 px-3 py-3 space-y-2">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-mc-text-dim">Listings</span>
-                <span className="font-semibold tabular-nums">{listingCount.toLocaleString()}</span>
-              </div>
-              {genreCount != null && genreCount > 0 && (
+            <div className="rounded-lg border border-mc-border bg-mc-bg-card/60 px-3 py-3">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-mc-text-dim mb-2">
+                Store
+              </h3>
+              <div className="space-y-1.5">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-mc-text-dim">Genres</span>
-                  <span className="font-semibold tabular-nums">{genreCount}</span>
+                  <span className="text-mc-text-dim">Listings</span>
+                  <span className="font-semibold tabular-nums">
+                    {listingCount.toLocaleString()}
+                  </span>
                 </div>
-              )}
+                {genreCount != null && genreCount > 0 && (
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-mc-text-dim">Genres</span>
+                    <span className="font-semibold tabular-nums">{genreCount}</span>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </aside>
