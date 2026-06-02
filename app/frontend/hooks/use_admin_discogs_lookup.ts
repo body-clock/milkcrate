@@ -42,6 +42,32 @@ interface UseAdminDiscogsLookupResult {
   reset: () => void;
 }
 
+const LOOKUP_TIMEOUT_MS = 10_000;
+
+function runLookupFetch(
+  url: string,
+  signal: AbortSignal,
+): Promise<AdminDiscogsLookupResponse> {
+  return fetch(url, {
+    headers: { Accept: "application/json" },
+    signal,
+  }).then((res) => {
+    if (!res.ok) {throw new Error(`Lookup failed with ${res.status}`);}
+    return res.json() as Promise<AdminDiscogsLookupResponse>;
+  });
+}
+
+function startTimeout(controller: AbortController): ReturnType<typeof setTimeout> {
+  return setTimeout(() => controller.abort(), LOOKUP_TIMEOUT_MS);
+}
+
+function cleanRefs(
+  at: AbortController | null,
+  tt: ReturnType<typeof setTimeout> | null,
+): void {
+  if (tt) {clearTimeout(tt);}
+}
+
 /**
  * Manages the admin Discogs username lookup lifecycle: fetch, abort,
  * timeout, and state machine. Mirrors useDiscogsLookup's pattern but
@@ -54,69 +80,35 @@ export function useAdminDiscogsLookup(
   const abortRef = useRef<AbortController | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    return () => {
-      abortRef.current?.abort();
-      if (timeoutRef.current) {clearTimeout(timeoutRef.current);}
-    };
-  }, []);
+  useEffect(() => ({
+    [Symbol.dispose]: () => { abortRef.current?.abort(); if (timeoutRef.current) {clearTimeout(timeoutRef.current);} }
+  } as any), []);
 
-  const lookup = useCallback(
-    (username: string) => {
-      abortRef.current?.abort();
-      if (timeoutRef.current) {clearTimeout(timeoutRef.current);}
-
-      const controller = new AbortController();
-      abortRef.current = controller;
-
-      setState({ status: "loading" });
-
-      const url = new URL(lookupPath, window.location.origin);
-      url.searchParams.set("username", username);
-
-      timeoutRef.current = setTimeout(() => {
-        if (abortRef.current !== controller) {return;}
-        controller.abort();
-        abortRef.current = null;
-        timeoutRef.current = null;
-        setState({ status: "error" });
-      }, 10_000);
-
-      fetch(url.toString(), {
-        headers: { Accept: "application/json" },
-        signal: controller.signal,
-      })
-        .then((res) => {
-          if (!res.ok) {throw new Error(`Lookup failed with ${res.status}`);}
-          return res.json() as Promise<AdminDiscogsLookupResponse>;
-        })
-        .then((data) => {
-          if (abortRef.current !== controller) {return;}
-          if (controller.signal.aborted) {return;}
-          if (timeoutRef.current) {clearTimeout(timeoutRef.current);}
-          timeoutRef.current = null;
-          abortRef.current = null;
-          setState({ status: "result", result: data });
-        })
-        .catch((err) => {
-          if (abortRef.current !== controller) {return;}
-          if (controller.signal.aborted) {return;}
-          if (err instanceof DOMException && err.name === "AbortError") {return;}
-          if (timeoutRef.current) {clearTimeout(timeoutRef.current);}
-          timeoutRef.current = null;
-          abortRef.current = null;
-          setState({ status: "error" });
-        });
-    },
-    [lookupPath],
-  );
+  const lookup = useCallback((username: string) => {
+    abortRef.current?.abort(); if (timeoutRef.current) {clearTimeout(timeoutRef.current);}
+    const controller = new AbortController();
+    abortRef.current = controller; timeoutRef.current = startTimeout(controller);
+    setState({ status: "loading" });
+    const url = new URL(lookupPath, window.location.origin);
+    url.searchParams.set("username", username);
+    runLookupFetch(url.toString(), controller.signal).then((data) => {
+      if (abortRef.current !== controller || controller.signal.aborted) {return;}
+      cleanRefs(abortRef.current, timeoutRef.current);
+      abortRef.current = null; timeoutRef.current = null;
+      setState({ status: "result", result: data });
+    }, (err) => {
+      if (abortRef.current !== controller || controller.signal.aborted) {return;}
+      if (err instanceof DOMException && err.name === "AbortError") {return;}
+      cleanRefs(abortRef.current, timeoutRef.current);
+      abortRef.current = null; timeoutRef.current = null;
+      setState({ status: "error" });
+    });
+  }, [lookupPath]);
 
   const reset = useCallback(() => {
     abortRef.current?.abort();
-    abortRef.current = null;
-    if (timeoutRef.current) {clearTimeout(timeoutRef.current);}
-    timeoutRef.current = null;
-    setState({ status: "idle" });
+    abortRef.current = null; if (timeoutRef.current) {clearTimeout(timeoutRef.current);}
+    timeoutRef.current = null; setState({ status: "idle" });
   }, []);
 
   return { state, lookup, reset };
