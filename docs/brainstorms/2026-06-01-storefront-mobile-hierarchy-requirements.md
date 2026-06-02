@@ -301,10 +301,12 @@ session; they do not change the session's jobs.
 
 - Store floor shows more content density: 2-column featured crates, 3-column
   genre grid, 8 Wall picks.
-- Crate view uses the same single-column layout as compact, but card sizes
-  increase and the crate header is always visible.
-- Record inspection still lives on the card back face (same as compact);
-  `RecordDetails` panel is not shown at comfy.
+- Crate view uses the same card stack, but adds the two-column
+  `grid-cols-[420px_1fr]` layout (`md:grid` fires at ≥768px) with a persistent
+  `RecordDetails` + `ScoreBreakdown` panel beside the active card.
+- Record inspection is a named, persistent panel alongside the card stack —
+  the card flip still works but is no longer the only path to record details.
+  This is the key hierarchy difference between compact and comfy/wide.
 - Pile sheet slides in from the right (384px wide) rather than covering the
   full screen.
 - Theme toggle becomes visible.
@@ -313,12 +315,10 @@ session; they do not change the session's jobs.
 
 - Store floor: 3-column featured crates, 4-column genre grid, PicksShelf
   gains hover animation wrapper.
-- Crate view adds a persistent side panel (CSS grid
-  `grid-cols-[420px_1fr]`): `RecordDetails` + `ScoreBreakdown` animate with
-  each card navigation.
-- Record inspection is a named, persistent panel rather than a flip mode.
-  This is the main hierarchy difference between compact and wide: on wide,
-  Record inspection is always visible beside the active card.
+- Crate view continues to use the two-column `grid-cols-[420px_1fr]` layout
+  established at comfy. Record inspection is already a persistent side panel
+  at this tier.
+- Wider card sizes and more breathing room compared to comfy.
 - Pile sheet same as comfy (right-side panel).
 - CrateHeader always uses `TextBackButton` rather than `IconBackButton`.
 
@@ -332,7 +332,7 @@ session; they do not change the session's jobs.
 | Wall | `PicksShelf` → `CrateShelf` | 8-pick preview, hover lift animation |
 | Crate entry | `FeaturedCratesRow`, `GenreGrid` | More columns per tier |
 | Active crate browsing | `CrateView`, `CardStack`, `CrateProgress` | Larger card sizes |
-| Record inspection | `RecordCard` (back face) | `RecordDetails` + `ScoreBreakdown` panel (wide only) |
+| Record inspection | `RecordCard` (back face) | `RecordDetails` + `ScoreBreakdown` panel (comfy and wide) |
 | Pile review | `PileSheet` (full-screen) | `PileSheet` (right panel at comfy/wide) |
 | Discogs handoff | `RecordCard` link, `PileFooter` wantlist | `RecordDetails` link |
 
@@ -421,9 +421,10 @@ A future implementer reading this document should be able to answer:
 3. **When does the pile appear in the header?** Only after at least one record
    has been added to the pile. An empty session does not show a pile trigger.
 
-4. **How does wide differ from compact?** Wide reveals a persistent side panel
-   for record inspection beside the active card stack. The session loop is the
-   same; more context is visible at once rather than behind a flip.
+4. **How do comfy and wide differ from compact?** Comfy and wide (both ≥768px,
+   covered by Tailwind `md:`) reveal a persistent `RecordDetails` panel beside
+   the active card stack. The session loop is the same; record inspection
+   becomes always-visible rather than behind the card flip.
 
 5. **Does this spec require a visual redesign?** No. Gaps G1 through G5 are
    copy, labeling, affordance, and semantic changes. No layout, color, or
