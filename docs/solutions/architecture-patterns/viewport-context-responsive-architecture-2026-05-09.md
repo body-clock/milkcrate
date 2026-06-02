@@ -1,7 +1,7 @@
 ---
 title: "ViewportContext responsive architecture — replacing binary useIsDesktop with named tiers"
 date: 2026-05-09
-last_updated: 2026-05-14
+last_updated: 2026-06-02
 category: architecture-patterns
 module: storefront
 problem_type: architecture_pattern
