@@ -2,9 +2,7 @@ import { Link } from "@inertiajs/react";
 import Button from "@/components/ui/button";
 import { actionClassName } from "@/components/ui/action";
 
-export default function InvitationClaimCta({
-  slug, oauth_available, csrfToken,
-}: {
+export default function InvitationClaimCta({ slug, oauth_available, csrfToken }: {
   slug: string; oauth_available?: boolean; csrfToken: string | undefined;
 }) {
   return (
@@ -19,11 +17,7 @@ export default function InvitationClaimCta({
           Claim this storefront
         </Link>
       )}
-      <div>
-        <Link href={`/apply?discogs_username=${encodeURIComponent(slug)}`} className="text-xs text-mc-text-dim hover:text-mc-accent transition-colors">
-          Or apply via waitlist
-        </Link>
-      </div>
+      <div><Link href={`/apply?discogs_username=${encodeURIComponent(slug)}`} className="text-xs text-mc-text-dim hover:text-mc-accent transition-colors">Or apply via waitlist</Link></div>
     </>
   );
 }
