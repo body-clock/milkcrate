@@ -61,28 +61,17 @@ function startTimeout(controller: AbortController): ReturnType<typeof setTimeout
   return setTimeout(() => controller.abort(), LOOKUP_TIMEOUT_MS);
 }
 
-function cleanRefs(
-  at: AbortController | null,
-  tt: ReturnType<typeof setTimeout> | null,
-): void {
+function cleanRefs(at: AbortController | null, tt: ReturnType<typeof setTimeout> | null): void {
   if (tt) {clearTimeout(tt);}
 }
 
-/**
- * Manages the admin Discogs username lookup lifecycle: fetch, abort,
- * timeout, and state machine. Mirrors useDiscogsLookup's pattern but
- * uses the admin-specific API endpoint and response format.
- */
-export function useAdminDiscogsLookup(
-  lookupPath: string,
-): UseAdminDiscogsLookupResult {
+/** Manages admin Discogs username lookup lifecycle: fetch, abort, timeout. */
+export function useAdminDiscogsLookup(lookupPath: string): UseAdminDiscogsLookupResult {
   const [state, setState] = useState<AdminLookupState>({ status: "idle" });
   const abortRef = useRef<AbortController | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => ({
-    [Symbol.dispose]: () => { abortRef.current?.abort(); if (timeoutRef.current) {clearTimeout(timeoutRef.current);} }
-  } as any), []);
+  useEffect(() => () => { abortRef.current?.abort(); if (timeoutRef.current) {clearTimeout(timeoutRef.current);} }, []);
 
   const lookup = useCallback((username: string) => {
     abortRef.current?.abort(); if (timeoutRef.current) {clearTimeout(timeoutRef.current);}

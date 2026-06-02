@@ -6,9 +6,7 @@ interface Props {
 export default function StoreStats({ listingCount, genreCount }: Props) {
   return (
     <div className="rounded-lg border border-mc-border bg-mc-bg-card/60 px-3 py-3">
-      <h3 className="text-xs font-semibold uppercase tracking-wider text-mc-text-dim mb-2">
-        Store
-      </h3>
+      <h3 className="text-xs font-semibold uppercase tracking-wider text-mc-text-dim mb-2">Store</h3>
       <div className="space-y-1.5">
         <div className="flex items-center justify-between text-xs">
           <span className="text-mc-text-dim">Listings</span>
