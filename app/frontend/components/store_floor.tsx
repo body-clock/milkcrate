@@ -4,7 +4,13 @@ import FeaturedCratesRow from "./featured_crates_row";
 import GenreGrid from "./genre_grid";
 import { useTactileHover } from "@/hooks/use_tactile_hover";
 import { useViewport } from "@/hooks/use_viewport";
-import { springTactile, springPress, SCALE_HOVER, SCALE_PRESS } from "@/lib/motion_tokens";
+import {
+  springTactile,
+  springPress,
+  SCALE_HOVER,
+  SCALE_PRESS,
+  SCALE_MARQUEE,
+} from "@/lib/motion_tokens";
 import type { Crate } from "../types/inertia";
 import type { StorefrontSection } from "../types/inertia";
 
@@ -45,6 +51,8 @@ function PicksShelf({
       onSelectCrate={onSelectCrate}
       previewCount={picksPreviewCount}
       meta={today}
+      coverScale={SCALE_MARQUEE}
+      gridGap="gap-3"
       tactileThumbnails={!isCompact}
       className="border-0 rounded-none bg-transparent"
     />

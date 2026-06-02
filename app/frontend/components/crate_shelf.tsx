@@ -19,6 +19,10 @@ interface BaseCrateShelfProps {
   tactileThumbnails?: boolean;
   /** Additional class for the outer container (used by CrateCard to strip border). */
   className?: string;
+  /** Optional CSS transform scale applied to RecordTile wrappers (e.g. 1.5 for Wall). */
+  coverScale?: number;
+  /** Optional Tailwind gap class override for the record grid (e.g. "gap-3"). */
+  gridGap?: string;
 }
 
 interface StaticCrateShelfProps extends BaseCrateShelfProps {
@@ -55,6 +59,8 @@ interface ShelfInteractionConfig {
 
 interface ShelfGridConfig {
   gridCols: number;
+  gridGap: string;
+  coverScale?: number;
 }
 
 function CrateShelfLayout({
@@ -72,7 +78,7 @@ function CrateShelfLayout({
 }) {
   const { headerSize = "genre", meta, openLabel, previewCount } = header;
   const { interactive, onSelectCrate, isHovered, tactileThumbnails } = interaction;
-  const { gridCols } = grid;
+  const { gridCols, gridGap, coverScale } = grid;
   const innerHoverScale = 1 + (SCALE_HOVER - 1) / 2;
   const nameClass = headerSize === "featured" ? "text-base font-semibold" : "text-sm font-semibold";
 
@@ -112,11 +118,29 @@ function CrateShelfLayout({
       {/* Record grid */}
       {crate.records.length > 0 ? (
         <div
-          className="grid gap-1.5 px-3 pb-3 pt-1.5"
+          className={`grid ${gridGap} px-3 pb-3 pt-1.5`}
           style={{ gridTemplateColumns: `repeat(${gridCols}, 1fr)` }}
         >
-          {crate.records.slice(0, previewCount).map((record, i) =>
-            interactive ? (
+          {crate.records.slice(0, previewCount).map((record, i) => {
+            const tileWrapperStyle = coverScale
+              ? { transform: `scale(${coverScale})`, transformOrigin: "center center" as const }
+              : undefined;
+
+            const tileElement = (
+              <span style={tileWrapperStyle} className="inline-block">
+                <RecordTile listing={record} imageLoading="lazy" tactileHover={tactileThumbnails} />
+              </span>
+            );
+
+            if (!interactive) {
+              return (
+                <span key={record.id}>
+                  <RecordTile listing={record} imageLoading="lazy" />
+                </span>
+              );
+            }
+
+            return (
               <button
                 key={record.id}
                 type="button"
@@ -128,17 +152,11 @@ function CrateShelfLayout({
                   animate={{ scale: isHovered ? innerHoverScale : 1 }}
                   transition={springTactile}
                 >
-                  <RecordTile
-                    listing={record}
-                    imageLoading="lazy"
-                    tactileHover={tactileThumbnails}
-                  />
+                  {tileElement}
                 </motion.div>
               </button>
-            ) : (
-              <RecordTile key={record.id} listing={record} imageLoading="lazy" />
-            ),
-          )}
+            );
+          })}
         </div>
       ) : (
         <div className="aspect-square flex items-center justify-center text-mc-text-dim text-xs px-3 pb-3">
@@ -166,8 +184,11 @@ function StaticCrateShelf(params: StaticCrateShelfProps) {
     headerSize = "genre",
     tactileThumbnails = false,
     className,
+    coverScale,
+    gridGap,
   } = params;
   const gridCols = gridColumnCount(previewCount);
+  const effectiveGap = gridGap ?? "gap-1.5";
   const containerClassName = [
     "flex flex-col w-full rounded-lg bg-mc-bg-card border border-mc-border overflow-hidden text-left",
     className,
@@ -186,7 +207,7 @@ function StaticCrateShelf(params: StaticCrateShelfProps) {
           onSelectCrate: undefined,
           tactileThumbnails,
         }}
-        grid={{ gridCols }}
+        grid={{ gridCols, gridGap: effectiveGap, coverScale }}
         headerProps={{}}
       />
     </div>
@@ -206,8 +227,11 @@ function InteractiveCrateShelf(params: InteractiveCrateShelfProps) {
     tactileThumbnails = false,
     className,
     isHovered: externalHovered,
+    coverScale,
+    gridGap,
   } = params;
   const gridCols = gridColumnCount(previewCount);
+  const effectiveGap = gridGap ?? "gap-1.5";
 
   // When wrapped by CrateCard (or another parent that manages hover), use the
   // external hover state. Otherwise, compute our own.
@@ -239,7 +263,7 @@ function InteractiveCrateShelf(params: InteractiveCrateShelfProps) {
         crate={crate}
         header={{ headerSize, meta, openLabel, previewCount }}
         interaction={{ interactive: true, onSelectCrate, isHovered, tactileThumbnails }}
-        grid={{ gridCols }}
+        grid={{ gridCols, gridGap: effectiveGap, coverScale }}
         headerProps={{
           as: "button",
           onClick: handleSelectCrate,
