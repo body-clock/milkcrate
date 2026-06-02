@@ -107,7 +107,7 @@ export default function WallPanel({ crate }: Props) {
         className="overflow-hidden"
         style={{
           position: "relative",
-          aspectRatio: isCompact ? aspectRatio : undefined,
+          aspectRatio,
           maxHeight: isCompact ? undefined : "60vh",
         }}
       >
