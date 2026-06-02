@@ -36,10 +36,12 @@ export const springDrawer = {
 export const SCALE_PRESS = 0.985;
 export const SCALE_HOVER = 1.025;
 export const SCALE_INNER_HOVER = 1.015;
+export const SCALE_MARQUEE = 1.5;
 
 // ── Lift / tilt magnitudes ────────────────────────────────────
 
 export const LIFT_HOVER = 2; // px
+export const LIFT_MARQUEE = -3; // px — deeper lift for editorial surfaces
 export const TILT_HOVER = 1.5; // deg
 
 // ── Transition presets ────────────────────────────────────────
