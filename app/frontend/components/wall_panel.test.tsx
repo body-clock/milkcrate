@@ -61,58 +61,45 @@ describe("WallPanel", () => {
   });
 });
 
-describe("WallPanel pagination", () => {
+describe("WallPanel pagination dots", () => {
   it("renders dot indicators when there are more than 6 records", () => {
     renderWall(largeCrate);
-    const tablist = screen.getByRole("tablist", { name: "Wall pages" });
-    const tabs = within(tablist).getAllByRole("tab");
+    const tabs = within(screen.getByRole("tablist", { name: "Wall pages" })).getAllByRole("tab");
     expect(tabs).toHaveLength(TOTAL_PAGES_SMALL);
     expect(tabs[0]).toHaveAttribute("aria-selected", "true");
     expect(tabs[1]).toHaveAttribute("aria-selected", "false");
   });
-
-  it("shows 6 tiles on the first page", () => {
-    renderWall(largeCrate);
-    const tiles = screen.getAllByRole("button", { name: /Inspect Record/ });
-    expect(tiles).toHaveLength(TILES_PER_PAGE);
-  });
-
   it("navigates to the next page via dot click", async () => {
-    const user = userEvent.setup();
-    renderWall(largeCrate);
+    const user = userEvent.setup(); renderWall(largeCrate);
     const page2 = within(screen.getByRole("tablist", { name: "Wall pages" })).getByRole("tab", { name: "Wall page 2 of 2" });
     await user.click(page2);
     expect(screen.getByRole("tab", { name: "Wall page 2 of 2" })).toHaveAttribute("aria-selected", "true");
   });
+});
 
-  it("does not render pagination when there are exactly 6 records", () => {
+describe("WallPanel tile display", () => {
+  it("shows 6 tiles on the first page", () => {
+    renderWall(largeCrate);
+    expect(screen.getAllByRole("button", { name: /Inspect Record/ })).toHaveLength(TILES_PER_PAGE);
+  });
+  it("does not render pagination for exactly 6 records", () => {
     renderWall();
     expect(screen.queryByRole("tablist", { name: "Wall pages" })).not.toBeInTheDocument();
   });
 });
 
-describe("WallPanel responsive density", () => {
+describe("WallPanel responsive wide", () => {
   const twelveCrate: Crate = {
     slug: "wall", name: "The Wall", count: WIDE_TILES,
     records: Array.from({ length: WIDE_TILES }, (_, i) => makeListing(i + 1)),
   };
-
-  it("compact with 12 records renders 6 tiles and 2 pages", () => {
-    renderWithTier("compact",
-      <StorefrontMotionConfig><PileProvider><WallPanel crate={twelveCrate} /></PileProvider></StorefrontMotionConfig>,
-    );
-    expect(screen.getAllByRole("button", { name: /Inspect Record/ })).toHaveLength(TILES_PER_PAGE);
-    expect(within(screen.getByRole("tablist", { name: "Wall pages" })).getAllByRole("tab")).toHaveLength(TOTAL_PAGES_SMALL);
-  });
-
-  it("wide with 12 records renders all 12 tiles on one page", () => {
+  it("wide renders all 12 tiles on one page", () => {
     renderWithTier("wide",
       <StorefrontMotionConfig><PileProvider><WallPanel crate={twelveCrate} /></PileProvider></StorefrontMotionConfig>,
     );
     expect(screen.getAllByRole("button", { name: /Inspect Record/ })).toHaveLength(WIDE_TILES);
     expect(screen.queryByRole("tablist", { name: "Wall pages" })).not.toBeInTheDocument();
   });
-
   it("comfy shows all 13 records on one page", () => {
     renderWithTier("comfy",
       <StorefrontMotionConfig><PileProvider><WallPanel crate={largeCrate} /></PileProvider></StorefrontMotionConfig>,
@@ -120,17 +107,26 @@ describe("WallPanel responsive density", () => {
     expect(screen.getAllByRole("button", { name: /Inspect Record/ })).toHaveLength(COMFY_TILES);
     expect(screen.queryByRole("tablist", { name: "Wall pages" })).not.toBeInTheDocument();
   });
+});
 
-  it("clamps page index when tier has fewer pages", async () => {
-    const eighteenCrate: Crate = { slug: "wall", name: "The Wall", count: 18, records: Array.from({ length: 18 }, (_, i) => makeListing(i + 1)) };
-    const user = userEvent.setup();
+describe("WallPanel compact 12 records", () => {
+  it("renders 6 tiles and 2 pages", () => {
     renderWithTier("compact",
-      <StorefrontMotionConfig><PileProvider><WallPanel crate={eighteenCrate} /></PileProvider></StorefrontMotionConfig>,
+      <StorefrontMotionConfig><PileProvider><WallPanel crate={{ slug: "wall", name: "The Wall", count: WIDE_TILES, records: Array.from({ length: WIDE_TILES }, (_, i) => makeListing(i + 1)) }} /></PileProvider></StorefrontMotionConfig>,
     );
+    expect(screen.getAllByRole("button", { name: /Inspect Record/ })).toHaveLength(TILES_PER_PAGE);
+    expect(within(screen.getByRole("tablist", { name: "Wall pages" })).getAllByRole("tab")).toHaveLength(TOTAL_PAGES_SMALL);
+  });
+});
+
+describe("WallPanel tier page clamp", () => {
+  it("clamps page index when tier has fewer pages", async () => {
+    const user = userEvent.setup();
+    const eCrate: Crate = { slug: "wall", name: "The Wall", count: 18, records: Array.from({ length: 18 }, (_, i) => makeListing(i + 1)) };
+    const renderCompact = () => renderWithTier("compact", <StorefrontMotionConfig><PileProvider><WallPanel crate={eCrate} /></PileProvider></StorefrontMotionConfig>);
+    renderCompact();
     await user.click(within(screen.getByRole("tablist", { name: "Wall pages" })).getByRole("tab", { name: "Wall page 2 of 2" }));
-    renderWithTier("wide",
-      <StorefrontMotionConfig><PileProvider><WallPanel crate={eighteenCrate} /></PileProvider></StorefrontMotionConfig>,
-    );
+    renderWithTier("wide", <StorefrontMotionConfig><PileProvider><WallPanel crate={eCrate} /></PileProvider></StorefrontMotionConfig>);
     expect(screen.getAllByRole("button", { name: /Inspect Record/ }).length).toBeGreaterThan(0);
   });
 });
