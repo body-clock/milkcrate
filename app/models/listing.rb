@@ -6,7 +6,7 @@ class Listing < ApplicationRecord
 
   # 12" albums only — requires explicit LP or Album in format string.
   # Excludes unenriched records (format="Vinyl" only) intentionally — they
-  # lack genre/style data and shouldn't surface in picks or genre bins.
+  # lack genre/style data and shouldn't surface on the wall or in genre bins.
   LP_FORMAT_TERMS = %w[LP Album].freeze
   NON_VINYL_FORMAT_TERMS = [ "8-Track", "8-Trk", "Cass", "Cassette", "CD", "DVD", "VHS", "Blu-ray", "SACD", "Reel" ].freeze
   scope :by_genre, ->(genre) { where("? = ANY(genres)", genre) }

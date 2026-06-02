@@ -1,8 +1,6 @@
 import { motion } from "framer-motion";
 import AppLayout from "@/layouts/app_layout";
-import CrateView from "@/components/crate_view";
-import CompactBrowseShell from "@/components/compact_browse_shell";
-import StoreFloor from "@/components/store_floor";
+import BrowseShell from "@/components/browse_shell";
 import Spinner from "@/components/spinner";
 import FeedbackMessage from "@/components/ui/feedback_message";
 import { useCrateRouting } from "@/hooks/use_crate_routing";
@@ -10,7 +8,7 @@ import { useViewport } from "@/hooks/use_viewport";
 import type { StoreShowProps } from "@/types/inertia";
 
 export default function StoreShow({ store, crates, storefront_sections }: StoreShowProps) {
-  const { activeSlug, startIndex, selectCrate, backToStore, allCrates } = useCrateRouting({
+  const { activeSlug, startIndex, selectCrate, backToStore, directEntry } = useCrateRouting({
     crates,
     storefront_sections: storefront_sections ?? [],
   });
@@ -27,7 +25,7 @@ export default function StoreShow({ store, crates, storefront_sections }: StoreS
         startIndex={startIndex}
         selectCrate={selectCrate}
         backToStore={backToStore}
-        allCrates={allCrates}
+        directEntry={directEntry}
       />
     </AppLayout>
   );
@@ -42,7 +40,7 @@ interface StoreShowContentProps {
   startIndex: number;
   selectCrate: (slug: string, startIndex?: number) => void;
   backToStore: () => void;
-  allCrates: StoreShowProps["crates"];
+  directEntry: boolean;
 }
 
 function StoreShowContent({
@@ -54,10 +52,10 @@ function StoreShowContent({
   startIndex,
   selectCrate,
   backToStore,
-  allCrates,
+  directEntry,
 }: StoreShowContentProps) {
-  const { isCompact } = useViewport();
-  const hasStoreSummary = Boolean(store.description) || listingCount > 0;
+  const { isWide } = useViewport();
+  const hasStoreSummary = !isWide && (Boolean(store.description) || listingCount > 0);
 
   return (
     <>
@@ -71,7 +69,7 @@ function StoreShowContent({
           {store.description && (
             <p className="text-sm text-mc-text leading-relaxed max-w-prose">{store.description}</p>
           )}
-          {listingCount > 0 ? (
+          {!isWide && listingCount > 0 ? (
             <p className="text-xs text-mc-text-dim mt-1.5">
               {listingCount.toLocaleString()} vinyl listings
             </p>
@@ -115,24 +113,17 @@ function StoreShowContent({
             No vinyl found yet. Once the store syncs, browsable crates will appear here.
           </p>
         </div>
-      ) : isCompact ? (
-        <CompactBrowseShell
+      ) : (
+        <BrowseShell
           sections={storefront_sections}
           activeSlug={activeSlug}
           startIndex={startIndex}
           selectCrate={selectCrate}
           backToStore={backToStore}
-        />
-      ) : activeSlug === null ? (
-        <StoreFloor sections={storefront_sections} onSelectCrate={selectCrate} />
-      ) : (
-        <CrateView
-          crates={allCrates}
-          activeSlug={activeSlug}
-          startIndex={startIndex}
-          compactHeaderOwnedByLayout
-          onSelectCrate={selectCrate}
-          onBack={backToStore}
+          directEntry={directEntry}
+          crates={crates}
+          listingCount={listingCount}
+          genreCount={storefront_sections.find((s) => s.key === "genre_grid")?.crates?.length ?? 0}
         />
       )}
     </>

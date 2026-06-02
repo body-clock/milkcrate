@@ -13,10 +13,12 @@ interface UseCrateRoutingResult {
   selectCrate: (slug: string, index?: number) => void;
   backToStore: () => void;
   allCrates: Crate[];
+  /** True when the current activeSlug came from an initial ?crate= URL query or popstate with a crate slug. */
+  directEntry: boolean;
 }
 
 function historyStateWithCrate(slug: string, startIndex: number) {
-  return { ...(history.state ?? {}), crateSlug: slug, startIndex };
+  return { ...history.state, crateSlug: slug, startIndex };
 }
 
 function historyStateWithoutCrate() {
@@ -47,6 +49,14 @@ export function useCrateRouting({
     const raw = history.state?.startIndex;
     return Number.isFinite(raw) && (raw as number) >= 0 ? (raw as number) : 0;
   });
+
+  // True when activeSlug came from URL query or popstate (direct entry), not in-session selection
+  const [directEntry, setDirectEntry] = useState(() => {
+    if (typeof window === "undefined") return false;
+    const fromParam = new URLSearchParams(window.location.search).get("crate");
+    return Boolean(fromParam);
+  });
+
   const activeSlugRef = useRef(activeSlug);
 
   const allCrates = useMemo(() => {
@@ -60,28 +70,26 @@ export function useCrateRouting({
       ? null
       : (allCrates.find((crate) => crate.slug === activeSlug) ?? allCrates[0]);
 
-  const selectCrate = useCallback(
-    (slug: string, index = 0) => {
-      const wasOnStoreFloor = activeSlugRef.current === null;
-      activeSlugRef.current = slug;
-      setStartIndex(index);
-      setActiveSlug(slug);
+  const selectCrate = useCallback((slug: string, index = 0) => {
+    const wasOnStoreFloor = activeSlugRef.current === null;
+    activeSlugRef.current = slug;
+    setStartIndex(index);
+    setActiveSlug(slug);
 
-      const nextState = historyStateWithCrate(slug, index);
-      if (wasOnStoreFloor) {
-        history.pushState(nextState, "");
-        return;
-      }
+    const nextState = historyStateWithCrate(slug, index);
+    if (wasOnStoreFloor) {
+      history.pushState(nextState, "");
+      return;
+    }
 
-      history.replaceState(nextState, "");
-    },
-    [],
-  );
+    history.replaceState(nextState, "");
+  }, []);
 
   const backToStore = useCallback(() => {
     activeSlugRef.current = null;
     setActiveSlug(null);
     setStartIndex(0);
+    setDirectEntry(false);
     history.replaceState(historyStateWithoutCrate(), "", storeFloorUrl());
   }, []);
 
@@ -91,10 +99,13 @@ export function useCrateRouting({
       activeSlugRef.current = slug;
       setActiveSlug(slug);
       setStartIndex(e.state?.startIndex ?? 0);
+      // Only set directEntry when the URL itself carries a crate param
+      const urlParam = new URLSearchParams(window.location.search).get("crate");
+      setDirectEntry(Boolean(urlParam));
     };
     window.addEventListener("popstate", handlePop);
     return () => window.removeEventListener("popstate", handlePop);
   }, []);
 
-  return { activeSlug, activeCrate, startIndex, selectCrate, backToStore, allCrates };
+  return { activeSlug, activeCrate, startIndex, selectCrate, backToStore, allCrates, directEntry };
 }

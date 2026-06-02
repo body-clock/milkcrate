@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe CrateStrategies::Picks do
+RSpec.describe CrateStrategies::Wall do
   subject(:strategy) { described_class.new(genre_counts: {}, today: Date.new(2026, 5, 27)) }
 
   let(:scorer) { instance_double(RecordScorer, score: 10) }

@@ -4,6 +4,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import WallRecordPeekSheet from "./wall_record_peek_sheet";
 import StorefrontMotionConfig from "./storefront_motion_config";
+import { ViewportProvider } from "../contexts/viewport_context";
 import { PileProvider } from "../contexts/pile_context";
 import type { Listing } from "../types/inertia";
 
@@ -51,19 +52,20 @@ describe("WallRecordPeekSheet", () => {
 
     render(
       <StorefrontMotionConfig>
-        <PileProvider>
-          <WallRecordPeekSheet open listing={listing} onClose={vi.fn()} />
-        </PileProvider>
+        <ViewportProvider>
+          <PileProvider>
+            <WallRecordPeekSheet open listing={listing} onClose={vi.fn()} />
+          </PileProvider>
+        </ViewportProvider>
       </StorefrontMotionConfig>,
     );
 
     expect(screen.getByRole("dialog", { name: "Wall peek" })).toBeInTheDocument();
     expect(screen.getByText("Big Sky")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "+ Pile" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /View listing for Big Sky on Discogs/i })).toHaveAttribute(
-      "target",
-      "_blank",
-    );
+    expect(
+      screen.getByRole("link", { name: /View listing for Big Sky on Discogs/i }),
+    ).toHaveAttribute("target", "_blank");
 
     await user.click(screen.getByRole("button", { name: "+ Pile" }));
 
@@ -75,9 +77,11 @@ describe("WallRecordPeekSheet", () => {
 
     render(
       <StorefrontMotionConfig>
-        <PileProvider>
-          <Harness />
-        </PileProvider>
+        <ViewportProvider>
+          <PileProvider>
+            <Harness />
+          </PileProvider>
+        </ViewportProvider>
       </StorefrontMotionConfig>,
     );
 

@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe PickPolicy do
+RSpec.describe WallPolicy do
   subject(:policy) { described_class.new }
 
   describe "#genre_cap" do

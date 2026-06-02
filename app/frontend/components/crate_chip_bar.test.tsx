@@ -11,7 +11,7 @@ const crates: Crate[] = [
 ];
 
 describe("CrateChipBar", () => {
-  it("renders the label copy and the first chip when nothing is active", () => {
+  it("renders chips without selection when no active slug", () => {
     render(
       <CrateChipBar
         title="Featured"
@@ -25,7 +25,9 @@ describe("CrateChipBar", () => {
     expect(screen.getByText("Featured")).toBeInTheDocument();
     expect(screen.getByText(/Featured bins from this store's inventory/i)).toBeInTheDocument();
     expect(screen.getByRole("tablist", { name: "Crates" })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: "Jazz" })).toHaveAttribute("aria-selected", "true");
+    // No chip should be selected when activeSlug is null
+    expect(screen.getByRole("tab", { name: "Jazz" })).toHaveAttribute("aria-selected", "false");
+    expect(screen.getByRole("tab", { name: "Rock" })).toHaveAttribute("aria-selected", "false");
   });
 
   it("marks the active chip and calls back when a different chip is chosen", async () => {

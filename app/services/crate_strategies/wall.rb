@@ -1,9 +1,9 @@
 # Namespace for crate selection strategies that power storefront crates.
 module CrateStrategies
-  class Picks
+  class Wall
     def initialize(genre_counts:, today: Date.today)
       @scorer  = RecordScorer.new(genre_counts:, today:)
-      @policy  = PickPolicy.new
+      @policy  = WallPolicy.new
       @today   = today
     end
 

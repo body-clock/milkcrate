@@ -1,13 +1,18 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, type PanInfo } from "framer-motion";
 import { useReducedMotionContext } from "./storefront_motion_config";
-import { SCALE_PRESS, springPress, springTactile } from "@/lib/motion_tokens";
+import { useViewport } from "@/hooks/use_viewport";
+import { SCALE_HOVER, SCALE_PRESS, springPress, springTactile } from "@/lib/motion_tokens";
 import { COPY } from "@/lib/copy";
 import RecordTile from "./record_tile";
 import WallRecordPeekSheet from "./wall_record_peek_sheet";
 import type { Crate, Listing } from "../types/inertia";
 
-const TILES_PER_PAGE = 6;
+const TIER_DENSITY = {
+  compact: { tilesPerPage: 6, gridCols: "grid-cols-2" },
+  comfy: { tilesPerPage: 8, gridCols: "grid-cols-4" },
+  wide: { tilesPerPage: 12, gridCols: "grid-cols-4" },
+} as const;
 const SWIPE_THRESHOLD = 8000;
 
 function swipePower(offset: number, velocity: number) {
@@ -31,19 +36,40 @@ interface Props {
 }
 
 export default function WallPanel({ crate }: Props) {
+  const { tier, isCompact } = useViewport();
+  const { tilesPerPage, gridCols } = TIER_DENSITY[tier];
   const prefersReducedMotion = useReducedMotionContext();
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
   const returnFocusRef = useRef<HTMLButtonElement | null>(null);
   const [[pageIndex, direction], setPageState] = useState([0, 0]);
 
+  // Compact shows max 12 records (2 pages); comfy/wide show all
+  const visibleRecords = useMemo(() => {
+    if (!crate || crate.records.length === 0) {
+      return [];
+    }
+    return isCompact ? crate.records.slice(0, 12) : crate.records;
+  }, [crate, isCompact]);
+
+  // Only paginate on compact; comfy/wide show all records on one page
   const pages = useMemo(() => {
-    if (!crate || crate.records.length === 0) return [];
+    if (visibleRecords.length === 0) {
+      return [];
+    }
+    const chunkSize = isCompact ? tilesPerPage : visibleRecords.length;
     const result: Listing[][] = [];
-    for (let i = 0; i < crate.records.length; i += TILES_PER_PAGE) {
-      result.push(crate.records.slice(i, i + TILES_PER_PAGE));
+    for (let i = 0; i < visibleRecords.length; i += chunkSize) {
+      result.push(visibleRecords.slice(i, i + chunkSize));
     }
     return result;
-  }, [crate]);
+  }, [visibleRecords, tilesPerPage, isCompact]);
+
+  // Clamp page index when tier changes and page count shrinks
+  useEffect(() => {
+    if (pages.length > 0 && pageIndex > pages.length - 1) {
+      setPageState([pages.length - 1, -1]);
+    }
+  }, [pages.length, pageIndex]);
 
   if (!crate || crate.records.length === 0) {
     return (
@@ -64,7 +90,9 @@ export default function WallPanel({ crate }: Props) {
   };
 
   const goToPage = (index: number) => {
-    if (index === pageIndex) return;
+    if (index === pageIndex) {
+      return;
+    }
     const dir = index > pageIndex ? 1 : -1;
     setPageState([index, dir]);
   };
@@ -89,28 +117,34 @@ export default function WallPanel({ crate }: Props) {
         <p className="text-xs text-mc-text-dim leading-relaxed">{COPY.wall.description}</p>
       </div>
 
-      <div className="overflow-hidden" style={{ position: "relative", aspectRatio: "2/3" }}>
+      <div
+        className={`${isCompact ? "overflow-hidden" : "w-full"}`}
+        style={isCompact ? { position: "relative", aspectRatio: "2/3" } : undefined}
+      >
         <AnimatePresence custom={direction}>
           <motion.div
             key={pageIndex}
             custom={direction}
-            variants={prefersReducedMotion ? undefined : pageVariants}
-            initial={prefersReducedMotion ? undefined : "enter"}
+            variants={prefersReducedMotion || !showPagination ? undefined : pageVariants}
+            initial={prefersReducedMotion || !showPagination ? undefined : "enter"}
             animate="center"
-            exit={prefersReducedMotion ? undefined : "exit"}
+            exit={prefersReducedMotion || !showPagination ? undefined : "exit"}
             transition={transition}
             drag={prefersReducedMotion || !showPagination ? undefined : "x"}
             dragConstraints={{ left: 0, right: 0 }}
             dragElastic={0.3}
             onDragEnd={handleDragEnd}
-            className="grid grid-cols-2 gap-2"
-            style={{ position: "absolute", inset: 0 }}
+            className={`grid ${gridCols} gap-2`}
+            style={isCompact ? { position: "absolute", inset: 0 } : undefined}
           >
             {currentPage.map((listing) => (
               <motion.button
                 key={listing.id}
                 type="button"
                 onClick={(e) => handleTileTap(e, listing)}
+                whileHover={
+                  !isCompact && !prefersReducedMotion ? { scale: SCALE_HOVER } : undefined
+                }
                 whileTap={prefersReducedMotion ? undefined : { scale: SCALE_PRESS }}
                 transition={springPress}
                 className="group rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"

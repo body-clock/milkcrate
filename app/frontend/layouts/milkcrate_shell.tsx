@@ -1,18 +1,18 @@
-import React from "react"
+import React from "react";
 
 export interface MilkcrateShellProps {
   /** Header content — brand mark, navigation, theme toggle, store attribution, etc. */
-  header: React.ReactNode
+  header: React.ReactNode;
   /** Optional content rendered between header and main (e.g. flash notices). */
-  afterHeader?: React.ReactNode
+  afterHeader?: React.ReactNode;
   /** Main page content. Wrapped in <main id="main-content">. */
-  children: React.ReactNode
+  children: React.ReactNode;
   /** Optional footer content (attribution, links). */
-  footer?: React.ReactNode
+  footer?: React.ReactNode;
   /** Tailwind max-width class for the main content container. Default: "max-w-6xl". */
-  contentWidth?: string
+  contentWidth?: string;
   /** Tailwind padding classes for the main content container. Default: "px-4 sm:px-6 lg:px-8 py-6 sm:py-12". */
-  contentPadding?: string
+  contentPadding?: string;
 }
 
 /**
@@ -49,12 +49,10 @@ export default function MilkcrateShell({
       {afterHeader}
 
       <main className="flex-1" id="main-content">
-        <div className={`mx-auto w-full ${contentWidth} ${contentPadding}`}>
-          {children}
-        </div>
+        <div className={`mx-auto w-full ${contentWidth} ${contentPadding}`}>{children}</div>
       </main>
 
       {footer}
     </div>
-  )
+  );
 }

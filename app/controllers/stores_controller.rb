@@ -66,7 +66,7 @@ class StoresController < ApplicationController
       name: store.name,
       discogs_username: store.discogs_username,
       description: store.description,
-      total_listings: store.total_listings,
+      total_listings: store.total_listings || store.listings.count,
       sync_status: store.sync_status,
       last_sync_error_at: store.last_sync_error_at,
       enrichment_status: store.enrichment_status,

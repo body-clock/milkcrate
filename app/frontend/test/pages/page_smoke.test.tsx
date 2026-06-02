@@ -1,5 +1,5 @@
 import React from "react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Home from "../../pages/home";
@@ -51,7 +51,7 @@ const homeCopy = {
     step1_title: "Share your Discogs",
     step1_body: "Tell us your Discogs username. That's it.",
     step2_title: "We sync & curate",
-    step2_body: "Your inventory becomes browsable crates: picks, featured bins, and genre bins.",
+    step2_body: "Your inventory becomes browsable crates: the wall, featured bins, and genre bins.",
     step3_title: "Share your store",
     step3_body: "One link. Your customers browse like they're in the shop.",
   },
@@ -160,6 +160,10 @@ const adminProps: AdminDashboardProps = {
 };
 
 describe("page smoke tests", () => {
+  afterEach(() => {
+    history.replaceState({}, "", "/");
+  });
+
   it("renders the store page without an external viewport provider", () => {
     render(<StoreShow {...storeShowProps} />);
 
@@ -284,8 +288,8 @@ describe("page smoke tests", () => {
       ...storeShowProps,
       crates: [
         {
-          slug: "picks",
-          name: "Milkcrate Picks",
+          slug: "wall",
+          name: "The Wall",
           count: 1,
           records: [
             {
@@ -311,10 +315,10 @@ describe("page smoke tests", () => {
       ],
       storefront_sections: [
         {
-          key: "picks_wall",
+          key: "wall",
           crate: {
-            slug: "picks",
-            name: "Milkcrate Picks",
+            slug: "wall",
+            name: "The Wall",
             count: 1,
             records: [
               {
@@ -338,6 +342,37 @@ describe("page smoke tests", () => {
             ],
           },
         },
+        {
+          key: "featured_crates",
+          crates: [
+            {
+              slug: "jazz",
+              name: "Jazz",
+              count: 1,
+              records: [
+                {
+                  id: 2,
+                  discogs_listing_id: "def",
+                  artist: "Jazz Artist",
+                  title: "Jazz Record",
+                  label: null,
+                  year: null,
+                  format: null,
+                  genres: [],
+                  styles: [],
+                  condition: null,
+                  price: "15.00",
+                  currency: "USD",
+                  cover_image_url: null,
+                  thumbnail_url: null,
+                  notes: null,
+                  discogs_url: "https://www.discogs.com/sell/item/2",
+                },
+              ],
+            },
+          ],
+        },
+        { key: "genre_grid", crates: [] },
       ],
     };
 
@@ -345,9 +380,11 @@ describe("page smoke tests", () => {
 
     expect(screen.getByText("Independent record store in South Philly.")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "Open Milkcrate Picks" }));
+    // Select a crate via the browse shell's Featured chip bar
+    await user.click(screen.getByRole("button", { name: "Featured" }));
+    await user.click(screen.getByRole("tab", { name: "Jazz" }));
 
-    expect(window.history.state?.crateSlug).toBe("picks");
+    expect(window.history.state?.crateSlug).toBe("jazz");
     expect(screen.queryByText("Independent record store in South Philly.")).not.toBeInTheDocument();
     expect(screen.queryByText("120 vinyl listings")).not.toBeInTheDocument();
   });
@@ -417,10 +454,10 @@ describe("page smoke tests", () => {
         ],
         storefront_sections: [
           {
-            key: "picks_wall",
+            key: "wall",
             crate: {
-              slug: "picks",
-              name: "Milkcrate Picks",
+              slug: "wall",
+              name: "The Wall",
               count: 1,
               records: [
                 {
@@ -481,7 +518,7 @@ describe("page smoke tests", () => {
       expect(screen.getByRole("button", { name: "The Wall" })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Featured" })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Genres" })).toBeInTheDocument();
-      expect(screen.getByText(/Today's picks, the store's taste at a glance/i)).toBeInTheDocument();
+      expect(screen.getByText(/The store's taste at a glance/i)).toBeInTheDocument();
 
       await user.click(screen.getByRole("button", { name: "Featured" }));
 

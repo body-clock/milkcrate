@@ -26,16 +26,16 @@ class CratePresenter
   end
 
   def build_storefront_sections(groups)
-    sections = [ picks_section(groups) ]
+    sections = [ wall_section(groups) ]
     append_featured(sections, groups[:featured])
     sections << { key: "genre_grid", crates: build_crates(groups[:genres]) }
   end
 
   private
 
-  def picks_section(groups)
-    crate = crate_props(groups[:picks].slug, groups[:picks].name, groups[:picks].listings)
-    { key: "picks_wall", crate: }
+  def wall_section(groups)
+    crate = crate_props(groups[:wall].slug, groups[:wall].name, groups[:wall].listings)
+    { key: "wall", crate: }
   end
 
   def append_featured(sections, featured)

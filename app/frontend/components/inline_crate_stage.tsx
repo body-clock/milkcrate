@@ -8,7 +8,7 @@ interface Props {
   onSelectCrate: (slug: string, startIndex?: number) => void;
 }
 
-export default function CompactCrateStage({ crates, activeSlug, startIndex, onSelectCrate }: Props) {
+export default function InlineCrateStage({ crates, activeSlug, startIndex, onSelectCrate }: Props) {
   if (!activeSlug) return null;
 
   return (

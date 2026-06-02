@@ -33,7 +33,7 @@ vi.mock("@inertiajs/react", () => ({
 const copy = {
   headline: "Browse Discogs like a record store, not an inventory.",
   subhead:
-    "Curated crates from real record stores. Flip through picks, explore genre bins, and discover records you won't find through search alone.",
+    "Curated crates from real record stores. Flip through the wall, explore genre bins, and discover records you won't find through search alone.",
   cta_demo: "Browse a store \u2192",
   hero_subhead: "Browse record crates from real stores. No account needed.",
   steps: {
@@ -46,7 +46,7 @@ const copy = {
     step3_title: "Share your store",
     step3_body: "One link. Your customers browse like they\u2019re in the shop. Share it anywhere.",
   },
-  preview_label: "Flip Through Milkcrate Picks",
+  preview_label: "Flip Through the Wall",
   store_character_title: "Your shop. Crated for browsing.",
   seller_section_title: "Want this for your store?",
   seller_section_body: "Enter your Discogs username to see if your store is eligible.",
@@ -129,10 +129,10 @@ describe("Home page — shopper-first redesign", () => {
       const preview = makePreview({
         sections: [
           {
-            key: "picks_wall",
+            key: "wall",
             crate: {
-              slug: "picks",
-              name: "Milkcrate Picks",
+              slug: "wall",
+              name: "The Wall",
               count: 4,
               records: [
                 {
@@ -161,7 +161,7 @@ describe("Home page — shopper-first redesign", () => {
 
       renderWithTier("wide", <Home copy={copy} preview={preview} />);
 
-      expect(screen.getAllByText("Milkcrate Picks").length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText("The Wall").length).toBeGreaterThanOrEqual(1);
     });
 
     it("renders a CTA when no preview sections exist", () => {
