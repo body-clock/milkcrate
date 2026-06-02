@@ -115,9 +115,17 @@ describe("AppLayout storefront chrome", () => {
     expect(screen.getByRole("alert")).toHaveClass("text-mc-feedback-danger");
   });
 
-  it("offers connected shoppers an explicit footer disconnect path with an empty pile", () => {
+  it("hides footer account chrome on compact storefronts", () => {
     mockedPage.props.shopper = { discogs_username: "shopper1" };
     renderLayout(390);
+
+    expect(screen.queryByRole("contentinfo")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Connected to Discogs as @shopper1/)).not.toBeInTheDocument();
+  });
+
+  it("offers connected shoppers an explicit footer disconnect path outside compact", () => {
+    mockedPage.props.shopper = { discogs_username: "shopper1" };
+    renderLayout(1280);
 
     const footer = screen.getByRole("contentinfo");
     expect(within(footer).getByText(/Connected to Discogs as @shopper1/)).toBeInTheDocument();

@@ -8,28 +8,19 @@ import StorefrontMotionConfig from "@/components/storefront_motion_config";
 import { ViewportProvider } from "@/contexts/viewport_context";
 import { useViewport } from "@/hooks/use_viewport";
 import BrandMark from "@/components/brand_mark";
-import { IconBackButton } from "@/components/back_button";
 import MilkcrateShell from "@/layouts/milkcrate_shell";
 import { ShopperProvider, useShopperContext } from "@/contexts/shopper_context";
 import { DiscogsDisconnectForm } from "@/components/discogs_connection_controls";
 import FeedbackMessage from "@/components/ui/feedback_message";
 import type { Store } from "@/types/inertia";
 
-export interface CompactStoreLocation {
-  name: string;
-  count: number;
-  onBack: () => void;
-}
-
 interface AppLayoutProps {
   children: React.ReactNode;
-  compactLocation?: CompactStoreLocation;
 }
 
 // ── Internal sub-components ───────────────────────────────────
 
 interface AppHeaderProps {
-  compactCrateLocation?: CompactStoreLocation;
   storeName?: string;
   discogsUsername?: string;
   isCompact: boolean;
@@ -42,7 +33,6 @@ interface AppHeaderProps {
 }
 
 function AppHeader({
-  compactCrateLocation,
   storeName,
   discogsUsername,
   isCompact,
@@ -60,21 +50,7 @@ function AppHeader({
       className="mc-header flex items-center justify-between px-4 py-2 sm:py-3 border-b border-mc-border sticky top-0 z-30 bg-mc-bg-raised/95 backdrop-blur-sm"
     >
       <div className="flex min-w-0 items-center leading-none">
-        {compactCrateLocation ? (
-          <>
-            <IconBackButton label="store" onClick={compactCrateLocation.onBack} className="mr-3" />
-            <div className="min-w-0">
-              <span className="mc-brand-title block truncate text-base font-bold text-mc-text">
-                {compactCrateLocation.name}
-              </span>
-              <span className="block text-[10px] tracking-widest uppercase text-mc-text-dim">
-                {compactCrateLocation.count === 1
-                  ? "1 record"
-                  : `${compactCrateLocation.count} records`}
-              </span>
-            </div>
-          </>
-        ) : storeName ? (
+        {storeName ? (
           <div className="flex min-w-0 flex-col">
             <Link
               href={`/${discogsUsername}`}
@@ -130,7 +106,7 @@ function AppHeader({
   );
 }
 
-export function AppLayoutContent({ children, compactLocation }: AppLayoutProps) {
+export function AppLayoutContent({ children }: AppLayoutProps) {
   const page = usePage<{
     notice?: string;
     alert?: string;
@@ -149,12 +125,10 @@ export function AppLayoutContent({ children, compactLocation }: AppLayoutProps) 
     typeof window !== "undefined" && new URLSearchParams(window.location.search).has("open_pile");
   const [pileOpen, setPileOpen] = useState(autoOpenPile);
   const handleClosePile = React.useCallback(() => setPileOpen(false), []);
-  const compactCrateLocation = isCompact ? compactLocation : undefined;
   const contextFocusRef = React.useRef<HTMLElement>(null);
 
   const header = (
     <AppHeader
-      compactCrateLocation={compactCrateLocation}
       storeName={storeName}
       discogsUsername={discogsUsername}
       isCompact={isCompact}
@@ -198,7 +172,7 @@ export function AppLayoutContent({ children, compactLocation }: AppLayoutProps) 
         <MilkcrateShell
           header={header}
           afterHeader={afterHeader}
-          footer={footer}
+          footer={isCompact ? undefined : footer}
           contentWidth="max-w-6xl"
           contentPadding="px-4 sm:px-6 lg:px-8 py-4 sm:py-8"
         >
@@ -216,7 +190,7 @@ export function AppLayoutContent({ children, compactLocation }: AppLayoutProps) 
   );
 }
 
-export default function AppLayout({ children, compactLocation }: AppLayoutProps) {
+export default function AppLayout({ children }: AppLayoutProps) {
   const page = usePage<{ store?: { discogs_username?: string } }>();
   const storeSlug = page.props.store?.discogs_username;
 
@@ -225,7 +199,7 @@ export default function AppLayout({ children, compactLocation }: AppLayoutProps)
       <ViewportProvider>
         <PileProvider storeSlug={storeSlug}>
           <ShopperProvider>
-            <AppLayoutContent compactLocation={compactLocation}>{children}</AppLayoutContent>
+            <AppLayoutContent>{children}</AppLayoutContent>
           </ShopperProvider>
         </PileProvider>
       </ViewportProvider>

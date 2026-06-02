@@ -89,10 +89,10 @@ describe("StoreFloor section labels", () => {
   });
 
   describe("Featured section", () => {
-    it("renders 'Curated crates' description text", () => {
+    it("renders featured inventory description text", () => {
       renderFloor([featuredSection()]);
 
-      expect(screen.getByText(/Curated crates hand-picked by the store/)).toBeInTheDocument();
+      expect(screen.getByText(/Featured bins from this store's inventory/)).toBeInTheDocument();
     });
 
     it("has role=region with accessible label for the featured section", () => {
@@ -105,15 +105,15 @@ describe("StoreFloor section labels", () => {
     it("does not render description when there are 0 crates", () => {
       renderFloor([{ key: "featured_crates", crates: [] }]);
 
-      expect(screen.queryByText(/Curated crates/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Featured bins/)).not.toBeInTheDocument();
     });
   });
 
   describe("Genre section", () => {
-    it("renders 'Browse the full collection' description text", () => {
+    it("renders genre inventory description text", () => {
       renderFloor([genreSection()]);
 
-      expect(screen.getByText(/Browse the full collection by genre/)).toBeInTheDocument();
+      expect(screen.getByText(/Inventory grouped by genre/)).toBeInTheDocument();
     });
 
     it("has role=region with accessible label for the genre section", () => {
@@ -126,7 +126,7 @@ describe("StoreFloor section labels", () => {
     it("does not render description when there are 0 crates", () => {
       renderFloor([{ key: "genre_grid", crates: [] }]);
 
-      expect(screen.queryByText(/Browse the full collection/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Inventory grouped by genre/)).not.toBeInTheDocument();
     });
   });
 
@@ -138,12 +138,12 @@ describe("StoreFloor section labels", () => {
       expect(regions.length).toBeGreaterThanOrEqual(3);
     });
 
-    it("compact tier renders all section descriptions", () => {
-      renderFloorAtTier([picksSectionWith(2), featuredSection(2), genreSection(2)], "compact");
+    it("non-compact tiers render all section descriptions", () => {
+      renderFloorAtTier([picksSectionWith(2), featuredSection(2), genreSection(2)], "wide");
 
       expect(screen.getByText(/Today's picks/)).toBeInTheDocument();
-      expect(screen.getByText(/Curated crates hand-picked by the store/)).toBeInTheDocument();
-      expect(screen.getByText(/Browse the full collection by genre/)).toBeInTheDocument();
+      expect(screen.getByText(/Featured bins from this store's inventory/)).toBeInTheDocument();
+      expect(screen.getByText(/Inventory grouped by genre/)).toBeInTheDocument();
     });
   });
 });

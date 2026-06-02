@@ -1,14 +1,16 @@
-import React from "react"
-import { afterEach, describe, expect, it, vi } from "vitest"
-import { render, screen, waitFor } from "@testing-library/react"
-import userEvent from "@testing-library/user-event"
-import Home from "../../pages/home"
-import { renderWithTier } from "../viewport-test-utils"
-import type { HomepagePreview } from "../../types/inertia"
+import React from "react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import Home from "../../pages/home";
+import { renderWithTier } from "../viewport-test-utils";
+import type { HomepagePreview } from "../../types/inertia";
 
 vi.mock("@inertiajs/react", () => ({
   Link: ({ children, href, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
-    <a href={href} {...props}>{children}</a>
+    <a href={href} {...props}>
+      {children}
+    </a>
   ),
   useForm: () => ({
     data: {
@@ -26,19 +28,21 @@ vi.mock("@inertiajs/react", () => ({
   usePage: () => ({
     props: {} as Record<string, unknown>,
   }),
-}))
+}));
 
 const copy = {
   headline: "Browse Discogs like a record store, not an inventory.",
   subhead:
     "Curated crates from real record stores. Flip through picks, explore genre bins, and discover records you won't find through search alone.",
   cta_demo: "Browse a store \u2192",
-  hero_subhead: "Browse curated crates from real record stores. No account needed.",
+  hero_subhead: "Browse record crates from real stores. No account needed.",
   steps: {
     step1_title: "Connect with Discogs",
-    step1_body: "Authorize with Discogs to claim your storefront. We'll sync your full inventory automatically.",
+    step1_body:
+      "Authorize with Discogs to claim your storefront. We'll sync your full inventory automatically.",
     step2_title: "We curate & organize",
-    step2_body: "Your inventory becomes curated crates \u2014 picks, featured, genre bins. A browsable storefront in minutes.",
+    step2_body:
+      "Your inventory becomes browsable crates \u2014 picks, featured, genre bins. A browsable storefront in minutes.",
     step3_title: "Share your store",
     step3_body: "One link. Your customers browse like they\u2019re in the shop. Share it anywhere.",
   },
@@ -57,7 +61,7 @@ const copy = {
   seller_min_listings: "Milkcrate requires at least 500 listings to create a storefront.",
   seller_lookup_error: "Something went wrong. Please try again.",
   bottom_signoff: "Start browsing or claim your store.",
-}
+};
 
 function makePreview(overrides: Partial<HomepagePreview> = {}): HomepagePreview {
   return {
@@ -65,63 +69,61 @@ function makePreview(overrides: Partial<HomepagePreview> = {}): HomepagePreview 
     store_slug: "philadelphiamusic",
     sections: [],
     ...overrides,
-  }
+  };
 }
 
 // ── Emoji regression characters ──────────────────────────────
-const emojiChars = ["🥛", "📀", "👀", "📦"]
+const emojiChars = ["🥛", "📀", "👀", "📦"];
 
 afterEach(() => {
-  vi.unstubAllGlobals()
-})
+  vi.unstubAllGlobals();
+});
 
 describe("Home page — shopper-first redesign", () => {
   describe("hero section", () => {
     it("renders a shopper-first H1 heading", () => {
-      render(<Home copy={copy} preview={makePreview()} />)
+      render(<Home copy={copy} preview={makePreview()} />);
 
-      expect(
-        screen.getByRole("heading", { name: copy.headline })
-      ).toBeInTheDocument()
-    })
+      expect(screen.getByRole("heading", { name: copy.headline })).toBeInTheDocument();
+    });
 
     it("does not render the milk emoji in the hero", () => {
-      render(<Home copy={copy} preview={makePreview()} />)
+      render(<Home copy={copy} preview={makePreview()} />);
 
-      const hero = document.querySelector("[aria-labelledby]")
-      const textContent = hero?.textContent ?? ""
+      const hero = document.querySelector("[aria-labelledby]");
+      const textContent = hero?.textContent ?? "";
       for (const emoji of emojiChars) {
-        expect(textContent).not.toContain(emoji)
+        expect(textContent).not.toContain(emoji);
       }
-    })
+    });
 
     it("renders the demo CTA linking to the demo store", () => {
-      render(<Home copy={copy} preview={makePreview()} />)
+      render(<Home copy={copy} preview={makePreview()} />);
 
-      const demoLink = screen.getByRole("link", { name: copy.cta_demo })
-      expect(demoLink).toHaveAttribute("href", "/philadelphiamusic")
-      expect(demoLink.className).toContain("ring-mc-focus")
-    })
+      const demoLink = screen.getByRole("link", { name: copy.cta_demo });
+      expect(demoLink).toHaveAttribute("href", "/philadelphiamusic");
+      expect(demoLink.className).toContain("ring-mc-focus");
+    });
 
     it("does not render a 'Get your store' button in the hero", () => {
-      render(<Home copy={copy} preview={makePreview()} />)
+      render(<Home copy={copy} preview={makePreview()} />);
 
-      expect(screen.queryByText("Get your store on Milkcrate")).not.toBeInTheDocument()
-    })
+      expect(screen.queryByText("Get your store on Milkcrate")).not.toBeInTheDocument();
+    });
 
     it("does not render the old footnote", () => {
-      render(<Home copy={copy} preview={makePreview()} />)
+      render(<Home copy={copy} preview={makePreview()} />);
 
-      expect(screen.queryByText("Early access. We handle the setup.")).not.toBeInTheDocument()
-    })
-  })
+      expect(screen.queryByText("Early access. We handle the setup.")).not.toBeInTheDocument();
+    });
+  });
 
   describe("storefront preview section", () => {
     it("renders the preview section label", () => {
-      render(<Home copy={copy} preview={makePreview()} />)
+      render(<Home copy={copy} preview={makePreview()} />);
 
-      expect(screen.getByText(copy.preview_label)).toBeInTheDocument()
-    })
+      expect(screen.getByText(copy.preview_label)).toBeInTheDocument();
+    });
 
     it("renders preview crates when sections are present", () => {
       const preview = makePreview({
@@ -155,229 +157,228 @@ describe("Home page — shopper-first redesign", () => {
             },
           },
         ],
-      })
+      });
 
-      renderWithTier(
-        "wide",
-        <Home copy={copy} preview={preview} />
-      )
+      renderWithTier("wide", <Home copy={copy} preview={preview} />);
 
-      expect(screen.getAllByText("Milkcrate Picks").length).toBeGreaterThanOrEqual(1)
-    })
+      expect(screen.getAllByText("Milkcrate Picks").length).toBeGreaterThanOrEqual(1);
+    });
 
     it("renders a CTA when no preview sections exist", () => {
-      const preview = makePreview({ sections: [] })
+      const preview = makePreview({ sections: [] });
 
-      render(<Home copy={copy} preview={preview} />)
+      render(<Home copy={copy} preview={preview} />);
 
-      expect(screen.getByText(copy.preview_label)).toBeInTheDocument()
-    })
-  })
+      expect(screen.getByText(copy.preview_label)).toBeInTheDocument();
+    });
+  });
 
   describe("store character section", () => {
     it("renders the store character section title", () => {
-      render(<Home copy={copy} preview={makePreview()} />)
+      render(<Home copy={copy} preview={makePreview()} />);
 
-      expect(
-        screen.getByText(copy.store_character_title)
-      ).toBeInTheDocument()
-    })
+      expect(screen.getByText(copy.store_character_title)).toBeInTheDocument();
+    });
 
     it("does not use emoji as decorative icons", () => {
-      render(<Home copy={copy} preview={makePreview()} />)
+      render(<Home copy={copy} preview={makePreview()} />);
 
-      const body = document.body.textContent ?? ""
+      const body = document.body.textContent ?? "";
       for (const emoji of emojiChars) {
-        expect(body).not.toContain(emoji)
+        expect(body).not.toContain(emoji);
       }
-    })
+    });
 
     it("does not advertise one-click Discogs cart transfer", () => {
-      render(<Home copy={copy} preview={makePreview()} />)
+      render(<Home copy={copy} preview={makePreview()} />);
 
-      expect(screen.queryByText(/One click sends everything to their Discogs cart/i)).not.toBeInTheDocument()
-    })
+      expect(
+        screen.queryByText(/One click sends everything to their Discogs cart/i),
+      ).not.toBeInTheDocument();
+    });
 
     it("does not claim stores manually spotlight featured crates", () => {
-      render(<Home copy={copy} preview={makePreview()} />)
+      render(<Home copy={copy} preview={makePreview()} />);
 
-      expect(screen.queryByText(/Spotlight the crates you want customers to see first/i)).not.toBeInTheDocument()
-    })
-  })
+      expect(
+        screen.queryByText(/Spotlight the crates you want customers to see first/i),
+      ).not.toBeInTheDocument();
+    });
+  });
 
   describe("seller OAuth section", () => {
     it("renders the seller section title", () => {
-      render(<Home copy={copy} preview={makePreview()} />)
+      render(<Home copy={copy} preview={makePreview()} />);
 
-      expect(screen.getByText(copy.seller_section_title)).toBeInTheDocument()
-    })
+      expect(screen.getByText(copy.seller_section_title)).toBeInTheDocument();
+    });
 
     it("renders the Discogs username input", () => {
-      render(<Home copy={copy} preview={makePreview()} />)
+      render(<Home copy={copy} preview={makePreview()} />);
 
-      expect(screen.getByLabelText(copy.seller_input_label)).toBeInTheDocument()
-    })
+      expect(screen.getByLabelText(copy.seller_input_label)).toBeInTheDocument();
+    });
 
     it("renders the submit button", () => {
-      render(<Home copy={copy} preview={makePreview()} />)
+      render(<Home copy={copy} preview={makePreview()} />);
 
-      expect(screen.getByRole("button", { name: copy.seller_submit })).toBeInTheDocument()
-    })
+      expect(screen.getByRole("button", { name: copy.seller_submit })).toBeInTheDocument();
+    });
 
     it("renders a waitlist fallback link", () => {
-      render(<Home copy={copy} preview={makePreview()} />)
+      render(<Home copy={copy} preview={makePreview()} />);
 
-      const fallback = screen.getByRole("link", { name: copy.seller_waitlist_fallback })
-      expect(fallback).toHaveAttribute("href", "/apply")
-    })
+      const fallback = screen.getByRole("link", { name: copy.seller_waitlist_fallback });
+      expect(fallback).toHaveAttribute("href", "/apply");
+    });
 
     it("keeps successful lookup claim submission on the existing OAuth path", async () => {
-      vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
-        ok: true,
-        json: async () => ({
-          found: true,
-          seller_name: "Philadelphia Music",
-          avatar_url: "",
-          slug: "philadelphiamusic",
-          store_status: "none",
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: async () => ({
+            found: true,
+            seller_name: "Philadelphia Music",
+            avatar_url: "",
+            slug: "philadelphiamusic",
+            store_status: "none",
+          }),
         }),
-      }))
-      const user = userEvent.setup()
+      );
+      const user = userEvent.setup();
 
-      render(<Home copy={copy} preview={makePreview()} />)
-      await user.type(screen.getByLabelText(copy.seller_input_label), "philadelphiamusic")
-      await user.click(screen.getByRole("button", { name: copy.seller_submit }))
+      render(<Home copy={copy} preview={makePreview()} />);
+      await user.type(screen.getByLabelText(copy.seller_input_label), "philadelphiamusic");
+      await user.click(screen.getByRole("button", { name: copy.seller_submit }));
 
-      const claim = await screen.findByRole("button", { name: copy.seller_preview_claim })
-      expect(claim.closest("form")).toHaveAttribute("action", "/philadelphiamusic/authorize")
-      expect(claim.className).toContain("ring-mc-focus")
-      await waitFor(() => expect(screen.getByText("Philadelphia Music")).toBeInTheDocument())
-    })
-  })
+      const claim = await screen.findByRole("button", { name: copy.seller_preview_claim });
+      expect(claim.closest("form")).toHaveAttribute("action", "/philadelphiamusic/authorize");
+      expect(claim.className).toContain("ring-mc-focus");
+      await waitFor(() => expect(screen.getByText("Philadelphia Music")).toBeInTheDocument());
+    });
+  });
 
   describe("onboarding steps", () => {
     it("renders all three updated step titles", () => {
-      render(<Home copy={copy} preview={makePreview()} />)
+      render(<Home copy={copy} preview={makePreview()} />);
 
-      expect(screen.getByText(copy.steps.step1_title)).toBeInTheDocument()
-      expect(screen.getByText(copy.steps.step2_title)).toBeInTheDocument()
-      expect(screen.getByText(copy.steps.step3_title)).toBeInTheDocument()
-    })
+      expect(screen.getByText(copy.steps.step1_title)).toBeInTheDocument();
+      expect(screen.getByText(copy.steps.step2_title)).toBeInTheDocument();
+      expect(screen.getByText(copy.steps.step3_title)).toBeInTheDocument();
+    });
 
     it("renders updated step body text", () => {
-      render(<Home copy={copy} preview={makePreview()} />)
+      render(<Home copy={copy} preview={makePreview()} />);
 
-      expect(screen.getByText(copy.steps.step1_body)).toBeInTheDocument()
-      expect(screen.getByText(copy.steps.step2_body)).toBeInTheDocument()
-      expect(screen.getByText(copy.steps.step3_body)).toBeInTheDocument()
-    })
-  })
+      expect(screen.getByText(copy.steps.step1_body)).toBeInTheDocument();
+      expect(screen.getByText(copy.steps.step2_body)).toBeInTheDocument();
+      expect(screen.getByText(copy.steps.step3_body)).toBeInTheDocument();
+    });
+  });
 
   describe("bottom section", () => {
     it("renders the bottom sign-off text", () => {
-      render(<Home copy={copy} preview={makePreview()} />)
+      render(<Home copy={copy} preview={makePreview()} />);
 
-      expect(screen.getByText(copy.bottom_signoff)).toBeInTheDocument()
-    })
+      expect(screen.getByText(copy.bottom_signoff)).toBeInTheDocument();
+    });
 
     it("does not render the old final CTA section", () => {
-      render(<Home copy={copy} preview={makePreview()} />)
+      render(<Home copy={copy} preview={makePreview()} />);
 
-      expect(screen.queryByText("We\u2019re onboarding stores one at a time. Tell us about yours and we\u2019ll be in touch.")).not.toBeInTheDocument()
-    })
-  })
+      expect(
+        screen.queryByText(
+          "We\u2019re onboarding stores one at a time. Tell us about yours and we\u2019ll be in touch.",
+        ),
+      ).not.toBeInTheDocument();
+    });
+  });
 
   describe("removed sections", () => {
     it("does not render the record fair callout", () => {
-      render(<Home copy={copy} preview={makePreview()} />)
+      render(<Home copy={copy} preview={makePreview()} />);
 
-      expect(screen.queryByText("Bring your store to the next record fair")).not.toBeInTheDocument()
-    })
-  })
+      expect(
+        screen.queryByText("Bring your store to the next record fair"),
+      ).not.toBeInTheDocument();
+    });
+  });
 
   describe("emoji regression", () => {
     it("does not render any emoji in the entire page", () => {
-      render(<Home copy={copy} preview={makePreview()} />)
+      render(<Home copy={copy} preview={makePreview()} />);
 
-      const textContent = document.body.textContent ?? ""
+      const textContent = document.body.textContent ?? "";
 
       for (const emoji of emojiChars) {
-        expect(textContent).not.toContain(emoji)
+        expect(textContent).not.toContain(emoji);
       }
-    })
+    });
 
     it("does not use the milk emoji as a hero icon", () => {
-      render(<Home copy={copy} preview={makePreview()} />)
+      render(<Home copy={copy} preview={makePreview()} />);
 
-      expect(document.body.innerHTML).not.toContain("🥛")
-    })
-  })
+      expect(document.body.innerHTML).not.toContain("🥛");
+    });
+  });
 
   describe("responsive rendering", () => {
     it("renders at compact tier without horizontal overflow or errors", () => {
-      const { container } = renderWithTier(
-        "compact",
-        <Home copy={copy} preview={makePreview()} />
-      )
+      const { container } = renderWithTier("compact", <Home copy={copy} preview={makePreview()} />);
 
-      expect(container).toBeInTheDocument()
-      expect(screen.getByRole("heading", { name: copy.headline })).toBeInTheDocument()
-    })
+      expect(container).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: copy.headline })).toBeInTheDocument();
+    });
 
     it("renders at comfy tier without errors", () => {
-      const { container } = renderWithTier(
-        "comfy",
-        <Home copy={copy} preview={makePreview()} />
-      )
+      const { container } = renderWithTier("comfy", <Home copy={copy} preview={makePreview()} />);
 
-      expect(container).toBeInTheDocument()
-      expect(screen.getByRole("heading", { name: copy.headline })).toBeInTheDocument()
-    })
+      expect(container).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: copy.headline })).toBeInTheDocument();
+    });
 
     it("renders at wide tier without errors", () => {
-      const { container } = renderWithTier(
-        "wide",
-        <Home copy={copy} preview={makePreview()} />
-      )
+      const { container } = renderWithTier("wide", <Home copy={copy} preview={makePreview()} />);
 
-      expect(container).toBeInTheDocument()
-      expect(screen.getByRole("heading", { name: copy.headline })).toBeInTheDocument()
-    })
-  })
+      expect(container).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: copy.headline })).toBeInTheDocument();
+    });
+  });
 
   describe("accessibility", () => {
     it("CTA links have discernible text", () => {
-      render(<Home copy={copy} preview={makePreview()} />)
+      render(<Home copy={copy} preview={makePreview()} />);
 
-      const demoLinks = screen.getAllByRole("link", { name: copy.cta_demo })
-      expect(demoLinks.length).toBeGreaterThanOrEqual(1)
+      const demoLinks = screen.getAllByRole("link", { name: copy.cta_demo });
+      expect(demoLinks.length).toBeGreaterThanOrEqual(1);
 
-      const fallbackLink = screen.getByRole("link", { name: copy.seller_waitlist_fallback })
-      expect(fallbackLink).toBeInTheDocument()
-    })
+      const fallbackLink = screen.getByRole("link", { name: copy.seller_waitlist_fallback });
+      expect(fallbackLink).toBeInTheDocument();
+    });
 
     it("sections have meaningful headings", () => {
-      render(<Home copy={copy} preview={makePreview()} />)
+      render(<Home copy={copy} preview={makePreview()} />);
 
-      const headings = screen.getAllByRole("heading")
-      expect(headings.length).toBeGreaterThan(1)
+      const headings = screen.getAllByRole("heading");
+      expect(headings.length).toBeGreaterThan(1);
 
-      expect(headings[0]).toHaveTextContent(copy.headline)
-    })
+      expect(headings[0]).toHaveTextContent(copy.headline);
+    });
 
     it("focus order follows visual order (links are keyboard reachable)", () => {
-      render(<Home copy={copy} preview={makePreview()} />)
+      render(<Home copy={copy} preview={makePreview()} />);
 
-      const links = screen.getAllByRole("link")
-      expect(links.length).toBeGreaterThanOrEqual(2)
-    })
+      const links = screen.getAllByRole("link");
+      expect(links.length).toBeGreaterThanOrEqual(2);
+    });
 
     it("seller input has an associated label", () => {
-      render(<Home copy={copy} preview={makePreview()} />)
+      render(<Home copy={copy} preview={makePreview()} />);
 
-      const input = screen.getByLabelText(copy.seller_input_label)
-      expect(input).toHaveAttribute("type", "text")
-      expect(input).toHaveAttribute("id", "seller-discogs-username")
-    })
-  })
-})
+      const input = screen.getByLabelText(copy.seller_input_label);
+      expect(input).toHaveAttribute("type", "text");
+      expect(input).toHaveAttribute("id", "seller-discogs-username");
+    });
+  });
+});
