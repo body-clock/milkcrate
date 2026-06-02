@@ -20,7 +20,7 @@ interface Params {
 }
 
 function sectionCrateMap(sections: StorefrontSection[]) {
-  const wallSection = sections.find((s) => s.key === "picks_wall");
+  const wallSection = sections.find((s) => s.key === "wall");
   const featuredSection = sections.find((s) => s.key === "featured_crates");
   const genreSection = sections.find((s) => s.key === "genre_grid");
 
@@ -32,9 +32,15 @@ function sectionCrateMap(sections: StorefrontSection[]) {
 }
 
 function modeForSlug(slug: string | null, featured: Crate[], genres: Crate[]): BrowseMode {
-  if (!slug) return "wall";
-  if (featured.some((c) => c.slug === slug)) return "featured";
-  if (genres.some((c) => c.slug === slug)) return "genres";
+  if (!slug) {
+    return "wall";
+  }
+  if (featured.some((c) => c.slug === slug)) {
+    return "featured";
+  }
+  if (genres.some((c) => c.slug === slug)) {
+    return "genres";
+  }
   return "wall";
 }
 
@@ -62,7 +68,9 @@ export function useBrowseRouting({
   };
 
   const handleWallSelected = () => {
-    if (activeSlug) backToStore();
+    if (activeSlug) {
+      backToStore();
+    }
     setMode("wall");
   };
 

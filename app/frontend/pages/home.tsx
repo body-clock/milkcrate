@@ -69,7 +69,7 @@ interface FeatureData {
 }
 
 const FEATURES: FeatureData[] = [
-  { title: "Milkcrate Picks", description: "Interesting finds from the whole collection." },
+  { title: "The Wall", description: "Interesting finds from the whole collection." },
   {
     title: "Featured Crates",
     description: "Spotlight new arrivals, randomized sub-genres, and hidden gems.",
@@ -119,8 +119,8 @@ function StepCard({
 
 export default function Home({ copy, preview }: Props) {
   const hasPreview = preview.sections.length > 0;
-  const picksSection = preview.sections.find((section) => section.key === "picks_wall");
-  const picksCrate = picksSection?.key === "picks_wall" ? picksSection.crate : undefined;
+  const wallSection = preview.sections.find((section) => section.key === "wall");
+  const wallCrate = wallSection?.key === "wall" ? wallSection.crate : undefined;
   const demoHref =
     hasPreview && preview.store_slug ? `/${preview.store_slug}` : "/philadelphiamusic";
 
@@ -191,13 +191,13 @@ export default function Home({ copy, preview }: Props) {
           </motion.p>
         </div>
 
-        {picksCrate && picksCrate.records.length > 0 ? (
+        {wallCrate && wallCrate.records.length > 0 ? (
           <>
             <div className="max-w-4xl mx-auto">
               <PileProvider>
                 <CrateView
-                  crates={[picksCrate]}
-                  activeSlug={picksCrate.slug}
+                  crates={[wallCrate]}
+                  activeSlug={wallCrate.slug}
                   hideTabs
                   onSelectCrate={() => {}}
                 />
@@ -233,7 +233,7 @@ export default function Home({ copy, preview }: Props) {
           <div className="text-center max-w-md mx-auto">
             <p className="text-sm text-mc-text-dim mb-4">
               We&apos;ll show the full Milkcrate experience in the demo store. Start with a curated
-              picks crate.
+              wall crate.
             </p>
             <Link
               href="/philadelphiamusic"

@@ -28,15 +28,15 @@ const makeListing = (id: number): Listing => ({
 });
 
 const crate: Crate = {
-  slug: "picks",
-  name: "Milkcrate Picks",
+  slug: "wall",
+  name: "The Wall",
   count: 6,
   records: Array.from({ length: 6 }, (_, index) => makeListing(index + 1)),
 };
 
 const largeCrate: Crate = {
-  slug: "picks",
-  name: "Milkcrate Picks",
+  slug: "wall",
+  name: "The Wall",
   count: 13,
   records: Array.from({ length: 13 }, (_, index) => makeListing(index + 1)),
 };
@@ -149,8 +149,8 @@ describe("WallPanel", () => {
 
   describe("responsive density (AE3)", () => {
     const twelveRecords: Crate = {
-      slug: "picks",
-      name: "Milkcrate Picks",
+      slug: "wall",
+      name: "The Wall",
       count: 12,
       records: Array.from({ length: 12 }, (_, index) => makeListing(index + 1)),
     };
@@ -190,7 +190,7 @@ describe("WallPanel", () => {
       expect(screen.queryByRole("tablist", { name: "Wall pages" })).not.toBeInTheDocument();
     });
 
-    it("comfy Wall with 13 records renders 8 visible tiles and a second page indicator", () => {
+    it("comfy Wall shows all 13 records on one page (no pagination)", () => {
       renderWithTier(
         "comfy",
         <StorefrontMotionConfig>
@@ -201,17 +201,16 @@ describe("WallPanel", () => {
       );
 
       const tiles = screen.getAllByRole("button", { name: /Inspect Record/ });
-      expect(tiles).toHaveLength(8);
+      expect(tiles).toHaveLength(13);
 
-      const tablist = screen.getByRole("tablist", { name: "Wall pages" });
-      const tabs = within(tablist).getAllByRole("tab");
-      expect(tabs).toHaveLength(2);
+      // No pagination on comfy — all records on one page
+      expect(screen.queryByRole("tablist", { name: "Wall pages" })).not.toBeInTheDocument();
     });
 
     it("clamps page index when rerendered at a tier with fewer pages", async () => {
       const eighteenRecords: Crate = {
-        slug: "picks",
-        name: "Milkcrate Picks",
+        slug: "wall",
+        name: "The Wall",
         count: 18,
         records: Array.from({ length: 18 }, (_, index) => makeListing(index + 1)),
       };

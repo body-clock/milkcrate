@@ -14,23 +14,23 @@ RSpec.describe StorefrontCuration do
       expect(curation.crates).to all(be_a(CuratedCrate))
     end
 
-    it "returns picks crate with at most 12 records" do
+    it "returns wall crate with at most 12 records" do
       store = create(:store)
       15.times { |i| lp_listing(store, genres: [ "Genre#{i}" ]) }
 
       curation = described_class.new(store)
-      picks_crate = curation.crates.find { |crate| crate.slug == "picks" }
-      expect(picks_crate.listings.size).to be <= 12
+      wall_crate = curation.crates.find { |crate| crate.slug == "wall" }
+      expect(wall_crate.listings.size).to be <= 12
     end
 
-    it "returns only available LP listings in picks crate" do
+    it "returns only available LP listings in wall crate" do
       store = create(:store)
       lp_listing(store, genres: [ "Jazz" ])
       create(:listing, store:, format: "LP", last_seen_at: 10.days.ago, genres: [ "Rock" ])
 
       curation = described_class.new(store)
-      picks_crate = curation.crates.find { |crate| crate.slug == "picks" }
-      expect(picks_crate.listings.size).to eq(1)
+      wall_crate = curation.crates.find { |crate| crate.slug == "wall" }
+      expect(wall_crate.listings.size).to eq(1)
     end
 
     it "does not surface listings missing from latest synced inventory" do
@@ -40,40 +40,40 @@ RSpec.describe StorefrontCuration do
         create(:listing, store:, format: "LP", last_seen_at: 3.hours.ago, genres: [ "Rock" ])
 
         curation = described_class.new(store)
-        picks_crate = curation.crates.find { |crate| crate.slug == "picks" }
-        expect(picks_crate.listings).to include(fresh)
-        expect(picks_crate.listings.size).to eq(1)
+        wall_crate = curation.crates.find { |crate| crate.slug == "wall" }
+        expect(wall_crate.listings).to include(fresh)
+        expect(wall_crate.listings.size).to eq(1)
       end
     end
 
-    it "adds genre crates after picks" do
+    it "adds genre crates after wall" do
       store = create(:store)
       listings = lp_listings(store, count: 5, genres: [ "Jazz" ], styles: [ "Bop" ])
 
-      curation = curation_with_strategies(store, picks: [], genre_scores: listings.each_with_index.to_h { |l, i| [ l.id, i + 1 ] })
+      curation = curation_with_strategies(store, wall: [], genre_scores: listings.each_with_index.to_h { |l, i| [ l.id, i + 1 ] })
       crates = curation.crates
-      expect(crates.first.slug).to eq("picks")
+      expect(crates.first.slug).to eq("wall")
       expect(crates.map(&:name)).to include("Jazz")
     end
 
-    it "excludes records that appear in picks" do
+    it "excludes records that appear on the wall" do
       store = create(:store)
       listing = lp_listing(store, genres: [ "Jazz" ])
 
-      curation = curation_with_strategies(store, picks: [ listing ], genre_scores: { listing.id => 10 })
+      curation = curation_with_strategies(store, wall: [ listing ], genre_scores: { listing.id => 10 })
       jazz_crate = curation.crates.find { |crate| crate.name == "Jazz" }
       expect(jazz_crate&.listings || []).not_to include(listing)
     end
 
-    it "skips genres with no records remaining after picks exclusion" do
+    it "skips genres with no records remaining after wall exclusion" do
       store = create(:store)
       listing = lp_listing(store, genres: [ "Jazz" ])
 
-      curation = curation_with_strategies(store, picks: [ listing ], genre_scores: { listing.id => 10 })
+      curation = curation_with_strategies(store, wall: [ listing ], genre_scores: { listing.id => 10 })
       expect(curation.crates.map(&:name)).not_to include("Jazz")
     end
 
-    it "includes genres that have records not in picks" do
+    it "includes genres that have records not on the wall" do
       store = create(:store)
       jazz1 = lp_listing(store, genres: [ "Jazz" ])
       jazz2 = lp_listing(store, genres: [ "Jazz" ])
@@ -81,7 +81,7 @@ RSpec.describe StorefrontCuration do
       jazz4 = lp_listing(store, genres: [ "Jazz" ])
       jazz5 = lp_listing(store, genres: [ "Jazz" ])
 
-      curation = curation_with_strategies(store, picks: [ jazz1 ], genre_scores: { jazz1.id => 5, jazz2.id => 10, jazz3.id => 9, jazz4.id => 8, jazz5.id => 7 })
+      curation = curation_with_strategies(store, wall: [ jazz1 ], genre_scores: { jazz1.id => 5, jazz2.id => 10, jazz3.id => 9, jazz4.id => 8, jazz5.id => 7 })
       jazz_crate = curation.crates.find { |crate| crate.name == "Jazz" }
       expect(jazz_crate).to be_present
       expect(jazz_crate.listings).to eq([ jazz2, jazz3, jazz4, jazz5 ])
@@ -94,8 +94,10 @@ RSpec.describe StorefrontCuration do
       gems = lp_listings(store, count: 4, genres: [ "Jazz" ], styles: [ "Rare Groove" ])
       curation = described_class.new(store)
 
-      allow(curation).to receive(:picks_strategy)
-        .and_return(instance_double(CrateStrategies::Picks, select: []))
+      wall_crate = CuratedCrate.new(slug: "wall", name: "The Wall", listings: [])
+      allow(Wall).to receive(:new).and_return(
+        instance_double(Wall, crate: wall_crate, excluded_ids: Set.new)
+      )
       allow(curation).to receive(:new_arrivals_strategy)
         .and_return(instance_double(CrateStrategies::NewArrivals, select: []))
       allow(curation).to receive(:thematic_strategy)
@@ -112,12 +114,12 @@ RSpec.describe StorefrontCuration do
     it "returns grouped crates without storefront section keys" do
       travel_to(Time.zone.parse("2026-05-05 12:00:00")) do
         store = create(:store)
-        picks = lp_listings(store, count: 1, genres: [ "Jazz" ], styles: [ "Bop" ], listed_at: 10.days.ago)
+        wall = lp_listings(store, count: 1, genres: [ "Jazz" ], styles: [ "Bop" ], listed_at: 10.days.ago)
         fresh = lp_listings(store, count: 4, genres: [ "Soul" ], styles: [ "Deep Funk" ], listed_at: 1.day.ago)
         themed = lp_listings(store, count: 4, genres: [ "Funk / Soul" ], styles: [ "Boogie" ], listed_at: 5.days.ago)
         genre_only = lp_listings(store, count: 4, genres: [ "Rock" ], styles: [ "Indie Rock" ], listed_at: 9.days.ago)
 
-        all_listings = picks + fresh + themed + genre_only
+        all_listings = wall + fresh + themed + genre_only
         genre_scores = all_listings.each_with_index.to_h { |l, i| [ l.id, all_listings.size - i ] }
 
         na_crate = CuratedCrate.new(slug: "new-arrivals", name: "New Arrivals", listings: fresh)
@@ -125,15 +127,15 @@ RSpec.describe StorefrontCuration do
 
         curation = curation_with_strategies(
           store,
-          picks:,
+          wall:,
           genre_scores:,
           featured: [ na_crate, tm_crate ]
         )
 
         groups = curation.storefront_groups
 
-        expect(groups.keys).to eq(%i[picks featured genres])
-        expect(groups[:picks].slug).to eq("picks")
+        expect(groups.keys).to eq(%i[wall featured genres])
+        expect(groups[:wall].slug).to eq("wall")
         expect(groups[:featured].map(&:slug)).to eq(%w[new-arrivals thematic])
         expect(groups[:featured].first.listings).to eq(fresh)
         expect(groups[:genres].map(&:slug)).to eq([ "rock" ])
@@ -141,15 +143,15 @@ RSpec.describe StorefrontCuration do
       end
     end
 
-    it "dedupes top down across picks featured and genre groups" do
+    it "dedupes top down across wall featured and genre groups" do
       travel_to(Time.zone.parse("2026-05-05 12:00:00")) do
         store = create(:store)
-        pick = lp_listings(store, count: 1, genres: [ "Jazz" ], styles: [ "Bop" ], listed_at: 10.days.ago)
+        wall_listing = lp_listings(store, count: 1, genres: [ "Jazz" ], styles: [ "Bop" ], listed_at: 10.days.ago)
         fresh = lp_listings(store, count: 4, genres: [ "Soul" ], styles: [ "Deep Funk" ], listed_at: 1.day.ago)
         themed = lp_listings(store, count: 4, genres: [ "Funk / Soul" ], styles: [ "Boogie" ], listed_at: 5.days.ago)
         genre = lp_listings(store, count: 4, genres: [ "Rock" ], styles: [ "Indie Rock" ], listed_at: 9.days.ago)
 
-        all_listings = pick + fresh + themed + genre
+        all_listings = wall_listing + fresh + themed + genre
         genre_scores = all_listings.each_with_index.to_h { |l, i| [ l.id, all_listings.size - i ] }
 
         na_crate = CuratedCrate.new(slug: "new-arrivals", name: "New Arrivals", listings: fresh)
@@ -157,7 +159,7 @@ RSpec.describe StorefrontCuration do
 
         curation = curation_with_strategies(
           store,
-          picks: pick,
+          wall: wall_listing,
           genre_scores:,
           featured: [ na_crate, tm_crate ]
         )
@@ -166,8 +168,8 @@ RSpec.describe StorefrontCuration do
         featured_records = groups[:featured].flat_map(&:listings)
         genre_records = groups[:genres].flat_map(&:listings)
 
-        expect(featured_records).not_to include(pick)
-        expect(genre_records).not_to include(*pick, *fresh, *themed)
+        expect(featured_records).not_to include(wall_listing)
+        expect(genre_records).not_to include(*wall_listing, *fresh, *themed)
         expect(genre_records).to eq(genre)
       end
     end
@@ -175,17 +177,17 @@ RSpec.describe StorefrontCuration do
     it "returns an empty featured group when a featured crate underfills" do
       travel_to(Time.zone.parse("2026-05-05 12:00:00")) do
         store = create(:store)
-        pick = lp_listings(store, count: 1, genres: [ "Jazz" ], styles: [ "Bop" ])
+        wall_listing = lp_listings(store, count: 1, genres: [ "Jazz" ], styles: [ "Bop" ])
         fresh = lp_listings(store, count: 4, genres: [ "Soul" ], styles: [ "Deep Funk" ], listed_at: 1.day.ago)
         themed = lp_listings(store, count: 4, genres: [ "Funk / Soul" ], styles: [ "Boogie" ], listed_at: 2.days.ago)
         genre = lp_listings(store, count: 4, genres: [ "Rock" ], styles: [ "Indie Rock" ])
 
-        all_listings = pick + fresh + themed + genre
+        all_listings = wall_listing + fresh + themed + genre
         genre_scores = all_listings.each_with_index.to_h { |l, i| [ l.id, all_listings.size - i ] }
 
         curation = curation_with_strategies(
           store,
-          picks: pick,
+          wall: wall_listing,
           genre_scores:,
           featured: [] # underfilled — featured row omitted
         )
@@ -200,7 +202,7 @@ RSpec.describe StorefrontCuration do
     it "picks same thematic crate for same store and day" do
       travel_to(Time.zone.parse("2026-05-05 12:00:00")) do
         store = create(:store)
-        pick = lp_listings(store, count: 1, genres: [ "Jazz" ], styles: [ "Bop" ], listed_at: 10.days.ago)
+        wall_listing = lp_listings(store, count: 1, genres: [ "Jazz" ], styles: [ "Bop" ], listed_at: 10.days.ago)
         lp_listings(store, count: 4, genres: [ "Soul" ], styles: [ "Deep Funk" ], listed_at: 1.day.ago)
         lp_listings(store, count: 4, genres: [ "Funk / Soul" ], styles: [ "Boogie" ], listed_at: 5.days.ago)
         lp_listings(store, count: 4, genres: [ "Electronic" ], styles: [ "House" ], listed_at: 6.days.ago)
@@ -227,7 +229,7 @@ RSpec.describe StorefrontCuration do
       store = create(:store)
       listing = lp_listing(store, genres: [ "Jazz" ])
 
-      curation = curation_with_strategies(store, picks: [ listing ], genre_scores: { listing.id => 10 })
+      curation = curation_with_strategies(store, wall: [ listing ], genre_scores: { listing.id => 10 })
       expect(curation.surfaced_listings).to eq([ listing ])
     end
   end
@@ -253,7 +255,7 @@ RSpec.describe StorefrontCuration do
       result = described_class.cached_curation(store, cache: cache)
 
       first_section = result[:sections].first
-      expect(first_section[:key]).to eq("picks_wall")
+      expect(first_section[:key]).to eq("wall")
       expect(first_section[:crate]).to be_a(Hash)
       expect(first_section[:crate].keys).to include(:slug, :name, :count, :records)
     end
@@ -281,11 +283,12 @@ RSpec.describe StorefrontCuration do
       expect(result[:crates]).to be_present
     end
 
-    it "cache key includes store id, current date, and scope" do
+    it "cache key includes store id, current date, scope, and wall_count" do
       key = StorefrontCuration::CacheManager::CURATION_CACHE_KEY % {
         store_id: store.id,
         date: Date.current.iso8601,
-        scope: "available"
+        scope: "available",
+        wall_count: Settings.storefront.wall_count
       }
 
       described_class.cached_curation(store, cache: cache)
@@ -295,7 +298,8 @@ RSpec.describe StorefrontCuration do
       other_key = StorefrontCuration::CacheManager::CURATION_CACHE_KEY % {
         store_id: store.id,
         date: (Date.current + 1.day).iso8601,
-        scope: "available"
+        scope: "available",
+        wall_count: Settings.storefront.wall_count
       }
       expect(cache.exist?(other_key)).to be false
     end
@@ -304,12 +308,14 @@ RSpec.describe StorefrontCuration do
       available_key = StorefrontCuration::CacheManager::CURATION_CACHE_KEY % {
         store_id: store.id,
         date: Date.current.iso8601,
-        scope: "available"
+        scope: "available",
+        wall_count: Settings.storefront.wall_count
       }
       all_key = StorefrontCuration::CacheManager::CURATION_CACHE_KEY % {
         store_id: store.id,
         date: Date.current.iso8601,
-        scope: "all"
+        scope: "all",
+        wall_count: Settings.storefront.wall_count
       }
 
       described_class.cached_curation(store, cache: cache)
@@ -344,12 +350,13 @@ RSpec.describe StorefrontCuration do
     let(:store) { create(:store) }
     let(:cache) { ActiveSupport::Cache::MemoryStore.new }
 
-    it "writes the payload to cache with the correct key including scope" do
+    it "writes the payload to cache with the correct key including scope and wall_count" do
       payload = { sections: [], crates: [] }
       key = StorefrontCuration::CacheManager::CURATION_CACHE_KEY % {
         store_id: store.id,
         date: Date.current.iso8601,
-        scope: "available"
+        scope: "available",
+        wall_count: Settings.storefront.wall_count
       }
 
       described_class.write_curation_cache(store, payload, cache: cache)
@@ -362,12 +369,14 @@ RSpec.describe StorefrontCuration do
       available_key = StorefrontCuration::CacheManager::CURATION_CACHE_KEY % {
         store_id: store.id,
         date: Date.current.iso8601,
-        scope: "available"
+        scope: "available",
+        wall_count: Settings.storefront.wall_count
       }
       all_key = StorefrontCuration::CacheManager::CURATION_CACHE_KEY % {
         store_id: store.id,
         date: Date.current.iso8601,
-        scope: "all"
+        scope: "all",
+        wall_count: Settings.storefront.wall_count
       }
 
       described_class.write_curation_cache(store, payload, filter_available: false, cache: cache)

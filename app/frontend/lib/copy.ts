@@ -19,10 +19,10 @@ export const COPY = {
     /** Heading displayed above the grid */
     heading: "The Wall",
     /** Descriptive text below the heading */
-    description: "Today's picks, the store's taste at a glance.",
+    description: "The store's taste at a glance.",
     /** Empty state body text */
     emptyBody:
-      "No picks yet. Once the store syncs, the wall will show the store's taste at a glance.",
+      "Nothing on the wall yet. Once the store syncs, it'll show the store's taste at a glance.",
 
     /** aria-label for the tile button */
     tileLabel: (title?: string | null) => `Inspect ${title ?? "record"} on the Wall`,
@@ -50,8 +50,8 @@ export const COPY = {
 
   /** Store floor section (non-compact) */
   storeFloor: {
-    wallRegionLabel: "Wall — Today's picks, the store's taste at a glance",
-    wallDescription: "Today's picks — the store's taste at a glance",
+    wallRegionLabel: "The Wall — the store's taste at a glance",
+    wallDescription: "The Wall — the store's taste at a glance",
     featuredDescription: "Featured bins from this store's inventory",
     genreDescription: "Inventory grouped by genre",
   },
@@ -69,7 +69,7 @@ export const COPY = {
   emptyCrate: (title: string) => `No ${title.toLowerCase()} crates yet.`,
 
   /** Discogs handoff */
-  discogsLinkText: "View listing on Discogs ↗",
+  discogsLinkText: "Discogs ↗",
   discogsLinkLabel: (title?: string | null) =>
     `View listing for ${title ?? "this record"} on Discogs (opens in new tab)`,
 } as const;

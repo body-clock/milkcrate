@@ -17,6 +17,8 @@ interface Props {
   activeSlug: string | null;
   startIndex: number;
   onSelectCrate: (slug: string, startIndex?: number) => void;
+  /** When true, the CrateChipBar is rendered externally (e.g. in a sidebar). */
+  hideChipBar?: boolean;
 }
 
 export default function CrateBrowsePanel({
@@ -25,6 +27,7 @@ export default function CrateBrowsePanel({
   activeSlug,
   startIndex,
   onSelectCrate,
+  hideChipBar = false,
 }: Props) {
   const activeCrate = activeSlug
     ? (crates.find((crate) => crate.slug === activeSlug) ?? null)
@@ -32,13 +35,15 @@ export default function CrateBrowsePanel({
 
   return (
     <section role="region" aria-label={config.ariaLabel} className="space-y-4">
-      <CrateChipBar
-        title={config.title}
-        description={config.description}
-        crates={crates}
-        activeSlug={activeSlug}
-        onSelectCrate={onSelectCrate}
-      />
+      {!hideChipBar && (
+        <CrateChipBar
+          title={config.title}
+          description={config.description}
+          crates={crates}
+          activeSlug={activeSlug}
+          onSelectCrate={onSelectCrate}
+        />
+      )}
 
       {activeCrate ? (
         <InlineCrateStage

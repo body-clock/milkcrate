@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, type PanInfo } from "framer-motion";
 import { useReducedMotionContext } from "./storefront_motion_config";
 import { useViewport } from "@/hooks/use_viewport";
-import { SCALE_PRESS, springPress, springTactile } from "@/lib/motion_tokens";
+import { SCALE_HOVER, SCALE_PRESS, springPress, springTactile } from "@/lib/motion_tokens";
 import { COPY } from "@/lib/copy";
 import RecordTile from "./record_tile";
 import WallRecordPeekSheet from "./wall_record_peek_sheet";
@@ -11,7 +11,7 @@ import type { Crate, Listing } from "../types/inertia";
 const TIER_DENSITY = {
   compact: { tilesPerPage: 6, gridCols: "grid-cols-2" },
   comfy: { tilesPerPage: 8, gridCols: "grid-cols-4" },
-  wide: { tilesPerPage: 15, gridCols: "grid-cols-5" },
+  wide: { tilesPerPage: 12, gridCols: "grid-cols-4" },
 } as const;
 const SWIPE_THRESHOLD = 8000;
 
@@ -45,18 +45,24 @@ export default function WallPanel({ crate }: Props) {
 
   // Compact shows max 12 records (2 pages); comfy/wide show all
   const visibleRecords = useMemo(() => {
-    if (!crate || crate.records.length === 0) return [];
+    if (!crate || crate.records.length === 0) {
+      return [];
+    }
     return isCompact ? crate.records.slice(0, 12) : crate.records;
   }, [crate, isCompact]);
 
+  // Only paginate on compact; comfy/wide show all records on one page
   const pages = useMemo(() => {
-    if (visibleRecords.length === 0) return [];
+    if (visibleRecords.length === 0) {
+      return [];
+    }
+    const chunkSize = isCompact ? tilesPerPage : visibleRecords.length;
     const result: Listing[][] = [];
-    for (let i = 0; i < visibleRecords.length; i += tilesPerPage) {
-      result.push(visibleRecords.slice(i, i + tilesPerPage));
+    for (let i = 0; i < visibleRecords.length; i += chunkSize) {
+      result.push(visibleRecords.slice(i, i + chunkSize));
     }
     return result;
-  }, [visibleRecords, tilesPerPage]);
+  }, [visibleRecords, tilesPerPage, isCompact]);
 
   // Clamp page index when tier changes and page count shrinks
   useEffect(() => {
@@ -84,7 +90,9 @@ export default function WallPanel({ crate }: Props) {
   };
 
   const goToPage = (index: number) => {
-    if (index === pageIndex) return;
+    if (index === pageIndex) {
+      return;
+    }
     const dir = index > pageIndex ? 1 : -1;
     setPageState([index, dir]);
   };
@@ -110,7 +118,7 @@ export default function WallPanel({ crate }: Props) {
       </div>
 
       <div
-        className={`overflow-hidden ${isCompact ? "" : "w-full"}`}
+        className={`${isCompact ? "overflow-hidden" : "w-full"}`}
         style={isCompact ? { position: "relative", aspectRatio: "2/3" } : undefined}
       >
         <AnimatePresence custom={direction}>
@@ -134,6 +142,9 @@ export default function WallPanel({ crate }: Props) {
                 key={listing.id}
                 type="button"
                 onClick={(e) => handleTileTap(e, listing)}
+                whileHover={
+                  !isCompact && !prefersReducedMotion ? { scale: SCALE_HOVER } : undefined
+                }
                 whileTap={prefersReducedMotion ? undefined : { scale: SCALE_PRESS }}
                 transition={springPress}
                 className="group rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg"

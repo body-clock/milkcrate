@@ -2,7 +2,7 @@
 class StorefrontCuration::CacheManager
     CURATION_CACHE_TTL = 36.hours
     CURATION_CACHE_RACE_TTL = 30.seconds
-    CURATION_CACHE_KEY = "storefront/curation/v2/%<store_id>s/%<date>s/%<scope>s"
+    CURATION_CACHE_KEY = "storefront/curation/v3/%<store_id>s/%<date>s/%<scope>s/%<wall_count>s"
 
     # Returns { sections: [...], crates: [...] } — plain hashes, cache-safe.
     # On cache miss, runs curation + presentation, writes to cache, returns payload.
@@ -35,7 +35,7 @@ class StorefrontCuration::CacheManager
     # filter_available: true while development storefronts use filter_available: false.
     def self.curation_cache_key(store, filter_available: true)
       scope = filter_available ? "available" : "all"
-      CURATION_CACHE_KEY % { store_id: store.id, date: Date.current.iso8601, scope: }
+      CURATION_CACHE_KEY % { store_id: store.id, date: Date.current.iso8601, scope:, wall_count: Settings.storefront.wall_count }
     end
 
     def self.dev_scorer(curation)

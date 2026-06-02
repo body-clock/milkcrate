@@ -51,7 +51,7 @@ const homeCopy = {
     step1_title: "Share your Discogs",
     step1_body: "Tell us your Discogs username. That's it.",
     step2_title: "We sync & curate",
-    step2_body: "Your inventory becomes browsable crates: picks, featured bins, and genre bins.",
+    step2_body: "Your inventory becomes browsable crates: the wall, featured bins, and genre bins.",
     step3_title: "Share your store",
     step3_body: "One link. Your customers browse like they're in the shop.",
   },
@@ -288,8 +288,8 @@ describe("page smoke tests", () => {
       ...storeShowProps,
       crates: [
         {
-          slug: "picks",
-          name: "Milkcrate Picks",
+          slug: "wall",
+          name: "The Wall",
           count: 1,
           records: [
             {
@@ -315,10 +315,10 @@ describe("page smoke tests", () => {
       ],
       storefront_sections: [
         {
-          key: "picks_wall",
+          key: "wall",
           crate: {
-            slug: "picks",
-            name: "Milkcrate Picks",
+            slug: "wall",
+            name: "The Wall",
             count: 1,
             records: [
               {
@@ -454,10 +454,10 @@ describe("page smoke tests", () => {
         ],
         storefront_sections: [
           {
-            key: "picks_wall",
+            key: "wall",
             crate: {
-              slug: "picks",
-              name: "Milkcrate Picks",
+              slug: "wall",
+              name: "The Wall",
               count: 1,
               records: [
                 {
@@ -518,7 +518,7 @@ describe("page smoke tests", () => {
       expect(screen.getByRole("button", { name: "The Wall" })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Featured" })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Genres" })).toBeInTheDocument();
-      expect(screen.getByText(/Today's picks, the store's taste at a glance/i)).toBeInTheDocument();
+      expect(screen.getByText(/The store's taste at a glance/i)).toBeInTheDocument();
 
       await user.click(screen.getByRole("button", { name: "Featured" }));
 

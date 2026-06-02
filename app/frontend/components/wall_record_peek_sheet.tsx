@@ -115,36 +115,6 @@ export default function WallRecordPeekSheet({ open, listing, onClose, returnFocu
                     )}
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-2xl font-semibold whitespace-nowrap">
-                      {formatPrice(listing)}
-                    </span>
-                    <div className="w-28">
-                      {inPile(listing.id) ? (
-                        <Button
-                          variant="secondary"
-                          className="w-full"
-                          onClick={() => removeFromPile(listing.id)}
-                        >
-                          ✓ In pile
-                        </Button>
-                      ) : (
-                        <Button className="w-full" onClick={() => addToPile(listing)}>
-                          + Pile
-                        </Button>
-                      )}
-                    </div>
-                    <ActionLink
-                      variant="secondary"
-                      href={listing.discogs_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={COPY.discogsLinkLabel(listing.title)}
-                    >
-                      {COPY.discogsLinkText}
-                    </ActionLink>
-                  </div>
-
                   {allTags.length > 0 && (
                     <div className="flex flex-wrap gap-1.5">
                       {allTags.map((tag) => (
@@ -163,6 +133,39 @@ export default function WallRecordPeekSheet({ open, listing, onClose, returnFocu
                   {listing.notes && (
                     <p className="text-xs text-mc-text-dim leading-relaxed">{listing.notes}</p>
                   )}
+
+                  {/* Price + action row — grouped as a unit, at the bottom */}
+                  <div className="flex items-center justify-between gap-3 pt-2 border-t border-mc-border">
+                    <span className="text-2xl font-semibold whitespace-nowrap">
+                      {formatPrice(listing)}
+                    </span>
+                    <div className="flex gap-2">
+                      <div className="w-[6.75rem]">
+                        {inPile(listing.id) ? (
+                          <Button
+                            variant="secondary"
+                            className="w-full"
+                            onClick={() => removeFromPile(listing.id)}
+                          >
+                            ✓ In pile
+                          </Button>
+                        ) : (
+                          <Button className="w-full" onClick={() => addToPile(listing)}>
+                            + Pile
+                          </Button>
+                        )}
+                      </div>
+                      <ActionLink
+                        variant="secondary"
+                        href={listing.discogs_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={COPY.discogsLinkLabel(listing.title)}
+                      >
+                        {COPY.discogsLinkText}
+                      </ActionLink>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

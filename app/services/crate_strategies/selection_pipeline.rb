@@ -8,7 +8,7 @@ module CrateStrategies
   # that applies their domain-specific filter on the candidate set.
   #
   # Not used by:
-  #   - Picks (genre-diversity sort + seed shuffle)
+  #   - Wall (genre-diversity sort + seed shuffle)
   #   - Thematic (tuple return + multi-step theme discovery)
   module SelectionPipeline
     private

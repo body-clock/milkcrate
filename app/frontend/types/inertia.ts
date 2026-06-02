@@ -41,7 +41,7 @@ export interface Crate {
 }
 
 export interface StorefrontSectionWithCrate {
-  key: "picks_wall";
+  key: "wall";
   crate: Crate;
 }
 

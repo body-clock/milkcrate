@@ -82,7 +82,7 @@ const homeCopy = {
     step1_title: "Share your Discogs",
     step1_body: "Tell us your Discogs username. That\u2019s it.",
     step2_title: "We sync & curate",
-    step2_body: "Your inventory becomes browsable crates: picks, featured bins, and genre bins.",
+    step2_body: "Your inventory becomes browsable crates: the wall, featured bins, and genre bins.",
     step3_title: "Share your store",
     step3_body: "One link. Your customers browse like they\u2019re in the shop.",
   },
@@ -173,7 +173,7 @@ const makeCrate = (
 const compactStoreProps: StoreShowProps = {
   ...storeShowProps,
   crates: [
-    makeCrate("picks", "Milkcrate Picks", ["Wall One", "Wall Two", "Wall Three"]),
+    makeCrate("wall", "The Wall", ["Wall One", "Wall Two", "Wall Three"]),
     makeCrate("jazz", "Jazz", ["Jazzy One", "Jazzy Two", "Jazzy Three"]),
     makeCrate("rock", "Rock", ["Rock One", "Rock Two"]),
     makeCrate("soul", "Soul", ["Soul One", "Soul Two"]),
@@ -181,8 +181,8 @@ const compactStoreProps: StoreShowProps = {
   ],
   storefront_sections: [
     {
-      key: "picks_wall",
-      crate: makeCrate("picks", "Milkcrate Picks", ["Wall One", "Wall Two", "Wall Three"]),
+      key: "wall",
+      crate: makeCrate("wall", "The Wall", ["Wall One", "Wall Two", "Wall Three"]),
     },
     {
       key: "featured_crates",
@@ -325,10 +325,10 @@ describe("responsive surface matrix", () => {
       store_slug: "philadelphiamusic",
       sections: [
         {
-          key: "picks_wall",
+          key: "wall",
           crate: {
-            slug: "picks",
-            name: "Milkcrate Picks",
+            slug: "wall",
+            name: "The Wall",
             count: 2,
             records: [
               {
@@ -393,8 +393,8 @@ describe("responsive surface matrix", () => {
       ...storeShowProps,
       crates: [
         {
-          slug: "picks",
-          name: "Milkcrate Picks",
+          slug: "wall",
+          name: "The Wall",
           count: 1,
           records: [
             {
@@ -420,10 +420,10 @@ describe("responsive surface matrix", () => {
       ],
       storefront_sections: [
         {
-          key: "picks_wall",
+          key: "wall",
           crate: {
-            slug: "picks",
-            name: "Milkcrate Picks",
+            slug: "wall",
+            name: "The Wall",
             count: 1,
             records: [
               {
@@ -474,15 +474,15 @@ describe("responsive surface matrix", () => {
     expect(screen.getByText(/No vinyl found yet/)).toBeInTheDocument();
   });
 
-  // ── U4: Regression coverage for Picks surface and CrateView header ───
+  // ── U4: Regression coverage for Wall surface and CrateView header ───
 
-  it("populated store page renders Picks surface at all viewport tiers", () => {
+  it("populated store page renders Wall surface at all viewport tiers", () => {
     const propsWithSections: StoreShowProps = {
       ...storeShowProps,
       crates: [
         {
-          slug: "picks",
-          name: "Milkcrate Picks",
+          slug: "wall",
+          name: "The Wall",
           count: 2,
           records: [
             {
@@ -526,10 +526,10 @@ describe("responsive surface matrix", () => {
       ],
       storefront_sections: [
         {
-          key: "picks_wall",
+          key: "wall",
           crate: {
-            slug: "picks",
-            name: "Milkcrate Picks",
+            slug: "wall",
+            name: "The Wall",
             count: 2,
             records: [
               {
@@ -580,7 +580,7 @@ describe("responsive surface matrix", () => {
       cleanup();
       renderStoreShowAtTier(tier, propsWithSections);
       expect(screen.getByRole("region", { name: "The Wall" })).toBeInTheDocument();
-      expect(screen.getByText(/Today's picks, the store's taste at a glance/i)).toBeInTheDocument();
+      expect(screen.getByText(/The store's taste at a glance/i)).toBeInTheDocument();
     }
   });
 
@@ -595,7 +595,7 @@ describe("responsive surface matrix", () => {
     );
     expect(screen.getByRole("button", { name: "Featured" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Genres" })).toBeInTheDocument();
-    expect(screen.getByText(/Today's picks, the store's taste at a glance/i)).toBeInTheDocument();
+    expect(screen.getByText(/The store's taste at a glance/i)).toBeInTheDocument();
   });
 
   it("switching browse modes auto-selects the first crate in the new mode", async () => {

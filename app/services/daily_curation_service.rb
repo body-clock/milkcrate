@@ -11,12 +11,12 @@ class DailyCurationService
   private
 
   def log_curation(store, surfaced, curation)
-    picks_count = picks_crate_count(curation)
-    Rails.logger.info "[DailyCurationJob] store=#{store.name} surfaced=#{surfaced.size} picks=#{picks_count}"
+    wall_count = wall_crate_count(curation)
+    Rails.logger.info "[DailyCurationJob] store=#{store.name} surfaced=#{surfaced.size} wall=#{wall_count}"
   end
 
-  def picks_crate_count(curation)
-    curation.crates.find { |crate| crate.slug == "picks" }&.listings&.size || 0
+  def wall_crate_count(curation)
+    curation.crates.find { |crate| crate.slug == "wall" }&.listings&.size || 0
   end
 
   def update_surface_timestamps(surfaced)

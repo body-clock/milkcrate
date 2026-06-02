@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePileContext } from "@/contexts/pile_context";
 import { formatPrice } from "@/lib/format_price";
 import { type RiffleDirection } from "@/lib/riffle_navigation";
 import Button from "@/components/ui/button";
 import { ActionLink } from "@/components/ui/action";
+import ScoreBreakdown from "@/components/score_breakdown";
 import type { Listing } from "@/types/inertia";
 
 interface RecordDetailsProps {
@@ -23,6 +25,7 @@ export default function RecordDetails({ listing, direction }: RecordDetailsProps
   const enterY = direction === "deeper" ? -16 : 16;
   const exitY = direction === "deeper" ? 16 : -16;
   const { inPile, addToPile, removeFromPile } = usePileContext();
+  const [showScore, setShowScore] = useState(false);
 
   const allTags = [
     ...listing.genres.slice(0, 4).map((g) => ({ label: g, dim: false })),
@@ -40,34 +43,11 @@ export default function RecordDetails({ listing, direction }: RecordDetailsProps
         transition={{ duration: 0.18, ease: "easeOut" }}
         className="flex flex-col gap-4"
       >
-        {/* Header: info + price/actions in two-column row */}
-        <div className="grid grid-cols-[1fr_auto] gap-x-6 items-start">
-          <div>
-            <div className="text-xl font-semibold leading-tight">{listing.title}</div>
-            <div className="text-sm text-mc-text-dim mt-1">{listing.artist}</div>
-            {meta && <div className="text-xs text-mc-text-dim mt-2">{meta}</div>}
-          </div>
-          <div className="flex flex-col items-end gap-2">
-            <span className="text-2xl font-medium whitespace-nowrap">{formatPrice(listing)}</span>
-            <div className="flex gap-2">
-              {inPile(listing.id) ? (
-                <Button variant="secondary" onClick={() => removeFromPile(listing.id)}>
-                  ✓ In pile
-                </Button>
-              ) : (
-                <Button onClick={() => addToPile(listing)}>+ Pile</Button>
-              )}
-              <ActionLink
-                variant="secondary"
-                href={listing.discogs_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={`View listing for ${listing.title ?? "this record"} on Discogs (opens in new tab)`}
-              >
-                View listing on Discogs ↗
-              </ActionLink>
-            </div>
-          </div>
+        {/* Info: title, artist, meta — full width */}
+        <div>
+          <div className="text-xl font-semibold leading-tight">{listing.title}</div>
+          <div className="text-sm text-mc-text-dim mt-1">{listing.artist}</div>
+          {meta && <div className="text-xs text-mc-text-dim mt-2">{meta}</div>}
         </div>
 
         {/* Combined genre + style pills */}
@@ -88,6 +68,43 @@ export default function RecordDetails({ listing, direction }: RecordDetailsProps
 
         {listing.notes && (
           <p className="text-xs text-mc-text-dim leading-relaxed line-clamp-4">{listing.notes}</p>
+        )}
+
+        {/* Price + actions at the bottom */}
+        <div className="flex items-center justify-between gap-3 pt-2 border-t border-mc-border">
+          <span className="text-2xl font-medium whitespace-nowrap">{formatPrice(listing)}</span>
+          <div className="flex gap-2">
+            {inPile(listing.id) ? (
+              <Button variant="secondary" onClick={() => removeFromPile(listing.id)}>
+                ✓ In pile
+              </Button>
+            ) : (
+              <Button onClick={() => addToPile(listing)}>+ Pile</Button>
+            )}
+            <ActionLink
+              variant="secondary"
+              href={listing.discogs_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`View listing for ${listing.title ?? "this record"} on Discogs (opens in new tab)`}
+            >
+              Discogs ↗
+            </ActionLink>
+          </div>
+        </div>
+
+        {/* Score breakdown — dev-only, toggled */}
+        {listing.score_breakdown && (
+          <>
+            <button
+              type="button"
+              onClick={() => setShowScore((v) => !v)}
+              className="text-[10px] text-mc-text-dim/40 hover:text-mc-text-dim/70 transition-colors self-end"
+            >
+              {showScore ? "Hide score" : "Score"}
+            </button>
+            {showScore && <ScoreBreakdown listing={listing} />}
+          </>
         )}
       </motion.div>
     </AnimatePresence>

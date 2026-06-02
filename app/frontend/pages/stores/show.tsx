@@ -4,6 +4,7 @@ import BrowseShell from "@/components/browse_shell";
 import Spinner from "@/components/spinner";
 import FeedbackMessage from "@/components/ui/feedback_message";
 import { useCrateRouting } from "@/hooks/use_crate_routing";
+import { useViewport } from "@/hooks/use_viewport";
 import type { StoreShowProps } from "@/types/inertia";
 
 export default function StoreShow({ store, crates, storefront_sections }: StoreShowProps) {
@@ -53,6 +54,7 @@ function StoreShowContent({
   backToStore,
   directEntry,
 }: StoreShowContentProps) {
+  const { isWide } = useViewport();
   const hasStoreSummary = Boolean(store.description) || listingCount > 0;
 
   return (
@@ -67,7 +69,7 @@ function StoreShowContent({
           {store.description && (
             <p className="text-sm text-mc-text leading-relaxed max-w-prose">{store.description}</p>
           )}
-          {listingCount > 0 ? (
+          {!isWide && listingCount > 0 ? (
             <p className="text-xs text-mc-text-dim mt-1.5">
               {listingCount.toLocaleString()} vinyl listings
             </p>
@@ -119,6 +121,8 @@ function StoreShowContent({
           selectCrate={selectCrate}
           backToStore={backToStore}
           directEntry={directEntry}
+          listingCount={listingCount}
+          genreCount={storefront_sections.find((s) => s.key === "genre_grid")?.crates?.length ?? 0}
         />
       )}
     </>

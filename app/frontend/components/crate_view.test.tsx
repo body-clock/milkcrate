@@ -109,7 +109,8 @@ describe("CrateView", () => {
     discogsLinks.forEach((link) => expect(link).toHaveClass("focus-visible:ring-mc-focus"));
   });
 
-  it("renders score direction using semantic success and danger roles", () => {
+  it("renders score direction using semantic success and danger roles", async () => {
+    const user = userEvent.setup();
     const crates = makeCrates();
     crates[0].records[0] = makeListing({
       id: 1,
@@ -117,6 +118,9 @@ describe("CrateView", () => {
     });
 
     renderCrateView("wide", { crates });
+
+    // Score is hidden behind a toggle — reveal it first
+    await user.click(screen.getByRole("button", { name: "Score" }));
 
     expect(screen.getByText("+2.0")).toHaveClass("text-mc-feedback-success");
     expect(screen.getByText("-1.0")).toHaveClass("text-mc-feedback-danger");

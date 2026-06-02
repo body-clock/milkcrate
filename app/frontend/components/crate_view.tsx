@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import RecordDetails from "./record_details";
-import ScoreBreakdown from "./score_breakdown";
 import CrateHeader from "./crate_view/crate_header";
 import CardStack from "./crate_view/card_stack";
 import CrateProgress from "./crate_view/crate_progress";
@@ -124,7 +123,6 @@ export default function CrateView({
         {activeRecord && (
           <div className="hidden md:flex md:flex-col md:pt-7">
             <RecordDetails listing={activeRecord} direction={direction.current} />
-            <ScoreBreakdown listing={activeRecord} />
           </div>
         )}
       </div>

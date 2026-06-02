@@ -96,7 +96,7 @@ const baseStoreProps: StoreShowProps = {
     last_enriched_at: null,
   },
   crates: [
-    makeCrate("picks", "Milkcrate Picks", ["Wall One", "Wall Two", "Wall Three"]),
+    makeCrate("wall", "The Wall", ["Wall One", "Wall Two", "Wall Three"]),
     makeCrate("jazz", "Jazz", ["Jazzy One", "Jazzy Two", "Jazzy Three"]),
     makeCrate("rock", "Rock", ["Rock One", "Rock Two"]),
     makeCrate("soul", "Soul", ["Soul One", "Soul Two"]),
@@ -104,8 +104,8 @@ const baseStoreProps: StoreShowProps = {
   ],
   storefront_sections: [
     {
-      key: "picks_wall",
-      crate: makeCrate("picks", "Milkcrate Picks", ["Wall One", "Wall Two", "Wall Three"]),
+      key: "wall",
+      crate: makeCrate("wall", "The Wall", ["Wall One", "Wall Two", "Wall Three"]),
     },
     {
       key: "featured_crates",
@@ -158,27 +158,71 @@ describe("BrowseShell", () => {
       renderStoreAtTier("compact");
 
       expect(screen.getByRole("region", { name: "The Wall" })).toBeInTheDocument();
-      expect(screen.getByText(/Today's picks, the store's taste at a glance/i)).toBeInTheDocument();
+      expect(screen.getByText(/The store's taste at a glance/i)).toBeInTheDocument();
     });
   });
 
-  describe("comfy and wide tiers", () => {
-    it.each(["comfy", "wide"] as const)(
-      "renders browse controls as a top tab strip without fixed-bottom treatment (%s)",
-      (tier) => {
-        renderStoreAtTier(tier);
+  describe("comfy tier", () => {
+    it("renders browse controls as a fixed bottom bar", () => {
+      renderStoreAtTier("comfy");
 
-        const nav = screen.getByRole("navigation", { name: "Browse modes" });
-        expect(nav).not.toHaveClass("fixed");
+      const nav = screen.getByRole("navigation", { name: "Browse modes" });
+      expect(nav).toHaveClass("fixed");
 
-        expect(screen.getByRole("button", { name: "The Wall" })).toHaveAttribute(
-          "aria-pressed",
-          "true",
-        );
-        expect(screen.getByRole("button", { name: "Featured" })).toBeInTheDocument();
-        expect(screen.getByRole("button", { name: "Genres" })).toBeInTheDocument();
-      },
-    );
+      expect(screen.getByRole("button", { name: "The Wall" })).toHaveAttribute(
+        "aria-pressed",
+        "true",
+      );
+      expect(screen.getByRole("button", { name: "Featured" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Genres" })).toBeInTheDocument();
+    });
+  });
+
+  describe("wide tier", () => {
+    it("renders browse mode selector in a sidebar", () => {
+      renderStoreAtTier("wide");
+
+      const nav = screen.getByRole("navigation", { name: "Browse modes" });
+      expect(nav).not.toHaveClass("fixed");
+
+      expect(screen.getByRole("button", { name: "The Wall" })).toHaveAttribute(
+        "aria-pressed",
+        "true",
+      );
+      expect(screen.getByRole("button", { name: "Featured" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Genres" })).toBeInTheDocument();
+    });
+
+    it("shows crate list in sidebar when Featured mode is selected", async () => {
+      const user = userEvent.setup();
+      renderStoreAtTier("wide");
+
+      // Wall mode: no sidebar crate heading
+      expect(screen.queryByRole("heading", { name: "Featured" })).not.toBeInTheDocument();
+
+      await user.click(screen.getByRole("button", { name: "Featured" }));
+
+      // Sidebar shows crate heading + vertical tab list
+      expect(screen.getByRole("heading", { name: "Featured" })).toBeInTheDocument();
+      const tablists = screen.getAllByRole("tablist", { name: "Crates" });
+      // One tablist in the sidebar (no chip bar in the panel on wide)
+      expect(tablists.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it("hides crate list in sidebar when Wall mode is active", async () => {
+      const user = userEvent.setup();
+      renderStoreAtTier("wide");
+
+      // Start on Wall — no crate list heading should be visible
+      expect(screen.queryByRole("heading", { name: "Featured" })).not.toBeInTheDocument();
+
+      await user.click(screen.getByRole("button", { name: "Featured" }));
+      expect(screen.getByRole("heading", { name: "Featured" })).toBeInTheDocument();
+
+      await user.click(screen.getByRole("button", { name: "The Wall" }));
+      // After switching back to Wall, Featured heading should disappear
+      expect(screen.queryByRole("heading", { name: "Featured" })).not.toBeInTheDocument();
+    });
   });
 
   describe("browse mode switching (AE2)", () => {
@@ -267,7 +311,7 @@ describe("BrowseShell", () => {
       const sparseProps: StoreShowProps = {
         ...baseStoreProps,
         storefront_sections: [
-          { key: "picks_wall", crate: makeCrate("picks", "Picks", []) },
+          { key: "wall", crate: makeCrate("wall", "The Wall", []) },
           { key: "featured_crates", crates: [] },
           { key: "genre_grid", crates: [] },
         ],
