@@ -51,6 +51,8 @@ export function useBrowseRouting({
   useEffect(() => {
     if (activeSlug) {
       setMode(modeForSlug(activeSlug, featured, genres));
+    } else {
+      setMode("wall");
     }
   }, [activeSlug, featured, genres]);
 
