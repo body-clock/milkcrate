@@ -18,41 +18,35 @@ interface Props {
   wall: Crate;
 }
 
-// eslint-disable-next-line eslint/max-lines-per-function
-export default function WideLayout({
-  mode,
-  listingCount,
-  genreCount,
-  currentCrates,
-  activeSlug,
-  startIndex,
-  selectCrate,
-  onWallSelect,
-  onBrowseModeSelect,
-  wall,
-}: Props) {
+function WideLayoutBody(props: Props) {
   return (
     <div className="flex gap-8 items-start">
       <WideSidebar
-        mode={mode}
-        listingCount={listingCount}
-        genreCount={genreCount}
-        panelTitle={mode === "wall" ? undefined : COPY.cratePanels[mode].title}
-        currentCrates={currentCrates}
-        activeSlug={activeSlug}
-        onSelectCrate={selectCrate}
-        onWallSelect={onWallSelect}
-        onBrowseModeSelect={onBrowseModeSelect}
+        mode={props.mode}
+        listingCount={props.listingCount}
+        genreCount={props.genreCount}
+        panelTitle={
+          props.mode === "wall" ? undefined : COPY.cratePanels[props.mode].title
+        }
+        currentCrates={props.currentCrates}
+        activeSlug={props.activeSlug}
+        onSelectCrate={props.selectCrate}
+        onWallSelect={props.onWallSelect}
+        onBrowseModeSelect={props.onBrowseModeSelect}
       />
       <PanelContent
-        mode={mode}
-        wall={wall}
-        currentCrates={currentCrates}
-        activeSlug={activeSlug}
-        startIndex={startIndex}
-        selectCrate={selectCrate}
+        mode={props.mode}
+        wall={props.wall}
+        currentCrates={props.currentCrates}
+        activeSlug={props.activeSlug}
+        startIndex={props.startIndex}
+        selectCrate={props.selectCrate}
         hideChipBar
       />
     </div>
   );
+}
+
+export default function WideLayout(props: Props) {
+  return <WideLayoutBody {...props} />;
 }

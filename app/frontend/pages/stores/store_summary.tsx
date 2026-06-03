@@ -14,17 +14,12 @@ interface Props {
   listingCount: number;
 }
 
-// eslint-disable-next-line max-lines-per-function
 export default function StoreSummary({ store, isWide, listingCount }: Props) {
-  if (!(!isWide && (Boolean(store.description) || listingCount > 0))) {
-    return null;
-  }
+  if (isWide || (!store.description && listingCount === 0)) { return null; }
   return (
     <motion.div
-      initial={{ opacity: 0, y: -6 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: MD, ease: [EA, EB, EC, ED] }}
-      className="mb-6"
+      initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: MD, ease: [EA, EB, EC, ED] }} className="mb-6"
     >
       {store.description && (
         <p className="text-sm text-mc-text leading-relaxed max-w-prose">{store.description}</p>

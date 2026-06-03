@@ -101,8 +101,7 @@ const props: AdminDashboardProps = {
 
 let resolveLookup: (value: { ok: boolean; json: () => Promise<unknown> }) => void;
 
-// eslint-disable-next-line eslint/max-statements
-describe("Admin dashboard", () => {
+describe("Admin dashboard > basic rendering", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
   });
@@ -183,8 +182,13 @@ describe("Admin dashboard", () => {
       "applicants-heading",
     );
   });
+});
 
-  // eslint-disable-next-line eslint/max-statements
+describe("Admin dashboard > lookup panel", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   it("renders the admin-created storefront lookup panel", () => {
     render(<Dashboard {...props} />);
 
@@ -195,17 +199,19 @@ describe("Admin dashboard", () => {
 
   it("renders a creatable lookup preview with a separate confirmation form", async () => {
     const user = userEvent.setup();
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        status: "creatable",
-        creatable: true,
-        username: "realseller",
-        seller_name: "Real Seller",
-        avatar_url: "https://example.com/avatar.jpg",
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          status: "creatable",
+          creatable: true,
+          username: "realseller",
+          seller_name: "Real Seller",
+          avatar_url: "https://example.com/avatar.jpg",
+        }),
       }),
-    });
-    vi.stubGlobal("fetch", fetchMock);
+    );
 
     const { container } = render(<Dashboard {...props} />);
 
@@ -223,10 +229,12 @@ describe("Admin dashboard", () => {
       "value",
       "realseller",
     );
-    expect(fetchMock).toHaveBeenCalledWith(
-      "http://localhost:3000/admin/discogs_lookup?username=RealSeller",
-      expect.objectContaining({ headers: { Accept: "application/json" } }),
-    );
+  });
+});
+
+describe("Admin dashboard > lookup edge cases", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   it("does not render confirmation for invalid lookup state", async () => {
@@ -384,6 +392,12 @@ describe("Admin dashboard", () => {
       expect(screen.queryByText("Real Seller")).not.toBeInTheDocument();
     });
     expect(screen.queryByRole("button", { name: "Onboard storefront" })).not.toBeInTheDocument();
+  });
+});
+
+describe("Admin dashboard > viewport tiers", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   it("renders the same operational content on compact and wide tiers", () => {

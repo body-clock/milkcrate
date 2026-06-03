@@ -61,7 +61,21 @@ function usePressState(reducedMotion: boolean) {
   return { isPressed, down, up };
 }
 
-// eslint-disable-next-line max-lines-per-function
+function buildTactileHandlers(
+  ph: ReturnType<typeof usePointerProximity>["handlers"],
+  leave: (e: React.PointerEvent) => void,
+  down: () => void,
+  up: () => void,
+): TactileHandlers {
+  return {
+    onPointerEnter: ph.onPointerEnter,
+    onPointerLeave: leave,
+    onPointerDown: down,
+    onPointerUp: up,
+    onPointerMove: ph.onPointerMove,
+  };
+}
+
 function useTactileHandlers(
   ph: ReturnType<typeof usePointerProximity>["handlers"],
   down: () => void,
@@ -75,14 +89,8 @@ function useTactileHandlers(
     [ph, up],
   );
   return useMemo(
-    () => ({
-      onPointerEnter: ph.onPointerEnter,
-      onPointerLeave: leave,
-      onPointerDown: down,
-      onPointerUp: up,
-      onPointerMove: ph.onPointerMove,
-    }),
-    [ph.onPointerEnter, ph.onPointerMove, leave, down, up],
+    () => buildTactileHandlers(ph, leave, down, up),
+    [ph, leave, down, up],
   );
 }
 

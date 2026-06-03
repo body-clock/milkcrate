@@ -10,6 +10,12 @@ function panelClass(isCompact: boolean): string {
   return "fixed top-0 right-0 bottom-0 z-50 w-96 overflow-hidden border-l border-mc-border bg-mc-bg shadow-2xl flex flex-col";
 }
 
+function animationValues(isCompact: boolean) {
+  const slide = isCompact ? { y: "100%" } : { x: "100%" };
+  const center = isCompact ? { y: 0 } : { x: 0 };
+  return { initial: slide, animate: center, exit: slide };
+}
+
 interface PanelProps {
   dialogRef: RefObject<HTMLDivElement | null>;
   isCompact: boolean;
@@ -20,16 +26,10 @@ interface PanelProps {
   meta: string;
 }
 
-// eslint-disable-next-line eslint/max-lines-per-function
 export function PeekSheetPanel({
-  dialogRef,
-  isCompact,
-  transition,
-  titleRef,
-  onClose,
-  children,
-  meta,
+  dialogRef, isCompact, transition, titleRef, onClose, children, meta,
 }: PanelProps) {
+  const anim = animationValues(isCompact);
   return (
     <motion.div
       ref={dialogRef}
@@ -38,9 +38,7 @@ export function PeekSheetPanel({
       aria-labelledby="wall-peek-title"
       aria-describedby={meta ? "wall-peek-meta" : undefined}
       className={panelClass(isCompact)}
-      initial={isCompact ? { y: "100%" } : { x: "100%" }}
-      animate={isCompact ? { y: 0 } : { x: 0 }}
-      exit={isCompact ? { y: "100%" } : { x: "100%" }}
+      {...anim}
       transition={transition}
     >
       <PeekHeader titleRef={titleRef} onClose={onClose} />

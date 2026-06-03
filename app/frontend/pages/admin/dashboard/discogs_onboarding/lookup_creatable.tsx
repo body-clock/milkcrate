@@ -36,24 +36,21 @@ function onboardForm(createPath: string, csrfToken: string | undefined, username
   );
 }
 
-// eslint-disable-next-line max-lines-per-function
-export function LookupCreatable({
-  lookup,
-  createPath,
-  csrfToken,
-}: {
-  lookup: AdminDiscogsLookupResponse & { status: "creatable" };
+type LookupCreatableProps = {
+  lookup: Extract<AdminDiscogsLookupResponse, { status: "creatable" }>;
   createPath: string;
   csrfToken?: string;
-}) {
+};
+
+export function LookupCreatable({ lookup, createPath, csrfToken }: LookupCreatableProps) {
   return (
     <FeedbackMessage tone="success" className="p-3">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-3">
-          {avatarImage(lookup.avatar_url)}
-          {sellerMeta(lookup.username, lookup.seller_name)}
+          {avatarImage(lookup.avatar_url ?? null)}
+          {sellerMeta(lookup.username, (lookup.seller_name ?? null) as string | null)}
         </div>
-        {onboardForm(createPath, csrfToken, lookup.username)}
+        {lookup.username ? onboardForm(createPath, csrfToken, lookup.username) : null}
       </div>
     </FeedbackMessage>
   );

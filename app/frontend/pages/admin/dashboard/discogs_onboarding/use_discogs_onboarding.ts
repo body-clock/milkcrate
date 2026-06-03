@@ -9,12 +9,10 @@ function csrfTokenValue(): string | undefined {
   return document.querySelector<HTMLMetaElement>("meta[name='csrf-token']")?.content;
 }
 
-// eslint-disable-next-line max-lines-per-function
 export function useDiscogsOnboarding(lookupPath: string) {
   const [username, setUsername] = useState("");
   const { state, lookup, reset } = useAdminDiscogsLookup(lookupPath);
   const isBusy = state.status === "loading";
-  const csrfToken = csrfTokenValue();
 
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUsername(e.target.value);
@@ -32,5 +30,5 @@ export function useDiscogsOnboarding(lookupPath: string) {
     lookup(trimmedUsername);
   };
 
-  return { username, isBusy, csrfToken, state, handleUsernameChange, handleLookup };
+  return { username, isBusy, csrfToken: csrfTokenValue(), state, handleUsernameChange, handleLookup };
 }

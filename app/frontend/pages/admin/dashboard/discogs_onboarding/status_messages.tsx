@@ -1,7 +1,4 @@
-import type {
-  AdminLookupState,
-  AdminDiscogsLookupResponse,
-} from "@/hooks/use_admin_discogs_lookup";
+import type { AdminLookupState, AdminDiscogsLookupResponse } from "@/hooks/use_admin_discogs_lookup";
 
 import { LookupMessage } from "./lookup_message";
 import { LookupResult } from "./lookup_result";
@@ -20,28 +17,34 @@ function busyMessage() {
   );
 }
 
-// eslint-disable-next-line max-lines-per-function
-export function StatusMessages({
-  state,
-  isBusy,
-  createPath,
-  csrfToken,
-}: {
+function extractResult(
+  state: AdminLookupState,
+): (AdminLookupState & { status: "result"; result: AdminDiscogsLookupResponse }) | null {
+  if (state.status !== "result") {
+    return null;
+  }
+  return state as AdminLookupState & { status: "result"; result: AdminDiscogsLookupResponse };
+}
+
+type StatusMessagesProps = {
   state: AdminLookupState;
   isBusy: boolean;
   createPath: string;
   csrfToken: string | undefined;
-}) {
-  const resultState =
-    state.status === "result"
-      ? (state as AdminLookupState & { status: "result"; result: AdminDiscogsLookupResponse })
-      : null;
+};
+
+export function StatusMessages({ state, isBusy, createPath, csrfToken }: StatusMessagesProps) {
+  const resultState = extractResult(state);
   return (
     <>
       {state.status === "error" && errorMessage()}
       {isBusy && busyMessage()}
-      {resultState && (
-        <LookupResult lookup={resultState.result} createPath={createPath} csrfToken={csrfToken} />
+      {resultState !== null && (
+        <LookupResult
+          lookup={resultState.result}
+          createPath={createPath}
+          csrfToken={csrfToken}
+        />
       )}
     </>
   );

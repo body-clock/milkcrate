@@ -3,14 +3,12 @@ import FeedbackMessage from "@/components/ui/feedback_message";
 import { LookupStatusFrame } from "./lookup_status_frame";
 import type { Props } from "./types";
 
-// eslint-disable-next-line eslint/max-lines-per-function
-export function LookupApiError({
-  copy,
-  onRetry,
-}: {
+type LookupApiErrorProps = {
   copy: Pick<Props["copy"], "seller_lookup_error">;
   onRetry: () => void;
-}) {
+};
+
+export function LookupApiError({ copy, onRetry }: LookupApiErrorProps) {
   return (
     <LookupStatusFrame statusKey="api-error">
       <FeedbackMessage tone="danger" live="assertive">

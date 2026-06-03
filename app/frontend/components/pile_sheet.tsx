@@ -66,7 +66,7 @@ function useWantlistSender(
   storeSlug: string | undefined,
   isConnected: boolean,
   pile: { discogs_listing_id: string }[],
-  addToWantlist: (items: { discogs_listing_id: string }[], storeSlug: string) => Promise<void>,
+  addToWantlist: (items: { discogs_listing_id: string }[], storeSlug: string) => Promise<unknown>,
 ) {
   return useCallback(async () => {
     if (!isConnected || !storeSlug) {
@@ -84,11 +84,14 @@ function usePileSheet({ open, onClose, returnFocusRef }: { open: boolean; onClos
   const { isCompact } = useViewport();
   const { storeSlug, handoffAvailable, storeName } = useStorePage();
   const { shopper, isConnected, state, addToWantlist, wantlistResult, errorMessage, resetResult } = useShopperContext();
-  const total = useMemo(() => pile.reduce((sum, l) => sum + Number(l.price ?? 0), 0), [pile]);
+  const total = useMemo(() => pile.reduce((sum, l) => sum + Number(l.price ?? 0) || 0, 0), [pile]);
   useEffect(() => {
-    if (!open) { resetResult(); return; }
+    if (!open) { resetResult(); }
+  }, [open, resetResult]);
+  useEffect(() => {
+    if (!open) { return; }
     if (!dialogRef.current?.contains(document.activeElement)) { titleRef.current?.focus(); }
-  }, [open, pile.length, confirmClear, state, dialogRef, titleRef, resetResult]);
+  }, [open, pile.length, confirmClear, state, dialogRef, titleRef]);
   return {
     isCompact, dialogRef, titleRef, pile, confirmClear, handleClose, handleClear, handleCancelClear, handleRequestClear,
     storeSlug, handoffAvailable, storeName, shopper, isConnected, state, wantlistResult, errorMessage, resetResult, total, addToWantlist,

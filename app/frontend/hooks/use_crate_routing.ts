@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 import type { Crate, StorefrontSection } from "@/types/inertia";
 
@@ -15,6 +15,13 @@ interface UseCrateRoutingResult {
   backToStore: () => void;
   allCrates: Crate[];
   directEntry: boolean;
+}
+
+interface PopStateCtx {
+  slugRef: React.MutableRefObject<string | null>;
+  setSlug: (s: string | null) => void;
+  setIdx: (n: number) => void;
+  setDirect: (b: boolean) => void;
 }
 
 function allCratesFrom(
@@ -67,93 +74,92 @@ function storeFloorUrl() {
   return `${window.location.pathname}${window.location.hash}`;
 }
 
-interface PopStateCtx {
-  slugRef: React.MutableRefObject<string | null>;
-  setSlug: (s: string | null) => void;
-  setIdx: (n: number) => void;
-  setDirect: (b: boolean) => void;
+function findActiveCrate(
+  allCrates: Crate[],
+  activeSlug: string | null,
+): Crate | null {
+  if (activeSlug === null) return null;
+  return allCrates.find((c) => c.slug === activeSlug) ?? allCrates[0] ?? null;
 }
 
 function handlePopState(e: PopStateEvent, ctx: PopStateCtx) {
-  const { slugRef: r, setSlug: s, setIdx: i, setDirect: d } = ctx;
+  const { slugRef, setSlug, setIdx, setDirect } = ctx;
   const slug = e.state?.crateSlug ?? null;
-  r.current = slug;
-  s(slug);
-  i(e.state?.startIndex ?? 0);
-  d(Boolean(new URLSearchParams(window.location.search).get("crate")));
+  slugRef.current = slug;
+  setSlug(slug);
+  setIdx(e.state?.startIndex ?? 0);
+  setDirect(Boolean(new URLSearchParams(window.location.search).get("crate")));
 }
 
 function usePopHandler(ctx: PopStateCtx) {
+  const latest = useRef(ctx);
+  latest.current = ctx;
   useEffect(() => {
-    const handler = (e: PopStateEvent) => handlePopState(e, ctx);
+    const handler = (e: PopStateEvent) => handlePopState(e, latest.current);
     window.addEventListener("popstate", handler);
     return () => window.removeEventListener("popstate", handler);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 }
 
-function makeSelectCrate(
+function useSelectCrate(
   slugRef: React.MutableRefObject<string | null>,
-  setIdx: (n: number) => void,
-  setSlug: (s: string | null) => void,
+  setStartIndex: React.Dispatch<React.SetStateAction<number>>,
+  setActiveSlug: React.Dispatch<React.SetStateAction<string | null>>,
 ) {
-  return (slug: string, index = 0) => {
-    const wasFloor = slugRef.current === null;
-    // eslint-disable-next-line no-param-reassign
-    slugRef.current = slug;
-    setIdx(index);
-    setSlug(slug);
-    const ns = historyStateWithCrate(slug, index);
-    if (wasFloor) {
-      history.pushState(ns, "");
-    } else {
-      history.replaceState(ns, "");
-    }
-  };
+  return useCallback(
+    (slug: string, index = 0) => {
+      const wasFloor = slugRef.current === null;
+      slugRef.current = slug;
+      setStartIndex(index);
+      setActiveSlug(slug);
+      const ns = historyStateWithCrate(slug, index);
+      if (wasFloor) {
+        history.pushState(ns, "");
+      } else {
+        history.replaceState(ns, "");
+      }
+    },
+    [],
+  );
 }
 
-function makeBackToStore(
+function useBackToStore(
   slugRef: React.MutableRefObject<string | null>,
-  setSlug: (s: string | null) => void,
-  setIdx: (n: number) => void,
-  setDirect: (b: boolean) => void,
+  setActiveSlug: React.Dispatch<React.SetStateAction<string | null>>,
+  setStartIndex: React.Dispatch<React.SetStateAction<number>>,
+  setDirectEntry: React.Dispatch<React.SetStateAction<boolean>>,
 ) {
-  return () => {
-    // eslint-disable-next-line no-param-reassign
+  return useCallback(() => {
     slugRef.current = null;
-    setSlug(null);
-    setIdx(0);
-    setDirect(false);
+    setActiveSlug(null);
+    setStartIndex(0);
+    setDirectEntry(false);
     history.replaceState(historyStateWithoutCrate(), "", storeFloorUrl());
-  };
+  }, []);
 }
 
-// eslint-disable-next-line max-lines-per-function
-export function useCrateRouting({
-  crates,
-  storefront_sections,
-}: UseCrateRoutingOptions): UseCrateRoutingResult {
+function useCrateRoutingState() {
   const [activeSlug, setActiveSlug] = useState<string | null>(initialActiveSlug);
   const [startIndex, setStartIndex] = useState(initialStartIndex);
   const [directEntry, setDirectEntry] = useState(initialDirectEntry);
   const slugRef = useRef(activeSlug);
-  const allCrates = allCratesFrom(crates, storefront_sections);
-  const activeCrate =
-    activeSlug === null ? null : (allCrates.find((c) => c.slug === activeSlug) ?? allCrates[0]);
-
-  usePopHandler({
-    slugRef,
-    setSlug: setActiveSlug,
-    setIdx: setStartIndex,
-    setDirect: setDirectEntry,
-  });
   return {
-    activeSlug,
-    activeCrate,
-    startIndex,
-    selectCrate: makeSelectCrate(slugRef, setStartIndex, setActiveSlug),
-    backToStore: makeBackToStore(slugRef, setActiveSlug, setStartIndex, setDirectEntry),
-    allCrates,
-    directEntry,
+    activeSlug, setActiveSlug,
+    startIndex, setStartIndex,
+    directEntry, setDirectEntry,
+    slugRef,
   };
+}
+
+export function useCrateRouting(
+  { crates, storefront_sections }: UseCrateRoutingOptions,
+): UseCrateRoutingResult {
+  const { activeSlug, setActiveSlug, startIndex, setStartIndex, directEntry, setDirectEntry, slugRef } =
+    useCrateRoutingState();
+  const allCrates = allCratesFrom(crates, storefront_sections);
+  const activeCrate = findActiveCrate(allCrates, activeSlug);
+  usePopHandler({ slugRef, setSlug: setActiveSlug, setIdx: setStartIndex, setDirect: setDirectEntry });
+  const selectCrate = useSelectCrate(slugRef, setStartIndex, setActiveSlug);
+  const backToStore = useBackToStore(slugRef, setActiveSlug, setStartIndex, setDirectEntry);
+  return { activeSlug, activeCrate, startIndex, selectCrate, backToStore, allCrates, directEntry };
 }

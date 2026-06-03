@@ -4,14 +4,12 @@ import { COPY } from "@/lib/copy";
 
 import { CloseButton } from "./close_button";
 
-// eslint-disable-next-line eslint/max-lines-per-function
-export function PeekHeader({
-  titleRef,
-  onClose,
-}: {
+interface PeekHeaderProps {
   titleRef: RefObject<HTMLSpanElement | null>;
   onClose: () => void;
-}) {
+}
+
+export function PeekHeader({ titleRef, onClose }: PeekHeaderProps) {
   return (
     <div className="flex items-start justify-between gap-3 border-b border-mc-border px-4 py-3">
       <div className="min-w-0">

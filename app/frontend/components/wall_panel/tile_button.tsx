@@ -9,25 +9,33 @@ import RecordTile from "../record_tile";
 const TILE_BUTTON_CLASS =
   "group rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg";
 
-// eslint-disable-next-line eslint/max-lines-per-function
+interface TileButtonProps {
+  listing: Listing;
+  isCompact: boolean;
+  prefersReducedMotion: boolean;
+  onTileTap: (event: React.MouseEvent<HTMLButtonElement>, listing: Listing) => void;
+}
+
+function tileMotionProps(isCompact: boolean, prefersReducedMotion: boolean) {
+  return {
+    whileHover: !isCompact && !prefersReducedMotion ? { scale: SCALE_HOVER } : undefined,
+    whileTap: prefersReducedMotion ? undefined : { scale: SCALE_PRESS },
+    transition: springPress,
+  };
+}
+
 export default function TileButton({
   listing,
   isCompact,
   prefersReducedMotion,
   onTileTap,
-}: {
-  listing: Listing;
-  isCompact: boolean;
-  prefersReducedMotion: boolean;
-  onTileTap: (event: React.MouseEvent<HTMLButtonElement>, listing: Listing) => void;
-}) {
+}: TileButtonProps) {
+  const anim = tileMotionProps(isCompact, prefersReducedMotion);
   return (
     <motion.button
       type="button"
       onClick={(e) => onTileTap(e, listing)}
-      whileHover={!isCompact && !prefersReducedMotion ? { scale: SCALE_HOVER } : undefined}
-      whileTap={prefersReducedMotion ? undefined : { scale: SCALE_PRESS }}
-      transition={springPress}
+      {...anim}
       className={TILE_BUTTON_CLASS}
       aria-label={COPY.wall.tileLabel(listing.title)}
       dragListener={false}

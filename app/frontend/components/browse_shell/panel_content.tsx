@@ -14,27 +14,22 @@ interface Props {
   hideChipBar: boolean;
 }
 
-// eslint-disable-next-line eslint/max-lines-per-function
-export default function PanelContent({
-  mode,
-  wall,
-  currentCrates,
-  activeSlug,
-  startIndex,
-  selectCrate,
-  hideChipBar,
-}: Props) {
+function PanelBody(props: Props) {
   return (
-    <AnimatedPanel mode={mode}>
+    <AnimatedPanel mode={props.mode}>
       <BrowsePanel
-        mode={mode}
-        wall={wall}
-        currentCrates={currentCrates}
-        activeSlug={activeSlug}
-        startIndex={startIndex}
-        onSelectCrate={selectCrate}
-        hideChipBar={hideChipBar}
+        mode={props.mode}
+        wall={props.wall}
+        currentCrates={props.currentCrates}
+        activeSlug={props.activeSlug}
+        startIndex={props.startIndex}
+        onSelectCrate={props.selectCrate}
+        hideChipBar={props.hideChipBar}
       />
     </AnimatedPanel>
   );
+}
+
+export default function PanelContent(props: Props) {
+  return <PanelBody {...props} />;
 }

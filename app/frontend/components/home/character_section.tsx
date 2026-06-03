@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 
 import FeatureCard from "@/components/home/feature_card";
+import { EASE_OUT } from "@/lib/motion_tokens";
 
 interface FeatureData {
   title: string;
@@ -11,12 +12,6 @@ interface Props {
   features: FeatureData[];
 }
 
-const EASE_X1 = 0.25;
-const EASE_Y1 = 0.46;
-const EASE_X2 = 0.45;
-const EASE_Y2 = 0.94;
-const EASE_OUT = [EASE_X1, EASE_Y1, EASE_X2, EASE_Y2] as const;
-
 const FADE_UP_DURATION = 0.5;
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
@@ -25,7 +20,6 @@ const fadeUp = {
 
 const CHARACTER_GRID = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-4xl mx-auto";
 
-// eslint-disable-next-line eslint/max-lines-per-function
 export default function CharacterSection({ title, features }: Props) {
   return (
     <motion.section

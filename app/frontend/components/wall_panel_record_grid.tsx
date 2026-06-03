@@ -30,55 +30,47 @@ interface RecordGridProps {
   onDragEnd: (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => void;
 }
 
-function buildMotionProps({ showAnimation, direction, transition, gridCols, isCompact, onDragEnd }: {
-  showAnimation: boolean; direction: number; transition: object; gridCols: string; isCompact: boolean;
+interface MotionBuildProps {
+  showAnimation: boolean;
+  direction: number;
+  transition: object;
+  gridCols: string;
+  isCompact: boolean;
   onDragEnd: (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => void;
-}) {
+}
+
+function buildMotionProps({
+  showAnimation, direction, transition, gridCols, isCompact, onDragEnd,
+}: MotionBuildProps) {
   return {
-    custom: direction, variants: showAnimation ? pageVariants : undefined,
-    initial: showAnimation ? "enter" as const : undefined, animate: "center" as const,
-    exit: showAnimation ? "exit" as const : undefined, transition,
-    drag: showAnimation ? "x" as const : undefined, dragConstraints: { left: 0, right: 0 }, dragElastic: 0.3,
-    onDragEnd, className: `grid ${gridCols} gap-2`,
-    style: isCompact ? { position: "absolute" as const, inset: 0 } : undefined,
+    custom: direction,
+    variants: showAnimation ? pageVariants : undefined,
+    initial: showAnimation ? ("enter" as const) : undefined,
+    animate: "center" as const,
+    exit: showAnimation ? ("exit" as const) : undefined,
+    transition,
+    drag: showAnimation ? ("x" as const) : undefined,
+    dragConstraints: { left: 0, right: 0 },
+    dragElastic: 0.3,
+    onDragEnd,
+    className: `grid ${gridCols} gap-2`,
+    style: isCompact ? ({ position: "absolute" as const, inset: 0 }) : undefined,
   };
 }
 
-// eslint-disable-next-line eslint/max-lines-per-function
-export default function RecordGrid({
-  pageIndex,
-  direction,
-  currentPage,
-  gridCols,
-  isCompact,
-  prefersReducedMotion,
-  showPagination,
-  transition,
-  onTileTap,
-  onDragEnd,
-}: RecordGridProps) {
-  const showAnimation = !prefersReducedMotion && showPagination;
+export default function RecordGrid(props: RecordGridProps) {
+  const anim = !props.prefersReducedMotion && props.showPagination;
   return (
-    <div
-      className={isCompact ? "overflow-hidden" : "w-full"}
-      style={isCompact ? { position: "relative", aspectRatio: "2/3" } : undefined}
-    >
-      <AnimatePresence custom={direction}>
-        <motion.div
-          key={pageIndex}
-          {...buildMotionProps({
-            showAnimation, direction, transition,
-            gridCols, isCompact, onDragEnd,
-          })}
-        >
-          {currentPage.map((listing) => (
-            <TileButton
-              key={listing.id}
-              listing={listing}
-              isCompact={isCompact}
-              prefersReducedMotion={prefersReducedMotion}
-              onTileTap={onTileTap}
-            />
+    <div className={props.isCompact ? "overflow-hidden" : "w-full"}
+      style={props.isCompact ? { position: "relative", aspectRatio: "2/3" } : undefined}>
+      <AnimatePresence custom={props.direction}>
+        <motion.div key={props.pageIndex} {...buildMotionProps({
+          showAnimation: anim, direction: props.direction, transition: props.transition,
+          gridCols: props.gridCols, isCompact: props.isCompact, onDragEnd: props.onDragEnd,
+        })}>
+          {props.currentPage.map((listing) => (
+            <TileButton key={listing.id} listing={listing} isCompact={props.isCompact}
+              prefersReducedMotion={props.prefersReducedMotion} onTileTap={props.onTileTap} />
           ))}
         </motion.div>
       </AnimatePresence>

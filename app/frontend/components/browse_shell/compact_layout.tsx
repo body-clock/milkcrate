@@ -15,33 +15,27 @@ interface Props {
   onBrowseModeSelect: (mode: BrowseMode) => void;
 }
 
-// eslint-disable-next-line eslint/max-lines-per-function
-export default function CompactLayout({
-  mode,
-  wall,
-  currentCrates,
-  activeSlug,
-  startIndex,
-  selectCrate,
-  onWallSelect,
-  onBrowseModeSelect,
-}: Props) {
+function CompactLayoutBody(props: Props) {
   return (
     <div className="flex flex-col gap-5 pb-[calc(6rem+env(safe-area-inset-bottom))]">
       <PanelContent
-        mode={mode}
-        wall={wall}
-        currentCrates={currentCrates}
-        activeSlug={activeSlug}
-        startIndex={startIndex}
-        selectCrate={selectCrate}
+        mode={props.mode}
+        wall={props.wall}
+        currentCrates={props.currentCrates}
+        activeSlug={props.activeSlug}
+        startIndex={props.startIndex}
+        selectCrate={props.selectCrate}
         hideChipBar={false}
       />
       <CompactBrowseNav
-        mode={mode}
-        onWallSelect={onWallSelect}
-        onBrowseModeSelect={onBrowseModeSelect}
+        mode={props.mode}
+        onWallSelect={props.onWallSelect}
+        onBrowseModeSelect={props.onBrowseModeSelect}
       />
     </div>
   );
+}
+
+export default function CompactLayout(props: Props) {
+  return <CompactLayoutBody {...props} />;
 }

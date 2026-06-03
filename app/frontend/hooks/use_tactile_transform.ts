@@ -26,13 +26,30 @@ interface UseTactileTransformResult {
   transition: Transition;
 }
 
+const TILT_HOVER_ADJUST = 1.5;
+
+function computeTransform(
+  reducedMotion: boolean,
+  disableTilt: boolean,
+  isPressed: boolean,
+  restingTilt: number,
+  proximity: number,
+): MotionStyle {
+  if (reducedMotion) {
+    return { rotate: 0, scale: 1, y: 0 };
+  }
+  const rotate = disableTilt
+    ? 0
+    : restingTilt * (TILT_HOVER / TILT_HOVER_ADJUST) * (1 - proximity);
+  const scale = isPressed ? SCALE_PRESS : 1 + (SCALE_HOVER - 1) * proximity;
+  const y = proximity === 0 ? 0 : -LIFT_HOVER * proximity;
+  return { rotate, scale, y };
+}
+
 /**
  * Pure computation hook: derives Framer Motion style values from proximity
  * and press state. Does not track pointer position — pair with usePointerProximity.
  */
-const TILT_HOVER_ADJUST = 1.5;
-
-// eslint-disable-next-line max-lines-per-function
 export function useTactileTransform(
   proximity: number,
   isPressed: boolean,
@@ -40,17 +57,10 @@ export function useTactileTransform(
 ): UseTactileTransformResult {
   const { restingTilt = 0, disableTilt = false, reducedMotion = false } = options;
 
-  const transform = useMemo<MotionStyle>(() => {
-    if (reducedMotion) {
-      return { rotate: 0, scale: 1, y: 0 };
-    }
-    const rotate = disableTilt
-      ? 0
-      : restingTilt * (TILT_HOVER / TILT_HOVER_ADJUST) * (1 - proximity);
-    const scale = isPressed ? SCALE_PRESS : 1 + (SCALE_HOVER - 1) * proximity;
-    const y = proximity === 0 ? 0 : -LIFT_HOVER * proximity;
-    return { rotate, scale, y };
-  }, [reducedMotion, disableTilt, isPressed, restingTilt, proximity]);
+  const transform = useMemo<MotionStyle>(
+    () => computeTransform(reducedMotion, disableTilt, isPressed, restingTilt, proximity),
+    [reducedMotion, disableTilt, isPressed, restingTilt, proximity],
+  );
 
   return {
     transform,

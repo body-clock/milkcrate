@@ -4,11 +4,10 @@ import { StoreNameLink } from "./app_header_store_name";
 
 interface AppHeaderBrandProps {
   storeName?: string;
-  _discogsUsername?: string;
   isCompact: boolean;
 }
 
-export function AppHeaderBrand({ storeName, _discogsUsername, isCompact }: AppHeaderBrandProps) {
+export function AppHeaderBrand({ storeName, isCompact }: AppHeaderBrandProps) {
   if (!storeName) {
     return <BrandMarkLink />;
   }

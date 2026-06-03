@@ -15,20 +15,29 @@ interface Props {
   classesFn: (selected: boolean) => string;
 }
 
-// eslint-disable-next-line eslint/max-lines-per-function
-export default function VerticalTabs({
+interface TabListProps {
+  crates: Crate[];
+  activeSlug: string | null;
+  hasSelection: boolean;
+  onSelect: (slug: string) => void;
+  activeTabRef: React.RefObject<HTMLButtonElement | null>;
+  handleKeyDown: (e: React.KeyboardEvent, i: number) => void;
+  tabIndexValue: (selected: boolean, hasSelection: boolean, i: number) => number;
+  classesFn: (selected: boolean) => string;
+}
+
+function TabList({
   crates,
   activeSlug,
   hasSelection,
   onSelect,
-  tabsRef,
   activeTabRef,
   handleKeyDown,
   tabIndexValue,
   classesFn,
-}: Props) {
+}: TabListProps) {
   return (
-    <div ref={tabsRef} role="tablist" aria-label="Crates" className="flex flex-col gap-0.5">
+    <>
       {crates.map((crate, i) => (
         <TabButton
           key={crate.slug}
@@ -41,6 +50,17 @@ export default function VerticalTabs({
           className={classesFn(crate.slug === activeSlug)}
         />
       ))}
+    </>
+  );
+}
+
+export default function VerticalTabs({
+  tabsRef,
+  ...rest
+}: Props) {
+  return (
+    <div ref={tabsRef} role="tablist" aria-label="Crates" className="flex flex-col gap-0.5">
+      <TabList {...rest} />
     </div>
   );
 }

@@ -2,9 +2,8 @@ import EmptyState from "@/components/ui/empty_state";
 import SectionHeader from "@/components/ui/section_header";
 import type { AdminDashboardProps } from "@/types/inertia";
 
-import StoreCard from "./store_card";
+import { StoreGrid } from "./store_grid";
 
-// eslint-disable-next-line max-lines-per-function
 export function ActiveStoresSection({
   active_stores,
 }: {
@@ -20,11 +19,7 @@ export function ActiveStoresSection({
       {active_stores.length === 0 ? (
         <EmptyState>No stores online yet.</EmptyState>
       ) : (
-        <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
-          {active_stores.map((store) => (
-            <StoreCard key={store.id} store={store} />
-          ))}
-        </div>
+        <StoreGrid active_stores={active_stores} />
       )}
     </section>
   );

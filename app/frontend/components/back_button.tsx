@@ -1,4 +1,4 @@
-import { sharedRingClasses } from "./text_back_button";
+import { sharedRingClasses } from "./shared_styles";
 
 export { TextBackButton } from "./text_back_button";
 

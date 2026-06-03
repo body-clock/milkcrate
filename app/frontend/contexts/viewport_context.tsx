@@ -23,20 +23,16 @@ function tierFromWidth(width: number): ViewportTier {
   return "wide";
 }
 
-// eslint-disable-next-line eslint/max-lines-per-function
-export function ViewportProvider({ children }: { children: ReactNode }) {
-  const existingCtx = useContext(ViewportContext);
-  if (existingCtx) {
-    return <>{children}</>;
+function getInitialTier(): ViewportTier {
+  if (typeof window === "undefined") {
+    return "compact";
   }
+  return tierFromWidth(window.innerWidth);
+}
 
-  const [tier, setTier] = useState<ViewportTier>(() => {
-    if (typeof window === "undefined") {
-      return "compact";
-    }
-    return tierFromWidth(window.innerWidth);
-  });
-
+function useViewportListeners(
+  setTier: React.Dispatch<React.SetStateAction<ViewportTier>>,
+): void {
   useEffect(() => {
     const compactQuery = window.matchMedia(`(max-width: ${COMPACT_MAX}px)`);
     const comfyQuery = window.matchMedia(
@@ -45,25 +41,31 @@ export function ViewportProvider({ children }: { children: ReactNode }) {
 
     const sync = () => setTier(tierFromWidth(window.innerWidth));
 
-    // Use the modern API; the existing useIsDesktop already uses it.
     compactQuery.addEventListener("change", sync);
     comfyQuery.addEventListener("change", sync);
-
-    // Set the CSS custom property on :root for pure-CSS consumers.
-    document.documentElement.style.setProperty("--mc-viewport-tier", `"${tier}"`);
 
     return () => {
       compactQuery.removeEventListener("change", sync);
       comfyQuery.removeEventListener("change", sync);
     };
-    // Only run on mount — tier is the initial value; the listener handles updates.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [setTier]);
+}
 
-  // Keep the CSS custom property in sync whenever tier changes.
+function useSyncCssVar(tier: ViewportTier): void {
   useEffect(() => {
     document.documentElement.style.setProperty("--mc-viewport-tier", `"${tier}"`);
   }, [tier]);
+}
+
+export function ViewportProvider({ children }: { children: ReactNode }) {
+  const existingCtx = useContext(ViewportContext);
+  if (existingCtx) {
+    return <>{children}</>;
+  }
+
+  const [tier, setTier] = useState<ViewportTier>(getInitialTier);
+  useViewportListeners(setTier);
+  useSyncCssVar(tier);
 
   const value = useMemo(() => ({ tier }), [tier]);
 

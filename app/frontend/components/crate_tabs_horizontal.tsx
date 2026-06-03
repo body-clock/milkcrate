@@ -25,27 +25,31 @@ function tabScrollbar(compact: boolean): React.CSSProperties {
   return { scrollbarWidth: compact ? "none" : ("thin" as const) };
 }
 
-// eslint-disable-next-line eslint/max-lines-per-function
-export default function HorizontalTabs({
+interface TabListProps {
+  crates: Crate[];
+  activeSlug: string | null;
+  hasSelection: boolean;
+  compact: boolean;
+  onSelect: (slug: string) => void;
+  activeTabRef: React.RefObject<HTMLButtonElement | null>;
+  handleKeyDown: (e: React.KeyboardEvent, i: number) => void;
+  tabIndexValue: (selected: boolean, hasSelection: boolean, i: number) => number;
+  classesFn: (compact: boolean, selected: boolean) => string;
+}
+
+function TabList({
   crates,
   activeSlug,
   hasSelection,
   compact,
   onSelect,
-  tabsRef,
   activeTabRef,
   handleKeyDown,
   tabIndexValue,
   classesFn,
-}: Props) {
+}: TabListProps) {
   return (
-    <div
-      ref={tabsRef}
-      role="tablist"
-      aria-label="Crates"
-      className={tabContainerClass(compact)}
-      style={tabScrollbar(compact)}
-    >
+    <>
       {crates.map((crate, i) => (
         <TabButton
           key={crate.slug}
@@ -58,6 +62,24 @@ export default function HorizontalTabs({
           className={classesFn(compact, crate.slug === activeSlug)}
         />
       ))}
+    </>
+  );
+}
+
+export default function HorizontalTabs({
+  tabsRef,
+  compact,
+  ...rest
+}: Props) {
+  return (
+    <div
+      ref={tabsRef}
+      role="tablist"
+      aria-label="Crates"
+      className={tabContainerClass(compact)}
+      style={tabScrollbar(compact)}
+    >
+      <TabList compact={compact} {...rest} />
     </div>
   );
 }

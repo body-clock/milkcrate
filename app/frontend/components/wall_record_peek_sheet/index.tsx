@@ -39,30 +39,42 @@ function computeAllTags(listing: Listing | null) {
   ];
 }
 
-// eslint-disable-next-line eslint/max-lines-per-function
-export default function WallRecordPeekSheet({ open, listing, onClose, returnFocusRef }: Props) {
+function usePeekSheet(
+  open: boolean,
+  listing: Listing | null,
+  onClose: () => void,
+  returnFocusRef?: RefObject<HTMLElement | null>,
+) {
   const { isCompact } = useViewport();
   const prefersReducedMotion = useReducedMotionContext();
   const { dialogRef, titleRef } = useDialogFocusTrap(open, onClose, { returnFocusRef });
-  const meta = computeMeta(listing);
-  const allTags = computeAllTags(listing);
-  const transition = prefersReducedMotion ? reducedMotionTransition : springDrawer;
-  if (!open || !listing) {
-    return null;
-  }
+  return {
+    isCompact,
+    prefersReducedMotion,
+    dialogRef,
+    titleRef,
+    meta: computeMeta(listing),
+    allTags: computeAllTags(listing),
+    transition: prefersReducedMotion ? reducedMotionTransition : springDrawer,
+  };
+}
+
+export default function WallRecordPeekSheet({ open, listing, onClose, returnFocusRef }: Props) {
+  const peek = usePeekSheet(open, listing, onClose, returnFocusRef);
+  if (!open || !listing) { return null; }
   return (
     <AnimatePresence>
-      <PeekOverlay key="peek-overlay" reducedMotion={prefersReducedMotion} onClose={onClose} />
+      <PeekOverlay key="peek-overlay" reducedMotion={peek.prefersReducedMotion} onClose={onClose} />
       <PeekSheetPanel
         key="peek-panel"
-        dialogRef={dialogRef}
-        isCompact={isCompact}
-        transition={transition}
-        titleRef={titleRef}
+        dialogRef={peek.dialogRef}
+        isCompact={peek.isCompact}
+        transition={peek.transition}
+        titleRef={peek.titleRef}
         onClose={onClose}
-        meta={meta}
+        meta={peek.meta}
       >
-        <PeekSheetContent listing={listing} meta={meta} allTags={allTags} />
+        <PeekSheetContent listing={listing} meta={peek.meta} allTags={peek.allTags} />
       </PeekSheetPanel>
     </AnimatePresence>
   );

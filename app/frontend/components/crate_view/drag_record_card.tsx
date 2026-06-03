@@ -6,7 +6,7 @@ export default function DragRecordCard({
   activeSlug,
   isCompact,
   onFlip,
-}: ActiveRecordCardProps) {
+}: Pick<ActiveRecordCardProps, "slot" | "activeSlug" | "isCompact" | "onFlip">) {
   return (
     <RecordCard
       listing={slot.record}

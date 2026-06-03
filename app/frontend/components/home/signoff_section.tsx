@@ -1,10 +1,6 @@
 import { motion } from "framer-motion";
 
-const EASE_X1 = 0.25;
-const EASE_Y1 = 0.46;
-const EASE_X2 = 0.45;
-const EASE_Y2 = 0.94;
-const EASE_OUT = [EASE_X1, EASE_Y1, EASE_X2, EASE_Y2] as const;
+import { EASE_OUT } from "@/lib/motion_tokens";
 
 const FADE_UP_DURATION = 0.5;
 const fadeUp = {

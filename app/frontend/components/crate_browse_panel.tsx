@@ -21,27 +21,62 @@ interface Props {
   hideChipBar?: boolean;
 }
 
-// eslint-disable-next-line eslint/max-lines-per-function
-export default function CrateBrowsePanel({
+interface PanelChipBarProps {
+  config: CrateBrowsePanelConfig;
+  crates: Crate[];
+  activeSlug: string | null;
+  onSelectCrate: (slug: string, startIndex?: number) => void;
+  hideChipBar: boolean;
+}
+
+function PanelChipBar({
+  config,
+  crates,
+  activeSlug,
+  onSelectCrate,
+  hideChipBar,
+}: PanelChipBarProps) {
+  if (hideChipBar) return null;
+  return (
+    <CrateChipBar
+      title={config.title}
+      description={config.description}
+      crates={crates}
+      activeSlug={activeSlug}
+      onSelectCrate={onSelectCrate}
+    />
+  );
+}
+
+interface PanelContentProps {
+  config: CrateBrowsePanelConfig;
+  crates: Crate[];
+  activeSlug: string | null;
+  startIndex: number;
+  onSelectCrate: (slug: string, startIndex?: number) => void;
+  hideChipBar: boolean;
+}
+
+function PanelContent({
   config,
   crates,
   activeSlug,
   startIndex,
   onSelectCrate,
-  hideChipBar = false,
-}: Props) {
-  const activeCrate = activeSlug ? (crates.find((c) => c.slug === activeSlug) ?? null) : null;
+  hideChipBar,
+}: PanelContentProps) {
+  const activeCrate = activeSlug
+    ? (crates.find((c) => c.slug === activeSlug) ?? null)
+    : null;
   return (
-    <section role="region" aria-label={config.ariaLabel} className="space-y-4">
-      {!hideChipBar && (
-        <CrateChipBar
-          title={config.title}
-          description={config.description}
-          crates={crates}
-          activeSlug={activeSlug}
-          onSelectCrate={onSelectCrate}
-        />
-      )}
+    <>
+      <PanelChipBar
+        config={config}
+        crates={crates}
+        activeSlug={activeSlug}
+        onSelectCrate={onSelectCrate}
+        hideChipBar={hideChipBar}
+      />
       <CrateBrowseContent
         activeCrate={activeCrate}
         crates={crates}
@@ -50,6 +85,18 @@ export default function CrateBrowsePanel({
         onSelectCrate={onSelectCrate}
         emptyText={config.emptyText}
       />
+    </>
+  );
+}
+
+export default function CrateBrowsePanel(props: Props) {
+  return (
+    <section
+      role="region"
+      aria-label={props.config.ariaLabel}
+      className="space-y-4"
+    >
+      <PanelContent {...props} hideChipBar={props.hideChipBar ?? false} />
     </section>
   );
 }

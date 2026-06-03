@@ -2,23 +2,31 @@ import { motion } from "framer-motion";
 
 import { springDrawer } from "@/lib/motion_tokens";
 
-import type { ShopperInfo } from "../types/inertia";
+import type { Listing } from "../../types/inertia";
+import type { WantlistResult } from "../../contexts/shopper_context";
 import PileFooter from "./pile_footer";
 import PileSheetHeader from "./pile_sheet_header";
 import PileSheetRecordList from "./record_list";
+
+interface PanelShopper {
+  isConnected: boolean;
+  username: string | null;
+  storeName: string | null;
+  storeSlug: string | null;
+}
 
 interface PanelProps {
   isCompact: boolean;
   dialogRef: React.RefObject<HTMLDivElement | null>;
   titleRef: React.RefObject<HTMLSpanElement | null>;
-  pile: { id: number; price?: string; currency?: string; [key: string]: unknown }[];
+  pile: Listing[];
   confirmClear: boolean;
   pileCount: number;
   total: number;
   currency?: string;
-  shopper: ShopperInfo;
+  shopper: PanelShopper;
   state: string;
-  wantlistResult: unknown;
+  wantlistResult: WantlistResult | null;
   errorMessage: string | null;
   handoffAvailable: boolean;
   highlightOnMount?: boolean;
@@ -45,7 +53,7 @@ function motionConfig(isCompact: boolean) {
   };
 }
 
-function renderPanelFooter(opts: { pileCount: number; total: number; currency?: string; shopper: ShopperInfo; state: string; wantlistResult: unknown; errorMessage: string | null; handoffAvailable: boolean; highlightOnMount?: boolean; handleSendToWantlist: () => Promise<void>; resetResult: () => void }) {
+function renderPanelFooter(opts: { pileCount: number; total: number; currency?: string; shopper: PanelShopper; state: string; wantlistResult: WantlistResult | null; errorMessage: string | null; handoffAvailable: boolean; highlightOnMount?: boolean; handleSendToWantlist: () => Promise<void>; resetResult: () => void }) {
   if (opts.pileCount <= 0) { return null; }
   return <PileFooter pileSize={opts.pileCount} header={{ total: opts.total, currency: opts.currency }} shopper={opts.shopper} submission={{ status: opts.state, wantlistResult: opts.wantlistResult, errorMessage: opts.errorMessage }} handoffAvailable={opts.handoffAvailable} highlightOnMount={opts.highlightOnMount} onSendToWantlist={opts.handleSendToWantlist} onReset={opts.resetResult} />;
 }

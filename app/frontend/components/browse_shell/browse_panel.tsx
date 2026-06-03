@@ -14,26 +14,20 @@ interface Props {
   hideChipBar: boolean;
 }
 
-// eslint-disable-next-line eslint/max-lines-per-function
-export default function BrowsePanel({
-  mode,
-  wall,
-  currentCrates,
-  activeSlug,
-  startIndex,
-  onSelectCrate,
-  hideChipBar,
-}: Props) {
-  return mode === "wall" ? (
-    <WallPanel crate={wall} />
-  ) : (
+function BrowseContent(props: Props) {
+  if (props.mode === "wall") return <WallPanel crate={props.wall} />;
+  return (
     <CrateBrowsePanel
-      config={COPY.cratePanels[mode]}
-      crates={currentCrates}
-      activeSlug={activeSlug}
-      startIndex={startIndex}
-      onSelectCrate={onSelectCrate}
-      hideChipBar={hideChipBar}
+      config={COPY.cratePanels[props.mode]}
+      crates={props.currentCrates}
+      activeSlug={props.activeSlug}
+      startIndex={props.startIndex}
+      onSelectCrate={props.onSelectCrate}
+      hideChipBar={props.hideChipBar}
     />
   );
+}
+
+export default function BrowsePanel(props: Props) {
+  return <BrowseContent {...props} />;
 }

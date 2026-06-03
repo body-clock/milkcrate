@@ -2,6 +2,17 @@ import { useReducedMotionContext } from "@/components/storefront_motion_config";
 
 const FLIP_DISCOVERED_KEY = "mc-flip-discovered";
 
+export function loadFlipDiscovered(): boolean {
+  if (typeof window === "undefined") {
+    return false;
+  }
+  try {
+    return localStorage.getItem(FLIP_DISCOVERED_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
 export function markFlipDiscovered(): void {
   if (typeof window === "undefined") {
     return;

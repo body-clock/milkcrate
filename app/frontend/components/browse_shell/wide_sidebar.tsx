@@ -17,34 +17,32 @@ interface Props {
   onBrowseModeSelect: (mode: BrowseMode) => void;
 }
 
-// eslint-disable-next-line eslint/max-lines-per-function
-export default function WideSidebar({
-  mode,
-  listingCount,
-  genreCount,
-  panelTitle,
-  currentCrates,
-  activeSlug,
-  onSelectCrate,
-  onWallSelect,
-  onBrowseModeSelect,
-}: Props) {
+function SidebarPanel({ mode, panelTitle, currentCrates, activeSlug, onSelectCrate, listingCount, genreCount }: Props) {
+  if (mode !== "wall" && panelTitle && currentCrates.length > 0) {
+    return (
+      <SidebarCrateList
+        title={panelTitle}
+        crates={currentCrates}
+        activeSlug={activeSlug}
+        onSelectCrate={onSelectCrate}
+      />
+    );
+  }
+  if (mode === "wall") {
+    return <StoreStats listingCount={listingCount} genreCount={genreCount} />;
+  }
+  return null;
+}
+
+export default function WideSidebar(props: Props) {
   return (
     <aside className="w-52 flex-shrink-0 sticky top-4">
       <WideSidebarNav
-        mode={mode}
-        onWallSelect={onWallSelect}
-        onBrowseModeSelect={onBrowseModeSelect}
+        mode={props.mode}
+        onWallSelect={props.onWallSelect}
+        onBrowseModeSelect={props.onBrowseModeSelect}
       />
-      {mode !== "wall" && panelTitle && currentCrates.length > 0 && (
-        <SidebarCrateList
-          title={panelTitle}
-          crates={currentCrates}
-          activeSlug={activeSlug}
-          onSelectCrate={onSelectCrate}
-        />
-      )}
-      {mode === "wall" && <StoreStats listingCount={listingCount} genreCount={genreCount} />}
+      <SidebarPanel {...props} />
     </aside>
   );
 }

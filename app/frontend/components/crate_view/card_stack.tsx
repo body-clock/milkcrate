@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 
 import { buildCrateWindow } from "../../lib/crate_window";
 import { type RiffleDirection } from "../../lib/riffle_navigation";
 import type { Listing } from "../../types/inertia";
 import CrateCardArea from "./crate_card_area";
+import { loadFlipDiscovered, markFlipDiscovered } from "./inspection_hint";
 
 interface CardStackProps {
   isCompact: boolean;
@@ -20,11 +21,11 @@ interface CardStackProps {
   }) => void;
 }
 
-function noop() {}
-
 /** Composes the crate card stack with hint cards, active card, drag, and gesture hints. */
 export default function CardStack(props: CardStackProps) {
   const { isCompact } = props;
+  const [flipDiscovered, setFlipDiscovered] = useState(() => loadFlipDiscovered());
+  const handleFlip = () => { markFlipDiscovered(); setFlipDiscovered(true); };
   return (
     <div
       data-testid="crate-stack"
@@ -32,7 +33,7 @@ export default function CardStack(props: CardStackProps) {
       className={`relative z-10 flex items-center justify-center select-none ${isCompact ? "min-h-[min(72svh,360px)] pt-3 pb-8" : "min-h-[390px] md:min-h-[470px] py-5 sm:py-7"}`}
       style={{ touchAction: "none", overscrollBehavior: "contain" }}
     >
-      <CrateCardArea {...props} handleFlip={noop} />
+      <CrateCardArea {...props} handleFlip={handleFlip} flipDiscovered={flipDiscovered} />
     </div>
   );
 }

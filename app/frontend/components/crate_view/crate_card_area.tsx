@@ -17,6 +17,7 @@ export interface CrateCardAreaProps {
     velocity: { x: number; y: number };
   }) => void;
   handleFlip: () => void;
+  flipDiscovered: boolean;
 }
 
 /** Inner card area containing hint cards, active card, gesture overlay, and inspection hint. */

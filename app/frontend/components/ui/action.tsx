@@ -45,20 +45,48 @@ interface ActionLinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> 
   disabled?: boolean;
 }
 
-function handleClick(
-  onClick: React.MouseEventHandler<HTMLAnchorElement> | undefined,
-  unavailable: boolean,
-) {
-  return (event: React.MouseEvent<HTMLAnchorElement>) => {
-    if (unavailable) {
-      event.preventDefault();
-      return;
-    }
-    onClick?.(event);
+interface ActionLinkAttrs {
+  cls: string;
+  busyAttr: true | undefined;
+  disabledAttr: true | undefined;
+  tabIdx: number | undefined;
+  clickHandler: (event: React.MouseEvent<HTMLAnchorElement>) => void;
+}
+
+function buildActionLinkAttrs({
+  variant,
+  size,
+  className,
+  busy,
+  disabled,
+  tabIndex,
+  onClick,
+}: {
+  variant: ActionVariant;
+  size: ActionSize;
+  className?: string;
+  busy: boolean;
+  disabled: boolean;
+  tabIndex?: number;
+  onClick?: React.MouseEventHandler<HTMLAnchorElement>;
+}): ActionLinkAttrs {
+  const unavailable = disabled || busy;
+  const cls = actionClassName({ variant, size, className });
+  return {
+    cls,
+    busyAttr: busy || undefined,
+    disabledAttr: unavailable || undefined,
+    tabIdx: unavailable ? -1 : tabIndex,
+    clickHandler: (event: React.MouseEvent<HTMLAnchorElement>) => {
+      if (unavailable) {
+        event.preventDefault();
+        return;
+      }
+      onClick?.(event);
+    },
   };
 }
 
-// eslint-disable-next-line eslint/max-lines-per-function
 export function ActionLink({
   variant = "primary",
   size = "md",
@@ -70,12 +98,15 @@ export function ActionLink({
   children,
   ...props
 }: ActionLinkProps) {
-  const unavailable = disabled || busy;
-  const cls = actionClassName({ variant, size, className });
-  const busyAttr = busy || undefined;
-  const disabledAttr = unavailable || undefined;
-  const tabIdx = unavailable ? -1 : tabIndex;
-
+  const { cls, busyAttr, disabledAttr, tabIdx, clickHandler } = buildActionLinkAttrs({
+    variant,
+    size,
+    className,
+    busy,
+    disabled,
+    tabIndex,
+    onClick,
+  });
   return (
     <a
       {...props}
@@ -83,7 +114,7 @@ export function ActionLink({
       aria-busy={busyAttr}
       aria-disabled={disabledAttr}
       tabIndex={tabIdx}
-      onClick={handleClick(onClick, unavailable)}
+      onClick={clickHandler}
     >
       {children}
     </a>

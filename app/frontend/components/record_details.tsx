@@ -25,10 +25,8 @@ const MOTION_PROPS = {
 
 function riffleAnimY(direction: RiffleDirection, enter: boolean) {
   if (direction === "deeper") {
-    // swipe DOWN: new record comes in from above, exits below
     return enter ? -ANIM_OFFSET : ANIM_OFFSET;
   }
-  // front / swipe UP: new record comes in from below, exits above
   return enter ? ANIM_OFFSET : -ANIM_OFFSET;
 }
 
@@ -39,14 +37,53 @@ function buildTags(listing: Listing) {
   ];
 }
 
+function buildMeta(listing: Listing) {
+  return [listing.format, listing.label, listing.year, listing.condition]
+    .filter(Boolean)
+    .join(" · ");
+}
+
+interface RecordDetailsContentProps {
+  listing: Listing;
+  inPile: boolean;
+  addToPile: (r: Listing) => void;
+  removeFromPile: (id: number) => void;
+  showScore: boolean;
+  onToggleScore: () => void;
+}
+
+function RecordDetailsContent({
+  listing,
+  inPile,
+  addToPile,
+  removeFromPile,
+  showScore,
+  onToggleScore,
+}: RecordDetailsContentProps) {
+  const meta = buildMeta(listing);
+  return (
+    <>
+      <RecordMeta title={listing.title} artist={listing.artist} meta={meta} />
+      <TagPills tags={buildTags(listing)} />
+      {listing.notes && (
+        <p className="text-xs text-mc-text-dim leading-relaxed line-clamp-4">{listing.notes}</p>
+      )}
+      <PriceAndActions
+        listing={listing}
+        inPile={inPile}
+        onAdd={() => addToPile(listing)}
+        onRemove={() => removeFromPile(listing.id)}
+      />
+      <ScoreSection show={showScore} listing={listing} onToggle={onToggleScore} />
+    </>
+  );
+}
+
 /** Record detail panel beside the active record card in CrateView. */
-// eslint-disable-next-line eslint/max-lines-per-function
 export default function RecordDetails({ listing, direction }: RecordDetailsProps) {
   const { inPile, addToPile, removeFromPile } = usePileContext();
   const [showScore, setShowScore] = useState(false);
-  const meta = [listing.format, listing.label, listing.year, listing.condition]
-    .filter(Boolean)
-    .join(" · ");
+  const onToggleScore = () => setShowScore((v) => !v);
   return (
     <AnimatePresence mode="wait" custom={direction}>
       <motion.div
@@ -57,18 +94,14 @@ export default function RecordDetails({ listing, direction }: RecordDetailsProps
         exit={{ opacity: 0, y: riffleAnimY(direction, false) }}
         {...MOTION_PROPS}
       >
-        <RecordMeta title={listing.title} artist={listing.artist} meta={meta} />
-        <TagPills tags={buildTags(listing)} />
-        {listing.notes && (
-          <p className="text-xs text-mc-text-dim leading-relaxed line-clamp-4">{listing.notes}</p>
-        )}
-        <PriceAndActions
+        <RecordDetailsContent
           listing={listing}
           inPile={inPile(listing.id)}
-          onAdd={() => addToPile(listing)}
-          onRemove={() => removeFromPile(listing.id)}
+          addToPile={addToPile}
+          removeFromPile={removeFromPile}
+          showScore={showScore}
+          onToggleScore={onToggleScore}
         />
-        <ScoreSection show={showScore} listing={listing} onToggle={() => setShowScore((v) => !v)} />
       </motion.div>
     </AnimatePresence>
   );

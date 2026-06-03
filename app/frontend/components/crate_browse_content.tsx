@@ -2,7 +2,15 @@ import type { Crate } from "../types/inertia";
 import { CrateBrowseEmpty } from "./crate_browse_empty";
 import InlineCrateStage from "./inline_crate_stage";
 
-// eslint-disable-next-line eslint/max-lines-per-function
+type CrateBrowseContentProps = {
+  activeCrate: Crate | null;
+  crates: Crate[];
+  activeSlug: string | null;
+  startIndex: number;
+  onSelectCrate: (slug: string, startIndex?: number) => void;
+  emptyText: string;
+};
+
 export function CrateBrowseContent({
   activeCrate,
   crates,
@@ -10,14 +18,7 @@ export function CrateBrowseContent({
   startIndex,
   onSelectCrate,
   emptyText,
-}: {
-  activeCrate: Crate | null;
-  crates: Crate[];
-  activeSlug: string | null;
-  startIndex: number;
-  onSelectCrate: (slug: string, startIndex?: number) => void;
-  emptyText: string;
-}) {
+}: CrateBrowseContentProps) {
   if (activeCrate) {
     return (
       <InlineCrateStage

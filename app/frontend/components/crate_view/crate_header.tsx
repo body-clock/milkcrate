@@ -18,7 +18,7 @@ export default function CrateHeader({
     return null;
   }
   const hideTabs = layoutMode === "no-tabs";
-  const showOwnHeader = layoutMode !== "compact" && layoutMode !== "minimal";
+  const showOwnHeader = layoutMode !== "compact";
   const shared = { onBack, tabs, activeCrate, total, hideTabs };
 
   return isCompact ? (

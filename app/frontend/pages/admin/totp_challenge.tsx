@@ -1,5 +1,3 @@
-import React from "react";
-
 import { TotpChallengeForm } from "@/pages/admin/totp_challenge_form";
 import { TotpChallengeHeader } from "@/pages/admin/totp_challenge_header";
 import { TotpFlashMessages } from "@/pages/admin/totp_flash_messages";

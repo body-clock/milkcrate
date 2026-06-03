@@ -26,11 +26,6 @@ interface UseDiscogsLookupResult {
   reset: () => void;
 }
 
-export function useDiscogsLookup(onAnnounce?: (message: string) => void): UseDiscogsLookupResult;
-export function useDiscogsLookup(
-  onAnnounce?: ((message: string) => void) | string,
-): UseDiscogsLookupResult;
-
 const LOOKUP_TIMEOUT_MS = 10_000;
 
 function buildLookupUrl(lookupUrl: string | undefined, username: string): string {

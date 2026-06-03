@@ -1,12 +1,8 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable @typescript-eslint/no-param-reassign */
-
 import { useState, useCallback, useEffect, useRef } from "react";
 
 const isBrowser = typeof window !== "undefined";
 const HALF = 2;
 const PROXIMITY_FACTOR = 0.6;
-
 interface PointerProximityHandlers {
   onPointerEnter: (e: React.PointerEvent) => void;
   onPointerLeave: (e: React.PointerEvent) => void;
@@ -24,7 +20,6 @@ interface UsePointerProximityResult {
   /** Pointer event handlers to spread onto a motion element. */
   handlers: PointerProximityHandlers;
 }
-
 function computeProximityFromRect(
   rect: DOMRect | { left: number; top: number; width: number; height: number },
   clientX: number,
@@ -36,7 +31,6 @@ function computeProximityFromRect(
   const dy = clientY - cy;
   const dist = Math.hypot(dx, dy);
   const maxDist = Math.hypot(rect.width, rect.height) * PROXIMITY_FACTOR;
-
   return Math.max(0, Math.min(1, 1 - dist / maxDist));
 }
 
@@ -46,112 +40,119 @@ function computeProximity(e: React.PointerEvent): number {
     return 0;
   }
   const rect = el.getBoundingClientRect();
-
   return computeProximityFromRect(rect, e.clientX, e.clientY);
 }
-
-// eslint-disable-next-line max-lines-per-function
+function processPointerEnter(
+  e: React.PointerEvent,
+  disabled: boolean,
+): { isTouch: boolean; proximity: number } {
+  if (!isBrowser || disabled) {
+    return { isTouch: false, proximity: 0 };
+  }
+  const isTouch = e.pointerType !== "mouse";
+  if (isTouch) {
+    return { isTouch: true, proximity: 0 };
+  }
+  return { isTouch: false, proximity: computeProximity(e) };
+}
 function usePointerEnter(
   disabled: boolean,
-  isTouchRef: React.MutableRefObject<boolean>,
   setProximity: React.Dispatch<React.SetStateAction<number>>,
-): (e: React.PointerEvent) => void {
-  return useCallback(
+): {
+  handler: (e: React.PointerEvent) => boolean;
+  isTouchRef: React.MutableRefObject<boolean>;
+} {
+  const isTouchRef = useRef(false);
+  const handler = useCallback(
     (e: React.PointerEvent) => {
-      if (!isBrowser || disabled) {
-        return;
-      }
-      const isTouch = e.pointerType !== "mouse";
-      isTouchRef.current = isTouch;
-      if (isTouch) {
-        setProximity(0);
-        return;
-      }
-      setProximity(computeProximity(e));
+      const { isTouch, proximity: prox } = processPointerEnter(e, disabled);
+      setProximity(prox);
+      return isTouch;
     },
-    [disabled],
+    [disabled, setProximity],
   );
+  return { handler, isTouchRef };
+}
+function getTargetRect(e: React.PointerEvent): DOMRect | null {
+  const target = e.currentTarget as HTMLElement | null;
+  if (!target) {
+    return null;
+  }
+  return target.getBoundingClientRect();
 }
 
-// eslint-disable-next-line max-lines-per-function
+function resolveMoveRaf(
+  e: React.PointerEvent,
+  skipMovement: boolean,
+  currentRaf: number | null,
+  setProximity: (n: number) => void,
+): number | null {
+  if (!isBrowser || skipMovement) {
+    return currentRaf;
+  }
+  const rect = getTargetRect(e);
+  if (!rect) {
+    return currentRaf;
+  }
+  if (currentRaf !== null) {
+    cancelAnimationFrame(currentRaf);
+  }
+  return requestAnimationFrame(() =>
+    setProximity(computeProximityFromRect(rect, e.clientX, e.clientY)));
+}
 function usePointerMove(
   disabled: boolean,
   isTouchRef: React.MutableRefObject<boolean>,
-  rafRef: React.MutableRefObject<number | null>,
   setProximity: (n: number) => void,
-): (e: React.PointerEvent) => void {
-  return useCallback(
+): {
+  handler: (e: React.PointerEvent) => void;
+  rafRef: React.MutableRefObject<number | null>;
+} {
+  const rafRef = useRef<number | null>(null);
+  const handler = useCallback(
     (e: React.PointerEvent) => {
-      if (!isBrowser || disabled || isTouchRef.current) {
-        return;
-      }
-      const target = e.currentTarget as HTMLElement | null;
-      if (!target) {
-        return;
-      }
-      const rect = target.getBoundingClientRect();
-      const { clientX, clientY } = e;
-      if (rafRef.current !== null) {
-        cancelAnimationFrame(rafRef.current);
-      }
-      rafRef.current = requestAnimationFrame(() => {
-        rafRef.current = null;
-        setProximity(computeProximityFromRect(rect, clientX, clientY));
-      });
+      rafRef.current = resolveMoveRaf(
+        e, disabled || isTouchRef.current, rafRef.current, setProximity);
     },
-    [disabled],
+    [disabled, isTouchRef, rafRef, setProximity],
   );
+  return { handler, rafRef };
 }
-
 function usePointerLeave(
   rafRef: React.MutableRefObject<number | null>,
   setProximity: React.Dispatch<React.SetStateAction<number>>,
 ): () => void {
-  return useCallback(() => {
-    if (!isBrowser) {
-      return;
-    }
-    if (rafRef.current !== null) {
-      cancelAnimationFrame(rafRef.current);
-      rafRef.current = null;
-    }
-    setProximity(0);
-  }, []);
-}
-
-function useRafCleanup(rafRef: React.MutableRefObject<number | null>) {
-  useEffect(() => {
-    return () => {
-      if (rafRef.current === null) {
+  return useCallback(
+    () => {
+      if (!isBrowser) {
         return;
       }
-
-      cancelAnimationFrame(rafRef.current);
-      rafRef.current = null;
-    };
-  }, [rafRef]);
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+      }
+      setProximity(0);
+    },
+    [rafRef, setProximity],
+  );
 }
-
-/**
- * Tracks pointer position relative to the element center and returns a
- * continuous 0–1 proximity value. Falls back to zero-proximity on touch
- * devices and when disabled (e.g., reduced motion).
- */
+/** Tracks pointer proximity (0–1) relative to element center. */
 export function usePointerProximity(
   options: UsePointerProximityOptions = {},
 ): UsePointerProximityResult {
   const { disabled = false } = options;
   const [proximity, setProximity] = useState(0);
-  const isTouchRef = useRef(false);
-  const rafRef = useRef<number | null>(null);
-
-  const enter = usePointerEnter(disabled, isTouchRef, setProximity);
-  const move = usePointerMove(disabled, isTouchRef, rafRef, setProximity);
+  const { handler: enterHandler, isTouchRef } = usePointerEnter(disabled, setProximity);
+  const { handler: move, rafRef } = usePointerMove(disabled, isTouchRef, setProximity);
   const leave = usePointerLeave(rafRef, setProximity);
-
-  const handlers = { onPointerEnter: enter, onPointerLeave: leave, onPointerMove: move };
-
-  useRafCleanup(rafRef);
-
-  return { proximity, handlers };
+  const enter = useCallback(
+    (e: React.PointerEvent) => { isTouchRef.current = enterHandler(e); },
+    [enterHandler, isTouchRef],
+  );
+  useEffect(() => () => {
+    if (rafRef.current !== null) { cancelAnimationFrame(rafRef.current); }
+  }, [rafRef]);
+  return {
+    proximity,
+    handlers: { onPointerEnter: enter, onPointerLeave: leave, onPointerMove: move },
+  };
 }

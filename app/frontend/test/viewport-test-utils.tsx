@@ -1,5 +1,5 @@
 import { render, type RenderOptions } from "@testing-library/react";
-import React, { useMemo, type ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 
 import { ViewportContext, type ViewportTier } from "@/contexts/viewport_context";
 
@@ -17,7 +17,6 @@ export function renderWithTier(
 ) {
   return render(ui, {
     wrapper: ({ children }: { children: ReactNode }) => {
-      // eslint-disable-next-line react-hooks/exhaustive-deps
       const value = useMemo(() => ({ tier }), [tier]);
       return <ViewportContext.Provider value={value}>{children}</ViewportContext.Provider>;
     },
@@ -31,7 +30,6 @@ export function renderWithTier(
  */
 export function TierWrapper(tier: ViewportTier) {
   return function Wrapper({ children }: { children: ReactNode }) {
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     const value = useMemo(() => ({ tier }), [tier]);
     return <ViewportContext.Provider value={value}>{children}</ViewportContext.Provider>;
   };

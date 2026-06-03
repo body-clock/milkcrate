@@ -65,7 +65,6 @@ function barStatic(config: JobConfig, label: string) {
   );
 }
 
-// eslint-disable-next-line eslint/max-lines-per-function
 function barHtml(config: JobConfig, label: string, pct?: number | null): React.ReactNode {
   if (pct != null && pct > 0) {
     return barPct(config, label, pct);

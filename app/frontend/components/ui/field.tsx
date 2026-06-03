@@ -1,5 +1,7 @@
 import React, { useId } from "react";
 
+import FieldError from "./field_error";
+import FieldLabel from "./field_label";
 import { cn } from "./class_names";
 
 type FieldControlProps = {
@@ -51,74 +53,28 @@ function buildFieldControl(opts: FieldControlOptions) {
   });
 }
 
-// eslint-disable-next-line react/no-multi-comp
-function FieldHint({ hintId, hint }: { hintId?: string; hint?: string }) {
-  if (!hint) {
-    return null;
-  }
-  return (
-    <span id={hintId} className="text-[10px] text-mc-text-dim">
-      {hint}
-    </span>
-  );
-}
-
-// eslint-disable-next-line react/no-multi-comp
-function FieldLabel({ controlId, label, hint, hintId }: {
-  controlId: string; label: string; hint?: string; hintId?: string;
-}) {
-  return (
-    <div className="flex items-baseline gap-2">
-      <label htmlFor={controlId} className="text-xs font-normal uppercase tracking-widest text-mc-text-dim">
-        {label}
-      </label>
-      <FieldHint hintId={hintId} hint={hint} />
-    </div>
-  );
-}
-
-// eslint-disable-next-line react/no-multi-comp
-function FieldError({ errorId, error }: { errorId?: string; error?: string }) {
-  if (!error) {
-    return null;
-  }
-  return (
-    <p id={errorId} role="alert" className="text-xs font-medium text-mc-feedback-danger">
-      {error}
-    </p>
-  );
-}
-
-// eslint-disable-next-line eslint/max-lines-per-function, react/no-multi-comp
-export default function Field({
-  id,
-  label,
-  hint,
-  error,
-  busy = false,
-  disabled = false,
-  className,
-  children,
-}: FieldProps) {
+function useFieldControl(opts: Pick<FieldProps, "children" | "id" | "hint" | "error" | "busy" | "disabled">) {
   const generatedId = useId();
-  const controlId = children.props.id ?? id ?? generatedId;
-  const hintId = hint ? `${controlId}-hint` : undefined;
-  const errorId = error ? `${controlId}-error` : undefined;
+  const controlId = opts.children.props.id ?? opts.id ?? generatedId;
+  const hintId = opts.hint ? `${controlId}-hint` : undefined;
+  const errorId = opts.error ? `${controlId}-error` : undefined;
   const control = buildFieldControl({
-    children,
-    controlId,
-    hintId,
-    errorId,
-    busy,
-    disabled,
-    error,
+    children: opts.children, controlId, hintId, errorId,
+    busy: opts.busy ?? false, disabled: opts.disabled ?? false, error: opts.error,
   });
+  return { controlId, hintId, errorId, control };
+}
+
+export default function Field({
+  id, label, hint, error, busy = false, disabled = false, className, children,
+}: FieldProps) {
+  const ctrl = useFieldControl({ children, id, hint, error, busy, disabled });
 
   return (
     <div className={cn("flex flex-col gap-1.5", className)}>
-      <FieldLabel controlId={controlId} label={label} hint={hint} hintId={hintId} />
-      {control}
-      <FieldError errorId={errorId} error={error} />
+      <FieldLabel controlId={ctrl.controlId} label={label} hint={hint} hintId={ctrl.hintId} />
+      {ctrl.control}
+      <FieldError errorId={ctrl.errorId} error={error} />
     </div>
   );
 }

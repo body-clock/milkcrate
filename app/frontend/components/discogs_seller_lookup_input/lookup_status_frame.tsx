@@ -8,16 +8,17 @@ const DEFAULT_FRAME_TRANSITION: ComponentProps<typeof motion.div>["transition"] 
   ease: easeOut,
 };
 
-// eslint-disable-next-line eslint/max-lines-per-function
+interface LookupStatusFrameProps {
+  statusKey: string;
+  children: ReactNode;
+  transition?: ComponentProps<typeof motion.div>["transition"];
+}
+
 export function LookupStatusFrame({
   statusKey,
   children,
   transition = DEFAULT_FRAME_TRANSITION,
-}: {
-  statusKey: string;
-  children: ReactNode;
-  transition?: ComponentProps<typeof motion.div>["transition"];
-}) {
+}: LookupStatusFrameProps) {
   return (
     <motion.div
       key={statusKey}

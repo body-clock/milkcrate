@@ -31,7 +31,6 @@ function useTotpChallengeSubmit() {
   return { code, setCode, submitting, inputRef, handleSubmit };
 }
 
-// eslint-disable-next-line max-lines-per-function
 export function TotpChallengeForm({ error }: TotpChallengeFormProps) {
   const { code, setCode, submitting, inputRef, handleSubmit } = useTotpChallengeSubmit();
 
@@ -44,12 +43,7 @@ export function TotpChallengeForm({ error }: TotpChallengeFormProps) {
         error={error}
         autoComplete="one-time-code"
       />
-      <Button
-        type="submit"
-        className="w-full"
-        disabled={code.length < TOTP_CODE_LENGTH}
-        busy={submitting}
-      >
+      <Button type="submit" className="w-full" disabled={code.length < TOTP_CODE_LENGTH} busy={submitting}>
         {submitting ? "Verifying..." : "Verify"}
       </Button>
       <TotpLogoutLink />

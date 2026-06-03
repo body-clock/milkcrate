@@ -2,6 +2,11 @@ project_tracker: github
 
 # Cardinal Rules
 
+**Never use eslint-disable, oxlint-disable, or any lint-suppression comment.**
+Every lint offense must be resolved with a real code fix: extract components,
+split functions, restructure logic, or adjust the lint rule if it is genuinely
+wrong for this codebase. Suppression comments rot over time and hide real bugs.
+
 **Never merge into `main` without explicit user permission.** Merging to
 production is a human decision. The agent may propose a merge, describe what
 would ship, and ask for confirmation, but must never execute `git checkout

@@ -23,7 +23,7 @@ function getFocusable(dialog: HTMLElement): HTMLElement[] {
   return Array.from(dialog.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR));
 }
 
-function focusFallback(focusable: HTMLElement[], titleEl: HTMLElement | null): void {
+function focusFallback(_focusable: HTMLElement[], titleEl: HTMLElement | null): void {
   titleEl?.focus();
 }
 
@@ -87,11 +87,10 @@ function createTabHandler(
       return;
     }
     const dialog = dialogRef.current;
-    const title = titleRef.current;
     if (!dialog) {
       return;
     }
-    trapTabKey(event, dialog, title);
+    trapTabKey(event, dialog, titleRef.current);
   };
 }
 
@@ -103,8 +102,26 @@ function restoreFocus(previousFocus: HTMLElement | null, returnFocus: HTMLElemen
   }
 }
 
+function engageFocusTrap(
+  prevRef: React.MutableRefObject<HTMLElement | null>,
+  titleRef: React.RefObject<HTMLSpanElement | null>,
+  dialogRef: React.RefObject<HTMLDivElement | null>,
+  onClose: () => void,
+  retRef: React.RefObject<HTMLElement | null> | undefined,
+): () => void {
+  prevRef.current = document.activeElement as HTMLElement | null;
+  titleRef.current?.focus();
+  const handler = createTabHandler(onClose, dialogRef, titleRef);
+  document.addEventListener("keydown", handler);
+  const savedPrev = prevRef.current;
+  const savedReturn = retRef?.current ?? null;
+  return () => {
+    document.removeEventListener("keydown", handler);
+    restoreFocus(savedPrev, savedReturn);
+  };
+}
+
 /** Manages focus trapping inside a dialog. */
-// eslint-disable-next-line max-lines-per-function
 export function useDialogFocusTrap(
   open: boolean,
   onClose: () => void,
@@ -114,19 +131,8 @@ export function useDialogFocusTrap(
   const titleRef = useRef<HTMLSpanElement>(null);
   const prevRef = useRef<HTMLElement | null>(null);
   useEffect(() => {
-    if (!open) {
-      return;
-    }
-    prevRef.current = document.activeElement as HTMLElement | null;
-    titleRef.current?.focus();
-    const handler = createTabHandler(onClose, dialogRef, titleRef);
-    document.addEventListener("keydown", handler);
-    const savedPrev = prevRef.current;
-    const savedReturn = retRef?.current ?? null;
-    return () => {
-      document.removeEventListener("keydown", handler);
-      restoreFocus(savedPrev, savedReturn);
-    };
-  }, [open, onClose, retRef]);
+    if (!open) { return; }
+    return engageFocusTrap(prevRef, titleRef, dialogRef, onClose, retRef);
+  }, [open, onClose, dialogRef, titleRef, retRef]);
   return { dialogRef, titleRef };
 }

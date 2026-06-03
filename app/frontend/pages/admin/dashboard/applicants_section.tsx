@@ -2,9 +2,8 @@ import EmptyState from "@/components/ui/empty_state";
 import SectionHeader from "@/components/ui/section_header";
 import type { AdminDashboardProps } from "@/types/inertia";
 
-import ApplicantCard from "./applicant_card";
+import { ApplicantGrid } from "./applicant_grid";
 
-// eslint-disable-next-line max-lines-per-function
 export function ApplicantsSection({
   applicants,
 }: {
@@ -20,11 +19,7 @@ export function ApplicantsSection({
       {applicants.length === 0 ? (
         <EmptyState>No applicants waiting.</EmptyState>
       ) : (
-        <div className="grid gap-4 lg:grid-cols-2">
-          {applicants.map((applicant) => (
-            <ApplicantCard key={applicant.id} applicant={applicant} />
-          ))}
-        </div>
+        <ApplicantGrid applicants={applicants} />
       )}
     </section>
   );

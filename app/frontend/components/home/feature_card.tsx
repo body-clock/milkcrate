@@ -1,22 +1,19 @@
 import { motion } from "framer-motion";
 import type { Variants } from "framer-motion";
 
+import { EASE_OUT } from "@/lib/motion_tokens";
+
 interface FeatureData {
   title: string;
   description: string;
 }
-
-const EASE_X1 = 0.25;
-const EASE_Y1 = 0.46;
-const EASE_X2 = 0.45;
-const EASE_Y2 = 0.94;
 
 const FADE_IN_DURATION = 0.4;
 const fadeIn: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { duration: FADE_IN_DURATION, ease: [EASE_X1, EASE_Y1, EASE_X2, EASE_Y2] },
+    transition: { duration: FADE_IN_DURATION, ease: EASE_OUT },
   },
 };
 
@@ -24,10 +21,12 @@ export default function FeatureCard({ title, description }: FeatureData) {
   return (
     <motion.div
       variants={fadeIn}
-      className="flex flex-col items-center text-center gap-3 p-5 rounded-xl bg-mc-bg-raised border border-mc-border"
+      className="flex flex-col items-center text-center rounded-lg bg-mc-bg-raised border border-mc-border px-4 py-6 sm:px-6"
     >
-      <h3 className="text-base font-semibold text-mc-text">{title}</h3>
-      <p className="text-sm text-mc-text-dim leading-relaxed">{description}</p>
+      <h3 className="text-sm font-semibold text-mc-text mb-2">{title}</h3>
+      <p className="text-xs text-mc-text-dim leading-relaxed max-w-[22ch]">
+        {description}
+      </p>
     </motion.div>
   );
 }

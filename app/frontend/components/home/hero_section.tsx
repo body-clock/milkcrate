@@ -1,13 +1,7 @@
-import { Link } from "@inertiajs/react";
 import { motion } from "framer-motion";
 
-import { actionClassName } from "@/components/ui/action";
-
-const EASE_X1 = 0.25;
-const EASE_Y1 = 0.46;
-const EASE_X2 = 0.45;
-const EASE_Y2 = 0.94;
-const EASE_OUT = [EASE_X1, EASE_Y1, EASE_X2, EASE_Y2] as const;
+import HeroCta from "@/components/home/hero_cta";
+import { EASE_OUT } from "@/lib/motion_tokens";
 
 const FADE_UP_DURATION = 0.5;
 const fadeUp = {
@@ -26,7 +20,6 @@ interface Props {
   demoHref: string;
 }
 
-// eslint-disable-next-line eslint/max-lines-per-function
 export default function HeroSection({ headline, subhead, ctaDemo, demoHref }: Props) {
   return (
     <motion.section
@@ -48,17 +41,7 @@ export default function HeroSection({ headline, subhead, ctaDemo, demoHref }: Pr
       >
         {subhead}
       </motion.p>
-      <motion.div variants={fadeUp}>
-        <Link
-          href={demoHref}
-          className={actionClassName({
-            size: "lg",
-            className: "w-full text-center tracking-wide sm:w-auto",
-          })}
-        >
-          {ctaDemo}
-        </Link>
-      </motion.div>
+      <HeroCta ctaDemo={ctaDemo} demoHref={demoHref} />
     </motion.section>
   );
 }

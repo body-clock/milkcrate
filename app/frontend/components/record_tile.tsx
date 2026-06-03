@@ -41,7 +41,7 @@ export default function RecordTile({
     <div
       className={`aspect-square w-full h-full rounded-sm overflow-hidden border border-mc-border/50 ${hoverClass} ${className}`}
     >
-      <RecordCover src={src} alt={listing.title ?? ""} imageLoading={imageLoading} />
+      <RecordCover src={src ?? undefined} alt={listing.title ?? ""} imageLoading={imageLoading} />
     </div>
   );
 }

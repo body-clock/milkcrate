@@ -11,7 +11,22 @@ function clampIndex(index: number, max: number): number {
   return Math.min(Math.max(index, 0), max);
 }
 
-// eslint-disable-next-line eslint/max-lines-per-function
+function mapSlot<TRecord>(
+  records: TRecord[],
+  clampedIndex: number,
+  start: number,
+): (_value: unknown, i: number) => CrateWindowSlot<TRecord> {
+  return (_value, i) => {
+    const index = start + i;
+    return {
+      record: records[index],
+      index,
+      offset: index - clampedIndex,
+      isActive: index === clampedIndex,
+    };
+  };
+}
+
 export function buildCrateWindow<TRecord>(
   records: TRecord[],
   activeIndex: number,
@@ -26,13 +41,5 @@ export function buildCrateWindow<TRecord>(
   const start = clampIndex(clampedIndex - radius, lastIndex);
   const end = clampIndex(clampedIndex + radius, lastIndex);
 
-  return Array.from({ length: end - start + 1 }, (_, i) => {
-    const index = start + i;
-    return {
-      record: records[index],
-      index,
-      offset: index - clampedIndex,
-      isActive: index === clampedIndex,
-    };
-  });
+  return Array.from({ length: end - start + 1 }, mapSlot(records, clampedIndex, start));
 }

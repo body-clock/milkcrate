@@ -1,15 +1,14 @@
-import React from "react";
-
 import FeedbackMessage from "@/components/ui/feedback_message";
 
-// eslint-disable-next-line max-lines-per-function
+interface MarketingFlashBannerProps {
+  notice?: string;
+  alert?: string;
+}
+
 export default function MarketingFlashBanner({
   notice,
   alert,
-}: {
-  notice?: string;
-  alert?: string;
-}) {
+}: MarketingFlashBannerProps) {
   const msg = notice || alert;
   if (!msg) {
     return null;

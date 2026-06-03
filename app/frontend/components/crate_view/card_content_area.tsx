@@ -55,7 +55,7 @@ export default function CardContentArea(p: CrateCardAreaProps) {
           prefersReducedMotion={p.prefersReducedMotion}
         />
       </div>
-      {p.isCompact && !p.showGestureHint && <InspectionHint discovered={false} />}
+      {p.isCompact && !p.showGestureHint && <InspectionHint discovered={p.flipDiscovered} />}
     </div>
   );
 }

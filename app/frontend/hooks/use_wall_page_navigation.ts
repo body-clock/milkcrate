@@ -88,7 +88,27 @@ function useClampPageIndex(
   }, [pages, pages.length, pageIndex, setPageState]);
 }
 
-// eslint-disable-next-line max-lines-per-function
+function usePageControls(
+  pageIndex: number,
+  pageCount: number,
+  setPageState: React.Dispatch<React.SetStateAction<[number, number]>>,
+) {
+  const goToPage = useGoToPage(pageIndex, setPageState);
+  const handleDragEnd = useDragEndHandler(pageIndex, pageCount, setPageState);
+  return { goToPage, handleDragEnd };
+}
+
+function useDerivedPageState(
+  pages: Listing[][],
+  pageIndex: number,
+  prefersReducedMotion: boolean,
+) {
+  const transition = prefersReducedMotion ? { duration: 0 } : springTactile;
+  const currentPage = pages[pageIndex] ?? [];
+  const showPagination = pages.length > 1;
+  return { transition, currentPage, showPagination };
+}
+
 export function useWallPageNavigation(
   records: Listing[],
   tilesPerPage: number,
@@ -96,25 +116,15 @@ export function useWallPageNavigation(
   prefersReducedMotion: boolean,
 ) {
   const [[pageIndex, direction], setPageState] = useState([0, 0]);
-
   const pages = useChunkedPages(records, isCompact, tilesPerPage);
-
   useClampPageIndex(pages, pageIndex, setPageState);
-
-  const goToPage = useGoToPage(pageIndex, setPageState);
-  const handleDragEnd = useDragEndHandler(pageIndex, pages.length, setPageState);
-  const transition = prefersReducedMotion ? { duration: 0 } : springTactile;
-  const currentPage = pages[pageIndex] ?? [];
-  const showPagination = pages.length > 1;
+  const { goToPage, handleDragEnd } = usePageControls(pageIndex, pages.length, setPageState);
+  const { transition, currentPage, showPagination } = useDerivedPageState(
+    pages, pageIndex, prefersReducedMotion,
+  );
 
   return {
-    pageIndex,
-    direction,
-    currentPage,
-    pageCount: pages.length,
-    showPagination,
-    transition,
-    goToPage,
-    handleDragEnd,
+    pageIndex, direction, currentPage,
+    pageCount: pages.length, showPagination, transition, goToPage, handleDragEnd,
   };
 }

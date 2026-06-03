@@ -34,7 +34,7 @@ export type AdminDiscogsLookupResponse =
       };
     };
 
-type AdminLookupState =
+export type AdminLookupState =
   | { status: "idle" }
   | { status: "loading" }
   | { status: "error" }
@@ -45,6 +45,10 @@ interface UseAdminDiscogsLookupResult {
   lookup: (username: string) => void;
   reset: () => void;
 }
+
+type AbortRef = React.MutableRefObject<AbortController | null>;
+type TimeoutRef = React.MutableRefObject<ReturnType<typeof setTimeout> | null>;
+type LookupSetter = React.Dispatch<React.SetStateAction<AdminLookupState>>;
 
 const LOOKUP_TIMEOUT_MS = 10_000;
 
@@ -64,26 +68,82 @@ function startTimeout(controller: AbortController): ReturnType<typeof setTimeout
   return setTimeout(() => controller.abort(), LOOKUP_TIMEOUT_MS);
 }
 
-function cleanRefs(at: AbortController | null, tt: ReturnType<typeof setTimeout> | null): void {
+function cleanRefs(_at: AbortController | null, tt: ReturnType<typeof setTimeout> | null): void {
   if (tt) {
     clearTimeout(tt);
   }
 }
 
-function cancelPending(
-  ar: React.MutableRefObject<AbortController | null>,
-  tr: React.MutableRefObject<ReturnType<typeof setTimeout> | null>,
-): void {
+function cancelPending(ar: AbortRef, tr: TimeoutRef): void {
   ar.current?.abort();
   if (tr.current) {
     clearTimeout(tr.current);
   }
 }
 
+function finishLookup(
+  ar: AbortRef,
+  tr: TimeoutRef,
+  setSt: LookupSetter,
+  c: AbortController,
+  data: AdminDiscogsLookupResponse,
+): void {
+  if (ar.current !== c || c.signal.aborted) {
+    return;
+  }
+  cleanRefs(ar.current, tr.current);
+  ar.current = null;
+  tr.current = null;
+  setSt({ status: "result", result: data });
+}
 
+function handleLookupError(
+  ar: AbortRef,
+  tr: TimeoutRef,
+  setSt: LookupSetter,
+  c: AbortController,
+  err: unknown,
+): void {
+  if (ar.current !== c || c.signal.aborted) {
+    return;
+  }
+  if (err instanceof DOMException && err.name === "AbortError") {
+    return;
+  }
+  cleanRefs(ar.current, tr.current);
+  ar.current = null;
+  tr.current = null;
+  setSt({ status: "error" });
+}
+
+function executeLookup(
+  ar: AbortRef,
+  tr: TimeoutRef,
+  setSt: LookupSetter,
+  lookupPath: string,
+  username: string,
+): void {
+  cancelPending(ar, tr);
+  const c = new AbortController();
+  ar.current = c;
+  tr.current = startTimeout(c);
+  setSt({ status: "loading" });
+  const url = new URL(lookupPath, window.location.origin);
+  url.searchParams.set("username", username);
+  runLookupFetch(url.toString(), c.signal).then(
+    (data) => finishLookup(ar, tr, setSt, c, data),
+    (err) => handleLookupError(ar, tr, setSt, c, err),
+  );
+}
+
+function resetLookupState(ar: AbortRef, tr: TimeoutRef, setSt: LookupSetter): void {
+  cancelPending(ar, tr);
+  ar.current = null;
+  tr.current = null;
+  setSt({ status: "idle" });
+}
 
 /** Manages admin Discogs username lookup lifecycle: fetch, abort, timeout. */
-// eslint-disable-next-line max-lines-per-function
 export function useAdminDiscogsLookup(lookupPath: string): UseAdminDiscogsLookupResult {
   const [st, setSt] = useState<AdminLookupState>({ status: "idle" });
   const ar = useRef<AbortController | null>(null);
@@ -92,27 +152,11 @@ export function useAdminDiscogsLookup(lookupPath: string): UseAdminDiscogsLookup
   useEffect(() => () => cancelPending(ar, tr), []);
 
   const lookup = useCallback(
-    (username: string) => {
-      cancelPending(ar, tr);
-      const c = new AbortController();
-      ar.current = c;
-      tr.current = startTimeout(c);
-      setSt({ status: "loading" });
-      const u = new URL(lookupPath, window.location.origin);
-      u.searchParams.set("username", username);
-      const handleData = (data: AdminDiscogsLookupResponse) => { if (ar.current !== c || c.signal.aborted) { return; } cleanRefs(ar.current, tr.current); ar.current = null; tr.current = null; setSt({ status: "result", result: data }); };
-      const handleErr = (err: unknown) => { if (ar.current !== c || c.signal.aborted) { return; } if (err instanceof DOMException && err.name === "AbortError") { return; } cleanRefs(ar.current, tr.current); ar.current = null; tr.current = null; setSt({ status: "error" }); };
-      runLookupFetch(u.toString(), c.signal).then(handleData, handleErr);
-    },
+    (username: string) => { executeLookup(ar, tr, setSt, lookupPath, username); },
     [lookupPath],
   );
 
-  const reset = useCallback(() => {
-    cancelPending(ar, tr);
-    ar.current = null;
-    tr.current = null;
-    setSt({ status: "idle" });
-  }, []);
+  const reset = useCallback(() => resetLookupState(ar, tr, setSt), []);
 
   return { state: st, lookup, reset };
 }

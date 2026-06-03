@@ -1,7 +1,7 @@
 import { usePage } from "@inertiajs/react";
 import React, { createContext, useCallback, useContext, useMemo, useState } from "react";
 
-interface ShopperInfo {
+export interface ShopperInfo {
   discogs_username: string;
 }
 
@@ -42,42 +42,51 @@ async function sendRequest(items: { discogs_listing_id: string }[], storeSlug: s
   return response.json();
 }
 
-function wantlistInitState() {
-  return {
-    state: "idle" as WantlistState,
-    wantlistResult: null as WantlistResult | null,
-    errorMessage: null as string | null,
-  };
+type WantlistStateObj = {
+  state: WantlistState;
+  wantlistResult: WantlistResult | null;
+  errorMessage: string | null;
+};
+
+function wantlistInitState(): WantlistStateObj {
+  return { state: "idle", wantlistResult: null, errorMessage: null };
 }
 
-// eslint-disable-next-line max-lines-per-function
+type WantlistSetter = React.Dispatch<React.SetStateAction<WantlistStateObj>>;
+
+async function executeAddToWantlist(
+  items: { discogs_listing_id: string }[],
+  storeSlug: string,
+  setWantlist: WantlistSetter,
+): Promise<WantlistResult | null> {
+  setWantlist({ state: "creating", wantlistResult: null, errorMessage: null });
+  try {
+    const result = await sendRequest(items, storeSlug);
+    setWantlist({ state: "success", wantlistResult: result, errorMessage: null });
+    return result;
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "An unexpected error occurred";
+    setWantlist({ state: "error", wantlistResult: null, errorMessage: message });
+    return null;
+  }
+}
+
 function useWantlistState(isConnected: boolean) {
-  const [{ state, wantlistResult, errorMessage }, setWantlist] = useState(wantlistInitState);
+  const [wantlist, setWantlist] = useState<WantlistStateObj>(wantlistInitState);
 
   const addToWantlist = useCallback(
     async (items: { discogs_listing_id: string }[], storeSlug: string) => {
-      if (!isConnected) {
-        return null;
-      }
-      setWantlist({ state: "creating", wantlistResult: null, errorMessage: null });
-      try {
-        const result = await sendRequest(items, storeSlug);
-        setWantlist({ state: "success", wantlistResult: result, errorMessage: null });
-        return result;
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "An unexpected error occurred";
-        setWantlist({ state: "error", wantlistResult: null, errorMessage: message });
-        return null;
-      }
+      if (!isConnected) { return null; }
+      return executeAddToWantlist(items, storeSlug, setWantlist);
     },
-    [isConnected],
+    [isConnected, setWantlist],
   );
 
   const resetResult = useCallback(() => {
     setWantlist(wantlistInitState());
   }, []);
 
-  return { state, wantlistResult, errorMessage, addToWantlist, resetResult };
+  return { ...wantlist, addToWantlist, resetResult };
 }
 
 export function ShopperProvider({ children }: { children: React.ReactNode }) {

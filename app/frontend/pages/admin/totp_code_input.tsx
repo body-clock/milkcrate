@@ -1,4 +1,4 @@
-import React, { forwardRef, type KeyboardEvent } from "react";
+import { forwardRef, type KeyboardEvent } from "react";
 
 import Field from "@/components/ui/field";
 

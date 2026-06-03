@@ -1,10 +1,9 @@
-import PileSheet from "@/components/pile_sheet";
-import PileToast from "@/components/pile_toast";
-import FeedbackMessage from "@/components/ui/feedback_message";
 import MilkcrateShell from "@/layouts/milkcrate_shell";
 
 import { AppFooter } from "./app_footer";
 import { AppHeader } from "./app_header";
+import AppContentFlashBanner from "./app_content_flash_banner";
+import { AppContentOverlays } from "./app_content_overlays";
 
 interface AppContentProps {
   children: React.ReactNode;
@@ -24,72 +23,22 @@ interface AppContentProps {
   hasNotice: boolean;
 }
 
-// eslint-disable-next-line react/no-multi-comp
-function FlashBanner({ flashMsg, hasNotice }: { flashMsg?: string; hasNotice: boolean }) {
-  if (!flashMsg) {
-    return undefined;
-  }
-  return (
-    <FeedbackMessage
-      tone={hasNotice ? "success" : "danger"}
-      live={hasNotice ? "polite" : "assertive"}
-      className="rounded-none border-x-0 px-4 py-2"
-    >
-      {flashMsg}
-    </FeedbackMessage>
-  );
-}
-
-// eslint-disable-next-line max-lines-per-function, react/no-multi-comp
-export function AppContent({
-  children,
-  storeName,
-  discogsUsername,
-  theme,
-  toggle,
-  isCompact,
-  pile,
-  shopper,
-  pileOpen,
-  setPileOpen,
-  handleClosePile,
-  contextFocusRef,
-  autoOpenPile,
-  flashMsg,
-  hasNotice,
-}: AppContentProps) {
+export function AppContent(props: AppContentProps) {
+  const p = props;
   return (
     <>
-      <div inert={pileOpen} data-testid="storefront-background">
+      <div inert={p.pileOpen} data-testid="storefront-background">
         <MilkcrateShell
-          header={
-            <AppHeader
-              storeName={storeName}
-              discogsUsername={discogsUsername}
-              isCompact={isCompact}
-              pile={pile}
-              pileOpen={pileOpen}
-              theme={theme}
-              toggle={toggle}
-              setPileOpen={setPileOpen}
-              contextFocusRef={contextFocusRef}
-            />
-          }
-          afterHeader={<FlashBanner flashMsg={flashMsg} hasNotice={hasNotice} />}
-          footer={isCompact ? undefined : <AppFooter shopper={shopper} />}
+          header={<AppHeader storeName={p.storeName} discogsUsername={p.discogsUsername} isCompact={p.isCompact} pile={p.pile} pileOpen={p.pileOpen} theme={p.theme} toggle={p.toggle} setPileOpen={p.setPileOpen} contextFocusRef={p.contextFocusRef} />}
+          afterHeader={<AppContentFlashBanner flashMsg={p.flashMsg} hasNotice={p.hasNotice} />}
+          footer={p.isCompact ? undefined : <AppFooter shopper={p.shopper} />}
           contentWidth="max-w-6xl"
           contentPadding="px-4 sm:px-6 lg:px-8 py-4 sm:py-8"
         >
-          {children}
+          {p.children}
         </MilkcrateShell>
       </div>
-      <PileToast />
-      <PileSheet
-        open={pileOpen}
-        onClose={handleClosePile}
-        returnFocusRef={contextFocusRef}
-        highlightOnMount={autoOpenPile}
-      />
+      <AppContentOverlays pileOpen={p.pileOpen} handleClosePile={p.handleClosePile} contextFocusRef={p.contextFocusRef} autoOpenPile={p.autoOpenPile} />
     </>
   );
 }

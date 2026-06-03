@@ -3,15 +3,32 @@ import type { AdminDiscogsLookupResponse } from "@/hooks/use_admin_discogs_looku
 import { LookupCreatable } from "./lookup_creatable";
 import { LookupMessage } from "./lookup_message";
 
-function warningMessage(children: React.ReactNode) {
-  return <LookupMessage tone="warning">{children}</LookupMessage>;
+type LookupMessageResult = { tone: "warning" | "danger"; message: string };
+
+function activeMessage(store: { name: string; discogs_username: string }) {
+  return `${store.name} is already active as @${store.discogs_username}.`;
 }
 
-function dangerMessage(children: React.ReactNode) {
-  return <LookupMessage tone="danger">{children}</LookupMessage>;
+function applicantMessage(applicant: { name: string; discogs_username: string }) {
+  return `${applicant.name} already applied as @${applicant.discogs_username}. Use the applicant onboarding path.`;
 }
 
-// eslint-disable-next-line max-lines-per-function
+function getLookupMessage(lookup: AdminDiscogsLookupResponse): LookupMessageResult {
+  if (lookup.status === "already_active") {
+    return { tone: "warning", message: activeMessage(lookup.store) };
+  }
+  if (lookup.status === "existing_applicant") {
+    return { tone: "warning", message: applicantMessage(lookup.applicant) };
+  }
+  if (lookup.status === "invalid") {
+    return { tone: "danger", message: "Enter a valid Discogs username before creating a storefront." };
+  }
+  return {
+    tone: "danger",
+    message: "Discogs could not verify this seller right now. No storefront can be created from this lookup.",
+  };
+}
+
 export function LookupResult({
   lookup,
   createPath,
@@ -24,20 +41,6 @@ export function LookupResult({
   if (lookup.status === "creatable") {
     return <LookupCreatable lookup={lookup} createPath={createPath} csrfToken={csrfToken} />;
   }
-  if (lookup.status === "already_active") {
-    return warningMessage(
-      `${lookup.store.name} is already active as @${lookup.store.discogs_username}.`,
-    );
-  }
-  if (lookup.status === "existing_applicant") {
-    return warningMessage(
-      `${lookup.applicant.name} already applied as @${lookup.applicant.discogs_username}. Use the applicant onboarding path.`,
-    );
-  }
-  if (lookup.status === "invalid") {
-    return dangerMessage("Enter a valid Discogs username before creating a storefront.");
-  }
-  return dangerMessage(
-    "Discogs could not verify this seller right now. No storefront can be created from this lookup.",
-  );
+  const { tone, message } = getLookupMessage(lookup);
+  return <LookupMessage tone={tone}>{message}</LookupMessage>;
 }

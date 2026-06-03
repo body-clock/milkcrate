@@ -16,32 +16,21 @@ interface AppHeaderProps {
 const headerClass =
   "mc-header flex items-center justify-between px-4 py-2 sm:py-3 border-b border-mc-border sticky top-0 z-30 bg-mc-bg-raised/95 backdrop-blur-sm";
 
-// eslint-disable-next-line max-lines-per-function
-export function AppHeader({
-  storeName,
-  discogsUsername,
-  isCompact,
-  pile,
-  pileOpen,
-  theme,
-  toggle,
-  setPileOpen,
-  contextFocusRef,
-}: AppHeaderProps) {
+export function AppHeader(props: AppHeaderProps) {
+  const p = props;
   return (
-    <header ref={contextFocusRef} tabIndex={-1} className={headerClass}>
+    <header ref={p.contextFocusRef} tabIndex={-1} className={headerClass}>
       <AppHeaderBrand
-        storeName={storeName}
-        discogsUsername={discogsUsername}
-        isCompact={isCompact}
+        storeName={p.storeName}
+        isCompact={p.isCompact}
       />
       <AppHeaderActions
-        pile={pile}
-        pileOpen={pileOpen}
-        isCompact={isCompact}
-        theme={theme}
-        toggle={toggle}
-        setPileOpen={setPileOpen}
+        pile={p.pile}
+        pileOpen={p.pileOpen}
+        isCompact={p.isCompact}
+        theme={p.theme}
+        toggle={p.toggle}
+        setPileOpen={p.setPileOpen}
       />
     </header>
   );

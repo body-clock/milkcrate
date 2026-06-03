@@ -9,7 +9,7 @@ interface Props {
   steps: Step[];
 }
 
-// eslint-disable-next-line eslint/max-lines-per-function
+
 export default function StepsSection({ steps }: Props) {
   return (
     <section

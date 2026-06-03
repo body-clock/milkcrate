@@ -10,26 +10,33 @@ import { LookupNotFound } from "./lookup_not_found";
 import { LookupPreview } from "./lookup_preview";
 import type { Props } from "./types";
 
-// eslint-disable-next-line eslint/max-lines-per-function
-export function LookupStatus({
-  state,
-  copy,
-  onRetry,
-}: {
+type LookupStatusProps = {
   state: LookupState;
   copy: Props["copy"];
   onRetry: () => void;
-}) {
+};
+
+function renderLookupStatus(state: LookupState, copy: Props["copy"], onRetry: () => void) {
+  switch (state.status) {
+    case "loading":
+      return <LookupLoading />;
+    case "preview":
+      return <LookupPreview result={state.result} copy={copy} />;
+    case "error_not_found":
+      return <LookupNotFound copy={copy} />;
+    case "error_active_store":
+      return <LookupActiveStore result={state.result} copy={copy} />;
+    case "error_applicant":
+      return <LookupApplicant copy={copy} />;
+    case "error_api":
+      return <LookupApiError copy={copy} onRetry={onRetry} />;
+  }
+}
+
+export function LookupStatus({ state, copy, onRetry }: LookupStatusProps) {
   return (
     <AnimatePresence mode="wait">
-      {state.status === "loading" && <LookupLoading />}
-      {state.status === "preview" && <LookupPreview result={state.result} copy={copy} />}
-      {state.status === "error_not_found" && <LookupNotFound copy={copy} />}
-      {state.status === "error_active_store" && (
-        <LookupActiveStore result={state.result} copy={copy} />
-      )}
-      {state.status === "error_applicant" && <LookupApplicant copy={copy} />}
-      {state.status === "error_api" && <LookupApiError copy={copy} onRetry={onRetry} />}
+      {renderLookupStatus(state, copy, onRetry)}
     </AnimatePresence>
   );
 }

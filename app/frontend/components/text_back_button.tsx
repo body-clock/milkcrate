@@ -1,8 +1,4 @@
-/**
- * Shared focus-visible ring used by back button variants.
- */
-export const sharedRingClasses =
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus focus-visible:ring-offset-2 focus-visible:ring-offset-mc-bg";
+import { sharedRingClasses } from "./shared_styles";
 
 interface TextBackButtonProps {
   onClick: () => void;

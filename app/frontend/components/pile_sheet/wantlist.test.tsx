@@ -61,19 +61,24 @@ const makeListing = (overrides: Partial<Listing> = {}): Listing => ({
   ...overrides,
 });
 
-function PileSheetInner({ pileRecords }: { pileRecords: Listing[] }) {
-  // eslint-disable-next-line react/no-unstable-nested-components
-  function PilePopulator({ children }: { children: React.ReactNode }) {
-    const { addToPile } = usePileContext();
-    React.useEffect(() => {
-      pileRecords.forEach((r) => addToPile(r));
-    }, [addToPile]);
-    return <>{children}</>;
-  }
+function PilePopulator({
+  children,
+  pileRecords,
+}: {
+  children: React.ReactNode;
+  pileRecords: Listing[];
+}) {
+  const { addToPile } = usePileContext();
+  React.useEffect(() => {
+    pileRecords.forEach((r) => addToPile(r));
+  }, [addToPile, pileRecords]);
+  return <>{children}</>;
+}
 
+function PileSheetInner({ pileRecords }: { pileRecords: Listing[] }) {
   return (
     <PileProvider>
-      <PilePopulator>
+      <PilePopulator pileRecords={pileRecords}>
         <PileSheet open={true} onClose={vi.fn()} />
       </PilePopulator>
     </PileProvider>

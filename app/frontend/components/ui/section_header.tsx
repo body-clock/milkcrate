@@ -10,7 +10,13 @@ interface SectionHeaderProps {
   className?: string;
 }
 
-// eslint-disable-next-line eslint/max-lines-per-function
+function sectionHeaderClassName(className?: string) {
+  return cn(
+    "mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between",
+    className,
+  );
+}
+
 export default function SectionHeader({
   id,
   title,
@@ -19,12 +25,7 @@ export default function SectionHeader({
   className,
 }: SectionHeaderProps) {
   return (
-    <div
-      className={cn(
-        "mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between",
-        className,
-      )}
-    >
+    <div className={sectionHeaderClassName(className)}>
       <div className="min-w-0">
         <h2 id={id} className="text-lg font-bold text-mc-text">
           {title}

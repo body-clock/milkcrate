@@ -29,9 +29,17 @@ interface AppLayoutState {
   hasNotice: boolean;
 }
 
+type AppPageProps = {
+  notice?: string;
+  alert?: string;
+  store?: Pick<Store, "name" | "discogs_username">;
+  shopper?: { discogs_username: string } | null;
+};
+
 function autoOpenPileFromUrl(): boolean {
   return (
-    typeof window !== "undefined" && new URLSearchParams(window.location.search).has("open_pile")
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).has("open_pile")
   );
 }
 
@@ -42,34 +50,19 @@ function usePileState() {
   return { pileOpen, setPileOpen, handleClosePile, autoOpenPile: initial };
 }
 
-// eslint-disable-next-line max-lines-per-function
 function useAppLayoutState(): AppLayoutState {
-  const page = usePage<{
-    notice?: string;
-    alert?: string;
-    store?: Pick<Store, "name" | "discogs_username">;
-    shopper?: { discogs_username: string } | null;
-  }>();
+  const page = usePage<AppPageProps>();
   const { notice, alert: alertMsg, store, shopper } = page.props;
-  const storeName = store?.name;
-  const discogsUsername = store?.discogs_username;
   const { theme, toggle } = useTheme();
   const { isCompact } = useViewport();
   const { pile } = usePileContext();
   const pileState = usePileState();
   const contextFocusRef = useRef<HTMLElement>(null);
   return {
-    storeName,
-    discogsUsername,
-    theme,
-    toggle,
-    isCompact,
-    pile,
-    shopper,
-    ...pileState,
-    contextFocusRef,
-    flashMsg: notice || alertMsg,
-    hasNotice: !!notice,
+    storeName: store?.name, discogsUsername: store?.discogs_username,
+    theme, toggle, isCompact, pile, shopper,
+    ...pileState, contextFocusRef,
+    flashMsg: notice || alertMsg, hasNotice: !!notice,
   };
 }
 

@@ -13,7 +13,6 @@ interface Props {
   storeSlug: string | null;
 }
 
-// eslint-disable-next-line eslint/max-lines-per-function
 export default function PreviewSection({
   previewLabel,
   previewBlurb,

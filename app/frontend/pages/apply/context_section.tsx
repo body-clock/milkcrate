@@ -1,3 +1,4 @@
+import ContextListItem from "./context_list_item";
 import type { Copy } from "./types";
 
 const CONTEXT_ITEMS = [
@@ -6,7 +7,6 @@ const CONTEXT_ITEMS = [
   "context_no_commitment",
 ] as const;
 
-// eslint-disable-next-line max-lines-per-function
 export default function ContextSection({ copy }: { copy: Copy }) {
   return (
     <section
@@ -21,12 +21,7 @@ export default function ContextSection({ copy }: { copy: Copy }) {
       </h2>
       <ul className="flex flex-col gap-2.5 text-xs text-mc-text-dim leading-relaxed list-none">
         {CONTEXT_ITEMS.map((key) => (
-          <li key={key} className="flex gap-2">
-            <span className="text-mc-accent flex-shrink-0 select-none mt-px" aria-hidden="true">
-              •
-            </span>
-            <span>{copy[key]}</span>
-          </li>
+          <ContextListItem key={key} text={copy[key]} />
         ))}
       </ul>
     </section>
