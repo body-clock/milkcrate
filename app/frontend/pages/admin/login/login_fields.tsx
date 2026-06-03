@@ -3,11 +3,12 @@ import Field from "@/components/ui/field";
 interface FieldProps {
   value: string;
   onChange: (v: string) => void;
+  error?: string;
 }
 
-export function EmailField({ value, onChange }: FieldProps) {
+export function EmailField({ value, onChange, error }: FieldProps) {
   return (
-    <Field id="admin-email" label="Email">
+    <Field id="admin-email" label="Email" error={error}>
       <input
         type="email"
         name="email"

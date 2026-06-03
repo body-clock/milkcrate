@@ -6,7 +6,7 @@ import type { Crate } from "@/types/inertia";
 
 interface Props {
   mode: BrowseMode;
-  wall: Crate;
+  wall: Crate | null;
   currentCrates: Crate[];
   activeSlug: string | null;
   startIndex: number;

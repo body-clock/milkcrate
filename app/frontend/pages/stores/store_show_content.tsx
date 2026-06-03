@@ -1,6 +1,7 @@
 import { useViewport } from "@/hooks/use_viewport";
 import EmptyCratesState from "@/pages/stores/empty_crates_state";
 import ProcessingState from "@/pages/stores/processing_state";
+import SyncFailedBanner from "@/pages/stores/sync_failed_banner";
 import type { StoreShowProps } from "@/types/inertia";
 
 import ShowStoreContent from "./show_store_content";
@@ -23,7 +24,12 @@ export default function StoreShowContent(props: Props) {
     return <ProcessingState store={props.store} />;
   }
   if (props.crates.length === 0) {
-    return <EmptyCratesState />;
+    return (
+      <>
+        <SyncFailedBanner store={props.store} />
+        <EmptyCratesState />
+      </>
+    );
   }
   return <ShowStoreContent isWide={isWide} props={props} />;
 }

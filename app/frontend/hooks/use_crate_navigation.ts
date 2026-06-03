@@ -96,10 +96,12 @@ function useResetEffect(deps: ResetEffectDeps) {
 }
 
 function useCrateNavigate(deps: CrateNavDeps) {
+  const depsRef = useRef(deps);
+  depsRef.current = deps;
   return useCallback(
     (riffleDirection: RiffleDirection) =>
-      handleRiffleNavigation(riffleDirection, deps),
-    [deps],
+      handleRiffleNavigation(riffleDirection, depsRef.current),
+    [],
   );
 }
 

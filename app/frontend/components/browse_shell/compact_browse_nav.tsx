@@ -6,7 +6,7 @@ import BrowseNavContent from "./browse_nav_content";
 interface Props {
   mode: BrowseMode;
   onWallSelect: () => void;
-  onBrowseModeSelect: (mode: BrowseMode) => void;
+  onBrowseModeSelect: (mode: "featured" | "genres") => void;
 }
 
 export default function CompactBrowseNav(props: Props) {

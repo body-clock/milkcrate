@@ -24,11 +24,11 @@ export function PileProvider({
   storeSlug?: string;
 }) {
   const pileState = usePile(storeSlug);
-  const { addToPile: addOrRemovePile } = pileState;
+  const { addToPile: addOrRemovePile, pile, removeFromPile, inPile, clearPile: pileClearPile } = pileState;
   const [lastAdded, setLastAdded] = useState<Listing | null>(null);
   const addToPile = useCallback((listing: Listing) => { addOrRemovePile(listing); setLastAdded(listing); }, [addOrRemovePile]);
   const clearLastAdded = useCallback(() => setLastAdded(null), []);
-  const value = useMemo(() => ({ ...pileState, addToPile, lastAdded, clearLastAdded }), [pileState, lastAdded, addToPile, clearLastAdded]);
+  const value = useMemo(() => ({ pile, removeFromPile, inPile, clearPile: pileClearPile, addToPile, lastAdded, clearLastAdded }), [pile, removeFromPile, inPile, pileClearPile, addToPile, lastAdded, clearLastAdded]);
   return <PileContext.Provider value={value}>{children}</PileContext.Provider>;
 }
 

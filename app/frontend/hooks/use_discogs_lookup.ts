@@ -46,13 +46,16 @@ interface LookupFetchContext {
   setState: Dispatch<SetStateAction<LookupState>>;
   announce: (message: string) => void;
   abortRef: React.MutableRefObject<AbortController | null>;
+  timeoutRef: React.MutableRefObject<ReturnType<typeof setTimeout> | null>;
 }
 
 function handleLookupTimeout(
   controller: AbortController,
   setState: Dispatch<SetStateAction<LookupState>>,
   announce: (message: string) => void,
+  abortRef: React.MutableRefObject<AbortController | null>,
 ): void {
+  if (abortRef.current !== controller || controller.signal.aborted) { return; }
   controller.abort();
   setState({ status: "error_api" });
   announce("Something went wrong. Please try again.");
@@ -79,8 +82,12 @@ function resolveLookupState(
 }
 
 function handleLookupSuccess(data: DiscogsLookupResult, ctx: LookupFetchContext): void {
-  const { controller, setState, announce, abortRef } = ctx;
+  const { controller, setState, announce, abortRef, timeoutRef } = ctx;
   if (abortRef.current !== controller || controller.signal.aborted) { return; }
+  if (timeoutRef.current) {
+    clearTimeout(timeoutRef.current);
+    timeoutRef.current = null;
+  }
   controller.abort();
   setState(resolveLookupState(data, announce));
 }
@@ -119,7 +126,7 @@ function useLookupState() {
   const [state, setState] = useState<LookupState>({ status: "idle" });
   const abortRef = useRef<AbortController | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => cancelLookup(abortRef, timeoutRef), []);
+  useEffect(() => () => cancelLookup(abortRef, timeoutRef), []);
   return { state, setState, abortRef, timeoutRef };
 }
 
@@ -135,8 +142,8 @@ export function useDiscogsLookup(onAnnounceOrUrl?: ((message: string) => void) |
       setState({ status: "loading" });
       announce("Checking Discogs availability...");
       const url = buildLookupUrl(lookupUrl, username);
-      const ctx: LookupFetchContext = { controller, setState, announce, abortRef };
-      timeoutRef.current = setTimeout(() => handleLookupTimeout(controller, setState, announce), LOOKUP_TIMEOUT_MS);
+      const ctx: LookupFetchContext = { controller, setState, announce, abortRef, timeoutRef };
+      timeoutRef.current = setTimeout(() => handleLookupTimeout(controller, setState, announce, abortRef), LOOKUP_TIMEOUT_MS);
       fetch(url, { signal: controller.signal }).then(parseLookupResponse).then((data) => handleLookupSuccess(data, ctx)).catch((err) => handleLookupError(err, ctx));
     }, [announce, lookupUrl, abortRef, timeoutRef, setState],
   );

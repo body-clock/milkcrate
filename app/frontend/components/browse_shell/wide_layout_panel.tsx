@@ -5,7 +5,7 @@ import PanelContent from "./panel_content";
 
 interface Props {
   mode: BrowseMode;
-  wall: Crate;
+  wall: Crate | null;
   currentCrates: Crate[];
   activeSlug: string | null;
   startIndex: number;
@@ -13,7 +13,7 @@ interface Props {
   listingCount: number;
   genreCount?: number;
   onWallSelect: () => void;
-  onBrowseModeSelect: (mode: BrowseMode) => void;
+  onBrowseModeSelect: (mode: "featured" | "genres") => void;
 }
 
 export default function WideLayoutPanel(props: Props) {

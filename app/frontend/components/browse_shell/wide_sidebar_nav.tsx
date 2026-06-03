@@ -6,7 +6,7 @@ import BrowseModeButton from "./browse_mode_button";
 interface Props {
   mode: BrowseMode;
   onWallSelect: () => void;
-  onBrowseModeSelect: (mode: BrowseMode) => void;
+  onBrowseModeSelect: (mode: "featured" | "genres") => void;
 }
 
 export default function WideSidebarNav({ mode, onWallSelect, onBrowseModeSelect }: Props) {

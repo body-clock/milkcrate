@@ -6,13 +6,13 @@ import PanelContent from "./panel_content";
 
 interface Props {
   mode: BrowseMode;
-  wall: Crate;
+  wall: Crate | null;
   currentCrates: Crate[];
   activeSlug: string | null;
   startIndex: number;
   selectCrate: (slug: string, startIndex?: number) => void;
   onWallSelect: () => void;
-  onBrowseModeSelect: (mode: BrowseMode) => void;
+  onBrowseModeSelect: (mode: "featured" | "genres") => void;
 }
 
 export default function CompactLayout(props: Props) {

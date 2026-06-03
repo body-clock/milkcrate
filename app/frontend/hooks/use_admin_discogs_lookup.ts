@@ -122,10 +122,16 @@ function finishLookup(opts: FinishLookupOpts): void {
 
 function handleLookupError(opts: HandleLookupErrorOpts): void {
   const { ar, tr, setSt, controller: c, err } = opts;
-  if (ar.current !== c || c.signal.aborted) {
+  if (ar.current !== c) {
     return;
   }
   if (err instanceof DOMException && err.name === "AbortError") {
+    cleanRefs(ar.current, tr.current);
+    clearRefs({ ar, tr });
+    setSt({ status: "error" });
+    return;
+  }
+  if (c.signal.aborted) {
     return;
   }
   cleanRefs(ar.current, tr.current);

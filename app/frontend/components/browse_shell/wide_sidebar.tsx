@@ -13,7 +13,7 @@ interface Props {
   activeSlug: string | null;
   onSelectCrate: (slug: string, startIndex?: number) => void;
   onWallSelect: () => void;
-  onBrowseModeSelect: (mode: BrowseMode) => void;
+  onBrowseModeSelect: (mode: "featured" | "genres") => void;
 }
 
 export default function WideSidebar(props: Props) {

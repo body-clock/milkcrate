@@ -59,9 +59,9 @@ function useBrowseShellPrepare(props: Props) {
 
 export default function BrowseShell(props: Props) {
   const prep = useBrowseShellPrepare(props);
-  if (prep.isDirect) {
+  if (prep.isDirect && prep.activeSlug) {
     return renderDirectEntry({
-      allCrates: prep.allCrates, activeSlug: prep.activeSlug!,
+      allCrates: prep.allCrates, activeSlug: prep.activeSlug,
       startIndex: prep.startIndex, selectCrate: prep.selectCrate, backToStore: prep.backToStore,
     });
   }

@@ -13,8 +13,8 @@ interface Props {
   startIndex: number;
   selectCrate: (slug: string, startIndex?: number) => void;
   onWallSelect: () => void;
-  onBrowseModeSelect: (mode: BrowseMode) => void;
-  wall: Crate;
+  onBrowseModeSelect: (mode: "featured" | "genres") => void;
+  wall: Crate | null;
 }
 
 export default function WideLayout(props: Props) {

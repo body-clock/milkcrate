@@ -6,7 +6,7 @@ import BrowsePanel from "./browse_panel";
 
 interface Props {
   mode: BrowseMode;
-  wall: Crate;
+  wall: Crate | null;
   currentCrates: Crate[];
   activeSlug: string | null;
   startIndex: number;

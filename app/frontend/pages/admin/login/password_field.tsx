@@ -3,11 +3,12 @@ import Field from "@/components/ui/field";
 interface FieldProps {
   value: string;
   onChange: (v: string) => void;
+  error?: string;
 }
 
-export default function PasswordField({ value, onChange }: FieldProps) {
+export default function PasswordField({ value, onChange, error }: FieldProps) {
   return (
-    <Field id="admin-password" label="Password">
+    <Field id="admin-password" label="Password" error={error}>
       <input
         type="password"
         name="password"

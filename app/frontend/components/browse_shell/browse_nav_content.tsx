@@ -6,7 +6,7 @@ import BrowseModeButton from "./browse_mode_button";
 interface Props {
   mode: BrowseMode;
   onWallSelect: () => void;
-  onBrowseModeSelect: (mode: BrowseMode) => void;
+  onBrowseModeSelect: (mode: "featured" | "genres") => void;
 }
 
 const BROWSE_MODES: Array<{ mode: BrowseMode; label: string }> = [
@@ -24,7 +24,7 @@ export default function BrowseNavContent({ mode, onWallSelect, onBrowseModeSelec
             key={item.mode}
             label={item.label}
             selected={mode === item.mode}
-            onSelect={item.mode === "wall" ? onWallSelect : () => onBrowseModeSelect(item.mode)}
+            onSelect={item.mode === "wall" ? onWallSelect : () => onBrowseModeSelect(item.mode as "featured" | "genres")}
             compact
           />
         ))}
