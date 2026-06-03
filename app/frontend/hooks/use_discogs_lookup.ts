@@ -50,6 +50,7 @@ interface LookupFetchContext {
   controller: AbortController;
   setState: Dispatch<SetStateAction<LookupState>>;
   announce: (message: string) => void;
+  abortRef: React.MutableRefObject<AbortController | null>;
 }
 
 function handleLookupTimeout(
@@ -83,13 +84,15 @@ function resolveLookupState(
 }
 
 function handleLookupSuccess(data: DiscogsLookupResult, ctx: LookupFetchContext): void {
-  const { controller, setState, announce } = ctx;
+  const { controller, setState, announce, abortRef } = ctx;
+  if (abortRef.current !== controller || controller.signal.aborted) { return; }
   controller.abort();
   setState(resolveLookupState(data, announce));
 }
 
 function handleLookupError(err: unknown, ctx: LookupFetchContext): void {
-  const { setState, announce } = ctx;
+  const { setState, announce, abortRef, controller } = ctx;
+  if (abortRef.current !== controller || controller.signal.aborted) { return; }
   if (err instanceof DOMException && err.name === "AbortError") {
     return;
   }
@@ -137,7 +140,7 @@ export function useDiscogsLookup(onAnnounceOrUrl?: ((message: string) => void) |
       setState({ status: "loading" });
       announce("Checking Discogs availability...");
       const url = buildLookupUrl(lookupUrl, username);
-      const ctx: LookupFetchContext = { controller, setState, announce };
+      const ctx: LookupFetchContext = { controller, setState, announce, abortRef };
       timeoutRef.current = setTimeout(() => handleLookupTimeout(controller, setState, announce), LOOKUP_TIMEOUT_MS);
       fetch(url, { signal: controller.signal }).then(parseLookupResponse).then((data) => handleLookupSuccess(data, ctx)).catch((err) => handleLookupError(err, ctx));
     }, [announce, lookupUrl, abortRef, timeoutRef, setState],

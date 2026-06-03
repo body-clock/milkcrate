@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { Listing } from "../types/inertia";
 
@@ -52,10 +52,10 @@ export function usePile(storeSlug?: string) {
     localStorage.setItem(currentKey, JSON.stringify(pile));
   }, [pile, currentKey]);
 
-  const addToPile = (listing: Listing) => applyAddToPile(setPile, listing);
-  const removeFromPile = (id: number) => applyRemoveFromPile(setPile, id);
-  const inPile = (id: number) => pile.some((l) => l.id === id);
-  const clearPile = () => setPile([]);
+  const addToPile = useCallback((listing: Listing) => applyAddToPile(setPile, listing), []);
+  const removeFromPile = useCallback((id: number) => applyRemoveFromPile(setPile, id), []);
+  const inPile = useCallback((id: number) => pile.some((l) => l.id === id), [pile]);
+  const clearPile = useCallback(() => setPile([]), []);
 
   return { pile, addToPile, removeFromPile, inPile, clearPile };
 }

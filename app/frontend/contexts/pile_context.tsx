@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useMemo, useState } from "react";
+import React, { createContext, useCallback, useContext, useMemo, useState } from "react";
 
 import { usePile } from "../hooks/use_pile";
 import type { Listing } from "../types/inertia";
@@ -24,28 +24,16 @@ export function PileProvider({
   storeSlug?: string;
 }) {
   const pileState = usePile(storeSlug);
+  const { addToPile: addOrRemovePile } = pileState;
   const [lastAdded, setLastAdded] = useState<Listing | null>(null);
-
-  const addToPile = (listing: Listing) => {
-    pileState.addToPile(listing);
-    setLastAdded(listing);
-  };
-
-  const clearLastAdded = () => setLastAdded(null);
-
-  const value = useMemo(
-    () => ({ ...pileState, addToPile, lastAdded, clearLastAdded }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [pileState.pile, lastAdded],
-  );
-
+  const addToPile = useCallback((listing: Listing) => { addOrRemovePile(listing); setLastAdded(listing); }, [addOrRemovePile]);
+  const clearLastAdded = useCallback(() => setLastAdded(null), []);
+  const value = useMemo(() => ({ ...pileState, addToPile, lastAdded, clearLastAdded }), [pileState, lastAdded, addToPile, clearLastAdded]);
   return <PileContext.Provider value={value}>{children}</PileContext.Provider>;
 }
 
 export function usePileContext() {
-  const pileContext = useContext(PileContext);
-  if (!pileContext) {
-    throw new Error("usePileContext must be used within PileProvider");
-  }
-  return pileContext;
+  const ctx = useContext(PileContext);
+  if (!ctx) { throw new Error("usePileContext must be used within PileProvider"); }
+  return ctx;
 }

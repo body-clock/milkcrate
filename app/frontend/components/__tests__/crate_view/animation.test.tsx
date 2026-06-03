@@ -57,7 +57,7 @@ describe("CrateView animation and cards", () => {
     crates[0].records = Array.from({ length: 5 }, (_, i) =>
       makeListing({ id: i + 1, title: `Record ${i + 1}`, artist: "Artist" }),
     );
-    renderCrateView("compact", { crates, total: 5 });
+    renderCrateView("compact", { crates });
 
     await user.click(screen.getByRole("button", { name: /deeper/i }));
     expect(screen.getByText("Record 2 of 5")).toBeInTheDocument();

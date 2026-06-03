@@ -14,7 +14,7 @@ interface CrateProgressProps {
 
 function renderEdgeStatus(edgeStatus: string | null) {
   if (!edgeStatus) { return null; }
-  return <p className="mt-2 text-center text-[11px] text-mc-text-dim" aria-live="polite">{edgeStatus}</p>;
+  return <p role="status" className="mt-2 text-center text-[11px] text-mc-text-dim" aria-live="polite">{edgeStatus}</p>;
 }
 
 export default function CrateProgress({ index, total, progress, edgeStatus, isCompact, prefersReducedMotion, navigate }: CrateProgressProps) {

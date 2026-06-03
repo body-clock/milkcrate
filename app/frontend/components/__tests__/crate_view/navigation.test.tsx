@@ -11,7 +11,10 @@ beforeEach(() => {
 describe("CrateView navigation", () => {
   it("clicking the deeper control advances one record and dismisses the gesture hint", async () => {
     const user = userEvent.setup();
-    renderCrateView("compact", { total: 10 });
+    const crates = makeCrates();
+    crates[0].count = 10;
+    crates[0].records = Array.from({ length: 10 }, (_, i) => makeListing({ id: i + 1 }));
+    renderCrateView("compact", { crates });
 
     expect(screen.queryByTestId("gesture-hint-overlay")).toBeInTheDocument();
 
@@ -54,14 +57,11 @@ describe("CrateView navigation", () => {
     expect(screen.getByRole("button", { name: /deeper/i })).toBeDisabled();
   });
 
-  it("announces the deeper edge without changing records", async () => {
-    const user = userEvent.setup();
-    renderCrateView("compact", { activeSlug: "rock", total: 1 });
+  it("disables both buttons on a one-record crate", () => {
+    renderCrateView("compact", { activeSlug: "rock" });
 
-    await user.click(screen.getByRole("button", { name: /deeper/i }));
-
-    expect(screen.getByText("Record 1 of 1")).toBeInTheDocument();
-    expect(screen.getByRole("status")).toHaveTextContent(/front/i);
+    expect(screen.getByRole("button", { name: /front/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /deeper/i })).toBeDisabled();
   });
 
   it("navigates with the ref-based index to avoid stale closures", async () => {
@@ -83,7 +83,10 @@ describe("CrateView navigation", () => {
 
   it("ArrowDown advances deeper and ArrowUp returns toward the front", async () => {
     const user = userEvent.setup();
-    renderCrateView("compact", { total: 10 });
+    const crates = makeCrates();
+    crates[0].count = 10;
+    crates[0].records = Array.from({ length: 10 }, (_, i) => makeListing({ id: i + 1 }));
+    renderCrateView("compact", { crates });
 
     await user.keyboard("{ArrowDown}");
     expect(screen.getByText("Record 2 of 10")).toBeInTheDocument();
@@ -94,7 +97,10 @@ describe("CrateView navigation", () => {
 
   it("navigates deeper and front with the semantic button labels", async () => {
     const user = userEvent.setup();
-    renderCrateView("compact", { total: 5 });
+    const crates = makeCrates();
+    crates[0].count = 5;
+    crates[0].records = Array.from({ length: 5 }, (_, i) => makeListing({ id: i + 1 }));
+    renderCrateView("compact", { crates });
 
     await user.click(screen.getByRole("button", { name: /deeper/i }));
     expect(screen.getByText("Record 2 of 5")).toBeInTheDocument();
@@ -105,7 +111,10 @@ describe("CrateView navigation", () => {
 
   it("keeps navigation decisions unchanged when reduced motion is requested", async () => {
     const user = userEvent.setup();
-    renderCrateView("compact", { total: 10 });
+    const crates = makeCrates();
+    crates[0].count = 10;
+    crates[0].records = Array.from({ length: 10 }, (_, i) => makeListing({ id: i + 1 }));
+    renderCrateView("compact", { crates });
 
     await user.click(screen.getByRole("button", { name: /deeper/i }));
     expect(screen.getByText("Record 2 of 10")).toBeInTheDocument();

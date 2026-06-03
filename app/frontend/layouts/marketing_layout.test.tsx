@@ -7,7 +7,8 @@ import { renderWithTier } from "@/test/viewport-test-utils";
 
 const VIEWPORT_COMPACT = 390;
 
-import MarketingLayout, { MarketingLayoutContent } from "./marketing_layout";
+import MarketingLayout from "./marketing_layout";
+import { MarketingLayoutContent } from "./marketing_layout_content";
 
 vi.mock("@inertiajs/react", () => ({
   Link: ({ children, href, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (

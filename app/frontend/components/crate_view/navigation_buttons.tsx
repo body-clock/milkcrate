@@ -38,7 +38,7 @@ function renderPositionCount(index: number, total: number, isCompact: boolean) {
       aria-live="polite"
       aria-atomic="true"
     >
-      {RIFFLE_LANGUAGE.count(index + 1, total)}
+      Record {RIFFLE_LANGUAGE.count(index + 1, total)}
     </span>
   );
 }

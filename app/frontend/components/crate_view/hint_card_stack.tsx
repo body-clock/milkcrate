@@ -16,7 +16,7 @@ export default function HintCardStack({
   prefersReducedMotion,
 }: HintCardStackProps) {
   return (
-    <>
+    <div data-testid="hint-card-stack">
       {visibleRecords
         .filter((s) => !s.isActive)
         .map((slot) => (
@@ -26,6 +26,6 @@ export default function HintCardStack({
             prefersReducedMotion={prefersReducedMotion}
           />
         ))}
-    </>
+    </div>
   );
 }

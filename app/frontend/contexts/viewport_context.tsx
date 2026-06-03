@@ -25,6 +25,11 @@ function tierFromWidth(width: number): ViewportTier {
 
 // eslint-disable-next-line eslint/max-lines-per-function
 export function ViewportProvider({ children }: { children: ReactNode }) {
+  const existingCtx = useContext(ViewportContext);
+  if (existingCtx) {
+    return <>{children}</>;
+  }
+
   const [tier, setTier] = useState<ViewportTier>(() => {
     if (typeof window === "undefined") {
       return "compact";
