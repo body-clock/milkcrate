@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 
 export type AdminDiscogsLookupResponse =
   | {
@@ -46,35 +46,12 @@ interface UseAdminDiscogsLookupResult {
   reset: () => void;
 }
 
-type AbortRef = React.MutableRefObject<AbortController | null>;
-type TimeoutRef = React.MutableRefObject<ReturnType<typeof setTimeout> | null>;
-type LookupSetter = React.Dispatch<React.SetStateAction<AdminLookupState>>;
+type AbRef = React.MutableRefObject<AbortController | null>;
+type TmRef = React.MutableRefObject<ReturnType<typeof setTimeout> | null>;
+type LookupSet = React.Dispatch<React.SetStateAction<AdminLookupState>>;
+type LookupCtx = { ar: AbRef; tr: TmRef; setSt: LookupSet };
 
 const LOOKUP_TIMEOUT_MS = 10_000;
-
-interface FinishLookupOpts {
-  ar: AbortRef;
-  tr: TimeoutRef;
-  setSt: LookupSetter;
-  controller: AbortController;
-  data: AdminDiscogsLookupResponse;
-}
-
-interface HandleLookupErrorOpts {
-  ar: AbortRef;
-  tr: TimeoutRef;
-  setSt: LookupSetter;
-  controller: AbortController;
-  err: unknown;
-}
-
-interface ExecuteLookupOpts {
-  ar: AbortRef;
-  tr: TimeoutRef;
-  setSt: LookupSetter;
-  lookupPath: string;
-  username: string;
-}
 
 function runLookupFetch(url: string, signal: AbortSignal): Promise<AdminDiscogsLookupResponse> {
   return fetch(url, {
@@ -92,71 +69,56 @@ function startTimeout(controller: AbortController): ReturnType<typeof setTimeout
   return setTimeout(() => controller.abort(), LOOKUP_TIMEOUT_MS);
 }
 
-function cleanRefs(_at: AbortController | null, tt: ReturnType<typeof setTimeout> | null): void {
-  if (tt) {
-    clearTimeout(tt);
-  }
-}
-
-function cancelPending(ar: AbortRef, tr: TimeoutRef): void {
+function teardownLookup(ar: AbRef, tr: TmRef): void {
   ar.current?.abort();
-  if (tr.current) {
-    clearTimeout(tr.current);
-  }
+  if (tr.current) { clearTimeout(tr.current); }
+  Object.assign(ar, { current: null });
+  Object.assign(tr, { current: null });
 }
 
-function clearRefs(opts: { ar: AbortRef; tr: TimeoutRef }): void {
-  Object.assign(opts.ar, { current: null });
-  Object.assign(opts.tr, { current: null });
+function finishLookup(
+  ctx: LookupCtx,
+  controller: AbortController, data: AdminDiscogsLookupResponse,
+): void {
+  if (ctx.ar.current !== controller || controller.signal.aborted) { return; }
+  teardownLookup(ctx.ar, ctx.tr);
+  ctx.setSt({ status: "result", result: data });
 }
 
-function finishLookup(opts: FinishLookupOpts): void {
-  const { ar, tr, setSt, controller: c, data } = opts;
-  if (ar.current !== c || c.signal.aborted) {
-    return;
-  }
-  cleanRefs(ar.current, tr.current);
-  clearRefs({ ar, tr });
-  setSt({ status: "result", result: data });
-}
-
-function handleLookupError(opts: HandleLookupErrorOpts): void {
-  const { ar, tr, setSt, controller: c, err } = opts;
-  if (ar.current !== c) {
-    return;
-  }
+function handleLookupError(
+  ctx: LookupCtx,
+  controller: AbortController, err: unknown,
+): void {
+  if (ctx.ar.current !== controller) { return; }
   if (err instanceof DOMException && err.name === "AbortError") {
-    cleanRefs(ar.current, tr.current);
-    clearRefs({ ar, tr });
-    setSt({ status: "error" });
+    teardownLookup(ctx.ar, ctx.tr);
+    ctx.setSt({ status: "error" });
     return;
   }
-  if (c.signal.aborted) {
-    return;
-  }
-  cleanRefs(ar.current, tr.current);
-  clearRefs({ ar, tr });
-  setSt({ status: "error" });
+  if (controller.signal.aborted) { return; }
+  teardownLookup(ctx.ar, ctx.tr);
+  ctx.setSt({ status: "error" });
 }
 
-function executeLookup(opts: ExecuteLookupOpts): void {
-  const { ar, tr, setSt, lookupPath, username } = opts;
-  cancelPending(ar, tr);
+function executeLookup(
+  ctx: LookupCtx,
+  lookupPath: string, username: string,
+): void {
+  teardownLookup(ctx.ar, ctx.tr);
   const controller = new AbortController();
-  Object.assign(ar, { current: controller });
-  Object.assign(tr, { current: startTimeout(controller) });
-  setSt({ status: "loading" });
+  Object.assign(ctx.ar, { current: controller });
+  Object.assign(ctx.tr, { current: startTimeout(controller) });
+  ctx.setSt({ status: "loading" });
   const url = new URL(lookupPath, window.location.origin);
   url.searchParams.set("username", username);
   runLookupFetch(url.toString(), controller.signal).then(
-    (data) => finishLookup({ ar, tr, setSt, controller, data }),
-    (err) => handleLookupError({ ar, tr, setSt, controller, err }),
+    (data) => finishLookup(ctx, controller, data),
+    (err) => handleLookupError(ctx, controller, err),
   );
 }
 
-function resetLookupState(ar: AbortRef, tr: TimeoutRef, setSt: LookupSetter): void {
-  cancelPending(ar, tr);
-  clearRefs({ ar, tr });
+function resetLookupState(ar: AbRef, tr: TmRef, setSt: LookupSet): void {
+  teardownLookup(ar, tr);
   setSt({ status: "idle" });
 }
 
@@ -166,14 +128,16 @@ export function useAdminDiscogsLookup(lookupPath: string): UseAdminDiscogsLookup
   const ar = useRef<AbortController | null>(null);
   const tr = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => () => cancelPending(ar, tr), []);
+  const ctx = useMemo<LookupCtx>(() => ({ ar, tr, setSt }), []);
+
+  useEffect(() => () => teardownLookup(ar, tr), []);
 
   const lookup = useCallback(
-    (username: string) => { executeLookup({ ar, tr, setSt, lookupPath, username }); },
-    [lookupPath],
+    (username: string) => { executeLookup(ctx, lookupPath, username); },
+    [ctx, lookupPath],
   );
 
-  const reset = useCallback(() => resetLookupState(ar, tr, setSt), []);
+  const reset = useCallback(() => resetLookupState(ctx.ar, ctx.tr, ctx.setSt), [ctx]);
 
   return { state: st, lookup, reset };
 }

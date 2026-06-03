@@ -23,6 +23,20 @@
         "eslint/max-nested-callbacks": "off",
         "import/no-unassigned-import": "off"
       }
+    },
+    {
+      "files": ["scripts/**"],
+      "rules": {
+        "eslint/max-lines-per-function": "off",
+        "eslint/max-lines": "off",
+        "eslint/max-depth": "off",
+        "eslint/max-nested-callbacks": "off",
+        "eslint/max-params": "off",
+        "eslint/complexity": "off",
+        "eslint/max-statements": "off",
+        "eslint/no-await-in-loop": "off",
+        "eslint/no-magic-numbers": "off"
+      }
     }
   ],
   "rules": {
