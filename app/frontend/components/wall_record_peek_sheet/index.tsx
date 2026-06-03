@@ -7,9 +7,7 @@ import { useViewport } from "@/hooks/use_viewport";
 import { springDrawer, reducedMotionTransition } from "@/lib/motion_tokens";
 import type { Listing } from "@/types/inertia";
 
-import { PeekOverlay } from "./peek_overlay";
-import { PeekSheetContent } from "./peek_sheet_content";
-import { PeekSheetPanel } from "./peek_sheet_panel";
+import { PeekContent } from "./peek_content";
 
 const ALL_TAGS_MAX = 4;
 
@@ -61,21 +59,9 @@ function usePeekSheet(
 
 export default function WallRecordPeekSheet({ open, listing, onClose, returnFocusRef }: Props) {
   const peek = usePeekSheet(open, listing, onClose, returnFocusRef);
-  if (!open || !listing) { return null; }
   return (
     <AnimatePresence>
-      <PeekOverlay key="peek-overlay" reducedMotion={peek.prefersReducedMotion} onClose={onClose} />
-      <PeekSheetPanel
-        key="peek-panel"
-        dialogRef={peek.dialogRef}
-        isCompact={peek.isCompact}
-        transition={peek.transition}
-        titleRef={peek.titleRef}
-        onClose={onClose}
-        meta={peek.meta}
-      >
-        <PeekSheetContent listing={listing} meta={peek.meta} allTags={peek.allTags} />
-      </PeekSheetPanel>
+      {open && listing && <PeekContent peek={peek} listing={listing} onClose={onClose} />}
     </AnimatePresence>
   );
 }
