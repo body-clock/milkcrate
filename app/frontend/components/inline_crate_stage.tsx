@@ -1,5 +1,5 @@
-import CrateView from "./crate_view";
 import type { Crate } from "../types/inertia";
+import CrateView from "./crate_view";
 
 interface Props {
   crates: Crate[];
@@ -9,7 +9,9 @@ interface Props {
 }
 
 export default function InlineCrateStage({ crates, activeSlug, startIndex, onSelectCrate }: Props) {
-  if (!activeSlug) {return null;}
+  if (!activeSlug) {
+    return null;
+  }
 
   return (
     <CrateView

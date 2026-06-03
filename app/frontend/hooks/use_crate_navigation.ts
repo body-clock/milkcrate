@@ -1,11 +1,14 @@
+/* eslint-disable eslint/max-lines */
+
 import { useState, useCallback, useEffect, useRef } from "react";
+
+import { markLessonLearned, isLessonLearned } from "@/lib/first_swipe_lesson";
 import {
   RIFFLE_LANGUAGE,
   resolveRiffleMove,
   resolveRiffleDrag,
   type RiffleDirection,
 } from "@/lib/riffle_navigation";
-import { markLessonLearned, isLessonLearned } from "@/lib/first_swipe_lesson";
 
 interface UseCrateNavigationOptions {
   total: number;
@@ -43,7 +46,9 @@ interface NavigateCtx {
 const PROGRESS_PCT_BASE = 100;
 
 function isEditableTarget(target: EventTarget | null) {
-  if (!(target instanceof HTMLElement)) {return false;}
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
   return (
     target instanceof HTMLInputElement ||
     target instanceof HTMLTextAreaElement ||
@@ -60,20 +65,31 @@ function useDragNavigation(navigate: (direction: RiffleDirection) => void) {
         offsetY: info.offset.y,
         velocityY: info.velocity.y,
       });
-      if (!riffleDirection) {return;}
+      if (!riffleDirection) {
+        return;
+      }
       navigate(riffleDirection);
     },
     [navigate],
   );
 }
 
+// eslint-disable-next-line max-lines-per-function
 function useKeyboardNavigation(navigate: (direction: RiffleDirection) => void) {
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (isEditableTarget(e.target)) {return;}
-      if (document.querySelector('[role="dialog"][aria-modal="true"]')) {return;}
-      if (e.key === "ArrowDown") {navigate("deeper");}
-      if (e.key === "ArrowUp") {navigate("front");}
+      if (isEditableTarget(e.target)) {
+        return;
+      }
+      if (document.querySelector('[role="dialog"][aria-modal="true"]')) {
+        return;
+      }
+      if (e.key === "ArrowDown") {
+        navigate("deeper");
+      }
+      if (e.key === "ArrowUp") {
+        navigate("front");
+      }
     },
     [navigate],
   );
@@ -83,6 +99,35 @@ function useKeyboardNavigation(navigate: (direction: RiffleDirection) => void) {
   }, [handleKeyDown]);
 }
 
+// eslint-disable-next-line eslint/max-params
+function applyNavigationMove(
+  nextIndex: number,
+  riffleDirection: RiffleDirection,
+  direction: React.MutableRefObject<RiffleDirection>,
+  indexRef: React.MutableRefObject<number>,
+  isCompact: boolean,
+  setIndex: React.Dispatch<React.SetStateAction<number>>,
+  setShowGestureHint: React.Dispatch<React.SetStateAction<boolean>>,
+  setEdgeStatus: React.Dispatch<React.SetStateAction<string | null>>,
+) {
+  // eslint-disable-next-line eslint/no-param-reassign
+  direction.current = riffleDirection;
+  // eslint-disable-next-line eslint/no-param-reassign
+  indexRef.current = nextIndex;
+  setIndex(nextIndex);
+  setShowGestureHint(false);
+  setEdgeStatus(null);
+  if (isCompact) {
+    markLessonLearned();
+  }
+}
+
+function handleRiffleNavigation(riffleDirection: RiffleDirection, opts: { total: number; isCompact: boolean; indexRef: React.MutableRefObject<number>; direction: React.MutableRefObject<RiffleDirection>; setIndex: React.Dispatch<React.SetStateAction<number>>; setShowGestureHint: React.Dispatch<React.SetStateAction<boolean>>; setEdgeStatus: React.Dispatch<React.SetStateAction<string | null>> }) {
+  const move = resolveRiffleMove({ currentIndex: opts.indexRef.current, total: opts.total, direction: riffleDirection });
+  if (!move.moved) { opts.setEdgeStatus(RIFFLE_LANGUAGE.edgeStatus[riffleDirection]); return; }
+  applyNavigationMove(move.nextIndex, riffleDirection, opts.direction, opts.indexRef, opts.isCompact, opts.setIndex, opts.setShowGestureHint, opts.setEdgeStatus);
+}
+
 function useNavigate(
   { total, isCompact, indexRef, direction }: NavigateCtx,
   setIndex: React.Dispatch<React.SetStateAction<number>>,
@@ -90,33 +135,43 @@ function useNavigate(
   setEdgeStatus: React.Dispatch<React.SetStateAction<string | null>>,
 ) {
   return useCallback(
-    (riffleDirection: RiffleDirection) => {
-      const move = resolveRiffleMove({
-        currentIndex: indexRef.current,
-        total,
-        direction: riffleDirection,
-      });
-      if (!move.moved) {
-        setEdgeStatus(RIFFLE_LANGUAGE.edgeStatus[riffleDirection]);
-        return;
-      }
-      direction.current = riffleDirection;
-      indexRef.current = move.nextIndex;
-      setIndex(move.nextIndex);
-      setShowGestureHint(false);
-      setEdgeStatus(null);
-      if (isCompact) {markLessonLearned();}
-    },
+    (riffleDirection: RiffleDirection) => handleRiffleNavigation(riffleDirection, { total, isCompact, indexRef, direction, setIndex, setShowGestureHint, setEdgeStatus }),
     [total, isCompact, indexRef, direction, setIndex, setShowGestureHint, setEdgeStatus],
   );
 }
 
-export function useCrateNavigation({
-  total,
-  isCompact,
-  initialIndex,
-  resetKey,
-}: UseCrateNavigationOptions): UseCrateNavigationResult {
+function computeProgress(index: number, total: number): number {
+  return total > 0 ? ((index + 1) / total) * PROGRESS_PCT_BASE : 0;
+}
+
+// eslint-disable-next-line eslint/max-params
+function useResetEffect(
+  initialIndex: number,
+  resetKey: string,
+  setIndex: React.Dispatch<React.SetStateAction<number>>,
+  setShowGestureHint: React.Dispatch<React.SetStateAction<boolean>>,
+  setEdgeStatus: React.Dispatch<React.SetStateAction<string | null>>,
+) {
+  useEffect(() => {
+    setIndex(initialIndex);
+    setShowGestureHint(!isLessonLearned());
+    setEdgeStatus(null);
+  }, [initialIndex, resetKey, setIndex, setShowGestureHint, setEdgeStatus]);
+}
+
+interface NavigationState {
+  index: number;
+  setIndex: React.Dispatch<React.SetStateAction<number>>;
+  showGestureHint: boolean;
+  setShowGestureHint: React.Dispatch<React.SetStateAction<boolean>>;
+  edgeStatus: string | null;
+  setEdgeStatus: React.Dispatch<React.SetStateAction<string | null>>;
+  direction: React.MutableRefObject<RiffleDirection>;
+  indexRef: React.MutableRefObject<number>;
+  dragRotationRef: React.RefObject<HTMLDivElement | null>;
+}
+
+function useNavigationState(initialIndex: number): NavigationState {
   const [index, setIndex] = useState(initialIndex);
   const [showGestureHint, setShowGestureHint] = useState(() => !isLessonLearned());
   const [edgeStatus, setEdgeStatus] = useState<string | null>(null);
@@ -124,18 +179,37 @@ export function useCrateNavigation({
   const indexRef = useRef(index);
   const dragRotationRef = useRef<HTMLDivElement>(null);
   indexRef.current = index;
+  return {
+    index,
+    setIndex,
+    showGestureHint,
+    setShowGestureHint,
+    edgeStatus,
+    setEdgeStatus,
+    direction,
+    indexRef,
+    dragRotationRef,
+  };
+}
 
-  useEffect(() => {
-    setIndex(initialIndex);
-    setShowGestureHint(!isLessonLearned());
-    setEdgeStatus(null);
-  }, [initialIndex, resetKey]);
+export function useCrateNavigation({
+  total, isCompact, initialIndex, resetKey,
+}: UseCrateNavigationOptions): UseCrateNavigationResult {
+  const {
+    index, setIndex, showGestureHint, setShowGestureHint,
+    edgeStatus, setEdgeStatus, direction, indexRef, dragRotationRef,
+  } = useNavigationState(initialIndex);
+
+  useResetEffect(initialIndex, resetKey, setIndex, setShowGestureHint, setEdgeStatus);
 
   const ctx: NavigateCtx = { total, isCompact, indexRef, direction };
   const navigate = useNavigate(ctx, setIndex, setShowGestureHint, setEdgeStatus);
   const handleDragEnd = useDragNavigation(navigate);
   useKeyboardNavigation(navigate);
-  const progress = total > 0 ? ((index + 1) / total) * PROGRESS_PCT_BASE : 0;
+  const progress = computeProgress(index, total);
 
-  return { index, direction, navigate, handleDragEnd, edgeStatus, showGestureHint, progress, dragRotationRef };
+  return {
+    index, direction, navigate, handleDragEnd,
+    edgeStatus, showGestureHint, progress, dragRotationRef,
+  };
 }

@@ -1,18 +1,19 @@
-import React from "react"
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { render, screen } from "@testing-library/react"
-import userEvent from "@testing-library/user-event"
-import PileSheet from "../pile_sheet"
-import { PileProvider } from "../../contexts/pile_context"
-import { ViewportProvider } from "../../contexts/viewport_context"
-import { ShopperProvider } from "../../contexts/shopper_context"
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import React from "react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { PileProvider } from "../../contexts/pile_context";
+import { ShopperProvider } from "../../contexts/shopper_context";
+import { ViewportProvider } from "../../contexts/viewport_context";
+import PileSheet from "../pile_sheet";
 
 const mockedPage = vi.hoisted(() => ({
   shopper: { discogs_username: "shopper1" } as { discogs_username: string } | null,
-}))
+}));
 
 vi.mock("@inertiajs/react", async () => {
-  const actual = await vi.importActual("@inertiajs/react")
+  const actual = await vi.importActual("@inertiajs/react");
   return {
     ...actual,
     usePage: () => ({
@@ -21,17 +22,17 @@ vi.mock("@inertiajs/react", async () => {
         shopper: mockedPage.shopper,
       },
     }),
-  }
-})
+  };
+});
 
 beforeEach(() => {
-  localStorage.clear()
-  mockedPage.shopper = { discogs_username: "shopper1" }
-})
+  localStorage.clear();
+  mockedPage.shopper = { discogs_username: "shopper1" };
+});
 
 afterEach(() => {
-  vi.unstubAllGlobals()
-})
+  vi.unstubAllGlobals();
+});
 
 describe("PileSheet dialog mechanics", () => {
   it("renders as a dialog with aria-modal", () => {
@@ -43,13 +44,13 @@ describe("PileSheet dialog mechanics", () => {
           </PileProvider>
         </ShopperProvider>
       </ViewportProvider>,
-    )
-    const dialog = screen.getByRole("dialog")
-    expect(dialog).toHaveAttribute("aria-modal", "true")
-  })
+    );
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toHaveAttribute("aria-modal", "true");
+  });
 
   it("has aria-labelledby pointing to pile-sheet-title", () => {
-    const onClose = vi.fn()
+    const onClose = vi.fn();
     render(
       <ViewportProvider>
         <ShopperProvider>
@@ -58,14 +59,14 @@ describe("PileSheet dialog mechanics", () => {
           </PileProvider>
         </ShopperProvider>
       </ViewportProvider>,
-    )
-    const dialog = screen.getByRole("dialog")
-    expect(dialog).toHaveAttribute("aria-labelledby", "pile-sheet-title")
-    expect(document.getElementById("pile-sheet-title")).toBeInTheDocument()
-  })
+    );
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toHaveAttribute("aria-labelledby", "pile-sheet-title");
+    expect(document.getElementById("pile-sheet-title")).toBeInTheDocument();
+  });
 
   it("closes on Escape key", async () => {
-    const onClose = vi.fn()
+    const onClose = vi.fn();
     render(
       <ViewportProvider>
         <ShopperProvider>
@@ -74,13 +75,13 @@ describe("PileSheet dialog mechanics", () => {
           </PileProvider>
         </ShopperProvider>
       </ViewportProvider>,
-    )
-    await userEvent.keyboard("{Escape}")
-    expect(onClose).toHaveBeenCalledOnce()
-  })
+    );
+    await userEvent.keyboard("{Escape}");
+    expect(onClose).toHaveBeenCalledOnce();
+  });
 
   it("closes on backdrop click", async () => {
-    const onClose = vi.fn()
+    const onClose = vi.fn();
     const { container } = render(
       <ViewportProvider>
         <ShopperProvider>
@@ -89,15 +90,17 @@ describe("PileSheet dialog mechanics", () => {
           </PileProvider>
         </ShopperProvider>
       </ViewportProvider>,
-    )
-    const backdrop = container.querySelector('[aria-hidden="true"]')
-    expect(backdrop).toBeInTheDocument()
-    if (backdrop) {await userEvent.click(backdrop)}
-    expect(onClose).toHaveBeenCalledOnce()
-  })
+    );
+    const backdrop = container.querySelector('[aria-hidden="true"]');
+    expect(backdrop).toBeInTheDocument();
+    if (backdrop) {
+      await userEvent.click(backdrop);
+    }
+    expect(onClose).toHaveBeenCalledOnce();
+  });
 
   it("closes on close button click", async () => {
-    const onClose = vi.fn()
+    const onClose = vi.fn();
     render(
       <ViewportProvider>
         <ShopperProvider>
@@ -106,10 +109,10 @@ describe("PileSheet dialog mechanics", () => {
           </PileProvider>
         </ShopperProvider>
       </ViewportProvider>,
-    )
-    await userEvent.click(screen.getByRole("button", { name: /close pile/i }))
-    expect(onClose).toHaveBeenCalledOnce()
-  })
+    );
+    await userEvent.click(screen.getByRole("button", { name: /close pile/i }));
+    expect(onClose).toHaveBeenCalledOnce();
+  });
 
   it("does not render when open is false", () => {
     render(
@@ -120,7 +123,7 @@ describe("PileSheet dialog mechanics", () => {
           </PileProvider>
         </ShopperProvider>
       </ViewportProvider>,
-    )
-    expect(screen.queryByRole("dialog")).toBeNull()
-  })
-})
+    );
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+});

@@ -1,6 +1,6 @@
-import HintCard from "./hint_card";
-import type { Listing } from "../../types/inertia";
 import type { CrateWindowSlot } from "../../lib/crate_window";
+import type { Listing } from "../../types/inertia";
+import HintCard from "./hint_card";
 
 interface HintCardStackProps {
   visibleRecords: CrateWindowSlot<Listing>[];
@@ -20,7 +20,11 @@ export default function HintCardStack({
       {visibleRecords
         .filter((s) => !s.isActive)
         .map((slot) => (
-          <HintCard key={`hint-${slot.record.id}`} slot={slot} prefersReducedMotion={prefersReducedMotion} />
+          <HintCard
+            key={`hint-${slot.record.id}`}
+            slot={slot}
+            prefersReducedMotion={prefersReducedMotion}
+          />
         ))}
     </>
   );

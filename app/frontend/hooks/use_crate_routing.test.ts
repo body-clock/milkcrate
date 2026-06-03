@@ -1,7 +1,9 @@
-import { describe, expect, it, vi, afterEach } from "vitest";
 import { act, renderHook } from "@testing-library/react";
-import { useCrateRouting } from "./use_crate_routing";
+import { describe, expect, it, vi, afterEach } from "vitest";
+
 import type { Crate } from "@/types/inertia";
+
+import { useCrateRouting } from "./use_crate_routing";
 
 const crates: Crate[] = [
   { slug: "jazz", name: "Jazz", count: 0, records: [] },

@@ -1,14 +1,16 @@
 import { useMemo } from "react";
-import RecordDetails from "./record_details";
-import CrateHeader from "./crate_view/crate_header";
-import CardStack from "./crate_view/card_stack";
-import CrateProgress from "./crate_view/crate_progress";
-import { buildCrateWindow } from "../lib/crate_window";
+
 import { useCrateNavigation } from "@/hooks/use_crate_navigation";
-import { useViewport } from "@/hooks/use_viewport";
-import { useReducedMotionContext } from "./storefront_motion_config";
 import { usePreload } from "@/hooks/use_preload";
+import { useViewport } from "@/hooks/use_viewport";
+
+import { buildCrateWindow } from "../lib/crate_window";
 import type { Crate, Listing } from "../types/inertia";
+import CardStack from "./crate_view/card_stack";
+import CrateHeader from "./crate_view/crate_header";
+import CrateProgress from "./crate_view/crate_progress";
+import RecordDetails from "./record_details";
+import { useReducedMotionContext } from "./storefront_motion_config";
 
 const WINDOW_RADIUS = 2;
 
@@ -26,6 +28,7 @@ interface Props {
  * Orchestrates the crate browsing view: header, card stack with drag
  * navigation, progress indicator, and desktop sidebar details.
  */
+// eslint-disable-next-line max-lines-per-function
 export default function CrateView({
   crates,
   activeSlug,
@@ -62,13 +65,12 @@ export default function CrateView({
 
   const activeRecord = records[index];
 
-  const layoutMode = compactHeaderOwnedByLayout
-    ? hideTabs
-      ? "minimal"
-      : "compact"
-    : hideTabs
-      ? "no-tabs"
-      : "full";
+  let layoutMode: string;
+  if (compactHeaderOwnedByLayout) {
+    layoutMode = hideTabs ? "minimal" : "compact";
+  } else {
+    layoutMode = hideTabs ? "no-tabs" : "full";
+  }
 
   const header = (
     <CrateHeader

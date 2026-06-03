@@ -1,5 +1,3 @@
-import type { ComponentProps, ReactNode } from "react";
-
 export interface Props {
   copy: {
     seller_input_label: string;
@@ -15,6 +13,16 @@ export interface Props {
   };
 }
 
+const EASE_X1 = 0.25;
+const EASE_Y1 = 0.46;
+const EASE_X2 = 0.45;
+const EASE_Y2 = 0.94;
+
 // Shared transition constant used by status components
-export const easeOut: readonly [number, number, number, number] = [0.25, 0.46, 0.45, 0.94] as const;
+export const easeOut: readonly [number, number, number, number] = [
+  EASE_X1,
+  EASE_Y1,
+  EASE_X2,
+  EASE_Y2,
+] as const;
 export const MIN_USERNAME_LENGTH = 3;

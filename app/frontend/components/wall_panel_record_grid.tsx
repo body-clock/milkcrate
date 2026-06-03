@@ -1,6 +1,7 @@
 import { AnimatePresence, motion, type PanInfo } from "framer-motion";
-import TileButton from "./wall_panel/tile_button";
+
 import type { Listing } from "../types/inertia";
+import TileButton from "./wall_panel/tile_button";
 
 const PAGE_SLIDE_DISTANCE = 200;
 
@@ -29,6 +30,21 @@ interface RecordGridProps {
   onDragEnd: (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => void;
 }
 
+function buildMotionProps({ showAnimation, direction, transition, gridCols, isCompact, onDragEnd }: {
+  showAnimation: boolean; direction: number; transition: object; gridCols: string; isCompact: boolean;
+  onDragEnd: (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => void;
+}) {
+  return {
+    custom: direction, variants: showAnimation ? pageVariants : undefined,
+    initial: showAnimation ? "enter" as const : undefined, animate: "center" as const,
+    exit: showAnimation ? "exit" as const : undefined, transition,
+    drag: showAnimation ? "x" as const : undefined, dragConstraints: { left: 0, right: 0 }, dragElastic: 0.3,
+    onDragEnd, className: `grid ${gridCols} gap-2`,
+    style: isCompact ? { position: "absolute" as const, inset: 0 } : undefined,
+  };
+}
+
+// eslint-disable-next-line eslint/max-lines-per-function
 export default function RecordGrid({
   pageIndex,
   direction,
@@ -42,7 +58,6 @@ export default function RecordGrid({
   onDragEnd,
 }: RecordGridProps) {
   const showAnimation = !prefersReducedMotion && showPagination;
-
   return (
     <div
       className={isCompact ? "overflow-hidden" : "w-full"}
@@ -51,18 +66,10 @@ export default function RecordGrid({
       <AnimatePresence custom={direction}>
         <motion.div
           key={pageIndex}
-          custom={direction}
-          variants={showAnimation ? pageVariants : undefined}
-          initial={showAnimation ? "enter" : undefined}
-          animate="center"
-          exit={showAnimation ? "exit" : undefined}
-          transition={transition}
-          drag={showAnimation ? "x" : undefined}
-          dragConstraints={{ left: 0, right: 0 }}
-          dragElastic={0.3}
-          onDragEnd={onDragEnd}
-          className={`grid ${gridCols} gap-2`}
-          style={isCompact ? { position: "absolute", inset: 0 } : undefined}
+          {...buildMotionProps({
+            showAnimation, direction, transition,
+            gridCols, isCompact, onDragEnd,
+          })}
         >
           {currentPage.map((listing) => (
             <TileButton

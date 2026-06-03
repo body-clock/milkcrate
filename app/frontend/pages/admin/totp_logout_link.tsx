@@ -1,4 +1,4 @@
-import { router } from "@inertiajs/react"
+import { router } from "@inertiajs/react";
 
 export function TotpLogoutLink() {
   return (
@@ -7,12 +7,12 @@ export function TotpLogoutLink() {
         href="/admin/logout"
         className="text-xs text-mc-text-dim hover:text-mc-text underline"
         onClick={(e) => {
-          e.preventDefault()
-          router.delete("/admin/logout")
+          e.preventDefault();
+          router.delete("/admin/logout");
         }}
       >
         Sign out and try a different account
       </a>
     </div>
-  )
+  );
 }

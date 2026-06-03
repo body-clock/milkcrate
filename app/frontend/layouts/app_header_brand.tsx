@@ -1,6 +1,6 @@
-import { StoreNameLink } from "./app_header_store_name";
-import { StoreSubLink } from "./app_header_store_link";
 import { BrandMarkLink } from "./app_header_brand_mark";
+import { StoreSubLink } from "./app_header_store_link";
+import { StoreNameLink } from "./app_header_store_name";
 
 interface AppHeaderBrandProps {
   storeName?: string;

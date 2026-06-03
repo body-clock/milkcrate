@@ -1,9 +1,10 @@
 import { vi } from "vitest";
-import CrateView from "../../crate_view";
-import StorefrontMotionConfig from "../../storefront_motion_config";
+
 import { PileProvider } from "../../../contexts/pile_context";
 import { renderWithTier } from "../../../test/viewport-test-utils";
 import type { Crate, Listing } from "../../../types/inertia";
+import CrateView from "../../crate_view";
+import StorefrontMotionConfig from "../../storefront_motion_config";
 
 export const makeListing = (overrides: Partial<Listing> = {}): Listing => ({
   id: 1,

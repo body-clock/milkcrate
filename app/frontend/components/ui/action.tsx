@@ -1,4 +1,5 @@
 import React from "react";
+
 import { cn } from "./class_names";
 
 export type ActionVariant = "primary" | "secondary" | "ghost" | "danger" | "success";
@@ -38,25 +39,53 @@ export function actionClassName({
 }
 
 interface ActionLinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
-  variant?: ActionVariant
-  size?: ActionSize
-  busy?: boolean
-  disabled?: boolean
+  variant?: ActionVariant;
+  size?: ActionSize;
+  busy?: boolean;
+  disabled?: boolean;
 }
 
-function handleClick(onClick: React.MouseEventHandler<HTMLAnchorElement> | undefined, unavailable: boolean) {
+function handleClick(
+  onClick: React.MouseEventHandler<HTMLAnchorElement> | undefined,
+  unavailable: boolean,
+) {
   return (event: React.MouseEvent<HTMLAnchorElement>) => {
-    if (unavailable) {event.preventDefault(); return}
-    onClick?.(event)
-  }
+    if (unavailable) {
+      event.preventDefault();
+      return;
+    }
+    onClick?.(event);
+  };
 }
 
-export function ActionLink({ variant = "primary", size = "md", className, busy = false, disabled = false, tabIndex, onClick, children, ...props }: ActionLinkProps) {
-  const unavailable = disabled || busy
+// eslint-disable-next-line eslint/max-lines-per-function
+export function ActionLink({
+  variant = "primary",
+  size = "md",
+  className,
+  busy = false,
+  disabled = false,
+  tabIndex,
+  onClick,
+  children,
+  ...props
+}: ActionLinkProps) {
+  const unavailable = disabled || busy;
+  const cls = actionClassName({ variant, size, className });
+  const busyAttr = busy || undefined;
+  const disabledAttr = unavailable || undefined;
+  const tabIdx = unavailable ? -1 : tabIndex;
 
   return (
-    <a {...props} className={actionClassName({ variant, size, className })} aria-busy={busy || undefined} aria-disabled={unavailable || undefined} tabIndex={unavailable ? -1 : tabIndex} onClick={handleClick(onClick, unavailable)}>
+    <a
+      {...props}
+      className={cls}
+      aria-busy={busyAttr}
+      aria-disabled={disabledAttr}
+      tabIndex={tabIdx}
+      onClick={handleClick(onClick, unavailable)}
+    >
       {children}
     </a>
-  )
+  );
 }

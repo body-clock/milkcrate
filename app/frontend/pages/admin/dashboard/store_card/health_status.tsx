@@ -1,5 +1,6 @@
-import type { AdminStoreSummary } from "@/types/inertia";
 import StatusDot from "@/components/ui/status_dot";
+import type { AdminStoreSummary } from "@/types/inertia";
+
 import { severityVariant } from "./health_bar";
 
 export default function HealthStatus({ store }: { store: AdminStoreSummary }) {

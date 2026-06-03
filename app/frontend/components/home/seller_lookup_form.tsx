@@ -1,7 +1,8 @@
-import { motion } from "framer-motion";
 import { Link } from "@inertiajs/react";
-import { actionClassName } from "@/components/ui/action";
+import { motion } from "framer-motion";
+
 import DiscogsSellerLookupInput from "@/components/discogs_seller_lookup_input";
+import { actionClassName } from "@/components/ui/action";
 
 const EASE_X1 = 0.25;
 const EASE_Y1 = 0.46;
@@ -28,13 +29,23 @@ interface SellerCopy {
   seller_lookup_error: string;
 }
 
-export default function SellerLookupForm({ copy, fallback }: { copy: SellerCopy; fallback: string }) {
-  return <>
-    <motion.div variants={fadeUp}>
-      <DiscogsSellerLookupInput copy={copy} />
-    </motion.div>
-    <motion.div variants={fadeUp} className="text-center mt-4">
-      <Link href="/apply" className={actionClassName({ variant: "ghost", size: "sm" })}>{fallback}</Link>
-    </motion.div>
-  </>;
+export default function SellerLookupForm({
+  copy,
+  fallback,
+}: {
+  copy: SellerCopy;
+  fallback: string;
+}) {
+  return (
+    <>
+      <motion.div variants={fadeUp}>
+        <DiscogsSellerLookupInput copy={copy} />
+      </motion.div>
+      <motion.div variants={fadeUp} className="text-center mt-4">
+        <Link href="/apply" className={actionClassName({ variant: "ghost", size: "sm" })}>
+          {fallback}
+        </Link>
+      </motion.div>
+    </>
+  );
 }

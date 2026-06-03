@@ -1,10 +1,7 @@
 import { DiscogsConnectForm } from "../discogs_connection_controls";
 import { actionClassName } from "../ui/action";
 
-export function DisconnectedCta(props: {
-  storeName: string | null;
-  storeSlug: string;
-}) {
+export function DisconnectedCta(props: { storeName: string | null; storeSlug: string }) {
   const crateSlug =
     typeof window === "undefined"
       ? undefined

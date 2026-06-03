@@ -1,9 +1,13 @@
-import React from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { renderWithTier } from "../viewport-test-utils";
+import React from "react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
 import type { ViewportTier } from "@/contexts/viewport_context";
+
+import { renderWithTier } from "../viewport-test-utils";
+
+const PRICE_OFFSET = 10;
 
 // ── Mock @inertiajs/react —─────────────────────────────────────
 vi.mock("@inertiajs/react", () => ({
@@ -54,12 +58,13 @@ vi.mock("@/components/storefront_motion_config", () => ({
   useReducedMotionContext: () => false,
 }));
 
+import { PileProvider } from "../../contexts/pile_context";
+import AdminDashboard from "../../pages/admin/dashboard";
+import Apply from "../../pages/apply";
+import SellerDashboard from "../../pages/dashboard";
 // ── Page imports (after mocks so Vitest hoists correctly) ──────
 import Home from "../../pages/home";
-import Apply from "../../pages/apply";
 import StoreShow from "../../pages/stores/show";
-import SellerDashboard from "../../pages/dashboard";
-import AdminDashboard from "../../pages/admin/dashboard";
 import type {
   AdminDashboardProps,
   DashboardProps,
@@ -67,9 +72,12 @@ import type {
   HomepagePreview,
   Listing,
 } from "../../types/inertia";
-import { PileProvider } from "../../contexts/pile_context";
 
 // ── Shared test data ────────────────────────────────────────────
+
+// ── Fixture constants ────────────────────────────────────────────────
+const STORE_LISTING_COUNT = 120;
+const SELLER_LISTING_COUNT = 92;
 
 const homeCopy = {
   headline: "Your Discogs inventory, now a storefront.",
@@ -131,7 +139,7 @@ const storeShowProps: StoreShowProps = {
     name: "Philadelphia Music",
     discogs_username: "philadelphiamusic",
     description: "Independent record store in South Philly.",
-    total_listings: 120,
+    total_listings: STORE_LISTING_COUNT,
     sync_status: "idle",
     last_sync_error_at: null,
     enrichment_status: "idle",
@@ -151,7 +159,7 @@ const makeListing = (id: number, title: string): Listing => ({
   genres: [],
   styles: [],
   condition: null,
-  price: `${10 + id}.00`,
+  price: `${PRICE_OFFSET + id}.00`,
   currency: "USD",
   cover_image_url: null,
   thumbnail_url: null,
@@ -262,7 +270,7 @@ const sellerDashboardProps: DashboardProps = {
     name: "Seller Records",
     discogs_username: "seller-records",
     storefront_url: "/seller-records",
-    total_listings: 92,
+    total_listings: SELLER_LISTING_COUNT,
     sync_status: "idle",
     last_synced_at: "2026-05-16T10:00:00Z",
     last_sync_error_summary: null,

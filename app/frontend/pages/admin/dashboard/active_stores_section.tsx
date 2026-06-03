@@ -1,8 +1,10 @@
-import type { AdminDashboardProps } from "@/types/inertia";
 import EmptyState from "@/components/ui/empty_state";
 import SectionHeader from "@/components/ui/section_header";
+import type { AdminDashboardProps } from "@/types/inertia";
+
 import StoreCard from "./store_card";
 
+// eslint-disable-next-line max-lines-per-function
 export function ActiveStoresSection({
   active_stores,
 }: {

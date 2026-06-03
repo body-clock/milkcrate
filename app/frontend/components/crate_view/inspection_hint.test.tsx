@@ -1,8 +1,10 @@
-import React from "react";
-import { describe, expect, it, beforeEach, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import InspectionHint from "./inspection_hint";
+import React from "react";
+import { describe, expect, it, beforeEach } from "vitest";
+
 import StorefrontMotionConfig from "@/components/storefront_motion_config";
+
+import InspectionHint from "./inspection_hint";
 
 function renderHint(discovered: boolean) {
   return render(

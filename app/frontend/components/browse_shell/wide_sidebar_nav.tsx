@@ -1,6 +1,7 @@
-import BrowseModeButton from "./browse_mode_button";
 import type { BrowseMode } from "@/hooks/use_browse_routing";
 import { COPY } from "@/lib/copy";
+
+import BrowseModeButton from "./browse_mode_button";
 
 interface Props {
   mode: BrowseMode;

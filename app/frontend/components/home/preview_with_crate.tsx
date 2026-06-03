@@ -1,6 +1,7 @@
-import { PileProvider } from "@/contexts/pile_context";
 import CrateView from "@/components/crate_view";
+import { PileProvider } from "@/contexts/pile_context";
 import type { WallCrate } from "@/types/inertia";
+
 import StoreLink from "./store_link";
 
 interface Props {

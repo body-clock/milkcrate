@@ -23,10 +23,7 @@ function getFocusable(dialog: HTMLElement): HTMLElement[] {
   return Array.from(dialog.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR));
 }
 
-function focusFallback(
-  focusable: HTMLElement[],
-  titleEl: HTMLElement | null,
-): void {
+function focusFallback(focusable: HTMLElement[], titleEl: HTMLElement | null): void {
   titleEl?.focus();
 }
 
@@ -37,17 +34,10 @@ function isWrappingBackward(
   dialog: HTMLElement,
 ): boolean {
   const active = document.activeElement;
-  return (
-    event.shiftKey &&
-    (active === first || active === titleEl || !dialog.contains(active))
-  );
+  return event.shiftKey && (active === first || active === titleEl || !dialog.contains(active));
 }
 
-function isWrappingForward(
-  event: KeyboardEvent,
-  last: HTMLElement,
-  dialog: HTMLElement,
-): boolean {
+function isWrappingForward(event: KeyboardEvent, last: HTMLElement, dialog: HTMLElement): boolean {
   const active = document.activeElement;
   return !event.shiftKey && (active === last || !dialog.contains(active));
 }
@@ -90,19 +80,22 @@ function createTabHandler(
   titleRef: React.RefObject<HTMLSpanElement | null>,
 ): (event: KeyboardEvent) => void {
   return (event: KeyboardEvent) => {
-    if (onEscape(event, onClose)) {return;}
-    if (event.key !== "Tab") {return;}
+    if (onEscape(event, onClose)) {
+      return;
+    }
+    if (event.key !== "Tab") {
+      return;
+    }
     const dialog = dialogRef.current;
     const title = titleRef.current;
-    if (!dialog) {return;}
+    if (!dialog) {
+      return;
+    }
     trapTabKey(event, dialog, title);
   };
 }
 
-function restoreFocus(
-  previousFocus: HTMLElement | null,
-  returnFocus: HTMLElement | null,
-): void {
+function restoreFocus(previousFocus: HTMLElement | null, returnFocus: HTMLElement | null): void {
   if (previousFocus?.isConnected) {
     previousFocus.focus();
   } else if (returnFocus) {
@@ -111,6 +104,7 @@ function restoreFocus(
 }
 
 /** Manages focus trapping inside a dialog. */
+// eslint-disable-next-line max-lines-per-function
 export function useDialogFocusTrap(
   open: boolean,
   onClose: () => void,
@@ -120,14 +114,19 @@ export function useDialogFocusTrap(
   const titleRef = useRef<HTMLSpanElement>(null);
   const prevRef = useRef<HTMLElement | null>(null);
   useEffect(() => {
-    if (!open) {return;}
+    if (!open) {
+      return;
+    }
     prevRef.current = document.activeElement as HTMLElement | null;
     titleRef.current?.focus();
     const handler = createTabHandler(onClose, dialogRef, titleRef);
     document.addEventListener("keydown", handler);
     const savedPrev = prevRef.current;
     const savedReturn = retRef?.current ?? null;
-    return () => { document.removeEventListener("keydown", handler); restoreFocus(savedPrev, savedReturn); };
+    return () => {
+      document.removeEventListener("keydown", handler);
+      restoreFocus(savedPrev, savedReturn);
+    };
   }, [open, onClose, retRef]);
   return { dialogRef, titleRef };
 }

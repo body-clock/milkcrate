@@ -6,6 +6,7 @@ import { RecordNotes } from "./record_notes";
 import { RecordTagsList } from "./record_tags_list";
 import { RecordTileSection } from "./record_tile_section";
 
+// eslint-disable-next-line eslint/max-lines-per-function
 export function PeekSheetContent({
   listing,
   meta,

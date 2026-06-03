@@ -1,16 +1,17 @@
-import React from "react"
-import { TotpChallengeHeader } from "@/pages/admin/totp_challenge_header"
-import { TotpFlashMessages } from "@/pages/admin/totp_flash_messages"
-import { TotpChallengeForm } from "@/pages/admin/totp_challenge_form"
+import React from "react";
+
+import { TotpChallengeForm } from "@/pages/admin/totp_challenge_form";
+import { TotpChallengeHeader } from "@/pages/admin/totp_challenge_header";
+import { TotpFlashMessages } from "@/pages/admin/totp_flash_messages";
 
 interface TotpChallengeErrors {
-  code?: string[]
+  code?: string[];
 }
 
 interface TotpChallengePageProps {
-  errors?: TotpChallengeErrors
-  notice?: string
-  alert?: string
+  errors?: TotpChallengeErrors;
+  notice?: string;
+  alert?: string;
 }
 
 export default function AdminTotpChallenge({ errors, notice, alert }: TotpChallengePageProps) {
@@ -25,5 +26,5 @@ export default function AdminTotpChallenge({ errors, notice, alert }: TotpChalle
         <TotpChallengeForm error={errors?.code?.[0]} />
       </div>
     </div>
-  )
+  );
 }

@@ -1,6 +1,7 @@
-import { describe, expect, it, beforeEach } from "vitest";
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { describe, expect, it, beforeEach } from "vitest";
+
 import { renderCrateView, makeCrates, makeListing } from "./helpers";
 
 beforeEach(() => {
@@ -19,7 +20,7 @@ describe("CrateView animation and cards", () => {
 
     await user.click(screen.getByRole("tab", { name: "Rock" }));
     expect(screen.queryByTestId("gesture-hint-overlay")).not.toBeInTheDocument();
-  })
+  });
 
   it("renders hint cards as plain divs with inline transform styles", () => {
     renderCrateView("compact");
@@ -29,7 +30,7 @@ describe("CrateView animation and cards", () => {
     hintCards.forEach((card) => {
       expect(card.innerHTML).toContain("♪");
     });
-  })
+  });
 
   it("renders active card with thumbnail backdrop when thumbnail_url is present", () => {
     const crates = makeCrates();
@@ -43,9 +44,11 @@ describe("CrateView animation and cards", () => {
     renderCrateView("wide", { crates });
 
     const imgs = screen.getAllByRole("img");
-    const coverImg = imgs.find((img) => img.getAttribute("src") === "https://example.com/cover.jpg");
+    const coverImg = imgs.find(
+      (img) => img.getAttribute("src") === "https://example.com/cover.jpg",
+    );
     expect(coverImg).toBeInTheDocument();
-  })
+  });
 
   it("keeps background records mounted while their depth positions animate", async () => {
     const user = userEvent.setup();
@@ -58,7 +61,7 @@ describe("CrateView animation and cards", () => {
 
     await user.click(screen.getByRole("button", { name: /deeper/i }));
     expect(screen.getByText("Record 2 of 5")).toBeInTheDocument();
-  })
+  });
 
   it("omits thumbnail backdrop when thumbnail_url is null", () => {
     const crates = makeCrates();
@@ -72,7 +75,9 @@ describe("CrateView animation and cards", () => {
     renderCrateView("wide", { crates });
 
     const imgs = screen.getAllByRole("img");
-    const coverImg = imgs.find((img) => img.getAttribute("src") === "https://example.com/cover.jpg");
+    const coverImg = imgs.find(
+      (img) => img.getAttribute("src") === "https://example.com/cover.jpg",
+    );
     expect(coverImg).toBeInTheDocument();
-  })
-})
+  });
+});

@@ -14,6 +14,16 @@
     "nursery": "warn",
     "style": "off"
   },
+  "overrides": [
+    {
+      "files": ["*.test.*", "*.spec.*", "**/__tests__/**"],
+      "rules": {
+        "eslint/max-lines-per-function": "off",
+        "eslint/max-lines": "off",
+        "eslint/max-nested-callbacks": "off"
+      }
+    }
+  ],
   "rules": {
     "no-unused-vars": "off",
     "no-console": "off",
@@ -26,12 +36,18 @@
     "sort-imports": "off",
     "sort-keys": "off",
     "func-style": "off",
-    "no-magic-numbers": ["warn", { "ignore": [0, 1, -1], "ignoreEnums": true, "ignoreReadonlyClassProperties": true }],
+    "no-magic-numbers": [
+      "warn",
+      { "ignore": [0, 1, -1], "ignoreEnums": true, "ignoreReadonlyClassProperties": true }
+    ],
     "jest/no-hooks": "off",
     "jest/prefer-lowercase-title": "off",
     "react/jsx-max-depth": ["warn", { "max": 3 }],
 
-    "eslint/max-lines-per-function": ["warn", { "max": 20, "skipBlankLines": true, "skipComments": true }],
+    "eslint/max-lines-per-function": [
+      "warn",
+      { "max": 20, "skipBlankLines": true, "skipComments": true }
+    ],
     "eslint/max-lines": ["warn", { "max": 150, "skipBlankLines": true, "skipComments": true }],
     "eslint/max-depth": ["warn", { "max": 3 }],
     "eslint/max-nested-callbacks": ["warn", { "max": 3 }],

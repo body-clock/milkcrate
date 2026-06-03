@@ -1,6 +1,6 @@
+import type { CrateWindowSlot } from "../../lib/crate_window";
 import { compositedLayer } from "../../lib/motion_tokens";
 import type { Listing } from "../../types/inertia";
-import type { CrateWindowSlot } from "../../lib/crate_window";
 
 interface HintCardProps {
   slot: CrateWindowSlot<Listing>;

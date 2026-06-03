@@ -1,8 +1,9 @@
 import type { BrowseMode } from "@/hooks/use_browse_routing";
 import type { Crate } from "@/types/inertia";
-import WideSidebarNav from "./wide_sidebar_nav";
+
 import SidebarCrateList from "./sidebar_crate_list";
 import StoreStats from "./store_stats";
+import WideSidebarNav from "./wide_sidebar_nav";
 
 interface Props {
   mode: BrowseMode;
@@ -16,16 +17,32 @@ interface Props {
   onBrowseModeSelect: (mode: BrowseMode) => void;
 }
 
+// eslint-disable-next-line eslint/max-lines-per-function
 export default function WideSidebar({
-  mode, listingCount, genreCount, panelTitle, currentCrates, activeSlug,
-  onSelectCrate, onWallSelect, onBrowseModeSelect,
+  mode,
+  listingCount,
+  genreCount,
+  panelTitle,
+  currentCrates,
+  activeSlug,
+  onSelectCrate,
+  onWallSelect,
+  onBrowseModeSelect,
 }: Props) {
   return (
     <aside className="w-52 flex-shrink-0 sticky top-4">
-      <WideSidebarNav mode={mode} onWallSelect={onWallSelect} onBrowseModeSelect={onBrowseModeSelect} />
+      <WideSidebarNav
+        mode={mode}
+        onWallSelect={onWallSelect}
+        onBrowseModeSelect={onBrowseModeSelect}
+      />
       {mode !== "wall" && panelTitle && currentCrates.length > 0 && (
-        <SidebarCrateList title={panelTitle} crates={currentCrates}
-          activeSlug={activeSlug} onSelectCrate={onSelectCrate} />
+        <SidebarCrateList
+          title={panelTitle}
+          crates={currentCrates}
+          activeSlug={activeSlug}
+          onSelectCrate={onSelectCrate}
+        />
       )}
       {mode === "wall" && <StoreStats listingCount={listingCount} genreCount={genreCount} />}
     </aside>

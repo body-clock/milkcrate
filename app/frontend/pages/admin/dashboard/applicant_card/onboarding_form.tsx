@@ -1,5 +1,5 @@
-import type { AdminApplicantSummary } from "@/types/inertia";
 import Button from "@/components/ui/button";
+import type { AdminApplicantSummary } from "@/types/inertia";
 
 export function OnboardingForm({ applicant }: { applicant: AdminApplicantSummary }) {
   const csrfToken =

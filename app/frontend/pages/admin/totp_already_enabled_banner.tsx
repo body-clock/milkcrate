@@ -1,6 +1,7 @@
-import { router } from "@inertiajs/react"
-import Button from "@/components/ui/button"
-import BrandMark from "@/components/brand_mark"
+import { router } from "@inertiajs/react";
+
+import BrandMark from "@/components/brand_mark";
+import Button from "@/components/ui/button";
 
 export function TotpAlreadyEnabledBanner() {
   return (
@@ -16,5 +17,5 @@ export function TotpAlreadyEnabledBanner() {
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -6,7 +6,9 @@ interface Props {
 }
 
 export default function SyncFailedBanner({ store }: Props) {
-  if (store.sync_status !== "failed") {return null;}
+  if (store.sync_status !== "failed") {
+    return null;
+  }
 
   return (
     <FeedbackMessage tone="danger" live="assertive" className="mb-6 px-4 py-3">

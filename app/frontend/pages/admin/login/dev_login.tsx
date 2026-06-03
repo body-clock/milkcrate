@@ -1,4 +1,5 @@
 import { router } from "@inertiajs/react";
+
 import Button from "@/components/ui/button";
 
 export default function DevLogin() {

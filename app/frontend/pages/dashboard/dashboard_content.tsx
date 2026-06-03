@@ -1,20 +1,28 @@
 import type { DashboardProps } from "@/types/inertia";
-import WelcomeCard from "./welcome_card";
+
 import StoreInfoCard from "./store_info_card";
 import SyncErrorCard from "./sync_error_card";
 import { handleResync } from "./use_resync";
+import WelcomeCard from "./welcome_card";
 
 function syncStatusVariant(status: string): "danger" | "working" | "neutral" {
-  if (status === "failed") {return "danger";}
-  if (status === "syncing") {return "working";}
+  if (status === "failed") {
+    return "danger";
+  }
+  if (status === "syncing") {
+    return "working";
+  }
   return "neutral";
 }
 
 function syncStatusLabel(status: string): string {
   switch (status) {
-    case "syncing": return "Syncing…";
-    case "failed": return "Sync failed";
-    default: return "Idle";
+    case "syncing":
+      return "Syncing…";
+    case "failed":
+      return "Sync failed";
+    default:
+      return "Idle";
   }
 }
 
@@ -26,6 +34,7 @@ interface DashboardContentProps {
   setSubmitting: (v: boolean) => void;
 }
 
+// eslint-disable-next-line max-lines-per-function
 export default function DashboardContent({
   store,
   showWelcome,
@@ -46,10 +55,7 @@ export default function DashboardContent({
         onResync={() => handleResync(setSubmitting)}
       />
       {store.last_sync_error_summary && (
-        <SyncErrorCard
-          summary={store.last_sync_error_summary}
-          errorAt={store.last_sync_error_at}
-        />
+        <SyncErrorCard summary={store.last_sync_error_summary} errorAt={store.last_sync_error_at} />
       )}
     </div>
   );

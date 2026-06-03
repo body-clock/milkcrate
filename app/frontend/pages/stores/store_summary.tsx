@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+
 import type { StoreShowProps } from "@/types/inertia";
 
 const MD = 0.35;
@@ -13,8 +14,11 @@ interface Props {
   listingCount: number;
 }
 
+// eslint-disable-next-line max-lines-per-function
 export default function StoreSummary({ store, isWide, listingCount }: Props) {
-  if (!(!isWide && (Boolean(store.description) || listingCount > 0))) {return null;}
+  if (!(!isWide && (Boolean(store.description) || listingCount > 0))) {
+    return null;
+  }
   return (
     <motion.div
       initial={{ opacity: 0, y: -6 }}

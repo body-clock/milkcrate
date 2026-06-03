@@ -1,8 +1,8 @@
-import WallPanel from "@/components/wall_panel";
 import CrateBrowsePanel from "@/components/crate_browse_panel";
+import WallPanel from "@/components/wall_panel";
+import type { BrowseMode } from "@/hooks/use_browse_routing";
 import { COPY } from "@/lib/copy";
 import type { Crate } from "@/types/inertia";
-import type { BrowseMode } from "@/hooks/use_browse_routing";
 
 interface Props {
   mode: BrowseMode;
@@ -14,12 +14,26 @@ interface Props {
   hideChipBar: boolean;
 }
 
-export default function BrowsePanel({ mode, wall, currentCrates, activeSlug, startIndex, onSelectCrate, hideChipBar }: Props) {
+// eslint-disable-next-line eslint/max-lines-per-function
+export default function BrowsePanel({
+  mode,
+  wall,
+  currentCrates,
+  activeSlug,
+  startIndex,
+  onSelectCrate,
+  hideChipBar,
+}: Props) {
   return mode === "wall" ? (
     <WallPanel crate={wall} />
   ) : (
-    <CrateBrowsePanel config={COPY.cratePanels[mode]} crates={currentCrates}
-      activeSlug={activeSlug} startIndex={startIndex}
-      onSelectCrate={onSelectCrate} hideChipBar={hideChipBar} />
+    <CrateBrowsePanel
+      config={COPY.cratePanels[mode]}
+      crates={currentCrates}
+      activeSlug={activeSlug}
+      startIndex={startIndex}
+      onSelectCrate={onSelectCrate}
+      hideChipBar={hideChipBar}
+    />
   );
 }

@@ -1,19 +1,25 @@
-import React from "react"
-import { cn } from "./class_names"
+import React from "react";
+
+import { cn } from "./class_names";
 
 export default function EmptyState({
   action,
   className,
   children,
 }: {
-  action?: React.ReactNode
-  className?: string
-  children: React.ReactNode
+  action?: React.ReactNode;
+  className?: string;
+  children: React.ReactNode;
 }) {
+  const cls = cn(
+    "rounded-lg border border-dashed border-mc-border px-4 py-8 text-center text-sm text-mc-text-dim",
+    className,
+  );
+
   return (
-    <div className={cn("rounded-lg border border-dashed border-mc-border px-4 py-8 text-center text-sm text-mc-text-dim", className)}>
+    <div className={cls}>
       <p>{children}</p>
       {action && <div className="mt-4 flex justify-center">{action}</div>}
     </div>
-  )
+  );
 }

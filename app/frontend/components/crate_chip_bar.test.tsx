@@ -1,8 +1,9 @@
-import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import CrateChipBar from "./crate_chip_bar";
+import { describe, expect, it, vi } from "vitest";
+
 import type { Crate } from "../types/inertia";
+import CrateChipBar from "./crate_chip_bar";
 
 const crates: Crate[] = [
   { slug: "jazz", name: "Jazz", count: 12, records: [] },

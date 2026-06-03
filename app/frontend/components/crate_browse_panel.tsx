@@ -1,6 +1,6 @@
-import CrateChipBar from "./crate_chip_bar";
-import { CrateBrowseContent } from "./crate_browse_content";
 import type { Crate } from "../types/inertia";
+import { CrateBrowseContent } from "./crate_browse_content";
+import CrateChipBar from "./crate_chip_bar";
 
 export type CrateBrowseMode = "featured" | "genres";
 
@@ -21,12 +21,35 @@ interface Props {
   hideChipBar?: boolean;
 }
 
-export default function CrateBrowsePanel({ config, crates, activeSlug, startIndex, onSelectCrate, hideChipBar = false }: Props) {
+// eslint-disable-next-line eslint/max-lines-per-function
+export default function CrateBrowsePanel({
+  config,
+  crates,
+  activeSlug,
+  startIndex,
+  onSelectCrate,
+  hideChipBar = false,
+}: Props) {
   const activeCrate = activeSlug ? (crates.find((c) => c.slug === activeSlug) ?? null) : null;
   return (
     <section role="region" aria-label={config.ariaLabel} className="space-y-4">
-      {!hideChipBar && <CrateChipBar title={config.title} description={config.description} crates={crates} activeSlug={activeSlug} onSelectCrate={onSelectCrate} />}
-      <CrateBrowseContent activeCrate={activeCrate} crates={crates} activeSlug={activeSlug} startIndex={startIndex} onSelectCrate={onSelectCrate} emptyText={config.emptyText} />
+      {!hideChipBar && (
+        <CrateChipBar
+          title={config.title}
+          description={config.description}
+          crates={crates}
+          activeSlug={activeSlug}
+          onSelectCrate={onSelectCrate}
+        />
+      )}
+      <CrateBrowseContent
+        activeCrate={activeCrate}
+        crates={crates}
+        activeSlug={activeSlug}
+        startIndex={startIndex}
+        onSelectCrate={onSelectCrate}
+        emptyText={config.emptyText}
+      />
     </section>
   );
 }

@@ -1,7 +1,10 @@
+import { render, screen } from "@testing-library/react";
 import React from "react";
 import { describe, expect, it } from "vitest";
-import { render, screen } from "@testing-library/react";
+
 import MilkcrateShell from "./milkcrate_shell";
+
+const EXPECTED_CHILDREN_COUNT = 3;
 
 describe("MilkcrateShell", () => {
   it("renders a skip link targeting #main-content", () => {
@@ -102,7 +105,8 @@ describe("MilkcrateShell", () => {
     // skip link (A), header (DIV), afterHeader (DIV), main (MAIN)
     expect(indices[0]).toBe("A"); // skip link
     expect(indices[1]).toBe("DIV"); // header
-    if (indices[2]) {expect(indices[2]).toBe("DIV");} // afterHeader
+    const AFTER_HEADER_INDEX = 2;
+    expect(indices[AFTER_HEADER_INDEX]).toBe("DIV"); // afterHeader
   });
 
   it("applies default content width class", () => {
@@ -153,6 +157,6 @@ describe("MilkcrateShell", () => {
     const children = Array.from(shell!.children);
     // Without afterHeader: A, header div, MAIN (3 elements)
     // With afterHeader: A, header div, afterHeader div, MAIN (4 elements)
-    expect(children.length).toBe(3);
+    expect(children.length).toBe(EXPECTED_CHILDREN_COUNT);
   });
 });

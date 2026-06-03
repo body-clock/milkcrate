@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+
 import BrandMark from "@/components/brand_mark";
 
 const linkClass =

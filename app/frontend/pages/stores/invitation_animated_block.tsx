@@ -10,9 +10,22 @@ export const DELAYS = {
   step3: { delay: 0.3, duration: 0.3 },
 } as const;
 
-export default function AnimatedBlock({ delay, className, children }: { delay: keyof typeof DELAYS; className?: string; children: React.ReactNode }) {
+export default function AnimatedBlock({
+  delay,
+  className,
+  children,
+}: {
+  delay: keyof typeof DELAYS;
+  className?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <motion.div initial={fadeInAnim} animate={visibleAnim} transition={DELAYS[delay]} className={className}>
+    <motion.div
+      initial={fadeInAnim}
+      animate={visibleAnim}
+      transition={DELAYS[delay]}
+      className={className}
+    >
       {children}
     </motion.div>
   );

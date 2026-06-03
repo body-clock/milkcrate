@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+
 import type { Listing } from "../types/inertia";
 
 const STORAGE_KEY = "mc-pile";
@@ -8,18 +9,25 @@ function storageKey(storeSlug?: string): string {
 }
 
 function loadStoredPile(key: string): Listing[] {
-  if (typeof window === "undefined") {return [];}
+  if (typeof window === "undefined") {
+    return [];
+  }
 
   try {
     const storedPile = localStorage.getItem(key);
-    if (storedPile) {return JSON.parse(storedPile);}
+    if (storedPile) {
+      return JSON.parse(storedPile);
+    }
     return [];
   } catch {
     return [];
   }
 }
 
-function applyAddToPile(setPile: React.Dispatch<React.SetStateAction<Listing[]>>, listing: Listing) {
+function applyAddToPile(
+  setPile: React.Dispatch<React.SetStateAction<Listing[]>>,
+  listing: Listing,
+) {
   setPile((current) =>
     current.some((s) => s.id === listing.id) ? current : [...current, listing],
   );

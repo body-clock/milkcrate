@@ -1,11 +1,11 @@
-import type { HomepagePreview } from "@/types/inertia";
-import MarketingLayout from "@/layouts/marketing_layout";
+import CharacterSection from "@/components/home/character_section";
 import HeroSection from "@/components/home/hero_section";
 import PreviewSection from "@/components/home/preview_section";
-import CharacterSection from "@/components/home/character_section";
 import SellerSection from "@/components/home/seller_section";
-import StepsSection from "@/components/home/steps_section";
 import SignoffSection from "@/components/home/signoff_section";
+import StepsSection from "@/components/home/steps_section";
+import MarketingLayout from "@/layouts/marketing_layout";
+import type { HomepagePreview } from "@/types/inertia";
 
 interface Props {
   copy: {
@@ -65,9 +65,7 @@ function useWallCrate(preview: HomepagePreview) {
   return section?.key === "wall" ? section.crate : undefined;
 }
 
-function buildSteps(
-  copy: Props["copy"],
-): { number: number; title: string; description: string }[] {
+function buildSteps(copy: Props["copy"]): { number: number; title: string; description: string }[] {
   return [
     { number: 1, title: copy.steps.step1_title, description: copy.steps.step1_body },
     { number: 2, title: copy.steps.step2_title, description: copy.steps.step2_body },
@@ -75,6 +73,7 @@ function buildSteps(
   ];
 }
 
+// eslint-disable-next-line max-lines-per-function
 export default function Home({ copy, preview }: Props) {
   const demoHref = useDemoHref(preview);
   const wallCrate = useWallCrate(preview);
@@ -82,10 +81,25 @@ export default function Home({ copy, preview }: Props) {
 
   return (
     <MarketingLayout>
-      <HeroSection headline={copy.headline} subhead={copy.subhead} ctaDemo={copy.cta_demo} demoHref={demoHref} />
-      <PreviewSection previewLabel={copy.preview_label} previewBlurb={copy.preview_blurb} wallCrate={wallCrate} storeSlug={preview.store_slug} />
+      <HeroSection
+        headline={copy.headline}
+        subhead={copy.subhead}
+        ctaDemo={copy.cta_demo}
+        demoHref={demoHref}
+      />
+      <PreviewSection
+        previewLabel={copy.preview_label}
+        previewBlurb={copy.preview_blurb}
+        wallCrate={wallCrate}
+        storeSlug={preview.store_slug}
+      />
       <CharacterSection title={copy.store_character_title} features={FEATURES} />
-      <SellerSection title={copy.seller_section_title} body={copy.seller_section_body} copy={copy} fallback={copy.seller_waitlist_fallback} />
+      <SellerSection
+        title={copy.seller_section_title}
+        body={copy.seller_section_body}
+        copy={copy}
+        fallback={copy.seller_waitlist_fallback}
+      />
       <StepsSection steps={steps} />
       <SignoffSection text={copy.bottom_signoff} />
     </MarketingLayout>

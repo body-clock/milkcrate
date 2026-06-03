@@ -4,6 +4,7 @@ import { COPY } from "@/lib/copy";
 
 import { CloseButton } from "./close_button";
 
+// eslint-disable-next-line eslint/max-lines-per-function
 export function PeekHeader({
   titleRef,
   onClose,

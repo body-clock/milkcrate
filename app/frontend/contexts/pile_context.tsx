@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useMemo, useState } from "react";
+
 import { usePile } from "../hooks/use_pile";
 import type { Listing } from "../types/inertia";
 
@@ -43,6 +44,8 @@ export function PileProvider({
 
 export function usePileContext() {
   const pileContext = useContext(PileContext);
-  if (!pileContext) {throw new Error("usePileContext must be used within PileProvider");}
+  if (!pileContext) {
+    throw new Error("usePileContext must be used within PileProvider");
+  }
   return pileContext;
 }

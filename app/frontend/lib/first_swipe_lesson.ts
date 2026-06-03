@@ -9,18 +9,18 @@
  * Rails data types. Navigation remains owned by riffle_navigation.ts.
  */
 
-export const FIRST_SWIPE_STORAGE_KEY = "mc-first-swipe-learned"
+export const FIRST_SWIPE_STORAGE_KEY = "mc-first-swipe-learned";
 
 // ── Storage helpers ──────────────────────────────────────────
 
 function safeGetStorage(): Storage | null {
   try {
-    const s = globalThis.sessionStorage
+    const s = globalThis.sessionStorage;
     // Access a property to confirm it's usable (not just present)
-    void s?.length
-    return s ?? null
+    void s?.length;
+    return s ?? null;
   } catch {
-    return null
+    return null;
   }
 }
 
@@ -31,11 +31,13 @@ function safeGetStorage(): Storage | null {
  */
 export function isLessonLearned(): boolean {
   try {
-    const storage = safeGetStorage()
-    if (!storage) {return false}
-    return storage.getItem(FIRST_SWIPE_STORAGE_KEY) === "1"
+    const storage = safeGetStorage();
+    if (!storage) {
+      return false;
+    }
+    return storage.getItem(FIRST_SWIPE_STORAGE_KEY) === "1";
   } catch {
-    return false
+    return false;
   }
 }
 
@@ -45,9 +47,11 @@ export function isLessonLearned(): boolean {
  */
 export function markLessonLearned(): void {
   try {
-    const storage = safeGetStorage()
-    if (!storage) {return}
-    storage.setItem(FIRST_SWIPE_STORAGE_KEY, "1")
+    const storage = safeGetStorage();
+    if (!storage) {
+      return;
+    }
+    storage.setItem(FIRST_SWIPE_STORAGE_KEY, "1");
   } catch {
     // Storage write failure is non-critical; the lesson remains
     // visible for this render but does not crash the crate surface.
@@ -57,8 +61,8 @@ export function markLessonLearned(): void {
 // ── Eligibility ──────────────────────────────────────────────
 
 export interface LessonEligibilityInput {
-  isCompact: boolean
-  isPopulated: boolean
+  isCompact: boolean;
+  isPopulated: boolean;
 }
 
 /**
@@ -67,22 +71,28 @@ export interface LessonEligibilityInput {
  * learned during this browser session.
  */
 export function isLessonEligible({ isCompact, isPopulated }: LessonEligibilityInput): boolean {
-  if (!isCompact) {return false}
-  if (!isPopulated) {return false}
-  if (isLessonLearned()) {return false}
-  return true
+  if (!isCompact) {
+    return false;
+  }
+  if (!isPopulated) {
+    return false;
+  }
+  if (isLessonLearned()) {
+    return false;
+  }
+  return true;
 }
 
 // ── Horizontal-swipe recovery ────────────────────────────────
 
-const HORIZONTAL_MIN_DISTANCE = 30
+const HORIZONTAL_MIN_DISTANCE = 30;
 
 export interface DragAttemptInput {
-  offsetX: number
-  offsetY: number
+  offsetX: number;
+  offsetY: number;
 }
 
-export type DragAttemptResult = "horizontal-recovery" | "none"
+export type DragAttemptResult = "horizontal-recovery" | "none";
 
 /**
  * Classifies a drag release to distinguish horizontal card-swipe
@@ -95,14 +105,18 @@ export type DragAttemptResult = "horizontal-recovery" | "none"
  * small tap-like movements below the classification threshold.
  */
 export function classifyDragAttempt({ offsetX, offsetY }: DragAttemptInput): DragAttemptResult {
-  const absX = Math.abs(offsetX)
-  const absY = Math.abs(offsetY)
+  const absX = Math.abs(offsetX);
+  const absY = Math.abs(offsetY);
 
   // Must be mostly horizontal: horizontal distance dominates vertical.
-  if (absX <= absY) {return "none"}
+  if (absX <= absY) {
+    return "none";
+  }
 
   // Must exceed minimum distance to avoid classifying taps / tiny flicks.
-  if (absX < HORIZONTAL_MIN_DISTANCE) {return "none"}
+  if (absX < HORIZONTAL_MIN_DISTANCE) {
+    return "none";
+  }
 
-  return "horizontal-recovery"
+  return "horizontal-recovery";
 }

@@ -12,7 +12,10 @@ export interface CrateCardAreaProps {
   showGestureHint: boolean;
   total: number;
   dragRotationRef: React.RefObject<HTMLDivElement | null>;
-  handleDragEnd: (info: { offset: { x: number; y: number }; velocity: { x: number; y: number } }) => void;
+  handleDragEnd: (info: {
+    offset: { x: number; y: number };
+    velocity: { x: number; y: number };
+  }) => void;
   handleFlip: () => void;
 }
 

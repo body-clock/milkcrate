@@ -1,61 +1,62 @@
-import React from "react"
-import { describe, expect, it } from "vitest"
-import { render, screen } from "@testing-library/react"
-import BrandMark from "./brand_mark"
+import { render, screen } from "@testing-library/react";
+import React from "react";
+import { describe, expect, it } from "vitest";
+
+import BrandMark from "./brand_mark";
 
 // Characters we must NOT render — emoji glyphs
-const emojiChars = ["🥛", "📀", "👀", "📦", "♪"]
+const emojiChars = ["🥛", "📀", "👀", "📦", "♪"];
 
 describe("BrandMark", () => {
   describe("default rendering", () => {
     it("renders the wordmark text so the brand is identifiable", () => {
-      render(<BrandMark />)
+      render(<BrandMark />);
 
-      expect(screen.getByText("Milkcrate.")).toBeInTheDocument()
-    })
+      expect(screen.getByText("Milkcrate.")).toBeInTheDocument();
+    });
 
     it("does not render any SVG element (text-only identity)", () => {
-      render(<BrandMark />)
+      render(<BrandMark />);
 
-      expect(document.querySelector("svg")).not.toBeInTheDocument()
-    })
-  })
+      expect(document.querySelector("svg")).not.toBeInTheDocument();
+    });
+  });
 
   describe("emoji regression", () => {
     it("does not render any emoji glyphs in the accessible output", () => {
-      render(<BrandMark />)
+      render(<BrandMark />);
 
-      const textContent = document.body.textContent || ""
+      const textContent = document.body.textContent || "";
 
       for (const emoji of emojiChars) {
-        expect(textContent).not.toContain(emoji)
+        expect(textContent).not.toContain(emoji);
       }
-    })
-  })
+    });
+  });
 
   describe("props", () => {
     it("accepts and applies a className prop", () => {
-      render(<BrandMark className="test-custom-class" />)
+      render(<BrandMark className="test-custom-class" />);
 
-      const container = document.querySelector(".test-custom-class")
-      expect(container).toBeInTheDocument()
-      expect(container).toContainElement(screen.getByText("Milkcrate."))
-    })
+      const container = document.querySelector(".test-custom-class");
+      expect(container).toBeInTheDocument();
+      expect(container).toContainElement(screen.getByText("Milkcrate."));
+    });
 
     it("renders small variant with smaller wordmark text", () => {
-      render(<BrandMark size="small" />)
+      render(<BrandMark size="small" />);
 
-      const wordmark = screen.getByText("Milkcrate.")
-      expect(wordmark.className).toContain("text-lg")
-      expect(wordmark.className).toContain("font-medium")
-    })
+      const wordmark = screen.getByText("Milkcrate.");
+      expect(wordmark.className).toContain("text-lg");
+      expect(wordmark.className).toContain("font-medium");
+    });
 
     it("renders large variant with larger wordmark text", () => {
-      render(<BrandMark size="large" />)
+      render(<BrandMark size="large" />);
 
-      const wordmark = screen.getByText("Milkcrate.")
-      expect(wordmark.className).toContain("text-3xl")
-      expect(wordmark.className).toContain("font-semibold")
-    })
-  })
-})
+      const wordmark = screen.getByText("Milkcrate.");
+      expect(wordmark.className).toContain("text-3xl");
+      expect(wordmark.className).toContain("font-semibold");
+    });
+  });
+});

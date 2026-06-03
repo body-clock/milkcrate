@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+
 import type { Crate, StorefrontSection } from "@/types/inertia";
 
 interface UseCrateRoutingOptions {
@@ -20,15 +21,23 @@ function allCratesFrom(
   crates: Crate[],
   storefront_sections: StorefrontSection[] | undefined,
 ): Crate[] {
-  if (crates.length > 0) {return crates;}
-  if (!storefront_sections?.length) {return [];}
+  if (crates.length > 0) {
+    return crates;
+  }
+  if (!storefront_sections?.length) {
+    return [];
+  }
   return storefront_sections.flatMap((s) => ("crate" in s ? [s.crate] : s.crates));
 }
 
 function initialActiveSlug(): string | null {
-  if (typeof window === "undefined") {return null;}
+  if (typeof window === "undefined") {
+    return null;
+  }
   const fromParam = new URLSearchParams(window.location.search).get("crate");
-  if (fromParam) {return fromParam;}
+  if (fromParam) {
+    return fromParam;
+  }
   const raw = history.state?.crateSlug;
   return typeof raw === "string" && raw.length > 0 ? raw : null;
 }
@@ -39,7 +48,9 @@ function initialStartIndex(): number {
 }
 
 function initialDirectEntry(): boolean {
-  if (typeof window === "undefined") {return false;}
+  if (typeof window === "undefined") {
+    return false;
+  }
   return Boolean(new URLSearchParams(window.location.search).get("crate"));
 }
 
@@ -81,25 +92,43 @@ function usePopHandler(ctx: PopStateCtx) {
   }, []);
 }
 
-function makeSelectCrate(slugRef: React.MutableRefObject<string | null>, setIdx: (n: number) => void, setSlug: (s: string | null) => void) {
+function makeSelectCrate(
+  slugRef: React.MutableRefObject<string | null>,
+  setIdx: (n: number) => void,
+  setSlug: (s: string | null) => void,
+) {
   return (slug: string, index = 0) => {
     const wasFloor = slugRef.current === null;
     // eslint-disable-next-line no-param-reassign
-    slugRef.current = slug; setIdx(index); setSlug(slug);
+    slugRef.current = slug;
+    setIdx(index);
+    setSlug(slug);
     const ns = historyStateWithCrate(slug, index);
-    if (wasFloor) { history.pushState(ns, ""); }
-    else { history.replaceState(ns, ""); }
+    if (wasFloor) {
+      history.pushState(ns, "");
+    } else {
+      history.replaceState(ns, "");
+    }
   };
 }
 
-function makeBackToStore(slugRef: React.MutableRefObject<string | null>, setSlug: (s: string | null) => void, setIdx: (n: number) => void, setDirect: (b: boolean) => void) {
+function makeBackToStore(
+  slugRef: React.MutableRefObject<string | null>,
+  setSlug: (s: string | null) => void,
+  setIdx: (n: number) => void,
+  setDirect: (b: boolean) => void,
+) {
   return () => {
     // eslint-disable-next-line no-param-reassign
-    slugRef.current = null; setSlug(null); setIdx(0); setDirect(false);
+    slugRef.current = null;
+    setSlug(null);
+    setIdx(0);
+    setDirect(false);
     history.replaceState(historyStateWithoutCrate(), "", storeFloorUrl());
   };
 }
 
+// eslint-disable-next-line max-lines-per-function
 export function useCrateRouting({
   crates,
   storefront_sections,
@@ -109,8 +138,22 @@ export function useCrateRouting({
   const [directEntry, setDirectEntry] = useState(initialDirectEntry);
   const slugRef = useRef(activeSlug);
   const allCrates = allCratesFrom(crates, storefront_sections);
-  const activeCrate = activeSlug === null ? null : (allCrates.find((c) => c.slug === activeSlug) ?? allCrates[0]);
+  const activeCrate =
+    activeSlug === null ? null : (allCrates.find((c) => c.slug === activeSlug) ?? allCrates[0]);
 
-  usePopHandler({ slugRef, setSlug: setActiveSlug, setIdx: setStartIndex, setDirect: setDirectEntry });
-  return { activeSlug, activeCrate, startIndex, selectCrate: makeSelectCrate(slugRef, setStartIndex, setActiveSlug), backToStore: makeBackToStore(slugRef, setActiveSlug, setStartIndex, setDirectEntry), allCrates, directEntry };
+  usePopHandler({
+    slugRef,
+    setSlug: setActiveSlug,
+    setIdx: setStartIndex,
+    setDirect: setDirectEntry,
+  });
+  return {
+    activeSlug,
+    activeCrate,
+    startIndex,
+    selectCrate: makeSelectCrate(slugRef, setStartIndex, setActiveSlug),
+    backToStore: makeBackToStore(slugRef, setActiveSlug, setStartIndex, setDirectEntry),
+    allCrates,
+    directEntry,
+  };
 }

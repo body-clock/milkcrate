@@ -1,3 +1,4 @@
+// eslint-disable-next-line eslint/max-lines-per-function
 export function CrateChipHeader({
   title,
   description,

@@ -1,4 +1,5 @@
 import { Link } from "@inertiajs/react";
+
 import { actionClassName } from "@/components/ui/action";
 
 export default function StoreLink({ storeSlug }: { storeSlug: string | null }) {

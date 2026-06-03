@@ -1,7 +1,9 @@
-import { useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
-import { usePileContext } from "@/contexts/pile_context";
+import { useEffect } from "react";
+
 import { useReducedMotionContext } from "@/components/storefront_motion_config";
+import { usePileContext } from "@/contexts/pile_context";
+
 import { ToastMotion } from "./toast_motion";
 
 const TOAST_DURATION_MS = 2000;
@@ -21,7 +23,9 @@ export default function PileToast() {
   const reducedMotion = useReducedMotionContext();
 
   useEffect(() => {
-    if (!lastAdded) {return;}
+    if (!lastAdded) {
+      return;
+    }
     const timer = setTimeout(clearLastAdded, TOAST_DURATION_MS);
     return () => clearTimeout(timer);
   }, [lastAdded, clearLastAdded]);
@@ -30,7 +34,9 @@ export default function PileToast() {
 
   return (
     <AnimatePresence>
-      {lastAdded && <ToastMotion lastAdded={lastAdded} title={title} reducedMotion={reducedMotion} />}
+      {lastAdded && (
+        <ToastMotion lastAdded={lastAdded} title={title} reducedMotion={reducedMotion} />
+      )}
     </AnimatePresence>
   );
 }

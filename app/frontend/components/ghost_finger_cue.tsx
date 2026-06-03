@@ -1,18 +1,19 @@
-import { motion, type Transition } from "framer-motion"
-import BouncingHand from "./bouncing_hand"
+import { motion, type Transition } from "framer-motion";
 
-export const GHOST_FINGER_CUE_TEST_ID = "ghost-finger-cue"
+import BouncingHand from "./bouncing_hand";
 
-const FADE_IN_DURATION = 0.5
-const FADE_IN_DELAY = 0.4
+export const GHOST_FINGER_CUE_TEST_ID = "ghost-finger-cue";
+
+const FADE_IN_DURATION = 0.5;
+const FADE_IN_DELAY = 0.4;
 
 const fadeInTransition: Transition = {
   duration: FADE_IN_DURATION,
   delay: FADE_IN_DELAY,
-}
+};
 
 interface Props {
-  reducedMotion: boolean
+  reducedMotion: boolean;
 }
 
 /**
@@ -30,5 +31,5 @@ export default function GhostFingerCue({ reducedMotion }: Props) {
     >
       <BouncingHand reducedMotion={reducedMotion} />
     </motion.div>
-  )
+  );
 }

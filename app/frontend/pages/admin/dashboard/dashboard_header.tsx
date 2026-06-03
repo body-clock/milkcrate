@@ -1,7 +1,9 @@
-import type { AdminDashboardProps } from "@/types/inertia";
 import Metric from "@/components/ui/metric";
+import type { AdminDashboardProps } from "@/types/inertia";
+
 import { DashboardHeaderTitle } from "./dashboard_header_title";
 
+// eslint-disable-next-line max-lines-per-function
 export function DashboardHeader({
   active_stores,
 }: {

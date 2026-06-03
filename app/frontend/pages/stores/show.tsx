@@ -1,5 +1,5 @@
-import AppLayout from "@/layouts/app_layout";
 import { useCrateRouting } from "@/hooks/use_crate_routing";
+import AppLayout from "@/layouts/app_layout";
 import StoreShowContent from "@/pages/stores/store_show_content";
 import type { StoreShowProps } from "@/types/inertia";
 

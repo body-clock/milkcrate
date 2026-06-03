@@ -1,9 +1,11 @@
-import React from "react";
 import { usePage } from "@inertiajs/react";
-import { PileProvider } from "@/contexts/pile_context";
+import React from "react";
+
 import StorefrontMotionConfig from "@/components/storefront_motion_config";
-import { ViewportProvider } from "@/contexts/viewport_context";
+import { PileProvider } from "@/contexts/pile_context";
 import { ShopperProvider } from "@/contexts/shopper_context";
+import { ViewportProvider } from "@/contexts/viewport_context";
+
 import { AppLayoutContent } from "./app_layout_content";
 
 interface AppLayoutProps {

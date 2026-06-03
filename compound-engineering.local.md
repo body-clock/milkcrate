@@ -1,4 +1,3 @@
-
 ---
 review_agents:
   - layered-rails

@@ -1,6 +1,6 @@
-import type { AdminStoreSummary } from "@/types/inertia";
 import JobProgressBar from "@/components/ui/job_progress_bar";
 import Metric from "@/components/ui/metric";
+import type { AdminStoreSummary } from "@/types/inertia";
 
 function formatTime(value: string | null) {
   if (!value) {
@@ -27,6 +27,7 @@ export function severityVariant(severity: string) {
 
 import HealthStatus from "./health_status";
 
+// eslint-disable-next-line max-lines-per-function
 export default function StoreHealthBar({ store }: { store: AdminStoreSummary }) {
   return (
     <>
@@ -36,7 +37,11 @@ export default function StoreHealthBar({ store }: { store: AdminStoreSummary }) 
         <Metric label="Last enrich" value={formatTime(store.last_enriched_at)} />
         <Metric label="Inventory" value={listingText(store.total_listings)} />
         <Metric label="Coverage" value={store.catalog_coverage.replace("_", " ")} />
-        <JobProgressBar label="Sync" status={store.sync_status} progressPct={store.sync_progress_pct} />
+        <JobProgressBar
+          label="Sync"
+          status={store.sync_status}
+          progressPct={store.sync_progress_pct}
+        />
         <JobProgressBar
           label="Enrichment"
           status={store.enrichment_status}

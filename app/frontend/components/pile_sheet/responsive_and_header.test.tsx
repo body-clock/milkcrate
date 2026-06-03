@@ -1,20 +1,20 @@
-import React from "react"
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { render, screen, waitFor } from "@testing-library/react"
+import { render, screen, waitFor } from "@testing-library/react";
+import React from "react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import PileSheet from "../pile_sheet"
-import { PileProvider, usePileContext } from "../../contexts/pile_context"
-import { ViewportProvider } from "../../contexts/viewport_context"
-import { ShopperProvider } from "../../contexts/shopper_context"
-import { renderWithTier } from "../../test/viewport-test-utils"
-import type { Listing } from "../../types/inertia"
+import { PileProvider, usePileContext } from "../../contexts/pile_context";
+import { ShopperProvider } from "../../contexts/shopper_context";
+import { ViewportProvider } from "../../contexts/viewport_context";
+import { renderWithTier } from "../../test/viewport-test-utils";
+import type { Listing } from "../../types/inertia";
+import PileSheet from "../pile_sheet";
 
 const mockedPage = vi.hoisted(() => ({
   shopper: { discogs_username: "shopper1" } as { discogs_username: string } | null,
-}))
+}));
 
 vi.mock("@inertiajs/react", async () => {
-  const actual = await vi.importActual("@inertiajs/react")
+  const actual = await vi.importActual("@inertiajs/react");
   return {
     ...actual,
     usePage: () => ({
@@ -23,19 +23,20 @@ vi.mock("@inertiajs/react", async () => {
         shopper: mockedPage.shopper,
       },
     }),
-  }
-})
+  };
+});
 
 beforeEach(() => {
-  localStorage.clear()
-  mockedPage.shopper = { discogs_username: "shopper1" }
-})
+  localStorage.clear();
+  mockedPage.shopper = { discogs_username: "shopper1" };
+});
 
 afterEach(() => {
-  vi.unstubAllGlobals()
-})
+  vi.unstubAllGlobals();
+});
 
-let nextId = 1000
+const INITIAL_PILE_ID = 1000;
+let nextId = INITIAL_PILE_ID;
 const makeListing = (overrides: Partial<Listing> = {}): Listing => ({
   id: nextId++,
   discogs_listing_id: `discogs-${nextId}`,
@@ -54,7 +55,7 @@ const makeListing = (overrides: Partial<Listing> = {}): Listing => ({
   notes: null,
   discogs_url: "https://www.discogs.com/sell/item/1",
   ...overrides,
-})
+});
 
 describe("PileSheet responsive layout", () => {
   it("renders as a full-screen safe-area workflow in compact tier", () => {
@@ -65,14 +66,14 @@ describe("PileSheet responsive layout", () => {
           <PileSheet open={true} onClose={vi.fn()} />
         </PileProvider>
       </ShopperProvider>,
-    )
+    );
 
-    const dialog = screen.getByRole("dialog")
-    expect(dialog).toHaveClass("inset-0", "h-dvh")
-    expect(dialog).not.toHaveClass("max-h-[85vh]", "rounded-t-2xl")
-    expect(dialog.className).toContain("pt-[env(safe-area-inset-top)]")
-    expect(dialog.className).toContain("pb-[env(safe-area-inset-bottom)]")
-  })
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toHaveClass("inset-0", "h-dvh");
+    expect(dialog).not.toHaveClass("max-h-[85vh]", "rounded-t-2xl");
+    expect(dialog.className).toContain("pt-[env(safe-area-inset-top)]");
+    expect(dialog.className).toContain("pb-[env(safe-area-inset-bottom)]");
+  });
 
   it("renders as side-panel in wide tier", () => {
     renderWithTier(
@@ -82,10 +83,10 @@ describe("PileSheet responsive layout", () => {
           <PileSheet open={true} onClose={vi.fn()} />
         </PileProvider>
       </ShopperProvider>,
-    )
+    );
 
-    expect(screen.getByRole("dialog").className).toContain("right-0")
-  })
+    expect(screen.getByRole("dialog").className).toContain("right-0");
+  });
 
   it("does not show the obsolete bottom-sheet drag handle in compact tier", () => {
     renderWithTier(
@@ -95,11 +96,11 @@ describe("PileSheet responsive layout", () => {
           <PileSheet open={true} onClose={vi.fn()} />
         </PileProvider>
       </ShopperProvider>,
-    )
+    );
 
-    const dialog = screen.getByRole("dialog")
-    expect(dialog.querySelector(".w-12")).toBeNull()
-  })
+    const dialog = screen.getByRole("dialog");
+    expect(dialog.querySelector(".w-12")).toBeNull();
+  });
 
   it("does not show drag handle in wide tier", () => {
     renderWithTier(
@@ -109,46 +110,56 @@ describe("PileSheet responsive layout", () => {
           <PileSheet open={true} onClose={vi.fn()} />
         </PileProvider>
       </ShopperProvider>,
-    )
+    );
 
-    const dialog = screen.getByRole("dialog")
-    expect(dialog.querySelector(".w-12")).toBeNull()
-  })
-})
+    const dialog = screen.getByRole("dialog");
+    expect(dialog.querySelector(".w-12")).toBeNull();
+  });
+});
 
-function renderPileSheet(pileRecords: Listing[]) {
+function PileSheetInner({ pileRecords }: { pileRecords: Listing[] }) {
+  // eslint-disable-next-line react/no-unstable-nested-components
   function PilePopulator({ children }: { children: React.ReactNode }) {
-    const { addToPile } = usePileContext()
-    React.useEffect(() => { pileRecords.forEach((r) => addToPile(r)) }, [addToPile])
-    return <>{children}</>
+    const { addToPile } = usePileContext();
+    React.useEffect(() => {
+      pileRecords.forEach((r) => addToPile(r));
+    }, [addToPile]);
+    return <>{children}</>;
   }
 
+  return (
+    <PileProvider>
+      <PilePopulator>
+        <PileSheet open={true} onClose={vi.fn()} />
+      </PilePopulator>
+    </PileProvider>
+  );
+}
+
+function renderPileSheet(pileRecords: Listing[]) {
   return render(
     <ViewportProvider>
       <ShopperProvider>
-        <PileProvider>
-          <PilePopulator>
-            <PileSheet open={true} onClose={vi.fn()} />
-          </PilePopulator>
-        </PileProvider>
+        <PileSheetInner pileRecords={pileRecords} />
       </ShopperProvider>
     </ViewportProvider>,
-  )
+  );
 }
 
 describe("PileSheet pile count in header", () => {
   it("shows record count in the header", async () => {
-    renderPileSheet([makeListing(), makeListing(), makeListing()])
+    const PILE_RECORD_COUNT = 3;
+    renderPileSheet(Array.from({ length: PILE_RECORD_COUNT }, () => makeListing()));
 
     await waitFor(() => {
-      const title = document.getElementById("pile-sheet-title")
-      expect(title?.textContent).toContain("3 records")
-    })
-  })
+      const title = document.getElementById("pile-sheet-title");
+      expect(title?.textContent).toContain(`${PILE_RECORD_COUNT} records`);
+    });
+  });
 
   it("does not show count when pile is empty", () => {
-    renderPileSheet([])
-    const title = document.getElementById("pile-sheet-title")
-    expect(title?.textContent).not.toContain("records")
-  })
-})
+    renderPileSheet([]);
+    const title = document.getElementById("pile-sheet-title");
+    expect(title?.textContent).not.toContain("records");
+  });
+});

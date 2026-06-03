@@ -1,4 +1,5 @@
 import React from "react";
+
 import type { Crate } from "../types/inertia";
 import TabButton from "./crate_tab_button";
 
@@ -15,11 +16,47 @@ interface Props {
   classesFn: (compact: boolean, selected: boolean) => string;
 }
 
-export default function HorizontalTabs({ crates, activeSlug, hasSelection, compact, onSelect, tabsRef, activeTabRef, handleKeyDown, tabIndexValue, classesFn }: Props) {
+function tabContainerClass(compact: boolean): string {
+  const spacing = compact ? "gap-1.5 scroll-px-1 px-1 pb-0.5" : "gap-1 pb-1";
+  return `flex overflow-x-auto ${spacing}`;
+}
+
+function tabScrollbar(compact: boolean): React.CSSProperties {
+  return { scrollbarWidth: compact ? "none" : ("thin" as const) };
+}
+
+// eslint-disable-next-line eslint/max-lines-per-function
+export default function HorizontalTabs({
+  crates,
+  activeSlug,
+  hasSelection,
+  compact,
+  onSelect,
+  tabsRef,
+  activeTabRef,
+  handleKeyDown,
+  tabIndexValue,
+  classesFn,
+}: Props) {
   return (
-    <div ref={tabsRef} role="tablist" aria-label="Crates" className={`flex overflow-x-auto ${compact ? "gap-1.5 scroll-px-1 px-1 pb-0.5" : "gap-1 pb-1"}`} style={{ scrollbarWidth: compact ? "none" : "thin" }}>
+    <div
+      ref={tabsRef}
+      role="tablist"
+      aria-label="Crates"
+      className={tabContainerClass(compact)}
+      style={tabScrollbar(compact)}
+    >
       {crates.map((crate, i) => (
-        <TabButton key={crate.slug} crate={crate} selected={crate.slug === activeSlug} tabIndex={tabIndexValue(crate.slug === activeSlug, hasSelection, i)} activeTabRef={activeTabRef} onSelect={() => onSelect(crate.slug)} onKeyDown={(e) => handleKeyDown(e, i)} className={classesFn(compact, crate.slug === activeSlug)} />
+        <TabButton
+          key={crate.slug}
+          crate={crate}
+          selected={crate.slug === activeSlug}
+          tabIndex={tabIndexValue(crate.slug === activeSlug, hasSelection, i)}
+          activeTabRef={activeTabRef}
+          onSelect={() => onSelect(crate.slug)}
+          onKeyDown={(e) => handleKeyDown(e, i)}
+          className={classesFn(compact, crate.slug === activeSlug)}
+        />
       ))}
     </div>
   );

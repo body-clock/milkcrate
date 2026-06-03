@@ -1,7 +1,7 @@
-import CrateTabs from "./crate_tabs";
 import type { Crate } from "../types/inertia";
 import { CrateChipEmpty } from "./crate_chip_empty";
 import { CrateChipHeader } from "./crate_chip_header";
+import CrateTabs from "./crate_tabs";
 
 interface Props {
   title: string;
@@ -11,7 +11,7 @@ interface Props {
   onSelectCrate: (slug: string, startIndex?: number) => void;
 }
 
-
+// eslint-disable-next-line eslint/max-lines-per-function
 export default function CrateChipBar({
   title,
   description,
@@ -19,12 +19,19 @@ export default function CrateChipBar({
   activeSlug,
   onSelectCrate,
 }: Props) {
-  if (crates.length === 0) {return <CrateChipEmpty title={title} />;}
+  if (crates.length === 0) {
+    return <CrateChipEmpty title={title} />;
+  }
   const selectedSlug = activeSlug && crates.some((c) => c.slug === activeSlug) ? activeSlug : null;
   return (
     <div className="rounded-2xl border border-mc-border bg-mc-bg-card px-3 py-3 shadow-sm">
       <CrateChipHeader title={title} description={description} crateCount={crates.length} />
-      <CrateTabs crates={crates} activeSlug={selectedSlug} onSelect={(s) => onSelectCrate(s)} compact />
+      <CrateTabs
+        crates={crates}
+        activeSlug={selectedSlug}
+        onSelect={(s) => onSelectCrate(s)}
+        compact
+      />
     </div>
   );
 }

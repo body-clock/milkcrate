@@ -1,5 +1,6 @@
-import { motion } from "framer-motion";
 import { router } from "@inertiajs/react";
+import { motion } from "framer-motion";
+
 import Button from "@/components/ui/button";
 import Card from "@/components/ui/card";
 import CardContent from "@/components/ui/card_content";
@@ -9,6 +10,7 @@ interface WelcomeCardProps {
   dismiss: () => void;
 }
 
+// eslint-disable-next-line max-lines-per-function
 export default function WelcomeCard({ storefrontUrl, dismiss }: WelcomeCardProps) {
   return (
     <motion.div

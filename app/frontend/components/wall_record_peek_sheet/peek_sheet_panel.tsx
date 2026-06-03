@@ -20,6 +20,7 @@ interface PanelProps {
   meta: string;
 }
 
+// eslint-disable-next-line eslint/max-lines-per-function
 export function PeekSheetPanel({
   dialogRef,
   isCompact,

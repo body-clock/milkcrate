@@ -1,8 +1,8 @@
-import BrandMark from "@/components/brand_mark"
+import BrandMark from "@/components/brand_mark";
 
 interface TotpChallengeHeaderProps {
-  title: string
-  subtitle: string
+  title: string;
+  subtitle: string;
 }
 
 export function TotpChallengeHeader({ title, subtitle }: TotpChallengeHeaderProps) {
@@ -12,5 +12,5 @@ export function TotpChallengeHeader({ title, subtitle }: TotpChallengeHeaderProp
       <h1 className="text-xl font-semibold text-mc-text">{title}</h1>
       <p className="mt-1 text-sm text-mc-text-dim">{subtitle}</p>
     </div>
-  )
+  );
 }

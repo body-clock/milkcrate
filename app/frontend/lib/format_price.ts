@@ -1,4 +1,4 @@
-import type { Listing } from "@/types/inertia"
+import type { Listing } from "@/types/inertia";
 
 /**
  * Format a listing's display price. Prefers `display_price` when the
@@ -9,10 +9,10 @@ import type { Listing } from "@/types/inertia"
  */
 export function formatPrice(listing: Listing): string {
   if (listing.display_price && listing.display_price.length > 0) {
-    return listing.display_price
+    return listing.display_price;
   }
 
-  return formatPriceValue(listing.price, listing.currency)
+  return formatPriceValue(listing.price, listing.currency);
 }
 
 /**
@@ -24,19 +24,27 @@ export function formatPriceValue(
   price: string | null | undefined,
   currency: string = "USD",
 ): string {
-  if (!price) {return "—"}
+  if (!price) {
+    return "—";
+  }
 
-  const num = parseFloat(price)
-  if (isNaN(num)) {return "—"}
+  const num = parseFloat(price);
+  if (isNaN(num)) {
+    return "—";
+  }
 
-  const symbol = currencySymbol(currency)
-  return `${symbol}${num.toFixed(PRICE_DECIMAL_PLACES)}`
+  const symbol = currencySymbol(currency);
+  return `${symbol}${num.toFixed(PRICE_DECIMAL_PLACES)}`;
 }
 
-const PRICE_DECIMAL_PLACES = 2
+const PRICE_DECIMAL_PLACES = 2;
 
 function currencySymbol(currency: string): string {
-  if (currency === "GBP") {return "£"}
-  if (currency === "EUR") {return "€"}
-  return "$"
+  if (currency === "GBP") {
+    return "£";
+  }
+  if (currency === "EUR") {
+    return "€";
+  }
+  return "$";
 }

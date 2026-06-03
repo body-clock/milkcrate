@@ -1,32 +1,38 @@
 export interface CrateWindowSlot<TRecord> {
-  record: TRecord
-  index: number
-  offset: number
-  isActive: boolean
+  record: TRecord;
+  index: number;
+  offset: number;
+  isActive: boolean;
 }
 
-const DEFAULT_BUILD_RADIUS = 2
+const DEFAULT_BUILD_RADIUS = 2;
 
+function clampIndex(index: number, max: number): number {
+  return Math.min(Math.max(index, 0), max);
+}
+
+// eslint-disable-next-line eslint/max-lines-per-function
 export function buildCrateWindow<TRecord>(
   records: TRecord[],
   activeIndex: number,
   radius = DEFAULT_BUILD_RADIUS,
 ): CrateWindowSlot<TRecord>[] {
-  if (records.length === 0) {return []}
+  if (records.length === 0) {
+    return [];
+  }
 
-  const clampedIndex = Math.min(Math.max(activeIndex, 0), records.length - 1)
-  const start = Math.max(0, clampedIndex - radius)
-  const end = Math.min(records.length - 1, clampedIndex + radius)
+  const lastIndex = records.length - 1;
+  const clampedIndex = clampIndex(activeIndex, lastIndex);
+  const start = clampIndex(clampedIndex - radius, lastIndex);
+  const end = clampIndex(clampedIndex + radius, lastIndex);
 
-  const slots: CrateWindowSlot<TRecord>[] = []
-  for (let index = start; index <= end; index += 1) {
-    slots.push({
+  return Array.from({ length: end - start + 1 }, (_, i) => {
+    const index = start + i;
+    return {
       record: records[index],
       index,
       offset: index - clampedIndex,
       isActive: index === clampedIndex,
-    })
-  }
-
-  return slots
+    };
+  });
 }

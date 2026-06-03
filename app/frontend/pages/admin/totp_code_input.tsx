@@ -1,7 +1,8 @@
-import React, { forwardRef, type KeyboardEvent } from "react"
-import Field from "@/components/ui/field"
+import React, { forwardRef, type KeyboardEvent } from "react";
 
-export const TOTP_CODE_LENGTH = 6
+import Field from "@/components/ui/field";
+
+export const TOTP_CODE_LENGTH = 6;
 
 export function handleTotpKeyDown(e: KeyboardEvent<HTMLInputElement>) {
   // Allow only digits, backspace, delete, tab, arrows
@@ -9,20 +10,20 @@ export function handleTotpKeyDown(e: KeyboardEvent<HTMLInputElement>) {
     /^\d$/.test(e.key) ||
     ["Backspace", "Delete", "Tab", "ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)
   ) {
-    return
+    return;
   }
-  e.preventDefault()
+  e.preventDefault();
 }
 
 function digitsOnly(value: string) {
-  return value.replace(/\D/g, "").slice(0, TOTP_CODE_LENGTH)
+  return value.replace(/\D/g, "").slice(0, TOTP_CODE_LENGTH);
 }
 
 interface TotpCodeInputProps {
-  value: string
-  onChange: (value: string) => void
-  error?: string
-  autoComplete?: string
+  value: string;
+  onChange: (value: string) => void;
+  error?: string;
+  autoComplete?: string;
 }
 
 export const TotpCodeInput = forwardRef<HTMLInputElement, TotpCodeInputProps>(
@@ -45,4 +46,4 @@ export const TotpCodeInput = forwardRef<HTMLInputElement, TotpCodeInputProps>(
       />
     </Field>
   ),
-)
+);

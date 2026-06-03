@@ -1,5 +1,6 @@
-import type { ReactNode } from "react";
 import { motion } from "framer-motion";
+import type { ReactNode } from "react";
+
 import { useReducedMotionContext } from "@/components/storefront_motion_config";
 import { reducedMotionTransition, springTactile } from "@/lib/motion_tokens";
 

@@ -1,13 +1,14 @@
-import { useReducedMotionContext } from "@/components/storefront_motion_config"
-import type { Listing } from "../types/inertia"
-import { RecordCover } from "./record_cover"
+import { useReducedMotionContext } from "@/components/storefront_motion_config";
+
+import type { Listing } from "../types/inertia";
+import { RecordCover } from "./record_cover";
 
 export interface RecordTileProps {
-  listing: Listing
-  className?: string
-  imageLoading?: "eager" | "lazy"
+  listing: Listing;
+  className?: string;
+  imageLoading?: "eager" | "lazy";
   /** When true, adds a gentle hover scale animation on desktop. */
-  tactileHover?: boolean
+  tactileHover?: boolean;
 }
 
 /**
@@ -28,12 +29,13 @@ export default function RecordTile({
   imageLoading = "lazy",
   tactileHover = false,
 }: RecordTileProps) {
-  const reducedMotion = useReducedMotionContext()
-  const src = listing.cover_image_url ?? listing.thumbnail_url
+  const reducedMotion = useReducedMotionContext();
+  const src = listing.cover_image_url ?? listing.thumbnail_url;
 
-  const hoverClass = tactileHover && !reducedMotion
-    ? "hover:scale-[1.015] transition-transform duration-150 ease-out"
-    : ""
+  const hoverClass =
+    tactileHover && !reducedMotion
+      ? "hover:scale-[1.015] transition-transform duration-150 ease-out"
+      : "";
 
   return (
     <div
@@ -41,5 +43,5 @@ export default function RecordTile({
     >
       <RecordCover src={src} alt={listing.title ?? ""} imageLoading={imageLoading} />
     </div>
-  )
+  );
 }

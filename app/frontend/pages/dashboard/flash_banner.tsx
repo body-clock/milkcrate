@@ -7,7 +7,9 @@ interface FlashBannerProps {
 
 export default function FlashBanner({ notice, flashAlert }: FlashBannerProps) {
   const msg = notice || flashAlert;
-  if (!msg) {return null;}
+  if (!msg) {
+    return null;
+  }
   return (
     <FeedbackMessage
       tone={notice ? "success" : "danger"}

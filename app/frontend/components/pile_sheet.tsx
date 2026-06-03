@@ -1,13 +1,15 @@
-import { useState, useCallback, useEffect } from "react";
-import { AnimatePresence } from "framer-motion";
 import { usePage } from "@inertiajs/react";
-import { usePileContext } from "../contexts/pile_context";
-import { useViewport } from "@/hooks/use_viewport";
+import { AnimatePresence } from "framer-motion";
+import { useState, useCallback, useEffect, useMemo } from "react";
+
 import { useDialogFocusTrap } from "@/hooks/use_dialog_focus_trap";
+import { useViewport } from "@/hooks/use_viewport";
+
+import { usePileContext } from "../contexts/pile_context";
 import { useShopperContext } from "../contexts/shopper_context";
+import type { Store } from "../types/inertia";
 import PileSheetBackdrop from "./pile_sheet/backdrop";
 import PileSheetPanel from "./pile_sheet/panel";
-import type { Store } from "../types/inertia";
 
 interface PageProps {
   [key: string]: unknown;
@@ -21,23 +23,38 @@ interface Props {
   highlightOnMount?: boolean;
 }
 
-function usePileSheetState(open: boolean, onClose: () => void, returnFocusRef?: React.RefObject<HTMLElement | null>) {
-  const { pile, clearPile } = usePileContext();
+function usePileClearActions(onClose: () => void, clearPile: () => void) {
   const [confirmClear, setConfirmClear] = useState(false);
+  const handleClose = useCallback(() => { setConfirmClear(false); onClose(); }, [onClose]);
+  const handleClear = useCallback(() => { clearPile(); setConfirmClear(false); }, [clearPile]);
+  const handleCancelClear = useCallback(() => { setConfirmClear(false); }, []);
+  const handleRequestClear = useCallback(() => { setConfirmClear(true); }, []);
+  return { confirmClear, handleClose, handleClear, handleCancelClear, handleRequestClear };
+}
 
-  const handleClose = useCallback(() => {
-    setConfirmClear(false);
-    onClose();
-  }, [onClose]);
+function usePileSheetState(
+  open: boolean,
+  onClose: () => void,
+  returnFocusRef?: React.RefObject<HTMLElement | null>,
+) {
+  const { pile, clearPile } = usePileContext();
+  const { confirmClear, handleClose, handleClear, handleCancelClear, handleRequestClear } = usePileClearActions(onClose, clearPile);
 
   const { dialogRef, titleRef } = useDialogFocusTrap(open, handleClose, { returnFocusRef });
-
-  return { pile, clearPile, confirmClear, setConfirmClear, handleClose, dialogRef, titleRef };
+  return {
+    pile,
+    confirmClear,
+    handleClose,
+    handleClear,
+    handleCancelClear,
+    handleRequestClear,
+    dialogRef,
+    titleRef,
+  };
 }
 
 function useStorePage() {
-  const page = usePage<PageProps>();
-  const storeRef = page.props.store;
+  const storeRef = usePage<PageProps>().props.store;
   return {
     storeSlug: storeRef?.discogs_username,
     handoffAvailable: storeRef?.handoff_available ?? false,
@@ -45,80 +62,54 @@ function useStorePage() {
   };
 }
 
-/**
- * Slide-in sheet for managing the user's record pile.
- */
-export default function PileSheet({ open, onClose, returnFocusRef, highlightOnMount }: Props) {
-  const { pile, clearPile, confirmClear, setConfirmClear, handleClose, dialogRef, titleRef } =
-    usePileSheetState(open, onClose, returnFocusRef);
+function useWantlistSender(
+  storeSlug: string | undefined,
+  isConnected: boolean,
+  pile: { discogs_listing_id: string }[],
+  addToWantlist: (items: { discogs_listing_id: string }[], storeSlug: string) => Promise<void>,
+) {
+  return useCallback(async () => {
+    if (!isConnected || !storeSlug) {
+      return;
+    }
+    await addToWantlist(
+      pile.map((l) => ({ discogs_listing_id: l.discogs_listing_id })),
+      storeSlug,
+    );
+  }, [isConnected, storeSlug, pile, addToWantlist]);
+}
 
+function usePileSheet({ open, onClose, returnFocusRef }: { open: boolean; onClose: () => void; returnFocusRef?: React.RefObject<HTMLElement | null> }) {
+  const { pile, confirmClear, handleClose, handleClear, handleCancelClear, handleRequestClear, dialogRef, titleRef } = usePileSheetState(open, onClose, returnFocusRef);
   const { isCompact } = useViewport();
   const { storeSlug, handoffAvailable, storeName } = useStorePage();
-
-  const { shopper, isConnected, state, addToWantlist, wantlistResult, errorMessage, resetResult } =
-    useShopperContext();
-
-  const total = pile.reduce((sum, l) => sum + Number(l.price ?? "0"), 0);
-
+  const { shopper, isConnected, state, addToWantlist, wantlistResult, errorMessage, resetResult } = useShopperContext();
+  const total = useMemo(() => pile.reduce((sum, l) => sum + Number(l.price ?? 0), 0), [pile]);
   useEffect(() => {
-    if (!open) {resetResult(); return;}
-    if (dialogRef.current?.contains(document.activeElement)) {return;}
-    titleRef.current?.focus();
+    if (!open) { resetResult(); return; }
+    if (!dialogRef.current?.contains(document.activeElement)) { titleRef.current?.focus(); }
   }, [open, pile.length, confirmClear, state, dialogRef, titleRef, resetResult]);
-
-  const handleSendToWantlist = useCallback(async () => {
-    if (!isConnected || !storeSlug) {return;}
-    const items = pile.map((l) => ({ discogs_listing_id: l.discogs_listing_id }));
-    await addToWantlist(items, storeSlug);
-  }, [isConnected, storeSlug, pile, addToWantlist]);
-
-  const handleClear = useCallback(() => {
-    clearPile();
-    setConfirmClear(false);
-  }, [clearPile, setConfirmClear]);
-
-  const handleCancelClear = useCallback(() => {
-    setConfirmClear(false);
-  }, [setConfirmClear]);
-
-  const handleRequestClear = useCallback(() => {
-    setConfirmClear(true);
-  }, [setConfirmClear]);
-
-  const shopperInfo = {
-    isConnected,
-    username: shopper?.discogs_username ?? null,
-    storeName,
-    storeSlug: storeSlug ?? null,
+  return {
+    isCompact, dialogRef, titleRef, pile, confirmClear, handleClose, handleClear, handleCancelClear, handleRequestClear,
+    storeSlug, handoffAvailable, storeName, shopper, isConnected, state, wantlistResult, errorMessage, resetResult, total, addToWantlist,
   };
+}
 
+export default function PileSheet({ open, onClose, returnFocusRef, highlightOnMount }: Props) {
+  const p = usePileSheet({ open, onClose, returnFocusRef });
+  const handleSendToWantlist = useWantlistSender(p.storeSlug, p.isConnected, p.pile, p.addToWantlist);
   return (
     <AnimatePresence>
       {open && (
         <>
-          <PileSheetBackdrop onClick={handleClose} />
-          <PileSheetPanel
-            isCompact={isCompact}
-            dialogRef={dialogRef}
-            titleRef={titleRef}
-            pile={pile}
-            confirmClear={confirmClear}
-            pileCount={pile.length}
-            total={total}
-            currency={pile[0]?.currency}
-            shopper={shopperInfo}
-            state={state}
-            wantlistResult={wantlistResult}
-            errorMessage={errorMessage}
-            handoffAvailable={handoffAvailable}
-            highlightOnMount={highlightOnMount}
-            handleSendToWantlist={handleSendToWantlist}
-            resetResult={resetResult}
-            handleClose={handleClose}
-            onClear={handleClear}
-            onCancel={handleCancelClear}
-            onRequestClear={handleRequestClear}
-          />
+          <PileSheetBackdrop onClick={p.handleClose} />
+          <PileSheetPanel isCompact={p.isCompact} dialogRef={p.dialogRef} titleRef={p.titleRef} pile={p.pile}
+            confirmClear={p.confirmClear} pileCount={p.pile.length} total={p.total} currency={p.pile[0]?.currency}
+            shopper={{ isConnected: p.isConnected, username: p.shopper?.discogs_username ?? null, storeName: p.storeName, storeSlug: p.storeSlug ?? null }}
+            state={p.state} wantlistResult={p.wantlistResult} errorMessage={p.errorMessage}
+            handoffAvailable={p.handoffAvailable} highlightOnMount={highlightOnMount}
+            handleSendToWantlist={handleSendToWantlist} resetResult={p.resetResult} handleClose={p.handleClose}
+            onClear={p.handleClear} onCancel={p.handleCancelClear} onRequestClear={p.handleRequestClear} />
         </>
       )}
     </AnimatePresence>

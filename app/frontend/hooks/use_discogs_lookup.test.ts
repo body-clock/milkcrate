@@ -1,8 +1,12 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+
 import { useDiscogsLookup } from "./use_discogs_lookup";
 
-const originalFetch = globalThis.fetch;
+const ORIGINAL_FETCH = globalThis.fetch;
+const LOOKUP_TIMEOUT = 10_000;
+
+const originalFetch = ORIGINAL_FETCH;
 
 function deferredResponse() {
   let resolve!: (value: Response) => void;
@@ -124,7 +128,7 @@ describe("useDiscogsLookup", () => {
     expect(result.current.state.status).toBe("loading");
 
     act(() => {
-      vi.advanceTimersByTime(10_000);
+      vi.advanceTimersByTime(LOOKUP_TIMEOUT);
     });
 
     expect(result.current.state.status).toBe("error_api");

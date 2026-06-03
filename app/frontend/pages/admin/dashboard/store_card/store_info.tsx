@@ -1,5 +1,5 @@
-import type { AdminStoreSummary } from "@/types/inertia";
 import CardTitle from "@/components/ui/card_title";
+import type { AdminStoreSummary } from "@/types/inertia";
 
 export default function StoreInfo({ store }: { store: AdminStoreSummary }) {
   return (

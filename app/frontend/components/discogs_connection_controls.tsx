@@ -1,5 +1,6 @@
-import { actionClassName } from "./ui/action";
 import { csrfToken } from "@/lib/csrf_token";
+
+import { actionClassName } from "./ui/action";
 
 interface ConnectFormProps {
   className?: string;

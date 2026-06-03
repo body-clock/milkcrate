@@ -1,60 +1,55 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useDiscogsLookup } from "@/hooks/use_discogs_lookup";
-import Button from "@/components/ui/button";
+
 import Spinner from "@/components/spinner";
+import Button from "@/components/ui/button";
 import Field from "@/components/ui/field";
+import { useDiscogsLookup } from "@/hooks/use_discogs_lookup";
+
 import { LookupStatus } from "./discogs_seller_lookup_input/status_components";
 import type { Props } from "./discogs_seller_lookup_input/types";
 import { MIN_USERNAME_LENGTH } from "./discogs_seller_lookup_input/types";
 
-export default function DiscogsSellerLookupInput({ copy }: Props) {
+function useFocusOnTerminal(
+  state: { status: string },
+  resultRef: React.RefObject<HTMLDivElement | null>,
+) {
+  const prevStatusRef = useRef(state.status);
+  useEffect(() => {
+    if (prevStatusRef.current === "loading" && state.status !== "loading") {
+      requestAnimationFrame(() => resultRef.current?.focus());
+    }
+    prevStatusRef.current = state.status;
+  }, [state.status, resultRef]);
+}
+
+// eslint-disable-next-line eslint/max-lines-per-function
+function useDiscogsForm(copy: Props["copy"]) {
   const [username, setUsername] = useState("");
   const [validationError, setValidationError] = useState<string | null>(null);
-  const resultRef = useRef<HTMLDivElement>(null);
   const announcerRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  // Screen-reader announcement callback for useDiscogsLookup
   const announce = useCallback((message: string) => {
     if (announcerRef.current) {
       announcerRef.current.textContent = message;
     }
   }, []);
-
   const { state, lookup, reset } = useDiscogsLookup(announce);
-
-  // Focus result container when lookup transitions to a terminal state
-  const prevStatusRef = useRef(state.status);
-  useEffect(() => {
-    if (prevStatusRef.current === "loading" && state.status !== "loading") {
-      requestAnimationFrame(() => {
-        resultRef.current?.focus();
-      });
-    }
-    prevStatusRef.current = state.status;
-  }, [state.status]);
-
   const handleSubmit = useCallback(
     (event: React.FormEvent) => {
       event.preventDefault();
       const trimmed = username.trim();
-
       if (!trimmed) {
         setValidationError("Enter a Discogs username.");
         return;
       }
-
       if (trimmed.length < MIN_USERNAME_LENGTH) {
         setValidationError("Username must be at least 3 characters.");
         return;
       }
-
       setValidationError(null);
       lookup(trimmed);
     },
     [username, lookup],
   );
-
   const handleUsernameChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       setUsername(event.target.value);
@@ -65,15 +60,51 @@ export default function DiscogsSellerLookupInput({ copy }: Props) {
     },
     [state.status, reset],
   );
+  return {
+    username,
+    validationError,
+    announcerRef,
+    state,
+    handleSubmit,
+    handleUsernameChange,
+    reset,
+    isSubmitting: state.status === "loading",
+    copy,
+  };
+}
 
-  const isSubmitting = state.status === "loading";
+// eslint-disable-next-line react/no-multi-comp
+function SubmitContent({ isSubmitting, label }: { isSubmitting: boolean; label: string }) {
+  if (isSubmitting) {
+    return (
+      <>
+        <Spinner size="sm" className="text-mc-on-accent/80" />
+        <span>Checking...</span>
+      </>
+    );
+  }
+  return <span>{label}</span>;
+}
+
+// eslint-disable-next-line eslint/max-lines-per-function, react/no-multi-comp
+export default function DiscogsSellerLookupInput({ copy }: Props) {
+  const {
+    username,
+    validationError,
+    announcerRef,
+    state,
+    handleSubmit,
+    handleUsernameChange,
+    reset,
+    isSubmitting,
+  } = useDiscogsForm(copy);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const resultRef = useRef<HTMLDivElement>(null);
+  useFocusOnTerminal(state, resultRef);
 
   return (
     <div className="w-full">
-      {/* Screen reader announcement region */}
       <div ref={announcerRef} aria-live="polite" aria-atomic="true" className="sr-only" />
-
-      {/* Input form */}
       <form
         onSubmit={handleSubmit}
         className="flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-3"
@@ -97,18 +128,9 @@ export default function DiscogsSellerLookupInput({ copy }: Props) {
           />
         </Field>
         <Button type="submit" busy={isSubmitting} size="lg" className="tracking-wide">
-          {isSubmitting ? (
-            <>
-              <Spinner size="sm" className="text-mc-on-accent/80" />
-              <span>Checking...</span>
-            </>
-          ) : (
-            <span>{copy.seller_submit}</span>
-          )}
+          <SubmitContent isSubmitting={isSubmitting} label={copy.seller_submit} />
         </Button>
       </form>
-
-      {/* Result area */}
       <div ref={resultRef} tabIndex={-1} className="outline-none mt-4" role="status">
         <LookupStatus state={state} copy={copy} onRetry={reset} />
       </div>

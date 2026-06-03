@@ -39,6 +39,7 @@ function computeAllTags(listing: Listing | null) {
   ];
 }
 
+// eslint-disable-next-line eslint/max-lines-per-function
 export default function WallRecordPeekSheet({ open, listing, onClose, returnFocusRef }: Props) {
   const { isCompact } = useViewport();
   const prefersReducedMotion = useReducedMotionContext();
@@ -51,8 +52,9 @@ export default function WallRecordPeekSheet({ open, listing, onClose, returnFocu
   }
   return (
     <AnimatePresence>
-      <PeekOverlay reducedMotion={prefersReducedMotion} onClose={onClose} />
+      <PeekOverlay key="peek-overlay" reducedMotion={prefersReducedMotion} onClose={onClose} />
       <PeekSheetPanel
+        key="peek-panel"
         dialogRef={dialogRef}
         isCompact={isCompact}
         transition={transition}

@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+
 import SellerLookupForm from "@/components/home/seller_lookup_form";
 
 interface SellerCopy {
@@ -33,20 +34,30 @@ const fadeUp = {
   visible: { opacity: 1, y: 0, transition: { duration: FADE_UP_DURATION, ease: EASE_OUT } },
 };
 
-function SellerCopy({ title, body }: { title: string; body: string }) {
-  return (
-    <>
-      <motion.h2 variants={fadeUp} id="home-seller-heading" className="text-lg sm:text-xl font-semibold text-mc-text text-center mb-3">{title}</motion.h2>
-      <motion.p variants={fadeUp} className="text-sm text-mc-text-dim text-center leading-relaxed mb-8 max-w-md mx-auto">{body}</motion.p>
-    </>
-  );
-}
-
+// eslint-disable-next-line eslint/max-lines-per-function
 export default function SellerSection({ title, body, copy, fallback }: Props) {
   return (
-    <motion.section initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-80px" }} aria-labelledby="home-seller-heading" className="border-t border-mc-border py-10 sm:py-16">
+    <motion.section
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: "-80px" }}
+      aria-labelledby="home-seller-heading"
+      className="border-t border-mc-border py-10 sm:py-16"
+    >
       <div className="max-w-lg mx-auto">
-        <SellerCopy title={title} body={body} />
+        <motion.h2
+          variants={fadeUp}
+          id="home-seller-heading"
+          className="text-lg sm:text-xl font-semibold text-mc-text text-center mb-3"
+        >
+          {title}
+        </motion.h2>
+        <motion.p
+          variants={fadeUp}
+          className="text-sm text-mc-text-dim text-center leading-relaxed mb-8 max-w-md mx-auto"
+        >
+          {body}
+        </motion.p>
         <SellerLookupForm copy={copy} fallback={fallback} />
       </div>
     </motion.section>

@@ -1,5 +1,5 @@
-import { useEffect } from "react";
 import { router } from "@inertiajs/react";
+import { useEffect } from "react";
 
 const POLL_INTERVAL_MS = 3000;
 
@@ -9,7 +9,9 @@ export function useResync(active_stores: { sync_status: string; enrichment_statu
   );
 
   useEffect(() => {
-    if (!hasActiveJobs) {return;}
+    if (!hasActiveJobs) {
+      return;
+    }
     const interval = setInterval(() => {
       router.reload({ only: ["active_stores"] });
     }, POLL_INTERVAL_MS);

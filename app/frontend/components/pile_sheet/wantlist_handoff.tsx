@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+
 import Button from "../ui/button";
 
 const PULSE_DURATION_MS = 2500;
@@ -6,7 +7,9 @@ const PULSE_DURATION_MS = 2500;
 function usePulse(initial: boolean | undefined): boolean {
   const [pulsing, setPulsing] = useState(initial);
   useEffect(() => {
-    if (!pulsing) {return;}
+    if (!pulsing) {
+      return;
+    }
     const timer = setTimeout(() => setPulsing(false), PULSE_DURATION_MS);
     return () => clearTimeout(timer);
   }, [pulsing]);

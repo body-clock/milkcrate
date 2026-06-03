@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { router } from "@inertiajs/react";
+import { useState } from "react";
 
 interface UseLoginFormResult {
   email: string;

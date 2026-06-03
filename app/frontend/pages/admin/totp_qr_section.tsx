@@ -5,5 +5,5 @@ export function TotpQrSection({ qrCode }: { qrCode: string }) {
         <img src={qrCode} alt="QR code for authenticator app setup" className="h-48 w-48" />
       </div>
     </div>
-  )
+  );
 }

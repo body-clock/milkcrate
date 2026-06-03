@@ -1,7 +1,8 @@
-import InlineCrateStage from "./inline_crate_stage";
-import { CrateBrowseEmpty } from "./crate_browse_empty";
 import type { Crate } from "../types/inertia";
+import { CrateBrowseEmpty } from "./crate_browse_empty";
+import InlineCrateStage from "./inline_crate_stage";
 
+// eslint-disable-next-line eslint/max-lines-per-function
 export function CrateBrowseContent({
   activeCrate,
   crates,

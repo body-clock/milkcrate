@@ -1,19 +1,20 @@
-import React from "react"
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { render, screen, waitFor } from "@testing-library/react"
-import userEvent from "@testing-library/user-event"
-import PileSheet from "../pile_sheet"
-import { PileProvider, usePileContext } from "../../contexts/pile_context"
-import { ViewportProvider } from "../../contexts/viewport_context"
-import { ShopperProvider } from "../../contexts/shopper_context"
-import type { Listing } from "../../types/inertia"
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import React from "react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { PileProvider, usePileContext } from "../../contexts/pile_context";
+import { ShopperProvider } from "../../contexts/shopper_context";
+import { ViewportProvider } from "../../contexts/viewport_context";
+import type { Listing } from "../../types/inertia";
+import PileSheet from "../pile_sheet";
 
 const mockedPage = vi.hoisted(() => ({
   shopper: { discogs_username: "shopper1" } as { discogs_username: string } | null,
-}))
+}));
 
 vi.mock("@inertiajs/react", async () => {
-  const actual = await vi.importActual("@inertiajs/react")
+  const actual = await vi.importActual("@inertiajs/react");
   return {
     ...actual,
     usePage: () => ({
@@ -22,19 +23,20 @@ vi.mock("@inertiajs/react", async () => {
         shopper: mockedPage.shopper,
       },
     }),
-  }
-})
+  };
+});
 
 beforeEach(() => {
-  localStorage.clear()
-  mockedPage.shopper = { discogs_username: "shopper1" }
-})
+  localStorage.clear();
+  mockedPage.shopper = { discogs_username: "shopper1" };
+});
 
 afterEach(() => {
-  vi.unstubAllGlobals()
-})
+  vi.unstubAllGlobals();
+});
 
-let nextId = 1000
+const INITIAL_PILE_ID = 1000;
+let nextId = INITIAL_PILE_ID;
 const makeListing = (overrides: Partial<Listing> = {}): Listing => ({
   id: nextId++,
   discogs_listing_id: `discogs-${nextId}`,
@@ -53,26 +55,35 @@ const makeListing = (overrides: Partial<Listing> = {}): Listing => ({
   notes: null,
   discogs_url: "https://www.discogs.com/sell/item/1",
   ...overrides,
-})
+});
 
-function renderPileSheet(pileRecords: Listing[]) {
+function PileSheetInner({ pileRecords }: { pileRecords: Listing[] }) {
+  // eslint-disable-next-line react/no-unstable-nested-components
   function PilePopulator({ children }: { children: React.ReactNode }) {
-    const { addToPile } = usePileContext()
-    React.useEffect(() => { pileRecords.forEach((r) => addToPile(r)) }, [])
-    return <>{children}</>
+    const { addToPile } = usePileContext();
+    React.useEffect(() => {
+      pileRecords.forEach((r) => addToPile(r));
+    }, [addToPile]);
+    return <>{children}</>;
   }
 
+  return (
+    <PileProvider>
+      <PilePopulator>
+        <PileSheet open={true} onClose={vi.fn()} />
+      </PilePopulator>
+    </PileProvider>
+  );
+}
+
+function renderPileSheet(pileRecords: Listing[]) {
   return render(
     <ViewportProvider>
       <ShopperProvider>
-        <PileProvider>
-          <PilePopulator>
-            <PileSheet open={true} onClose={vi.fn()} />
-          </PilePopulator>
-        </PileProvider>
+        <PileSheetInner pileRecords={pileRecords} />
       </ShopperProvider>
     </ViewportProvider>,
-  )
+  );
 }
 
 describe("PileSheet total calculation", () => {
@@ -80,96 +91,102 @@ describe("PileSheet total calculation", () => {
     renderPileSheet([
       makeListing({ price: "10.00", currency: "USD" }),
       makeListing({ price: "15.50", currency: "USD" }),
-    ])
+    ]);
 
     await waitFor(() => {
-      const footerTotals = screen.getAllByText(/^\$\d+\.\d{2}$/)
-      const totalTexts = footerTotals.map((el) => el.textContent)
-      expect(totalTexts).toContain("$25.50")
-    })
-  })
+      const footerTotals = screen.getAllByText(/^\$\d+\.\d{2}$/);
+      const totalTexts = footerTotals.map((el) => el.textContent);
+      expect(totalTexts).toContain("$25.50");
+    });
+  });
 
   it("handles records with null prices in total", async () => {
-    renderPileSheet([
-      makeListing({ price: "10.00", currency: "USD" }),
-      makeListing({ price: "" }),
-    ])
+    renderPileSheet([makeListing({ price: "10.00", currency: "USD" }), makeListing({ price: "" })]);
 
-    const priceElements = await screen.findAllByText("$10.00")
-    expect(priceElements.length).toBeGreaterThanOrEqual(1)
-  })
+    const priceElements = await screen.findAllByText("$10.00");
+    expect(priceElements.length).toBeGreaterThanOrEqual(1);
+  });
 
   it("shows Total label in footer when pile has records", async () => {
-    renderPileSheet([makeListing({ price: "5.00", currency: "USD" })])
-    expect(await screen.findByText("Total")).toBeInTheDocument()
-  })
+    renderPileSheet([makeListing({ price: "5.00", currency: "USD" })]);
+    expect(await screen.findByText("Total")).toBeInTheDocument();
+  });
 
   it("places the total before the Discogs handoff action", async () => {
-    renderPileSheet([makeListing()])
+    renderPileSheet([makeListing()]);
 
-    const totalLabel = await screen.findByText("Total")
-    const action = await screen.findByRole("button", { name: "Send to Discogs Wantlist" })
+    const totalLabel = await screen.findByText("Total");
+    const action = await screen.findByRole("button", { name: "Send to Discogs Wantlist" });
 
-    expect(totalLabel.compareDocumentPosition(action) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-  })
-})
+    expect(
+      totalLabel.compareDocumentPosition(action) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+});
 
 describe("PileSheet confirmClear flow", () => {
   it("shows Clear button when pile has records", async () => {
-    renderPileSheet([makeListing()])
+    renderPileSheet([makeListing()]);
 
-    expect(await screen.findByText("Clear")).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: /Clear/ })).toHaveClass("focus-visible:ring-mc-focus")
-    expect(screen.getByRole("button", { name: "Close pile" })).toHaveClass("focus-visible:ring-mc-focus")
-  })
+    expect(await screen.findByText("Clear")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Clear/ })).toHaveClass(
+      "focus-visible:ring-mc-focus",
+    );
+    expect(screen.getByRole("button", { name: "Close pile" })).toHaveClass(
+      "focus-visible:ring-mc-focus",
+    );
+  });
 
   it("shows confirmation after clicking Clear", async () => {
-    renderPileSheet([makeListing()])
-    expect(await screen.findByText("Clear")).toBeInTheDocument()
-    await userEvent.click(screen.getByText("Clear"))
-    expect(await screen.findByText("Sure?")).toBeInTheDocument()
-    expect(screen.getByText("Yes")).toBeInTheDocument()
-    expect(screen.getByText("No")).toBeInTheDocument()
-  })
+    renderPileSheet([makeListing()]);
+    expect(await screen.findByText("Clear")).toBeInTheDocument();
+    await userEvent.click(screen.getByText("Clear"));
+    expect(await screen.findByText("Sure?")).toBeInTheDocument();
+    expect(screen.getByText("Yes")).toBeInTheDocument();
+    expect(screen.getByText("No")).toBeInTheDocument();
+  });
 
   it("cancels clear when No is clicked", async () => {
-    renderPileSheet([makeListing({ title: "Keep Me" })])
-    expect(await screen.findByText("Clear")).toBeInTheDocument()
-    await userEvent.click(screen.getByText("Clear"))
-    expect(await screen.findByText("No")).toBeInTheDocument()
-    await userEvent.click(screen.getByText("No"))
+    renderPileSheet([makeListing({ title: "Keep Me" })]);
+    expect(await screen.findByText("Clear")).toBeInTheDocument();
+    await userEvent.click(screen.getByText("Clear"));
+    expect(await screen.findByText("No")).toBeInTheDocument();
+    await userEvent.click(screen.getByText("No"));
 
-    expect(await screen.findByText("Clear")).toBeInTheDocument()
-    expect(screen.getByText("Keep Me")).toBeInTheDocument()
-    expect(screen.queryByText("Sure?")).toBeNull()
-  })
+    expect(await screen.findByText("Clear")).toBeInTheDocument();
+    expect(screen.getByText("Keep Me")).toBeInTheDocument();
+    expect(screen.queryByText("Sure?")).toBeNull();
+  });
 
   it("clears pile when Yes is clicked", async () => {
-    renderPileSheet([makeListing({ title: "Delete Me" })])
-    expect(await screen.findByText("Clear")).toBeInTheDocument()
-    await userEvent.click(screen.getByText("Clear"))
-    expect(await screen.findByText("Yes")).toBeInTheDocument()
-    await userEvent.click(screen.getByText("Yes"))
+    renderPileSheet([makeListing({ title: "Delete Me" })]);
+    expect(await screen.findByText("Clear")).toBeInTheDocument();
+    await userEvent.click(screen.getByText("Clear"));
+    expect(await screen.findByText("Yes")).toBeInTheDocument();
+    await userEvent.click(screen.getByText("Yes"));
 
-    expect(await screen.findByText(/no records in your pile yet/i)).toBeInTheDocument()
-  })
+    expect(await screen.findByText(/no records in your pile yet/i)).toBeInTheDocument();
+  });
 
   it("hides Clear button when pile is empty", () => {
-    renderPileSheet([])
-    expect(screen.queryByText("Clear")).toBeNull()
-  })
+    renderPileSheet([]);
+    expect(screen.queryByText("Clear")).toBeNull();
+  });
 
   it("uses touch-sized targets for remove, clear confirmation, and close actions", async () => {
-    renderPileSheet([makeListing()])
+    renderPileSheet([makeListing()]);
 
-    expect(await screen.findByRole("button", { name: /remove.*pile/i })).toHaveClass("h-11", "w-11")
-    expect(screen.getByRole("button", { name: "Close pile" })).toHaveClass("h-11", "w-11")
+    expect(await screen.findByRole("button", { name: /remove.*pile/i })).toHaveClass(
+      "h-11",
+      "w-11",
+    );
+    expect(screen.getByRole("button", { name: "Close pile" })).toHaveClass("h-11", "w-11");
 
-    const clear = screen.getByRole("button", { name: /clear.*pile/i })
-    expect(clear).toHaveClass("min-h-9", "min-w-11")
-    await userEvent.click(clear)
+    const clear = screen.getByRole("button", { name: /clear.*pile/i });
+    expect(clear).toHaveClass("min-h-9", "min-w-11");
+    await userEvent.click(clear);
 
-    expect(screen.getByRole("button", { name: "Yes" })).toHaveClass("min-h-9", "min-w-11")
-    expect(screen.getByRole("button", { name: "No" })).toHaveClass("min-h-9", "min-w-11")
-  })
-})
+    expect(screen.getByRole("button", { name: "Yes" })).toHaveClass("min-h-9", "min-w-11");
+    expect(screen.getByRole("button", { name: "No" })).toHaveClass("min-h-9", "min-w-11");
+  });
+});

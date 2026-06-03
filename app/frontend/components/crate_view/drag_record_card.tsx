@@ -1,7 +1,12 @@
 import RecordCard from "../record_card";
 import type { ActiveRecordCardProps } from "./active_record_card";
 
-export default function DragRecordCard({ slot, activeSlug, isCompact, onFlip }: ActiveRecordCardProps) {
+export default function DragRecordCard({
+  slot,
+  activeSlug,
+  isCompact,
+  onFlip,
+}: ActiveRecordCardProps) {
   return (
     <RecordCard
       listing={slot.record}

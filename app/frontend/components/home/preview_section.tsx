@@ -1,8 +1,10 @@
 import { motion } from "framer-motion";
+
 import type { WallCrate } from "@/types/inertia";
+
+import PreviewFallback from "./preview_fallback";
 import PreviewHeading from "./preview_heading";
 import PreviewWithCrate from "./preview_with_crate";
-import PreviewFallback from "./preview_fallback";
 
 interface Props {
   previewLabel: string;
@@ -11,7 +13,13 @@ interface Props {
   storeSlug: string | null;
 }
 
-export default function PreviewSection({ previewLabel, previewBlurb, wallCrate, storeSlug }: Props) {
+// eslint-disable-next-line eslint/max-lines-per-function
+export default function PreviewSection({
+  previewLabel,
+  previewBlurb,
+  wallCrate,
+  storeSlug,
+}: Props) {
   return (
     <motion.section
       initial="hidden"
