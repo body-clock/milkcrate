@@ -36,14 +36,10 @@ export function TotpChallengeForm({ error }: TotpChallengeFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <TotpCodeInput
-        ref={inputRef}
-        value={code}
-        onChange={setCode}
-        error={error}
-        autoComplete="one-time-code"
-      />
-      <Button type="submit" className="w-full" disabled={code.length < TOTP_CODE_LENGTH} busy={submitting}>
+      <TotpCodeInput ref={inputRef} value={code} onChange={setCode}
+        error={error} autoComplete="one-time-code" />
+      <Button type="submit" className="w-full"
+        disabled={code.length < TOTP_CODE_LENGTH} busy={submitting}>
         {submitting ? "Verifying..." : "Verify"}
       </Button>
       <TotpLogoutLink />

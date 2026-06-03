@@ -76,7 +76,9 @@ function useWantlistState(isConnected: boolean) {
 
   const addToWantlist = useCallback(
     async (items: { discogs_listing_id: string }[], storeSlug: string) => {
-      if (!isConnected) { return null; }
+      if (!isConnected) {
+        return null;
+      }
       return executeAddToWantlist(items, storeSlug, setWantlist);
     },
     [isConnected, setWantlist],

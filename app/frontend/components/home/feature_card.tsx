@@ -24,9 +24,7 @@ export default function FeatureCard({ title, description }: FeatureData) {
       className="flex flex-col items-center text-center rounded-lg bg-mc-bg-raised border border-mc-border px-4 py-6 sm:px-6"
     >
       <h3 className="text-sm font-semibold text-mc-text mb-2">{title}</h3>
-      <p className="text-xs text-mc-text-dim leading-relaxed max-w-[22ch]">
-        {description}
-      </p>
+      <p className="text-xs text-mc-text-dim leading-relaxed max-w-[22ch]">{description}</p>
     </motion.div>
   );
 }

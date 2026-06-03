@@ -14,9 +14,7 @@ export default function TurnstileSection({
       <div ref={turnstileRef} data-testid="turnstile-widget"
         data-sitekey={turnstile?.site_key} className="min-h-[65px]" role="presentation" />
       {error && (
-        <FeedbackMessage tone="danger" live="assertive" className="text-xs">
-          {error}
-        </FeedbackMessage>
+        <FeedbackMessage tone="danger" live="assertive" className="text-xs">{error}</FeedbackMessage>
       )}
     </div>
   );

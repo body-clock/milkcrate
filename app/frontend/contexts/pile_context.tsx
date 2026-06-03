@@ -16,24 +16,32 @@ interface PileContextValue {
 
 const PileContext = createContext<PileContextValue | null>(null);
 
-export function PileProvider({
-  children,
-  storeSlug,
-}: {
-  children: React.ReactNode;
-  storeSlug?: string;
-}) {
-  const pileState = usePile(storeSlug);
-  const { addToPile: addOrRemovePile, pile, removeFromPile, inPile, clearPile: pileClearPile } = pileState;
+function usePileProviderValue(storeSlug?: string) {
+  const { addToPile: anp, pile, removeFromPile, inPile, clearPile: pcp } = usePile(storeSlug);
   const [lastAdded, setLastAdded] = useState<Listing | null>(null);
-  const addToPile = useCallback((listing: Listing) => { addOrRemovePile(listing); setLastAdded(listing); }, [addOrRemovePile]);
+  const addToPile = useCallback(
+    (listing: Listing) => { anp(listing); setLastAdded(listing); },
+    [anp],
+  );
   const clearLastAdded = useCallback(() => setLastAdded(null), []);
-  const value = useMemo(() => ({ pile, removeFromPile, inPile, clearPile: pileClearPile, addToPile, lastAdded, clearLastAdded }), [pile, removeFromPile, inPile, pileClearPile, addToPile, lastAdded, clearLastAdded]);
+  return useMemo<PileContextValue>(
+    () => ({ pile, removeFromPile, inPile, clearPile: pcp,
+      addToPile, lastAdded, clearLastAdded }),
+    [pile, removeFromPile, inPile, pcp, addToPile, lastAdded, clearLastAdded],
+  );
+}
+
+export function PileProvider({
+  children, storeSlug,
+}: { children: React.ReactNode; storeSlug?: string }) {
+  const value = usePileProviderValue(storeSlug);
   return <PileContext.Provider value={value}>{children}</PileContext.Provider>;
 }
 
 export function usePileContext() {
   const ctx = useContext(PileContext);
-  if (!ctx) { throw new Error("usePileContext must be used within PileProvider"); }
+  if (!ctx) {
+    throw new Error("usePileContext must be used within PileProvider");
+  }
   return ctx;
 }

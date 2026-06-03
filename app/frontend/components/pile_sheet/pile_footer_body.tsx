@@ -29,13 +29,23 @@ interface Props {
 }
 
 /** Selects the active action component based on submission status and connection state. */
-function pickAction({ pileSize, shopper, submission, handoffAvailable, highlightOnMount, onSendToWantlist, onReset }: Props) {
-  if (submission.status === "creating") { return <WantlistInProgressView count={pileSize} />; }
-  if (submission.status === "success" && submission.wantlistResult) { return <WantlistResultView result={submission.wantlistResult} storeName={shopper.storeName} onDismiss={onReset} />; }
-  if (submission.status === "error") { return <WantlistErrorView message={submission.errorMessage} onRetry={onReset} />; }
-  if (handoffAvailable && submission.status === "idle") {
-    if (shopper.isConnected) { return <WantlistHandoffAction storeName={shopper.storeName} onSend={onSendToWantlist} highlight={highlightOnMount} />; }
-    if (shopper.storeSlug) { return <DisconnectedCta storeName={shopper.storeName} storeSlug={shopper.storeSlug} />; }
+function pickAction(p: Props) {
+  if (p.submission.status === "creating") { return <WantlistInProgressView count={p.pileSize} />; }
+  if (p.submission.status === "success" && p.submission.wantlistResult) {
+    return <WantlistResultView result={p.submission.wantlistResult}
+      storeName={p.shopper.storeName} onDismiss={p.onReset} />;
+  }
+  if (p.submission.status === "error") {
+    return <WantlistErrorView message={p.submission.errorMessage} onRetry={p.onReset} />;
+  }
+  if (p.handoffAvailable && p.submission.status === "idle") {
+    if (p.shopper.isConnected) {
+      return <WantlistHandoffAction storeName={p.shopper.storeName}
+        onSend={p.onSendToWantlist} highlight={p.highlightOnMount} />;
+    }
+    if (p.shopper.storeSlug) {
+      return <DisconnectedCta storeName={p.shopper.storeName} storeSlug={p.shopper.storeSlug} />;
+    }
   }
   return null;
 }

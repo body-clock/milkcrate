@@ -2,8 +2,8 @@ import { motion } from "framer-motion";
 
 import { springDrawer } from "@/lib/motion_tokens";
 
-import type { Listing } from "../../types/inertia";
 import type { WantlistResult } from "../../contexts/shopper_context";
+import type { Listing } from "../../types/inertia";
 import PileFooter from "./pile_footer";
 import PileSheetHeader from "./pile_sheet_header";
 import PileSheetRecordList from "./record_list";
@@ -53,19 +53,45 @@ function motionConfig(isCompact: boolean) {
   };
 }
 
-function renderPanelFooter(opts: { pileCount: number; total: number; currency?: string; shopper: PanelShopper; state: string; wantlistResult: WantlistResult | null; errorMessage: string | null; handoffAvailable: boolean; highlightOnMount?: boolean; handleSendToWantlist: () => Promise<void>; resetResult: () => void }) {
+function renderPanelFooter(opts: {
+  pileCount: number; total: number; currency?: string;
+  shopper: PanelShopper; state: string; wantlistResult: WantlistResult | null;
+  errorMessage: string | null; handoffAvailable: boolean; highlightOnMount?: boolean;
+  handleSendToWantlist: () => Promise<void>; resetResult: () => void;
+}) {
   if (opts.pileCount <= 0) { return null; }
-  return <PileFooter pileSize={opts.pileCount} header={{ total: opts.total, currency: opts.currency }} shopper={opts.shopper} submission={{ status: opts.state, wantlistResult: opts.wantlistResult, errorMessage: opts.errorMessage }} handoffAvailable={opts.handoffAvailable} highlightOnMount={opts.highlightOnMount} onSendToWantlist={opts.handleSendToWantlist} onReset={opts.resetResult} />;
+  return (
+    <PileFooter pileSize={opts.pileCount}
+      header={{ total: opts.total, currency: opts.currency }}
+      shopper={opts.shopper}
+      submission={{ status: opts.state, wantlistResult: opts.wantlistResult,
+        errorMessage: opts.errorMessage }}
+      handoffAvailable={opts.handoffAvailable}
+      highlightOnMount={opts.highlightOnMount}
+      onSendToWantlist={opts.handleSendToWantlist} onReset={opts.resetResult} />
+  );
 }
 
-export default function PileSheetPanel({ isCompact, dialogRef, titleRef, pile, confirmClear, pileCount, total, currency, shopper, state, wantlistResult, errorMessage, handoffAvailable, highlightOnMount, handleSendToWantlist, resetResult, handleClose, onClear, onCancel, onRequestClear }: PanelProps) {
+export default function PileSheetPanel(props: PanelProps) {
+  const { isCompact, dialogRef, titleRef, pile, confirmClear,
+    pileCount, total, currency, shopper, state, wantlistResult,
+    errorMessage, handoffAvailable, highlightOnMount,
+    handleSendToWantlist, resetResult, handleClose,
+    onClear, onCancel, onRequestClear } = props;
+  const footer = renderPanelFooter({ pileCount, total, currency, shopper,
+    state, wantlistResult, errorMessage, handoffAvailable, highlightOnMount,
+    handleSendToWantlist, resetResult });
   return (
-    <motion.div ref={dialogRef} id="pile-sheet" role="dialog" aria-modal="true" aria-labelledby="pile-sheet-title"
+    <motion.div ref={dialogRef} id="pile-sheet" role="dialog"
+      aria-modal="true" aria-labelledby="pile-sheet-title"
       className={panelClass(isCompact)} {...motionConfig(isCompact)}>
-      <PileSheetHeader titleRef={titleRef} pileCount={pileCount} confirmClear={confirmClear}
-        onClear={onClear} onCancel={onCancel} onRequestClear={onRequestClear} handleClose={handleClose} />
-      <div className="flex-1 overflow-y-auto"><PileSheetRecordList pile={pile} /></div>
-      {renderPanelFooter({ pileCount, total, currency, shopper, state, wantlistResult, errorMessage, handoffAvailable, highlightOnMount, handleSendToWantlist, resetResult })}
+      <PileSheetHeader titleRef={titleRef} pileCount={pileCount}
+        confirmClear={confirmClear} onClear={onClear} onCancel={onCancel}
+        onRequestClear={onRequestClear} handleClose={handleClose} />
+      <div className="flex-1 overflow-y-auto">
+        <PileSheetRecordList pile={pile} />
+      </div>
+      {footer}
     </motion.div>
   );
 }

@@ -137,7 +137,11 @@ function sharedState(
 }
 
 export default function CrateTabs({
-  crates, activeSlug, onSelect, compact = false, vertical: isVertical = false,
+  crates,
+  activeSlug,
+  onSelect,
+  compact = false,
+  vertical: isVertical = false,
 }: Props) {
   const s = sharedState(crates, activeSlug, onSelect, isVertical);
   const tabProps = { s, crates, activeSlug, onSelect, tabIndexValue };

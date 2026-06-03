@@ -36,18 +36,35 @@ function renderTotalRow(total: number, currency?: string) {
   return (
     <div className="flex items-center justify-between">
       <span className="text-xs text-mc-text-dim uppercase tracking-wider">Total</span>
-      <span className="text-sm font-semibold">{formatPriceValue(total.toFixed(PRICE_DECIMALS), currency)}</span>
+      <span className="text-sm font-semibold">
+        {formatPriceValue(total.toFixed(PRICE_DECIMALS), currency)}
+      </span>
     </div>
   );
 }
 
-export default function PileFooter({ pileSize, header, shopper, submission, handoffAvailable, highlightOnMount, onSendToWantlist, onReset }: PileFooterProps) {
+export default function PileFooter({
+  pileSize,
+  header,
+  shopper,
+  submission,
+  handoffAvailable,
+  highlightOnMount,
+  onSendToWantlist,
+  onReset,
+}: PileFooterProps) {
   return (
     <div className="flex-shrink-0 px-4 py-4 border-t border-mc-border flex flex-col gap-3">
       {renderTotalRow(header.total, header.currency)}
-      <PileFooterBody pileSize={pileSize} shopper={shopper} submission={submission}
-        handoffAvailable={handoffAvailable} highlightOnMount={highlightOnMount}
-        onSendToWantlist={onSendToWantlist} onReset={onReset} />
+      <PileFooterBody
+        pileSize={pileSize}
+        shopper={shopper}
+        submission={submission}
+        handoffAvailable={handoffAvailable}
+        highlightOnMount={highlightOnMount}
+        onSendToWantlist={onSendToWantlist}
+        onReset={onReset}
+      />
     </div>
   );
 }

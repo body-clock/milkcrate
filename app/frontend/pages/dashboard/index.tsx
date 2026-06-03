@@ -27,8 +27,11 @@ export default function Dashboard({ store }: DashboardProps) {
         contentPadding="px-4 py-8"
       >
         <DashboardContent
-          store={store} showWelcome={showWelcome} setShowWelcome={setShowWelcome}
-          submitting={submitting} setSubmitting={setSubmitting}
+          store={store}
+          showWelcome={showWelcome}
+          setShowWelcome={setShowWelcome}
+          submitting={submitting}
+          setSubmitting={setSubmitting}
         />
       </MilkcrateShell>
     </div>

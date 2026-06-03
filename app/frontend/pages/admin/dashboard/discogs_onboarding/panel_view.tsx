@@ -23,13 +23,15 @@ export function PanelView({
   onUsernameChange,
   onLookup,
 }: PanelViewProps) {
-  return <CardContent className="space-y-4">
-    <LookupForm
-      username={username}
-      isBusy={isBusy}
-      onUsernameChange={onUsernameChange}
-      onLookup={onLookup}
-    />
-    <StatusMessages state={state} isBusy={isBusy} createPath={createPath} csrfToken={csrfToken} />
-  </CardContent>;
+  return (
+    <CardContent className="space-y-4">
+      <LookupForm
+        username={username}
+        isBusy={isBusy}
+        onUsernameChange={onUsernameChange}
+        onLookup={onLookup}
+      />
+      <StatusMessages state={state} isBusy={isBusy} createPath={createPath} csrfToken={csrfToken} />
+    </CardContent>
+  );
 }

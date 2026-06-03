@@ -24,7 +24,11 @@ export default function BrowseNavContent({ mode, onWallSelect, onBrowseModeSelec
             key={item.mode}
             label={item.label}
             selected={mode === item.mode}
-            onSelect={item.mode === "wall" ? onWallSelect : () => onBrowseModeSelect(item.mode as "featured" | "genres")}
+            onSelect={
+              item.mode === "wall"
+                ? onWallSelect
+                : () => onBrowseModeSelect(item.mode as "featured" | "genres")
+            }
             compact
           />
         ))}

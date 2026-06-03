@@ -88,10 +88,7 @@ function useTactileHandlers(
     },
     [ph, up],
   );
-  return useMemo(
-    () => buildTactileHandlers(ph, leave, down, up),
-    [ph, leave, down, up],
-  );
+  return useMemo(() => buildTactileHandlers(ph, leave, down, up), [ph, leave, down, up]);
 }
 
 export function useTactileHover(options: UseTactileHoverOptions = {}): TactileState {

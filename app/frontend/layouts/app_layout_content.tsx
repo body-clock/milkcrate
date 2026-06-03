@@ -38,8 +38,7 @@ type AppPageProps = {
 
 function autoOpenPileFromUrl(): boolean {
   return (
-    typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).has("open_pile")
+    typeof window !== "undefined" && new URLSearchParams(window.location.search).has("open_pile")
   );
 }
 
@@ -58,12 +57,9 @@ function useAppLayoutState(): AppLayoutState {
   const { pile } = usePileContext();
   const pileState = usePileState();
   const contextFocusRef = useRef<HTMLElement>(null);
-  return {
-    storeName: store?.name, discogsUsername: store?.discogs_username,
-    theme, toggle, isCompact, pile, shopper,
-    ...pileState, contextFocusRef,
-    flashMsg: notice || alertMsg, hasNotice: !!notice,
-  };
+  return { storeName: store?.name, discogsUsername: store?.discogs_username,
+    theme, toggle, isCompact, pile, shopper, ...pileState, contextFocusRef,
+    flashMsg: notice || alertMsg, hasNotice: !!notice };
 }
 
 export function AppLayoutContent({ children }: AppLayoutProps) {

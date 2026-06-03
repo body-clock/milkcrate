@@ -12,10 +12,26 @@ interface TabButtonProps {
   className: string;
 }
 
-export default function TabButton({ crate, selected, tabIndex: tabIdx, activeTabRef, onSelect, onKeyDown, className }: TabButtonProps) {
+export default function TabButton({
+  crate,
+  selected,
+  tabIndex: tabIdx,
+  activeTabRef,
+  onSelect,
+  onKeyDown,
+  className,
+}: TabButtonProps) {
   return (
-    <button key={crate.slug} role="tab" aria-selected={selected} tabIndex={tabIdx}
-      ref={selected ? activeTabRef : null} onClick={onSelect} onKeyDown={onKeyDown} className={className}>
+    <button
+      key={crate.slug}
+      role="tab"
+      aria-selected={selected}
+      tabIndex={tabIdx}
+      ref={selected ? activeTabRef : null}
+      onClick={onSelect}
+      onKeyDown={onKeyDown}
+      className={className}
+    >
       {crate.name}
     </button>
   );

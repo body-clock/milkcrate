@@ -13,14 +13,34 @@ interface CrateProgressProps {
 }
 
 function renderEdgeStatus(edgeStatus: string | null) {
-  if (!edgeStatus) { return null; }
-  return <p role="status" className="mt-2 text-center text-[11px] text-mc-text-dim" aria-live="polite">{edgeStatus}</p>;
+  if (!edgeStatus) {
+    return null;
+  }
+  return (
+    <p role="status" className="mt-2 text-center text-[11px] text-mc-text-dim" aria-live="polite">
+      {edgeStatus}
+    </p>
+  );
 }
 
-export default function CrateProgress({ index, total, progress, edgeStatus, isCompact, prefersReducedMotion, navigate }: CrateProgressProps) {
+export default function CrateProgress({
+  index,
+  total,
+  progress,
+  edgeStatus,
+  isCompact,
+  prefersReducedMotion,
+  navigate,
+}: CrateProgressProps) {
   return (
     <>
-      <ProgressBarSection index={index} total={total} progress={progress} isCompact={isCompact} prefersReducedMotion={prefersReducedMotion} />
+      <ProgressBarSection
+        index={index}
+        total={total}
+        progress={progress}
+        isCompact={isCompact}
+        prefersReducedMotion={prefersReducedMotion}
+      />
       <NavigationButtons index={index} total={total} isCompact={isCompact} navigate={navigate} />
       {renderEdgeStatus(edgeStatus)}
     </>

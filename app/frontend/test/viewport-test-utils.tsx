@@ -33,5 +33,7 @@ export function renderWithTier(
  * Useful with renderHook or when you need the wrapper separately.
  */
 export function TierWrapper(tier: ViewportTier) {
-  return ({ children }: { children: ReactNode }) => <TierProvider tier={tier}>{children}</TierProvider>;
+  return ({ children }: { children: ReactNode }) => (
+    <TierProvider tier={tier}>{children}</TierProvider>
+  );
 }

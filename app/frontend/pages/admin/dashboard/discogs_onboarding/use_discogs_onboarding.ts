@@ -12,23 +12,12 @@ function csrfTokenValue(): string | undefined {
 export function useDiscogsOnboarding(lookupPath: string) {
   const [username, setUsername] = useState("");
   const { state, lookup, reset } = useAdminDiscogsLookup(lookupPath);
-  const isBusy = state.status === "loading";
-
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUsername(e.target.value);
-    if (state.status !== "idle") {
-      reset();
-    }
+    setUsername(e.target.value); if (state.status !== "idle") { reset(); }
   };
-
   const handleLookup = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const trimmedUsername = username.trim();
-    if (!trimmedUsername) {
-      return;
-    }
-    lookup(trimmedUsername);
+    e.preventDefault(); const t = username.trim(); if (t) { lookup(t); }
   };
-
-  return { username, isBusy, csrfToken: csrfTokenValue(), state, handleUsernameChange, handleLookup };
+  return { username, isBusy: state.status === "loading",
+    csrfToken: csrfTokenValue(), state, handleUsernameChange, handleLookup };
 }

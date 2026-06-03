@@ -1,6 +1,6 @@
 import type { Crate } from "../types/inertia";
-import HorizontalTabs from "./crate_tabs_horizontal";
 import type { CrateTabsSharedState } from "./crate_tabs";
+import HorizontalTabs from "./crate_tabs_horizontal";
 
 interface Props {
   s: CrateTabsSharedState;

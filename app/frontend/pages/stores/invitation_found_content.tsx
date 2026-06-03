@@ -18,8 +18,12 @@ interface Props {
 
 function renderHeading(sellerName: string | null) {
   return (
-    <motion.h1 initial={anim} animate={visible} transition={d1}
-      className="text-2xl font-bold text-mc-text mb-3">
+    <motion.h1
+      initial={anim}
+      animate={visible}
+      transition={d1}
+      className="text-2xl font-bold text-mc-text mb-3"
+    >
       We found <span className="text-mc-accent">{sellerName}</span> on Discogs
     </motion.h1>
   );
@@ -27,25 +31,31 @@ function renderHeading(sellerName: string | null) {
 
 function renderMessage() {
   return (
-    <motion.p initial={anim} animate={visible} transition={d2}
-      className="text-sm text-mc-text-dim leading-relaxed max-w-sm mx-auto mb-8">
-      This URL could be your storefront. Claim it to show your Discogs
-      inventory as a browsable, curated record store.
+    <motion.p
+      initial={anim}
+      animate={visible}
+      transition={d2}
+      className="text-sm text-mc-text-dim leading-relaxed max-w-sm mx-auto mb-8"
+    >
+      This URL could be your storefront. Claim it to show your Discogs inventory as a browsable,
+      curated record store.
     </motion.p>
   );
 }
 
 function renderCta(slug: string, oauth_available?: boolean, csrfToken?: string) {
   return (
-    <motion.div initial={anim} animate={visible} transition={d3}
-      className="space-y-3">
+    <motion.div initial={anim} animate={visible} transition={d3} className="space-y-3">
       <InvitationClaimCta slug={slug} oauth_available={oauth_available} csrfToken={csrfToken} />
     </motion.div>
   );
 }
 
 export default function InvitationFoundContent({
-  slug, oauth_available, sellerName, csrfToken,
+  slug,
+  oauth_available,
+  sellerName,
+  csrfToken,
 }: Props) {
   return (
     <motion.div initial={anim} animate={visible} transition={dur} className="w-full">

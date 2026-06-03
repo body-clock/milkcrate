@@ -11,11 +11,7 @@ export default function MarketingHeader() {
   return (
     <header className="mc-header border-b border-mc-border sticky top-0 z-30 bg-mc-bg-raised/95 backdrop-blur-sm">
       <div className="flex items-center justify-between px-4 py-3 mx-auto w-full max-w-6xl">
-        <a
-          href="/"
-          className="flex items-center gap-2 rounded"
-          aria-label="Milkcrate home"
-        >
+        <a href="/" className="flex items-center gap-2 rounded" aria-label="Milkcrate home">
           <BrandMark />
         </a>
         {!isCompact && <ThemeToggle theme={theme} toggle={toggle} />}

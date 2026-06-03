@@ -5,8 +5,14 @@ type Props = SharedData & ShellHandlers;
 
 export default function CompactLayoutShell(props: Props) {
   const {
-    mode, wall, currentCrates, activeSlug, startIndex, selectCrate,
-    handleWallSelected, handleBrowseModeSelected,
+    mode,
+    wall,
+    currentCrates,
+    activeSlug,
+    startIndex,
+    selectCrate,
+    handleWallSelected,
+    handleBrowseModeSelected,
   } = props;
 
   return (

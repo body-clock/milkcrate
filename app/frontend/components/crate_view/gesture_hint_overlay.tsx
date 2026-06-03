@@ -28,5 +28,9 @@ export default function GestureHintOverlay({
     return null;
   }
 
-  return <div data-testid="gesture-hint-overlay"><GhostFingerCue reducedMotion={prefersReducedMotion} /></div>;
+  return (
+    <div data-testid="gesture-hint-overlay">
+      <GhostFingerCue reducedMotion={prefersReducedMotion} />
+    </div>
+  );
 }

@@ -17,18 +17,22 @@ const welcomeAnim = {
 } as const;
 
 export default function WelcomeCard({ storefrontUrl, dismiss }: WelcomeCardProps) {
-  const handleClick = () => { dismiss(); router.visit(storefrontUrl); };
+  const handleClick = () => {
+    dismiss();
+    router.visit(storefrontUrl);
+  };
   return (
     <motion.div
-      initial={welcomeAnim.initial} animate={welcomeAnim.animate}
+      initial={welcomeAnim.initial}
+      animate={welcomeAnim.animate}
       transition={welcomeAnim.transition}
     >
       <Card>
         <CardContent className="p-6 text-center">
           <h2 className="text-lg font-bold text-mc-text mb-2">Your store is live!</h2>
           <p className="text-sm text-mc-text-dim mb-6 max-w-md mx-auto leading-relaxed">
-            Your Discogs inventory has been synced to Milkcrate. Your listings are now
-            appearing in browsable crates.
+            Your Discogs inventory has been synced to Milkcrate. Your listings are now appearing in
+            browsable crates.
           </p>
           <Button onClick={handleClick}>View your store →</Button>
         </CardContent>

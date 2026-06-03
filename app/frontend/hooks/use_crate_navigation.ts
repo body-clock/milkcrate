@@ -1,10 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 
 import { isLessonLearned } from "@/lib/first_swipe_lesson";
-import {
-  resolveRiffleDrag,
-  type RiffleDirection,
-} from "@/lib/riffle_navigation";
+import { resolveRiffleDrag, type RiffleDirection } from "@/lib/riffle_navigation";
 
 import { handleRiffleNavigation } from "./crate_navigation_helpers";
 import type { CrateNavDeps, ResetEffectDeps, NavigationState } from "./crate_navigation_types";
@@ -52,15 +49,9 @@ function isEditableTarget(target: EventTarget | null) {
 function useDragNavigation(navigate: (direction: RiffleDirection) => void) {
   return useCallback(
     (info: DragEndInfo) => {
-      const riffleDirection = resolveRiffleDrag({
-        offsetX: info.offset.x,
-        offsetY: info.offset.y,
-        velocityY: info.velocity.y,
-      });
-      if (!riffleDirection) {
-        return;
-      }
-      navigate(riffleDirection);
+      const d = resolveRiffleDrag({ offsetX: info.offset.x, offsetY: info.offset.y,
+        velocityY: info.velocity.y });
+      if (d) { navigate(d); }
     },
     [navigate],
   );
@@ -89,9 +80,7 @@ function computeProgress(index: number, total: number): number {
 function useResetEffect(deps: ResetEffectDeps) {
   const { initialIndex, resetKey, setIndex, setShowGestureHint, setEdgeStatus } = deps;
   useEffect(() => {
-    setIndex(initialIndex);
-    setShowGestureHint(!isLessonLearned());
-    setEdgeStatus(null);
+    setIndex(initialIndex); setShowGestureHint(!isLessonLearned()); setEdgeStatus(null);
   }, [initialIndex, resetKey, setIndex, setShowGestureHint, setEdgeStatus]);
 }
 
@@ -99,8 +88,7 @@ function useCrateNavigate(deps: CrateNavDeps) {
   const depsRef = useRef(deps);
   depsRef.current = deps;
   return useCallback(
-    (riffleDirection: RiffleDirection) =>
-      handleRiffleNavigation(riffleDirection, depsRef.current),
+    (riffleDirection: RiffleDirection) => handleRiffleNavigation(riffleDirection, depsRef.current),
     [],
   );
 }
@@ -113,40 +101,29 @@ function useNavigationState(initialIndex: number): NavigationState {
   const indexRef = useRef(index);
   const dragRotationRef = useRef<HTMLDivElement>(null);
   indexRef.current = index;
-  return {
-    index,
-    setIndex,
-    showGestureHint,
-    setShowGestureHint,
-    edgeStatus,
-    setEdgeStatus,
-    direction,
-    indexRef,
-    dragRotationRef,
-  };
+  return { index, setIndex, showGestureHint, setShowGestureHint,
+    edgeStatus, setEdgeStatus, direction, indexRef, dragRotationRef };
 }
 
-export function useCrateNavigation({
-  total, isCompact, initialIndex, resetKey,
-}: UseCrateNavigationOptions): UseCrateNavigationResult {
-  const {
-    index, setIndex, showGestureHint, setShowGestureHint,
-    edgeStatus, setEdgeStatus, direction, indexRef, dragRotationRef,
-  } = useNavigationState(initialIndex);
-
-  useResetEffect({ initialIndex, resetKey, setIndex, setShowGestureHint, setEdgeStatus });
-
+function useCrateNavigationResult(
+  initialIndex: number, options: UseCrateNavigationOptions,
+): UseCrateNavigationResult {
+  const state = useNavigationState(initialIndex);
+  useResetEffect({ initialIndex, resetKey: options.resetKey,
+    setIndex: state.setIndex, setShowGestureHint: state.setShowGestureHint,
+    setEdgeStatus: state.setEdgeStatus });
   const navigate = useCrateNavigate({
-    total, isCompact, indexRef, direction,
-    setIndex, setShowGestureHint, setEdgeStatus,
-  });
-
+    total: options.total, isCompact: options.isCompact, indexRef: state.indexRef,
+    direction: state.direction, setIndex: state.setIndex,
+    setShowGestureHint: state.setShowGestureHint, setEdgeStatus: state.setEdgeStatus });
   const handleDragEnd = useDragNavigation(navigate);
   useKeyboardNavigation(navigate);
-  const progress = computeProgress(index, total);
+  return { index: state.index, direction: state.direction, navigate, handleDragEnd,
+    edgeStatus: state.edgeStatus, showGestureHint: state.showGestureHint,
+    progress: computeProgress(state.index, options.total),
+    dragRotationRef: state.dragRotationRef };
+}
 
-  return {
-    index, direction, navigate, handleDragEnd,
-    edgeStatus, showGestureHint, progress, dragRotationRef,
-  };
+export function useCrateNavigation(options: UseCrateNavigationOptions): UseCrateNavigationResult {
+  return useCrateNavigationResult(options.initialIndex, options);
 }

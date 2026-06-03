@@ -34,9 +34,5 @@ function renderLookupStatus(state: LookupState, copy: Props["copy"], onRetry: ()
 }
 
 export function LookupStatus({ state, copy, onRetry }: LookupStatusProps) {
-  return (
-    <AnimatePresence mode="wait">
-      {renderLookupStatus(state, copy, onRetry)}
-    </AnimatePresence>
-  );
+  return <AnimatePresence mode="wait">{renderLookupStatus(state, copy, onRetry)}</AnimatePresence>;
 }

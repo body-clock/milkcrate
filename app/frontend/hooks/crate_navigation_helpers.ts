@@ -8,10 +8,7 @@ import type { CrateNavDeps } from "./crate_navigation_types";
  * Performs a riffle navigation move.
  * Ref mutations use Object.assign to avoid no-param-reassign on opts members.
  */
-export function handleRiffleNavigation(
-  riffleDirection: RiffleDirection,
-  opts: CrateNavDeps,
-): void {
+export function handleRiffleNavigation(riffleDirection: RiffleDirection, opts: CrateNavDeps): void {
   const move = resolveRiffleMove({
     currentIndex: opts.indexRef.current,
     total: opts.total,

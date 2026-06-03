@@ -98,33 +98,28 @@ function usePageControls(
   return { goToPage, handleDragEnd };
 }
 
-function useDerivedPageState(
-  pages: Listing[][],
-  pageIndex: number,
-  prefersReducedMotion: boolean,
-) {
+function useDerivedPageState(pages: Listing[][], pageIndex: number, prefersReducedMotion: boolean) {
   const transition = prefersReducedMotion ? { duration: 0 } : springTactile;
   const currentPage = pages[pageIndex] ?? [];
   const showPagination = pages.length > 1;
   return { transition, currentPage, showPagination };
 }
 
-export function useWallPageNavigation(
-  records: Listing[],
-  tilesPerPage: number,
-  isCompact: boolean,
-  prefersReducedMotion: boolean,
+function useWallPageState(
+  records: Listing[], tilesPerPage: number, isCompact: boolean, prefersReducedMotion: boolean,
 ) {
   const [[pageIndex, direction], setPageState] = useState([0, 0]);
   const pages = useChunkedPages(records, isCompact, tilesPerPage);
   useClampPageIndex(pages, pageIndex, setPageState);
   const { goToPage, handleDragEnd } = usePageControls(pageIndex, pages.length, setPageState);
   const { transition, currentPage, showPagination } = useDerivedPageState(
-    pages, pageIndex, prefersReducedMotion,
-  );
+    pages, pageIndex, prefersReducedMotion);
+  return { pageIndex, direction, currentPage, pageCount: pages.length,
+    showPagination, transition, goToPage, handleDragEnd };
+}
 
-  return {
-    pageIndex, direction, currentPage,
-    pageCount: pages.length, showPagination, transition, goToPage, handleDragEnd,
-  };
+export function useWallPageNavigation(
+  records: Listing[], tilesPerPage: number, isCompact: boolean, prefersReducedMotion: boolean,
+) {
+  return useWallPageState(records, tilesPerPage, isCompact, prefersReducedMotion);
 }

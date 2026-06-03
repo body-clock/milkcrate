@@ -12,9 +12,7 @@ export function DashboardMetrics({
   const attentionCount = active_stores.filter((store) =>
     ["failed", "stale", "partial"].includes(store.health.key),
   ).length;
-  const processingCount = active_stores.filter(
-    (store) => store.health.key === "processing",
-  ).length;
+  const processingCount = active_stores.filter((store) => store.health.key === "processing").length;
 
   return (
     <dl className="grid grid-cols-3 gap-2 sm:min-w-80">

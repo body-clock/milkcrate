@@ -8,12 +8,7 @@ const btnClass =
 
 export function ThemeToggle({ theme, toggle }: ThemeToggleProps) {
   return (
-    <button
-      type="button"
-      onClick={toggle}
-      className={btnClass}
-      aria-label="Toggle light/dark mode"
-    >
+    <button type="button" onClick={toggle} className={btnClass} aria-label="Toggle light/dark mode">
       {theme === "dark" ? "☀︎" : "☾"}
     </button>
   );

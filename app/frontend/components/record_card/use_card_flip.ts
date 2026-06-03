@@ -61,11 +61,16 @@ export function useCardFlip(
   const hasCalledOnFlip = useRef(false);
   const flip = useCallback(() => {
     setFlipped((f) => {
-      if (!f && !hasCalledOnFlip.current) { hasCalledOnFlip.current = true; onFlip?.(); }
+      if (!f && !hasCalledOnFlip.current) {
+        hasCalledOnFlip.current = true;
+        onFlip?.();
+      }
       return !f;
     });
   }, [onFlip]);
-  useEffect(() => { setFlipped(false); }, [resetKey]);
+  useEffect(() => {
+    setFlipped(false);
+  }, [resetKey]);
   const { handlePointerDown, handleFlip } = usePointerHandlers(canFlip, flip);
   const handleKeyDown = useKeyboardHandler(canFlip, flip);
   return { flipped, handlePointerDown, handleFlip, handleKeyDown };

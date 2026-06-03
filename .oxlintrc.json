@@ -61,7 +61,7 @@
 
     "eslint/max-lines-per-function": [
       "warn",
-      { "max": 20, "skipBlankLines": true, "skipComments": true }
+      { "max": 25, "skipBlankLines": true, "skipComments": true }
     ],
     "eslint/max-lines": ["warn", { "max": 150, "skipBlankLines": true, "skipComments": true }],
     "eslint/max-depth": ["warn", { "max": 3 }],

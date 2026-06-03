@@ -1,8 +1,7 @@
-import { ActionLink } from "@/components/ui/action";
-import Button from "@/components/ui/button";
 import { formatPrice } from "@/lib/format_price";
 
 import type { Listing } from "../types/inertia";
+import { RecordCardBackActions } from "./record_card/record_card_back_actions";
 
 const MAX_GENRES_DISPLAY = 3;
 
@@ -32,22 +31,26 @@ function renderGenreTags(genres: string[]) {
   );
 }
 
+const CARD_BACK_STYLE = {
+  position: "absolute" as const, inset: 0,
+  backfaceVisibility: "hidden" as const,
+  WebkitBackfaceVisibility: "hidden" as const,
+  transform: "rotateY(180deg)", contain: "paint" as const,
+};
+
 export default function RecordCardBack({
   listing, meta, inPile, addToPile, removeFromPile,
 }: RecordCardBackProps) {
   return (
-    <div className="rounded-lg overflow-hidden shadow-xl bg-mc-bg-card"
-      style={{ position: "absolute", inset: 0, backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden", transform: "rotateY(180deg)", contain: "paint" }}>
+    <div className="rounded-lg overflow-hidden shadow-xl bg-mc-bg-card" style={CARD_BACK_STYLE}>
       <div className="flex flex-col h-full p-4 gap-2">
         <div className="text-sm font-semibold leading-tight line-clamp-3">{listing.title}</div>
         <div className="text-xs text-mc-text leading-tight">{listing.artist}</div>
         {meta && <div className="text-xs text-mc-text-dim">{meta}</div>}
         {renderGenreTags(listing.genres)}
         <div className="text-sm font-medium mt-auto">{formatPrice(listing)}</div>
-        <div className="flex gap-1 mt-1" onClick={(e) => e.stopPropagation()}>
-          {inPile(listing.id) ? <Button variant="secondary" size="sm" onClick={() => removeFromPile(listing.id)}>✓ In pile</Button> : <Button size="sm" onClick={() => addToPile(listing)}>+ Pile</Button>}
-          <ActionLink variant="secondary" size="sm" href={listing.discogs_url} target="_blank" rel="noopener noreferrer" aria-label={`View listing for ${listing.title ?? "this record"} on Discogs (opens in new tab)`}>View on Discogs ↗</ActionLink>
-        </div>
+        <RecordCardBackActions listing={listing}
+          inPile={inPile} addToPile={addToPile} removeFromPile={removeFromPile} />
       </div>
     </div>
   );

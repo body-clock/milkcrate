@@ -5,10 +5,7 @@ interface AppContentFlashBannerProps {
   hasNotice: boolean;
 }
 
-export default function AppContentFlashBanner({
-  flashMsg,
-  hasNotice,
-}: AppContentFlashBannerProps) {
+export default function AppContentFlashBanner({ flashMsg, hasNotice }: AppContentFlashBannerProps) {
   if (!flashMsg) {
     return undefined;
   }

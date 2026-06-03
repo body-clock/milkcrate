@@ -1,4 +1,5 @@
 import Field from "@/components/ui/field";
+
 import type { Copy, FormData } from "./types";
 
 const INVENTORY_OPTIONS = [
@@ -18,11 +19,14 @@ type InventoryFieldProps = {
 export default function InventoryField({ data, setData, copy }: InventoryFieldProps) {
   return (
     <Field id="apply-inventory_size" label={copy.fields.inventory_size} hint="Optional">
-      <select value={data.inventory_size}
+      <select
+        value={data.inventory_size}
         onChange={(e) => setData("inventory_size", e.target.value)}
       >
         {INVENTORY_OPTIONS.map(([value, label]) => (
-          <option key={value} value={value}>{label}</option>
+          <option key={value} value={value}>
+            {label}
+          </option>
         ))}
       </select>
     </Field>

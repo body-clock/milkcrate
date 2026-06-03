@@ -19,12 +19,7 @@ interface RecordCardProps {
   onFlip?: () => void;
 }
 
-function useRecordCardState(
-  listing: Listing,
-  canFlip: boolean,
-  flipped: boolean,
-  framed: boolean,
-) {
+function useRecordCardState(listing: Listing, canFlip: boolean, flipped: boolean, framed: boolean) {
   const meta = buildMeta(listing);
   const aria = buildCardAria(canFlip, flipped, listing);
   const { motionClass, motionShadow } = buildMotionProps(framed);
@@ -38,18 +33,21 @@ export default function RecordCard({
   disableFlip = false, framed = false, onFlip,
 }: RecordCardProps) {
   const canFlip = !disableFlip;
-  const { flipped, handlePointerDown, handleFlip, handleKeyDown } = useCardFlip(canFlip, onFlip, resetKey);
+  const { flipped, handlePointerDown, handleFlip, handleKeyDown } = useCardFlip(
+    canFlip, onFlip, resetKey);
   const { meta, aria, motionClass, motionShadow, inPile, addToPile, removeFromPile } =
     useRecordCardState(listing, canFlip, flipped, framed);
   const sides = (
     <>
       <CardFront listing={listing} imageLoading={imageLoading} />
-      <RecordCardBack listing={listing} meta={meta} inPile={inPile} addToPile={addToPile} removeFromPile={removeFromPile} />
+      <RecordCardBack listing={listing} meta={meta} inPile={inPile}
+        addToPile={addToPile} removeFromPile={removeFromPile} />
     </>
   );
   return cardContainer({
     children: cardFlipMotion({ children: sides, motionClass, motionShadow, flipped }),
-    className, roleAttr: aria.roleAttr, tabAttr: aria.tabAttr, label: aria.label, pressedAttr: aria.pressedAttr,
+    className, roleAttr: aria.roleAttr, tabAttr: aria.tabAttr,
+    label: aria.label, pressedAttr: aria.pressedAttr,
     handlePointerDown, handleFlip, handleKeyDown,
   });
 }

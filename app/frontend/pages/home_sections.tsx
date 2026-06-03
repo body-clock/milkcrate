@@ -31,21 +31,19 @@ interface Props {
 }
 
 export default function HomeSections({ demoHref, wallCrate, steps, copy, preview }: Props) {
-  return (<MarketingLayout>
-      <HeroSection
-        headline={copy.headline} subhead={copy.subhead}
-        ctaDemo={copy.cta_demo} demoHref={demoHref}
-      />
-      <PreviewSection
-        previewLabel={copy.preview_label} previewBlurb={copy.preview_blurb}
-        wallCrate={wallCrate} storeSlug={preview.store_slug}
-      />
+  return (
+    <MarketingLayout>
+      <HeroSection headline={copy.headline} subhead={copy.subhead}
+        ctaDemo={copy.cta_demo} demoHref={demoHref} />
+      <PreviewSection previewLabel={copy.preview_label}
+        previewBlurb={copy.preview_blurb} wallCrate={wallCrate}
+        storeSlug={preview.store_slug} />
       <CharacterSection title={copy.store_character_title} features={FEATURES} />
-      <SellerSection
-        title={copy.seller_section_title} body={copy.seller_section_body}
-        copy={copy} fallback={copy.seller_waitlist_fallback}
-      />
+      <SellerSection title={copy.seller_section_title}
+        body={copy.seller_section_body} copy={copy}
+        fallback={copy.seller_waitlist_fallback} />
       <StepsSection steps={steps} />
       <SignoffSection text={copy.bottom_signoff} />
-    </MarketingLayout>);
+    </MarketingLayout>
+  );
 }

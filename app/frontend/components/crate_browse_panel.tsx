@@ -22,11 +22,7 @@ interface Props {
 
 export default function CrateBrowsePanel(props: Props) {
   return (
-    <section
-      role="region"
-      aria-label={props.config.ariaLabel}
-      className="space-y-4"
-    >
+    <section role="region" aria-label={props.config.ariaLabel} className="space-y-4">
       <PanelContent {...props} hideChipBar={props.hideChipBar ?? false} />
     </section>
   );

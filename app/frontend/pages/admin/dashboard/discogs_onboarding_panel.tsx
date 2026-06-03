@@ -10,20 +10,22 @@ type Props = { lookupPath: string; createPath: string };
 export function DiscogsOnboardingPanel({ lookupPath, createPath }: Props) {
   const { username, isBusy, csrfToken, state, handleUsernameChange, handleLookup } =
     useDiscogsOnboarding(lookupPath);
-  return <section aria-labelledby="discogs-onboarding-heading">
-    <Card>
-      <CardHeader>
-        <CardTitle id="discogs-onboarding-heading">Add Discogs storefront</CardTitle>
-      </CardHeader>
-      <PanelView
-        isBusy={isBusy}
-        state={state}
-        username={username}
-        createPath={createPath}
-        csrfToken={csrfToken}
-        onUsernameChange={handleUsernameChange}
-        onLookup={handleLookup}
-      />
-    </Card>
-  </section>;
+  return (
+    <section aria-labelledby="discogs-onboarding-heading">
+      <Card>
+        <CardHeader>
+          <CardTitle id="discogs-onboarding-heading">Add Discogs storefront</CardTitle>
+        </CardHeader>
+        <PanelView
+          isBusy={isBusy}
+          state={state}
+          username={username}
+          createPath={createPath}
+          csrfToken={csrfToken}
+          onUsernameChange={handleUsernameChange}
+          onLookup={handleLookup}
+        />
+      </Card>
+    </section>
+  );
 }

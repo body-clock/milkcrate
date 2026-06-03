@@ -24,27 +24,16 @@ interface PopStateCtx {
   setDirect: (b: boolean) => void;
 }
 
-function allCratesFrom(
-  crates: Crate[],
-  storefront_sections: StorefrontSection[] | undefined,
-): Crate[] {
-  if (crates.length > 0) {
-    return crates;
-  }
-  if (!storefront_sections?.length) {
-    return [];
-  }
+function allCratesFrom(crates: Crate[], storefront_sections?: StorefrontSection[]): Crate[] {
+  if (crates.length > 0) { return crates; }
+  if (!storefront_sections?.length) { return []; }
   return storefront_sections.flatMap((s) => ("crate" in s ? [s.crate] : s.crates));
 }
 
 function initialActiveSlug(): string | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
-  const fromParam = new URLSearchParams(window.location.search).get("crate");
-  if (fromParam) {
-    return fromParam;
-  }
+  if (typeof window === "undefined") { return null; }
+  const fp = new URLSearchParams(window.location.search).get("crate");
+  if (fp) { return fp; }
   const raw = history.state?.crateSlug;
   return typeof raw === "string" && raw.length > 0 ? raw : null;
 }
@@ -55,9 +44,7 @@ function initialStartIndex(): number {
 }
 
 function initialDirectEntry(): boolean {
-  if (typeof window === "undefined") {
-    return false;
-  }
+  if (typeof window === "undefined") { return false; }
   return Boolean(new URLSearchParams(window.location.search).get("crate"));
 }
 
@@ -74,30 +61,24 @@ function storeFloorUrl() {
   return `${window.location.pathname}${window.location.hash}`;
 }
 
-function findActiveCrate(
-  allCrates: Crate[],
-  activeSlug: string | null,
-): Crate | null {
-  if (activeSlug === null) { return null; }
+function findActiveCrate(allCrates: Crate[], activeSlug: string | null): Crate | null {
+  if (activeSlug === null) {
+    return null;
+  }
   return allCrates.find((c) => c.slug === activeSlug) ?? allCrates[0] ?? null;
 }
 
 function navigateCrate(slug: string, index: number, wasFloor: boolean) {
   const ns = historyStateWithCrate(slug, index);
-  if (wasFloor) {
-    history.pushState(ns, "");
-  } else {
-    history.replaceState(ns, "");
-  }
+  if (wasFloor) { history.pushState(ns, ""); } else { history.replaceState(ns, ""); }
 }
 
 function handlePopState(e: PopStateEvent, ctx: PopStateCtx) {
-  const { slugRef, setSlug, setIdx, setDirect } = ctx;
-  const slug = e.state?.crateSlug ?? null;
-  slugRef.current = slug;
-  setSlug(slug);
-  setIdx(e.state?.startIndex ?? 0);
-  setDirect(Boolean(new URLSearchParams(window.location.search).get("crate")));
+  const s = e.state?.crateSlug ?? null;
+  Object.assign(ctx.slugRef, { current: s });
+  ctx.setSlug(s);
+  ctx.setIdx(e.state?.startIndex ?? 0);
+  ctx.setDirect(Boolean(new URLSearchParams(window.location.search).get("crate")));
 }
 
 function usePopHandler(ctx: PopStateCtx) {
@@ -111,17 +92,14 @@ function usePopHandler(ctx: PopStateCtx) {
 }
 
 function useSelectCrate(
-  slugRef: React.MutableRefObject<string | null>,
-  setSlugRef: (v: string | null) => void,
+  slugRef: React.MutableRefObject<string | null>, setSlugRef: (v: string | null) => void,
   setStartIndex: React.Dispatch<React.SetStateAction<number>>,
   setActiveSlug: React.Dispatch<React.SetStateAction<string | null>>,
 ) {
   return useCallback(
     (slug: string, index = 0) => {
       const wasFloor = slugRef.current === null;
-      setSlugRef(slug);
-      setStartIndex(index);
-      setActiveSlug(slug);
+      setSlugRef(slug); setStartIndex(index); setActiveSlug(slug);
       navigateCrate(slug, index, wasFloor);
     },
     [slugRef, setSlugRef, setStartIndex, setActiveSlug],
@@ -135,10 +113,7 @@ function useBackToStore(
   setDirectEntry: React.Dispatch<React.SetStateAction<boolean>>,
 ) {
   return useCallback(() => {
-    setSlugRef(null);
-    setActiveSlug(null);
-    setStartIndex(0);
-    setDirectEntry(false);
+    setSlugRef(null); setActiveSlug(null); setStartIndex(0); setDirectEntry(false);
     history.replaceState(historyStateWithoutCrate(), "", storeFloorUrl());
   }, [setSlugRef, setActiveSlug, setStartIndex, setDirectEntry]);
 }
@@ -148,21 +123,32 @@ function useCrateRoutingState() {
   const [startIndex, setStartIndex] = useState(initialStartIndex);
   const [directEntry, setDirectEntry] = useState(initialDirectEntry);
   const slugRef = useRef(activeSlug);
-  return { activeSlug, setActiveSlug, startIndex, setStartIndex, directEntry, setDirectEntry, slugRef };
+  return {
+    activeSlug,
+    setActiveSlug,
+    startIndex,
+    setStartIndex,
+    directEntry,
+    setDirectEntry,
+    slugRef,
+  };
 }
 
-export function useCrateRouting({ crates, storefront_sections }: UseCrateRoutingOptions): UseCrateRoutingResult {
-  const { activeSlug, setActiveSlug, startIndex, setStartIndex, directEntry, setDirectEntry, slugRef } = useCrateRoutingState();
+export function useCrateRouting({
+  crates, storefront_sections,
+}: UseCrateRoutingOptions): UseCrateRoutingResult {
+  const {
+    activeSlug, setActiveSlug, startIndex, setStartIndex,
+    directEntry, setDirectEntry, slugRef,
+  } = useCrateRoutingState();
   const allCrates = allCratesFrom(crates, storefront_sections);
   const activeCrate = findActiveCrate(allCrates, activeSlug);
-  usePopHandler({ slugRef, setSlug: setActiveSlug, setIdx: setStartIndex, setDirect: setDirectEntry });
-
+  const ctx: PopStateCtx = { slugRef, setSlug: setActiveSlug,
+    setIdx: setStartIndex, setDirect: setDirectEntry };
+  usePopHandler(ctx);
   const setSlugRef = useCallback(
-    (value: string | null) => { Object.assign(slugRef, { current: value }); },
-    [slugRef],
-  );
+    (v: string | null) => { Object.assign(slugRef, { current: v }); }, [slugRef]);
   const selectCrate = useSelectCrate(slugRef, setSlugRef, setStartIndex, setActiveSlug);
   const backToStore = useBackToStore(setSlugRef, setActiveSlug, setStartIndex, setDirectEntry);
-
   return { activeSlug, activeCrate, startIndex, selectCrate, backToStore, allCrates, directEntry };
 }

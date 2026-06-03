@@ -15,7 +15,13 @@ interface Props {
 }
 
 export default function SidebarPanel({
-  mode, panelTitle, currentCrates, activeSlug, onSelectCrate, listingCount, genreCount,
+  mode,
+  panelTitle,
+  currentCrates,
+  activeSlug,
+  onSelectCrate,
+  listingCount,
+  genreCount,
 }: Props) {
   if (mode !== "wall" && panelTitle && currentCrates.length > 0) {
     return (

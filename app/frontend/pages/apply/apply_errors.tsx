@@ -1,6 +1,5 @@
-import type { Copy, ErrorEntry } from "./types";
-
 import ApplyErrorsList from "./apply_errors_list";
+import type { Copy, ErrorEntry } from "./types";
 
 export default function ApplyErrors({
   errorCount,

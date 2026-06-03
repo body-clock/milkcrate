@@ -25,11 +25,7 @@ function tabScrollbar(compact: boolean): React.CSSProperties {
   return { scrollbarWidth: compact ? "none" : ("thin" as const) };
 }
 
-export default function HorizontalTabs({
-  tabsRef,
-  compact,
-  ...rest
-}: Props) {
+export default function HorizontalTabs({ tabsRef, compact, ...rest }: Props) {
   return (
     <div
       ref={tabsRef}

@@ -1,8 +1,8 @@
 import React, { useId } from "react";
 
+import { cn } from "./class_names";
 import FieldError from "./field_error";
 import FieldLabel from "./field_label";
-import { cn } from "./class_names";
 
 type FieldControlProps = {
   "aria-busy"?: boolean | "true" | "false";
@@ -53,20 +53,34 @@ function buildFieldControl(opts: FieldControlOptions) {
   });
 }
 
-function useFieldControl(opts: Pick<FieldProps, "children" | "id" | "hint" | "error" | "busy" | "disabled">) {
+function useFieldControl(
+  opts: Pick<FieldProps, "children" | "id" | "hint" | "error" | "busy" | "disabled">,
+) {
   const generatedId = useId();
   const controlId = opts.children.props.id ?? opts.id ?? generatedId;
   const hintId = opts.hint ? `${controlId}-hint` : undefined;
   const errorId = opts.error ? `${controlId}-error` : undefined;
   const control = buildFieldControl({
-    children: opts.children, controlId, hintId, errorId,
-    busy: opts.busy ?? false, disabled: opts.disabled ?? false, error: opts.error,
+    children: opts.children,
+    controlId,
+    hintId,
+    errorId,
+    busy: opts.busy ?? false,
+    disabled: opts.disabled ?? false,
+    error: opts.error,
   });
   return { controlId, hintId, errorId, control };
 }
 
 export default function Field({
-  id, label, hint, error, busy = false, disabled = false, className, children,
+  id,
+  label,
+  hint,
+  error,
+  busy = false,
+  disabled = false,
+  className,
+  children,
 }: FieldProps) {
   const ctrl = useFieldControl({ children, id, hint, error, busy, disabled });
 

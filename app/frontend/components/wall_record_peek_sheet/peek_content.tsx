@@ -1,10 +1,10 @@
 import type { RefObject } from "react";
 
+import type { Listing } from "@/types/inertia";
+
 import { PeekOverlay } from "./peek_overlay";
 import { PeekSheetContent } from "./peek_sheet_content";
 import { PeekSheetPanel } from "./peek_sheet_panel";
-
-import type { Listing } from "@/types/inertia";
 
 interface PeekContentProps {
   peek: {

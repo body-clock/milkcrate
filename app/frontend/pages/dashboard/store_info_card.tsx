@@ -21,17 +21,15 @@ export default function StoreInfoCard({
   store, syncStatusLabel, syncStatusVariant, submitting, onResync,
 }: StoreInfoCardProps) {
   return (
-    <Card>
-      <CardContent>
-        <dl className="space-y-3 text-sm">
-          <StorefrontUrlRow url={store.storefront_url} />
-          <SyncStatusRow variant={syncStatusVariant} label={syncStatusLabel} />
-          <TotalListingsRow count={store.total_listings} />
-          <LastSyncedRow dateStr={store.last_synced_at} />
-          <AuthorizedSinceRow dateStr={store.oauth_authorized_at} />
-        </dl>
-        <ResyncButton submitting={submitting} onResync={onResync} />
-      </CardContent>
-    </Card>
+    <Card><CardContent>
+      <dl className="space-y-3 text-sm">
+        <StorefrontUrlRow url={store.storefront_url} />
+        <SyncStatusRow variant={syncStatusVariant} label={syncStatusLabel} />
+        <TotalListingsRow count={store.total_listings} />
+        <LastSyncedRow dateStr={store.last_synced_at} />
+        <AuthorizedSinceRow dateStr={store.oauth_authorized_at} />
+      </dl>
+      <ResyncButton submitting={submitting} onResync={onResync} />
+    </CardContent></Card>
   );
 }

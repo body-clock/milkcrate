@@ -1,4 +1,7 @@
-import type { AdminLookupState, AdminDiscogsLookupResponse } from "@/hooks/use_admin_discogs_lookup";
+import type {
+  AdminLookupState,
+  AdminDiscogsLookupResponse,
+} from "@/hooks/use_admin_discogs_lookup";
 
 import { LookupMessage } from "./lookup_message";
 import { LookupResult } from "./lookup_result";
@@ -40,11 +43,7 @@ export function StatusMessages({ state, isBusy, createPath, csrfToken }: StatusM
       {state.status === "error" && errorMessage()}
       {isBusy && busyMessage()}
       {resultState !== null && (
-        <LookupResult
-          lookup={resultState.result}
-          createPath={createPath}
-          csrfToken={csrfToken}
-        />
+        <LookupResult lookup={resultState.result} createPath={createPath} csrfToken={csrfToken} />
       )}
     </>
   );

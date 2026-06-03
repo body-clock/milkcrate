@@ -41,9 +41,7 @@ function computeTransform(inputs: ComputeTransformInputs): MotionStyle {
   if (reducedMotion) {
     return { rotate: 0, scale: 1, y: 0 };
   }
-  const rotate = disableTilt
-    ? 0
-    : restingTilt * (TILT_HOVER / TILT_HOVER_ADJUST) * (1 - proximity);
+  const rotate = disableTilt ? 0 : restingTilt * (TILT_HOVER / TILT_HOVER_ADJUST) * (1 - proximity);
   const scale = isPressed ? SCALE_PRESS : 1 + (SCALE_HOVER - 1) * proximity;
   const y = proximity === 0 ? 0 : -LIFT_HOVER * proximity;
   return { rotate, scale, y };

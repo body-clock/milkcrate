@@ -5,10 +5,7 @@ interface MarketingFlashBannerProps {
   alert?: string;
 }
 
-export default function MarketingFlashBanner({
-  notice,
-  alert,
-}: MarketingFlashBannerProps) {
+export default function MarketingFlashBanner({ notice, alert }: MarketingFlashBannerProps) {
   const msg = notice || alert;
   if (!msg) {
     return null;

@@ -11,10 +11,7 @@ interface SectionHeaderProps {
 }
 
 function sectionHeaderClassName(className?: string) {
-  return cn(
-    "mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between",
-    className,
-  );
+  return cn("mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between", className);
 }
 
 export default function SectionHeader({

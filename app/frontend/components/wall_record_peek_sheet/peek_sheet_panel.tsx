@@ -31,16 +31,10 @@ export function PeekSheetPanel({
 }: PanelProps) {
   const anim = animationValues(isCompact);
   return (
-    <motion.div
-      ref={dialogRef}
-      role="dialog"
-      aria-modal="true"
+    <motion.div ref={dialogRef} role="dialog" aria-modal="true"
       aria-labelledby="wall-peek-title"
       aria-describedby={meta ? "wall-peek-meta" : undefined}
-      className={panelClass(isCompact)}
-      {...anim}
-      transition={transition}
-    >
+      className={panelClass(isCompact)} {...anim} transition={transition}>
       <PeekHeader titleRef={titleRef} onClose={onClose} />
       {children}
     </motion.div>

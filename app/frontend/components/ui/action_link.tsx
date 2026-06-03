@@ -1,7 +1,7 @@
 import React from "react";
 
-import { buildActionLinkAttrs } from "./action_helpers";
 import type { ActionVariant, ActionSize } from "./action";
+import { buildActionLinkAttrs } from "./action_helpers";
 
 interface ActionLinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
   variant?: ActionVariant;
@@ -11,19 +11,13 @@ interface ActionLinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> 
 }
 
 export function ActionLink({
-  variant = "primary", size = "md", className, busy = false,
-  disabled = false, tabIndex, onClick, children, ...props
+  variant = "primary", size = "md", className, busy = false, disabled = false,
+  tabIndex, onClick, children, ...props
 }: ActionLinkProps) {
-  const attrs = buildActionLinkAttrs({ variant, size, className, busy, disabled, tabIndex, onClick });
+  const a = buildActionLinkAttrs({ variant, size, className, busy, disabled, tabIndex, onClick });
   return (
-    <a
-      {...props}
-      className={attrs.cls}
-      aria-busy={attrs.busyAttr}
-      aria-disabled={attrs.disabledAttr}
-      tabIndex={attrs.tabIdx}
-      onClick={attrs.clickHandler}
-    >
+    <a {...props} className={a.cls} aria-busy={a.busyAttr}
+      aria-disabled={a.disabledAttr} tabIndex={a.tabIdx} onClick={a.clickHandler}>
       {children}
     </a>
   );

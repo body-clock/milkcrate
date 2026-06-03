@@ -21,11 +21,15 @@ function getLookupMessage(lookup: AdminDiscogsLookupResponse): LookupMessageResu
     return { tone: "warning", message: applicantMessage(lookup.applicant) };
   }
   if (lookup.status === "invalid") {
-    return { tone: "danger", message: "Enter a valid Discogs username before creating a storefront." };
+    return {
+      tone: "danger",
+      message: "Enter a valid Discogs username before creating a storefront.",
+    };
   }
   return {
     tone: "danger",
-    message: "Discogs could not verify this seller right now. No storefront can be created from this lookup.",
+    message:
+      "Discogs could not verify this seller right now. No storefront can be created from this lookup.",
   };
 }
 

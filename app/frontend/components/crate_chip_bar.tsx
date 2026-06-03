@@ -1,6 +1,6 @@
 import type { Crate } from "../types/inertia";
-import { CrateChipEmpty } from "./crate_chip_empty";
 import CrateChipBarBody from "./crate_chip_bar_body";
+import { CrateChipEmpty } from "./crate_chip_empty";
 
 interface Props {
   title: string;
@@ -15,7 +15,9 @@ export default function CrateChipBar(props: Props) {
     return <CrateChipEmpty title={props.title} />;
   }
   const selectedSlug =
-    props.activeSlug && props.crates.some((c) => c.slug === props.activeSlug) ? props.activeSlug : null;
+    props.activeSlug && props.crates.some((c) => c.slug === props.activeSlug)
+      ? props.activeSlug
+      : null;
   return (
     <CrateChipBarBody
       title={props.title}

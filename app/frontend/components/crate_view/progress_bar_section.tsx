@@ -22,7 +22,12 @@ function renderProgressLabels(isCompact: boolean) {
   );
 }
 
-function renderProgressBar(index: number, total: number, progress: number, prefersReducedMotion: boolean) {
+function renderProgressBar(
+  index: number,
+  total: number,
+  progress: number,
+  prefersReducedMotion: boolean,
+) {
   return (
     <div
       role="progressbar"

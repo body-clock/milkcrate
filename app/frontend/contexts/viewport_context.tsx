@@ -30,9 +30,7 @@ function getInitialTier(): ViewportTier {
   return tierFromWidth(window.innerWidth);
 }
 
-function useViewportListeners(
-  setTier: React.Dispatch<React.SetStateAction<ViewportTier>>,
-): void {
+function useViewportListeners(setTier: React.Dispatch<React.SetStateAction<ViewportTier>>): void {
   useEffect(() => {
     const compactQuery = window.matchMedia(`(max-width: ${COMPACT_MAX}px)`);
     const comfyQuery = window.matchMedia(

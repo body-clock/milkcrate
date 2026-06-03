@@ -20,7 +20,12 @@ export function TotpSetupForm({ qrCode, secret, error }: TotpSetupFormProps) {
       <form onSubmit={handleSubmit} className="space-y-4">
         <SetupInstructions codeLength={TOTP_CODE_LENGTH} />
         <TotpCodeInput value={code} onChange={setCode} error={error} />
-        <Button type="submit" className="w-full" disabled={code.length < TOTP_CODE_LENGTH} busy={submitting}>
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={code.length < TOTP_CODE_LENGTH}
+          busy={submitting}
+        >
           {submitting ? "Verifying..." : "Enable two-factor authentication"}
         </Button>
       </form>

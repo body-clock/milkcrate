@@ -1,8 +1,8 @@
 import { usePage } from "@inertiajs/react";
 import React from "react";
 
-import { AppLayoutProviders } from "./app_layout_providers";
 import { AppLayoutContent } from "./app_layout_content";
+import { AppLayoutProviders } from "./app_layout_providers";
 
 interface AppLayoutProps {
   children: React.ReactNode;

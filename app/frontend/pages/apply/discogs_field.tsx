@@ -1,4 +1,5 @@
 import Field from "@/components/ui/field";
+
 import type { Copy, FormData } from "./types";
 
 function discogsFieldProps(copy: Copy, error?: string) {
@@ -20,9 +21,14 @@ type DiscogsFieldProps = {
 export default function DiscogsField({ data, setData, copy, error }: DiscogsFieldProps) {
   return (
     <Field {...discogsFieldProps(copy, error)}>
-      <input type="text" value={data.discogs_username}
+      <input
+        type="text"
+        value={data.discogs_username}
         onChange={(e) => setData("discogs_username", e.target.value)}
-        placeholder="philadelphiamusic" required aria-required="true" />
+        placeholder="philadelphiamusic"
+        required
+        aria-required="true"
+      />
     </Field>
   );
 }

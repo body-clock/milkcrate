@@ -98,21 +98,18 @@ function resolveMoveRaf(
     cancelAnimationFrame(currentRaf);
   }
   return requestAnimationFrame(() =>
-    setProximity(computeProximityFromRect(rect, e.clientX, e.clientY)));
+    setProximity(computeProximityFromRect(rect, e.clientX, e.clientY)),
+  );
 }
 function usePointerMove(
   disabled: boolean,
   isTouchRef: React.MutableRefObject<boolean>,
   setProximity: (n: number) => void,
-): {
-  handler: (e: React.PointerEvent) => void;
-  rafRef: React.MutableRefObject<number | null>;
-} {
+) {
   const rafRef = useRef<number | null>(null);
   const handler = useCallback(
     (e: React.PointerEvent) => {
-      rafRef.current = resolveMoveRaf(
-        e, disabled || isTouchRef.current, rafRef.current, setProximity);
+      rafRef.current = resolveMoveRaf(e, disabled || isTouchRef.current, rafRef.current, setProximity);
     },
     [disabled, isTouchRef, rafRef, setProximity],
   );
@@ -122,18 +119,15 @@ function usePointerLeave(
   rafRef: React.MutableRefObject<number | null>,
   setProximity: React.Dispatch<React.SetStateAction<number>>,
 ): () => void {
-  return useCallback(
-    () => {
-      if (!isBrowser) {
-        return;
-      }
-      if (rafRef.current !== null) {
-        cancelAnimationFrame(rafRef.current);
-      }
-      setProximity(0);
-    },
-    [rafRef, setProximity],
-  );
+  return useCallback(() => {
+    if (!isBrowser) {
+      return;
+    }
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+    }
+    setProximity(0);
+  }, [rafRef, setProximity]);
 }
 /** Tracks pointer proximity (0–1) relative to element center. */
 export function usePointerProximity(
@@ -148,9 +142,7 @@ export function usePointerProximity(
     (e: React.PointerEvent) => { isTouchRef.current = enterHandler(e); },
     [enterHandler, isTouchRef],
   );
-  useEffect(() => () => {
-    if (rafRef.current !== null) { cancelAnimationFrame(rafRef.current); }
-  }, [rafRef]);
+  useEffect(() => () => { if (rafRef.current !== null) { cancelAnimationFrame(rafRef.current); } }, [rafRef]);
   return {
     proximity,
     handlers: { onPointerEnter: enter, onPointerLeave: leave, onPointerMove: move },

@@ -71,39 +71,42 @@ function startTimeout(controller: AbortController): ReturnType<typeof setTimeout
 
 function teardownLookup(ar: AbRef, tr: TmRef): void {
   ar.current?.abort();
-  if (tr.current) { clearTimeout(tr.current); }
+  if (tr.current) {
+    clearTimeout(tr.current);
+  }
   Object.assign(ar, { current: null });
   Object.assign(tr, { current: null });
 }
 
 function finishLookup(
   ctx: LookupCtx,
-  controller: AbortController, data: AdminDiscogsLookupResponse,
+  controller: AbortController,
+  data: AdminDiscogsLookupResponse,
 ): void {
-  if (ctx.ar.current !== controller || controller.signal.aborted) { return; }
+  if (ctx.ar.current !== controller || controller.signal.aborted) {
+    return;
+  }
   teardownLookup(ctx.ar, ctx.tr);
   ctx.setSt({ status: "result", result: data });
 }
 
-function handleLookupError(
-  ctx: LookupCtx,
-  controller: AbortController, err: unknown,
-): void {
-  if (ctx.ar.current !== controller) { return; }
+function handleLookupError(ctx: LookupCtx, controller: AbortController, err: unknown): void {
+  if (ctx.ar.current !== controller) {
+    return;
+  }
   if (err instanceof DOMException && err.name === "AbortError") {
     teardownLookup(ctx.ar, ctx.tr);
     ctx.setSt({ status: "error" });
     return;
   }
-  if (controller.signal.aborted) { return; }
+  if (controller.signal.aborted) {
+    return;
+  }
   teardownLookup(ctx.ar, ctx.tr);
   ctx.setSt({ status: "error" });
 }
 
-function executeLookup(
-  ctx: LookupCtx,
-  lookupPath: string, username: string,
-): void {
+function executeLookup(ctx: LookupCtx, lookupPath: string, username: string): void {
   teardownLookup(ctx.ar, ctx.tr);
   const controller = new AbortController();
   Object.assign(ctx.ar, { current: controller });
@@ -133,7 +136,9 @@ export function useAdminDiscogsLookup(lookupPath: string): UseAdminDiscogsLookup
   useEffect(() => () => teardownLookup(ar, tr), []);
 
   const lookup = useCallback(
-    (username: string) => { executeLookup(ctx, lookupPath, username); },
+    (username: string) => {
+      executeLookup(ctx, lookupPath, username);
+    },
     [ctx, lookupPath],
   );
 

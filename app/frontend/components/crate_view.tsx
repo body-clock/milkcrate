@@ -1,9 +1,8 @@
-import CrateHeader from "./crate_view/crate_header";
+import type { Crate } from "../types/inertia";
 import CrateEmptyState from "./crate_view/crate_empty_state";
+import CrateHeader from "./crate_view/crate_header";
 import CrateViewContent from "./crate_view/crate_view_content";
 import { useCrateViewData } from "./crate_view/use_crate_view_data";
-
-import type { Crate } from "../types/inertia";
 
 interface Props {
   crates: Crate[];
@@ -23,7 +22,8 @@ export default function CrateView({
   crates, activeSlug, startIndex = 0, hideTabs = false,
   compactHeaderOwnedByLayout = false, onSelectCrate, onBack,
 }: Props) {
-  const data = useCrateViewData({ crates, activeSlug, startIndex, hideTabs, compactHeaderOwnedByLayout });
+  const data = useCrateViewData({ crates, activeSlug, startIndex,
+    hideTabs, compactHeaderOwnedByLayout });
   const header = (
     <CrateHeader isCompact={data.isCompact} onBack={onBack}
       tabs={{ crates, activeSlug, onSelectCrate }}

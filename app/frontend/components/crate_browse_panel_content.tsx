@@ -19,15 +19,14 @@ function findActiveCrate(crates: Crate[], activeSlug: string | null): Crate | nu
 export default function PanelContent(props: Props) {
   return (
     <>
-      <PanelChipBar config={props.config} crates={props.crates} activeSlug={props.activeSlug} onSelectCrate={props.onSelectCrate} hideChipBar={props.hideChipBar} />
+      <PanelChipBar config={props.config} crates={props.crates}
+        activeSlug={props.activeSlug} onSelectCrate={props.onSelectCrate}
+        hideChipBar={props.hideChipBar} />
       <CrateBrowseContent
         activeCrate={findActiveCrate(props.crates, props.activeSlug)}
-        crates={props.crates}
-        activeSlug={props.activeSlug}
-        startIndex={props.startIndex}
-        onSelectCrate={props.onSelectCrate}
-        emptyText={props.config.emptyText}
-      />
+        crates={props.crates} activeSlug={props.activeSlug}
+        startIndex={props.startIndex} onSelectCrate={props.onSelectCrate}
+        emptyText={props.config.emptyText} />
     </>
   );
 }

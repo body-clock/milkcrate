@@ -1,6 +1,6 @@
 import type { Crate } from "../types/inertia";
-import CrateChipBar from "./crate_chip_bar";
 import type { CrateBrowsePanelConfig } from "./crate_browse_panel";
+import CrateChipBar from "./crate_chip_bar";
 
 interface Props {
   config: CrateBrowsePanelConfig;
@@ -11,7 +11,9 @@ interface Props {
 }
 
 export default function PanelChipBar(props: Props) {
-  if (props.hideChipBar) { return null; }
+  if (props.hideChipBar) {
+    return null;
+  }
   return (
     <CrateChipBar
       title={props.config.title}

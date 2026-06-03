@@ -20,21 +20,23 @@ interface ShowStoreContentProps {
   props: Props;
 }
 
-export default function ShowStoreContent({ isWide, props }: ShowStoreContentProps) {
+export default function ShowStoreContent({ isWide, props: p }: ShowStoreContentProps) {
+  const genreCount =
+    p.storefront_sections
+      .filter((s): s is Extract<StorefrontSection, { crates: unknown[] }> => "crates" in s)
+      .find((s) => s.key === "genre_grid")?.crates?.length ?? 0;
+
   return (
     <>
-      <StoreSummary store={props.store} isWide={isWide} listingCount={props.listingCount} />
-      <SyncFailedBanner store={props.store} />
+      {p.activeSlug === null && (
+        <StoreSummary store={p.store} isWide={isWide} listingCount={p.listingCount} />
+      )}
+      <SyncFailedBanner store={p.store} />
       <BrowseShell
-        sections={props.storefront_sections} activeSlug={props.activeSlug}
-        startIndex={props.startIndex} selectCrate={props.selectCrate}
-        backToStore={props.backToStore} directEntry={props.directEntry}
-        crates={props.crates} listingCount={props.listingCount}
-        genreCount={
-          props.storefront_sections
-            .filter((s): s is Extract<StorefrontSection, { crates: unknown[] }> => "crates" in s)
-            .find((s) => s.key === "genre_grid")?.crates?.length ?? 0
-        }
+        sections={p.storefront_sections} activeSlug={p.activeSlug}
+        startIndex={p.startIndex} selectCrate={p.selectCrate}
+        backToStore={p.backToStore} directEntry={p.directEntry}
+        crates={p.crates} listingCount={p.listingCount} genreCount={genreCount}
       />
     </>
   );

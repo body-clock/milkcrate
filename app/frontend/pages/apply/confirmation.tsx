@@ -1,7 +1,8 @@
+import MarketingLayout from "@/layouts/marketing_layout";
+
+import AnimatedBody from "./animated_body";
 import AnimatedBrandMark from "./animated_brand_mark";
 import AnimatedHeadline from "./animated_headline";
-import AnimatedBody from "./animated_body";
-import MarketingLayout from "@/layouts/marketing_layout";
 
 export default function ConfirmationView({ headline, body }: { headline: string; body: string }) {
   return (

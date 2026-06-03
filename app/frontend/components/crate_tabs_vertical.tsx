@@ -15,10 +15,7 @@ interface Props {
   classesFn: (selected: boolean) => string;
 }
 
-export default function VerticalTabs({
-  tabsRef,
-  ...rest
-}: Props) {
+export default function VerticalTabs({ tabsRef, ...rest }: Props) {
   return (
     <div ref={tabsRef} role="tablist" aria-label="Crates" className="flex flex-col gap-0.5">
       <TabList {...rest} />

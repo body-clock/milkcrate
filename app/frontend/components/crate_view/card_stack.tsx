@@ -25,7 +25,10 @@ interface CardStackProps {
 export default function CardStack(props: CardStackProps) {
   const { isCompact } = props;
   const [flipDiscovered, setFlipDiscovered] = useState(() => loadFlipDiscovered());
-  const handleFlip = () => { markFlipDiscovered(); setFlipDiscovered(true); };
+  const handleFlip = () => {
+    markFlipDiscovered();
+    setFlipDiscovered(true);
+  };
   return (
     <div
       data-testid="crate-stack"

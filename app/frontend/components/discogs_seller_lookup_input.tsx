@@ -30,21 +30,43 @@ function validateUsername(value: string): string | null {
   return null;
 }
 
-function useDiscogsForm() {
-  const [username, setUsername] = useState("");
-  const [validationError, setValidationError] = useState<string | null>(null);
+function useDiscogsAnnouncer() {
   const announcerRef = useRef<HTMLDivElement>(null);
-  const announce = useCallback(
-    (m: string) => { if (announcerRef.current) { announcerRef.current.textContent = m; } }, []);
+  const announce = useCallback((m: string) => {
+    if (announcerRef.current) { announcerRef.current.textContent = m; }
+  }, []);
+  return { announcerRef, announce };
+}
+
+function useDiscogsFormCallbacks(
+  lookup: (v: string) => void, reset: () => void, state: { status: string },
+) {
+  const [u, setU] = useState("");
+  const [vErr, setVErr] = useState<string | null>(null);
+  const handleSubmit = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      const err = validateUsername(u.trim());
+      setVErr(err);
+      if (!err) { lookup(u.trim()); }
+    },
+    [u, lookup],
+  );
+  const handleUsernameChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setU(e.target.value); setVErr(null);
+      if (state.status !== "idle") { reset(); }
+    },
+    [state.status, reset],
+  );
+  return { username: u, validationError: vErr, handleSubmit, handleUsernameChange };
+}
+
+function useDiscogsForm() {
+  const { announcerRef, announce } = useDiscogsAnnouncer();
   const { state, lookup, reset } = useDiscogsLookup(announce);
-  const handleSubmit = useCallback((e: React.FormEvent) => {
-    e.preventDefault(); const err = validateUsername(username.trim());
-    setValidationError(err); if (!err) { lookup(username.trim()); }
-  }, [username, lookup]);
-  const handleUsernameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setUsername(e.target.value); setValidationError(null);
-    if (state.status !== "idle") { reset(); }
-  }, [state.status, reset]);
+  const { username, validationError, handleSubmit, handleUsernameChange } =
+    useDiscogsFormCallbacks(lookup, reset, state);
   return { username, validationError, announcerRef, state,
     handleSubmit, handleUsernameChange, reset, isSubmitting: state.status === "loading" };
 }
@@ -58,11 +80,9 @@ export default function DiscogsSellerLookupInput({ copy }: Props) {
   return (
     <div className="w-full">
       <div ref={form.announcerRef} aria-live="polite" aria-atomic="true" className="sr-only" />
-      <LookupForm
-        username={form.username} validationError={form.validationError}
+      <LookupForm username={form.username} validationError={form.validationError}
         isSubmitting={form.isSubmitting} copy={copy} inputRef={inputRef}
-        handleSubmit={form.handleSubmit} handleUsernameChange={form.handleUsernameChange}
-      />
+        handleSubmit={form.handleSubmit} handleUsernameChange={form.handleUsernameChange} />
       <div ref={resultRef} tabIndex={-1} className="outline-none mt-4" role="status">
         <LookupStatus state={form.state} copy={copy} onRetry={form.reset} />
       </div>

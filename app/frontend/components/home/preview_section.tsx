@@ -1,9 +1,8 @@
 import { motion } from "framer-motion";
 
-import type { WallCrate } from "@/types/inertia";
-
 import PreviewBody from "@/components/home/preview_body";
 import PreviewHeading from "@/components/home/preview_heading";
+import type { WallCrate } from "@/types/inertia";
 
 interface Props {
   previewLabel: string;
@@ -13,7 +12,10 @@ interface Props {
 }
 
 export default function PreviewSection({
-  previewLabel, previewBlurb, wallCrate, storeSlug,
+  previewLabel,
+  previewBlurb,
+  wallCrate,
+  storeSlug,
 }: Props) {
   return (
     <motion.section

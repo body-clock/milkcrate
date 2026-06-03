@@ -18,16 +18,28 @@ function renderCoverImage(url: string, title: string | null, loading: "eager" | 
   );
 }
 
-const CARD_STYLE = { position: "absolute" as const, inset: 0, backfaceVisibility: "hidden" as const, WebkitBackfaceVisibility: "hidden" as const, contain: "paint" as const };
+const CARD_STYLE = {
+  position: "absolute" as const,
+  inset: 0,
+  backfaceVisibility: "hidden" as const,
+  WebkitBackfaceVisibility: "hidden" as const,
+  contain: "paint" as const,
+};
 
 function renderPlaceholder() {
-  return <div className="w-full h-full flex items-center justify-center bg-mc-bg-raised text-mc-text-dim text-5xl">♪</div>;
+  return (
+    <div className="w-full h-full flex items-center justify-center bg-mc-bg-raised text-mc-text-dim text-5xl">
+      ♪
+    </div>
+  );
 }
 
 export default function CardFront({ listing, imageLoading = "lazy" }: Props) {
   return (
     <div className="rounded-lg overflow-hidden shadow-xl" style={CARD_STYLE}>
-      {listing.cover_image_url ? renderCoverImage(listing.cover_image_url, listing.title, imageLoading) : renderPlaceholder()}
+      {listing.cover_image_url
+        ? renderCoverImage(listing.cover_image_url, listing.title, imageLoading)
+        : renderPlaceholder()}
     </div>
   );
 }

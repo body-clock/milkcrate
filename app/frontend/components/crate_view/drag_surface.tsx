@@ -92,7 +92,9 @@ export default function DragSurface(props: ActiveRecordCardProps) {
   } = props;
   const { handleRotate, handleEnd } = useDragHandlers(dragRotationRef, handleDragEnd);
   return (
-    <motion.div {...dragMotionProps(dragRotationRef, prefersReducedMotion, handleRotate, handleEnd)}>
+    <motion.div
+      {...dragMotionProps(dragRotationRef, prefersReducedMotion, handleRotate, handleEnd)}
+    >
       {renderDragContent(slot, activeSlug, isCompact, onFlip)}
     </motion.div>
   );

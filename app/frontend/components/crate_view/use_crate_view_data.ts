@@ -7,8 +7,8 @@ import { useViewport } from "@/hooks/use_viewport";
 import { buildCrateWindow } from "../../lib/crate_window";
 import type { RiffleDirection } from "../../lib/riffle_navigation";
 import type { Crate, Listing } from "../../types/inertia";
-import type { CrateHeaderLayoutMode } from "./crate_header/types";
 import { useReducedMotionContext } from "../storefront_motion_config";
+import type { CrateHeaderLayoutMode } from "./crate_header/types";
 import { deriveCrateData, deriveLayoutMode } from "./helpers";
 
 const WINDOW_RADIUS = 2;
@@ -34,7 +34,10 @@ interface UseCrateViewDataResult {
   showGestureHint: boolean;
   progress: number;
   dragRotationRef: React.RefObject<HTMLDivElement | null>;
-  handleDragEnd: (info: { offset: { x: number; y: number }; velocity: { x: number; y: number } }) => void;
+  handleDragEnd: (info: {
+    offset: { x: number; y: number };
+    velocity: { x: number; y: number };
+  }) => void;
   activeSlug: string;
   visibleRecords: ReturnType<typeof buildCrateWindow<Listing>>;
   activeRecord: Listing | undefined;
@@ -42,18 +45,12 @@ interface UseCrateViewDataResult {
 }
 
 function useCrateViewRecords(crates: Crate[], activeSlug: string) {
-  return useMemo(
-    () => deriveCrateData(crates, activeSlug),
-    [crates, activeSlug],
-  );
+  return useMemo(() => deriveCrateData(crates, activeSlug), [crates, activeSlug]);
 }
 
 function useCrateViewWindow(records: Listing[], index: number) {
   usePreload(records, index);
-  return useMemo(
-    () => buildCrateWindow<Listing>(records, index, WINDOW_RADIUS),
-    [records, index],
-  );
+  return useMemo(() => buildCrateWindow<Listing>(records, index, WINDOW_RADIUS), [records, index]);
 }
 
 export function useCrateViewData(opts: UseCrateViewDataOpts): UseCrateViewDataResult {
@@ -61,9 +58,11 @@ export function useCrateViewData(opts: UseCrateViewDataOpts): UseCrateViewDataRe
   const { isCompact } = useViewport();
   const prefersReducedMotion = useReducedMotionContext();
   const { activeCrate, records, total } = useCrateViewRecords(crates, activeSlug);
-  const nav = useCrateNavigation({ total, isCompact, initialIndex: startIndex, resetKey: activeSlug });
+  const nav = useCrateNavigation({ total, isCompact,
+    initialIndex: startIndex, resetKey: activeSlug });
   const visibleRecords = useCrateViewWindow(records, nav.index);
   const activeRecord = records[nav.index];
   const layoutMode = deriveLayoutMode(compactHeaderOwnedByLayout, hideTabs);
-  return { isCompact, prefersReducedMotion, activeCrate, records, total, activeSlug, ...nav, visibleRecords, activeRecord, layoutMode };
+  return { isCompact, prefersReducedMotion, activeCrate, records, total, activeSlug,
+    ...nav, visibleRecords, activeRecord, layoutMode };
 }

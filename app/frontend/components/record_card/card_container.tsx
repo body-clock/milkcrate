@@ -16,17 +16,12 @@ export function cardContainer({
   handlePointerDown, handleFlip, handleKeyDown,
 }: Props) {
   return (
-    <div
-      className={`w-full h-full flex-shrink-0 cursor-pointer ${className}`}
+    <div className={`w-full h-full flex-shrink-0 cursor-pointer ${className}`}
       style={{ perspective: PERSPECTIVE_DEPTH, touchAction: "none" }}
-      role={roleAttr}
-      tabIndex={tabAttr}
-      aria-label={label}
-      aria-pressed={pressedAttr}
-      onPointerDown={handlePointerDown} onDragStart={(e: React.DragEvent) => e.preventDefault()}
-      onClick={handleFlip}
-      onKeyDown={handleKeyDown}
-    >
+      role={roleAttr} tabIndex={tabAttr} aria-label={label} aria-pressed={pressedAttr}
+      onPointerDown={handlePointerDown}
+      onDragStart={(e: React.DragEvent) => e.preventDefault()}
+      onClick={handleFlip} onKeyDown={handleKeyDown}>
       {children}
     </div>
   );

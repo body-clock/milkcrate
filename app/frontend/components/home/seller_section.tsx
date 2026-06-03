@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 
-import SellerLookupForm from "@/components/home/seller_lookup_form";
 import SellerHeading from "@/components/home/seller_heading";
+import SellerLookupForm from "@/components/home/seller_lookup_form";
 
 interface SellerCopy {
   seller_input_label: string;

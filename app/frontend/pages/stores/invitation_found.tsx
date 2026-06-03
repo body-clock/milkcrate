@@ -7,12 +7,7 @@ interface Props {
   csrfToken: string | undefined;
 }
 
-export default function InvitationFound({
-  slug,
-  oauth_available,
-  sellerName,
-  csrfToken,
-}: Props) {
+export default function InvitationFound({ slug, oauth_available, sellerName, csrfToken }: Props) {
   return (
     <InvitationFoundContent
       slug={slug}

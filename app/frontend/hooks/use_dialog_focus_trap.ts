@@ -134,9 +134,14 @@ export function useDialogFocusTrap(
   const titleRef = useRef<HTMLSpanElement>(null);
   const prevRef = useRef<HTMLElement | null>(null);
   useEffect(() => {
-    if (!open) { return; }
+    if (!open) {
+      return;
+    }
     return engageFocusTrap({
-      prevRef, titleRef, dialogRef, onClose,
+      prevRef,
+      titleRef,
+      dialogRef,
+      onClose,
       returnFocusRef: retRef,
     });
   }, [open, onClose, dialogRef, titleRef, retRef]);

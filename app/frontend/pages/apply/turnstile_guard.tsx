@@ -7,13 +7,14 @@ type TurnstileGuardProps = {
   error?: string;
 };
 
-export default function TurnstileGuard({ isReady, turnstileRef, turnstile, error }: TurnstileGuardProps) {
-  if (!isReady) { return null; }
-  return (
-    <TurnstileSection
-      turnstileRef={turnstileRef}
-      turnstile={turnstile}
-      error={error}
-    />
-  );
+export default function TurnstileGuard({
+  isReady,
+  turnstileRef,
+  turnstile,
+  error,
+}: TurnstileGuardProps) {
+  if (!isReady) {
+    return null;
+  }
+  return <TurnstileSection turnstileRef={turnstileRef} turnstile={turnstile} error={error} />;
 }

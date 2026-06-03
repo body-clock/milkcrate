@@ -1,9 +1,9 @@
+import { buildCrateWindow } from "../../lib/crate_window";
 import type { RiffleDirection } from "../../lib/riffle_navigation";
 import type { Listing } from "../../types/inertia";
-import { buildCrateWindow } from "../../lib/crate_window";
+import RecordDetails from "../record_details";
 import CardStack from "./card_stack";
 import CrateProgress from "./crate_progress";
-import RecordDetails from "../record_details";
 
 interface CrateViewContentProps {
   header: React.ReactNode;
@@ -15,7 +15,10 @@ interface CrateViewContentProps {
   showGestureHint: boolean;
   total: number;
   dragRotationRef: React.RefObject<HTMLDivElement | null>;
-  handleDragEnd: (info: { offset: { x: number; y: number }; velocity: { x: number; y: number } }) => void;
+  handleDragEnd: (info: {
+    offset: { x: number; y: number };
+    velocity: { x: number; y: number };
+  }) => void;
   index: number;
   progress: number;
   edgeStatus: string | null;
@@ -28,17 +31,21 @@ function renderCards(props: CrateViewContentProps) {
     <div className="flex flex-col">
       <CardStack isCompact={props.isCompact} visibleRecords={props.visibleRecords}
         activeSlug={props.activeSlug} prefersReducedMotion={props.prefersReducedMotion}
-        direction={props.direction} showGestureHint={props.showGestureHint} total={props.total}
-        dragRotationRef={props.dragRotationRef} handleDragEnd={props.handleDragEnd} />
-      <CrateProgress index={props.index} total={props.total} progress={props.progress}
-        edgeStatus={props.edgeStatus} isCompact={props.isCompact}
-        prefersReducedMotion={props.prefersReducedMotion} navigate={props.navigate} />
+        direction={props.direction} showGestureHint={props.showGestureHint}
+        total={props.total} dragRotationRef={props.dragRotationRef}
+        handleDragEnd={props.handleDragEnd} />
+      <CrateProgress index={props.index} total={props.total}
+        progress={props.progress} edgeStatus={props.edgeStatus}
+        isCompact={props.isCompact} prefersReducedMotion={props.prefersReducedMotion}
+        navigate={props.navigate} />
     </div>
   );
 }
 
 function renderDetails(props: CrateViewContentProps) {
-  if (!props.activeRecord) { return null; }
+  if (!props.activeRecord) {
+    return null;
+  }
   return (
     <div className="hidden md:flex md:flex-col md:pt-7">
       <RecordDetails listing={props.activeRecord} direction={props.direction.current} />

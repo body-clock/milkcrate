@@ -14,21 +14,32 @@ interface DashboardCardsProps {
 }
 
 function syncStatusVariant(status: string): "danger" | "working" | "neutral" {
-  if (status === "failed") { return "danger"; }
-  if (status === "syncing") { return "working"; }
+  if (status === "failed") {
+    return "danger";
+  }
+  if (status === "syncing") {
+    return "working";
+  }
   return "neutral";
 }
 
 function syncStatusLabel(status: string): string {
   switch (status) {
-    case "syncing": return "Syncing…";
-    case "failed": return "Sync failed";
-    default: return "Idle";
+    case "syncing":
+      return "Syncing…";
+    case "failed":
+      return "Sync failed";
+    default:
+      return "Idle";
   }
 }
 
 export default function DashboardCards({
-  store, showWelcome, setShowWelcome, submitting, setSubmitting,
+  store,
+  showWelcome,
+  setShowWelcome,
+  submitting,
+  setSubmitting,
 }: DashboardCardsProps) {
   return (
     <div className="flex flex-col gap-6">
@@ -36,9 +47,11 @@ export default function DashboardCards({
         <WelcomeCard storefrontUrl={store.storefront_url} dismiss={() => setShowWelcome(false)} />
       )}
       <StoreInfoCard
-        store={store} syncStatusLabel={syncStatusLabel(store.sync_status)}
+        store={store}
+        syncStatusLabel={syncStatusLabel(store.sync_status)}
         syncStatusVariant={syncStatusVariant(store.sync_status)}
-        submitting={submitting} onResync={() => handleResync(setSubmitting)}
+        submitting={submitting}
+        onResync={() => handleResync(setSubmitting)}
       />
       {store.last_sync_error_summary && (
         <SyncErrorCard summary={store.last_sync_error_summary} errorAt={store.last_sync_error_at} />

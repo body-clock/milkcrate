@@ -14,6 +14,18 @@ function coverImg({ src, alt, loading }: { src: string; alt: string; loading?: "
   );
 }
 
-export function RecordCover({ src, alt, imageLoading }: { src: string | undefined; alt: string; imageLoading?: "eager" | "lazy" }) {
-  return src ? coverImg({ src, alt, loading: imageLoading }) : <div className={PLACEHOLDER_CLASS}>♪</div>;
+export function RecordCover({
+  src,
+  alt,
+  imageLoading,
+}: {
+  src: string | undefined;
+  alt: string;
+  imageLoading?: "eager" | "lazy";
+}) {
+  return src ? (
+    coverImg({ src, alt, loading: imageLoading })
+  ) : (
+    <div className={PLACEHOLDER_CLASS}>♪</div>
+  );
 }

@@ -20,10 +20,7 @@ export function AppHeader(props: AppHeaderProps) {
   const p = props;
   return (
     <header ref={p.contextFocusRef} tabIndex={-1} className={headerClass}>
-      <AppHeaderBrand
-        storeName={p.storeName}
-        isCompact={p.isCompact}
-      />
+      <AppHeaderBrand storeName={p.storeName} isCompact={p.isCompact} />
       <AppHeaderActions
         pile={p.pile}
         pileOpen={p.pileOpen}

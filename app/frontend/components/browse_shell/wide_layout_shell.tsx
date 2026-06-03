@@ -1,5 +1,5 @@
-import WideLayout from "./wide_layout";
 import type { SharedData, ShellHandlers } from "./types";
+import WideLayout from "./wide_layout";
 
 interface Props extends SharedData, ShellHandlers {
   listingCount?: number;
@@ -7,19 +7,12 @@ interface Props extends SharedData, ShellHandlers {
 }
 
 export default function WideLayoutShell(props: Props) {
-  const { mode, wall, currentCrates, activeSlug, startIndex, selectCrate, listingCount, genreCount, handleWallSelected, handleBrowseModeSelected } = props;
   return (
-    <WideLayout
-      mode={mode}
-      wall={wall}
-      currentCrates={currentCrates}
-      activeSlug={activeSlug}
-      startIndex={startIndex}
-      selectCrate={selectCrate}
-      listingCount={listingCount ?? 0}
-      genreCount={genreCount}
-      onWallSelect={handleWallSelected}
-      onBrowseModeSelect={handleBrowseModeSelected}
-    />
+    <WideLayout mode={props.mode} wall={props.wall}
+      currentCrates={props.currentCrates} activeSlug={props.activeSlug}
+      startIndex={props.startIndex} selectCrate={props.selectCrate}
+      listingCount={props.listingCount ?? 0} genreCount={props.genreCount}
+      onWallSelect={props.handleWallSelected}
+      onBrowseModeSelect={props.handleBrowseModeSelected} />
   );
 }
