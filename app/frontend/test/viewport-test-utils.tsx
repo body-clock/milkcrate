@@ -3,6 +3,11 @@ import { useMemo, type ReactNode } from "react";
 
 import { ViewportContext, type ViewportTier } from "@/contexts/viewport_context";
 
+function TierProvider({ tier, children }: { tier: ViewportTier; children: ReactNode }) {
+  const value = useMemo(() => ({ tier }), [tier]);
+  return <ViewportContext.Provider value={value}>{children}</ViewportContext.Provider>;
+}
+
 /**
  * Wrap children in a ViewportContext with a fixed tier, bypassing matchMedia.
  * Use in tests to render a component at a specific viewport tier.
@@ -16,10 +21,9 @@ export function renderWithTier(
   options?: Omit<RenderOptions, "wrapper">,
 ) {
   return render(ui, {
-    wrapper: ({ children }: { children: ReactNode }) => {
-      const value = useMemo(() => ({ tier }), [tier]);
-      return <ViewportContext.Provider value={value}>{children}</ViewportContext.Provider>;
-    },
+    wrapper: ({ children }: { children: ReactNode }) => (
+      <TierProvider tier={tier}>{children}</TierProvider>
+    ),
     ...options,
   });
 }
@@ -29,8 +33,5 @@ export function renderWithTier(
  * Useful with renderHook or when you need the wrapper separately.
  */
 export function TierWrapper(tier: ViewportTier) {
-  return function Wrapper({ children }: { children: ReactNode }) {
-    const value = useMemo(() => ({ tier }), [tier]);
-    return <ViewportContext.Provider value={value}>{children}</ViewportContext.Provider>;
-  };
+  return ({ children }: { children: ReactNode }) => <TierProvider tier={tier}>{children}</TierProvider>;
 }

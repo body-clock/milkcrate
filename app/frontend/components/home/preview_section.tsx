@@ -2,9 +2,8 @@ import { motion } from "framer-motion";
 
 import type { WallCrate } from "@/types/inertia";
 
-import PreviewFallback from "./preview_fallback";
-import PreviewHeading from "./preview_heading";
-import PreviewWithCrate from "./preview_with_crate";
+import PreviewBody from "@/components/home/preview_body";
+import PreviewHeading from "@/components/home/preview_heading";
 
 interface Props {
   previewLabel: string;
@@ -14,10 +13,7 @@ interface Props {
 }
 
 export default function PreviewSection({
-  previewLabel,
-  previewBlurb,
-  wallCrate,
-  storeSlug,
+  previewLabel, previewBlurb, wallCrate, storeSlug,
 }: Props) {
   return (
     <motion.section
@@ -28,11 +24,7 @@ export default function PreviewSection({
       className="border-t border-mc-border py-10 sm:py-16"
     >
       <PreviewHeading previewLabel={previewLabel} previewBlurb={previewBlurb} />
-      {wallCrate && wallCrate.records.length > 0 ? (
-        <PreviewWithCrate wallCrate={wallCrate} storeSlug={storeSlug} />
-      ) : (
-        <PreviewFallback />
-      )}
+      <PreviewBody wallCrate={wallCrate} storeSlug={storeSlug} />
     </motion.section>
   );
 }

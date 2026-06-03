@@ -11,25 +11,18 @@ interface Props {
   classesFn: (selected: boolean) => string;
 }
 
-export default function CrateTabsRenderVertical({
-  s,
-  crates,
-  activeSlug,
-  onSelect,
-  tabIndexValue,
-  classesFn,
-}: Props) {
+export default function CrateTabsRenderVertical(props: Props) {
   return (
     <VerticalTabs
-      crates={crates}
-      activeSlug={activeSlug}
-      hasSelection={s.hasSelection}
-      onSelect={onSelect}
-      tabsRef={s.tabsRef}
-      activeTabRef={s.activeTabRef}
-      handleKeyDown={s.handleKeyDown}
-      tabIndexValue={tabIndexValue}
-      classesFn={classesFn}
+      crates={props.crates}
+      activeSlug={props.activeSlug}
+      hasSelection={props.s.hasSelection}
+      onSelect={props.onSelect}
+      tabsRef={props.s.tabsRef}
+      activeTabRef={props.s.activeTabRef}
+      handleKeyDown={props.s.handleKeyDown}
+      tabIndexValue={props.tabIndexValue}
+      classesFn={props.classesFn}
     />
   );
 }

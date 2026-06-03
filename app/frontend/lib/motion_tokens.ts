@@ -45,7 +45,11 @@ export const TILT_HOVER = 1.5; // deg
 // ── Easing presets ──────────────────────────────────────────
 
 /** Home page fade-up easing bezier. Duplicated across home/ before centralization. */
-export const EASE_OUT = [0.25, 0.46, 0.45, 0.94] as const;
+const EASE_X = 0.25;
+const EASE_Y1 = 0.46;
+const EASE_X2 = 0.45;
+const EASE_Y2 = 0.94;
+export const EASE_OUT = [EASE_X, EASE_Y1, EASE_X2, EASE_Y2] as const;
 
 // ── Transition presets ────────────────────────────────────────
 // Convenience exports so consumers reference the preset, not the

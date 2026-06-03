@@ -8,7 +8,7 @@ type TurnstileGuardProps = {
 };
 
 export default function TurnstileGuard({ isReady, turnstileRef, turnstile, error }: TurnstileGuardProps) {
-  if (!isReady) return null;
+  if (!isReady) { return null; }
   return (
     <TurnstileSection
       turnstileRef={turnstileRef}

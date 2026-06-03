@@ -2,19 +2,16 @@ import InvitationFound from "./invitation_found";
 import InvitationLoading from "./invitation_loading";
 import InvitationNoMatch from "./invitation_no_match";
 
-export default function ContentBody({
-  displayStatus,
-  slug,
-  oauth_available,
-  sellerName,
-  csrfToken,
-}: {
+interface ContentBodyProps {
   displayStatus: "loading" | "found" | "not_found";
   slug: string;
   oauth_available?: boolean;
   sellerName: string | null;
   csrfToken: string | undefined;
-}) {
+}
+
+export default function ContentBody(props: ContentBodyProps) {
+  const { displayStatus, slug, oauth_available, sellerName, csrfToken } = props;
   return (
     <>
       {displayStatus === "loading" && <InvitationLoading />}

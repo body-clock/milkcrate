@@ -1,12 +1,13 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 
-import { markLessonLearned, isLessonLearned } from "@/lib/first_swipe_lesson";
+import { isLessonLearned } from "@/lib/first_swipe_lesson";
 import {
-  RIFFLE_LANGUAGE,
-  resolveRiffleMove,
   resolveRiffleDrag,
   type RiffleDirection,
 } from "@/lib/riffle_navigation";
+
+import { handleRiffleNavigation } from "./crate_navigation_helpers";
+import type { CrateNavDeps, ResetEffectDeps, NavigationState } from "./crate_navigation_types";
 
 interface UseCrateNavigationOptions {
   total: number;
@@ -34,36 +35,6 @@ interface DragEndInfo {
   velocity: { x: number; y: number };
 }
 
-interface CrateNavDeps {
-  total: number;
-  isCompact: boolean;
-  indexRef: React.MutableRefObject<number>;
-  direction: React.MutableRefObject<RiffleDirection>;
-  setIndex: React.Dispatch<React.SetStateAction<number>>;
-  setShowGestureHint: React.Dispatch<React.SetStateAction<boolean>>;
-  setEdgeStatus: React.Dispatch<React.SetStateAction<string | null>>;
-}
-
-interface ResetEffectDeps {
-  initialIndex: number;
-  resetKey: string;
-  setIndex: React.Dispatch<React.SetStateAction<number>>;
-  setShowGestureHint: React.Dispatch<React.SetStateAction<boolean>>;
-  setEdgeStatus: React.Dispatch<React.SetStateAction<string | null>>;
-}
-
-interface NavigationState {
-  index: number;
-  setIndex: React.Dispatch<React.SetStateAction<number>>;
-  showGestureHint: boolean;
-  setShowGestureHint: React.Dispatch<React.SetStateAction<boolean>>;
-  edgeStatus: string | null;
-  setEdgeStatus: React.Dispatch<React.SetStateAction<string | null>>;
-  direction: React.MutableRefObject<RiffleDirection>;
-  indexRef: React.MutableRefObject<number>;
-  dragRotationRef: React.RefObject<HTMLDivElement | null>;
-}
-
 const PROGRESS_PCT_BASE = 100;
 
 function isEditableTarget(target: EventTarget | null) {
@@ -76,24 +47,6 @@ function isEditableTarget(target: EventTarget | null) {
     target instanceof HTMLSelectElement ||
     target.isContentEditable
   );
-}
-
-function createKeyDownHandler(navigate: (d: RiffleDirection) => void) {
-  return (e: KeyboardEvent) => {
-    if (isEditableTarget(e.target)) {
-      return;
-    }
-    if (document.querySelector('[role="dialog"][aria-modal="true"]')) {
-      return;
-    }
-    if (e.key === "ArrowDown") {
-      navigate("deeper");
-      return;
-    }
-    if (e.key === "ArrowUp") {
-      navigate("front");
-    }
-  };
 }
 
 function useDragNavigation(navigate: (direction: RiffleDirection) => void) {
@@ -114,7 +67,15 @@ function useDragNavigation(navigate: (direction: RiffleDirection) => void) {
 }
 
 function useKeyboardNavigation(navigate: (direction: RiffleDirection) => void) {
-  const handler = useCallback(createKeyDownHandler(navigate), [navigate]);
+  const handler = useCallback(
+    (e: KeyboardEvent) => {
+      if (isEditableTarget(e.target)) { return; }
+      if (document.querySelector('[role="dialog"][aria-modal="true"]')) { return; }
+      if (e.key === "ArrowDown") { navigate("deeper"); return; }
+      if (e.key === "ArrowUp") { navigate("front"); }
+    },
+    [navigate],
+  );
   useEffect(() => {
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
@@ -134,42 +95,11 @@ function useResetEffect(deps: ResetEffectDeps) {
   }, [initialIndex, resetKey, setIndex, setShowGestureHint, setEdgeStatus]);
 }
 
-/**
- * Performs a riffle navigation move.
- * Ref mutations happen via opts (2 levels deep from param → no-param-reassign pass).
- */
-function handleRiffleNavigation(
-  riffleDirection: RiffleDirection,
-  opts: CrateNavDeps,
-) {
-  const move = resolveRiffleMove({
-    currentIndex: opts.indexRef.current,
-    total: opts.total,
-    direction: riffleDirection,
-  });
-  if (!move.moved) {
-    opts.setEdgeStatus(RIFFLE_LANGUAGE.edgeStatus[riffleDirection]);
-    return;
-  }
-  opts.direction.current = riffleDirection;
-  opts.indexRef.current = move.nextIndex;
-  opts.setIndex(move.nextIndex);
-  opts.setShowGestureHint(false);
-  opts.setEdgeStatus(null);
-  if (opts.isCompact) {
-    markLessonLearned();
-  }
-}
-
 function useCrateNavigate(deps: CrateNavDeps) {
-  const {
-    total, isCompact, indexRef, direction,
-    setIndex, setShowGestureHint, setEdgeStatus,
-  } = deps;
   return useCallback(
     (riffleDirection: RiffleDirection) =>
       handleRiffleNavigation(riffleDirection, deps),
-    [total, isCompact, indexRef, direction, setIndex, setShowGestureHint, setEdgeStatus],
+    [deps],
   );
 }
 

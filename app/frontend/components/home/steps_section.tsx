@@ -1,4 +1,4 @@
-import StepCard from "@/components/home/step_card";
+import StepsGrid from "@/components/home/steps_grid";
 
 interface Step {
   number: number;
@@ -8,7 +8,6 @@ interface Step {
 interface Props {
   steps: Step[];
 }
-
 
 export default function StepsSection({ steps }: Props) {
   return (
@@ -20,16 +19,7 @@ export default function StepsSection({ steps }: Props) {
         <h2 id="home-steps-heading" className="sr-only">
           How it works
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-10">
-          {steps.map((s) => (
-            <StepCard
-              key={s.number}
-              number={s.number}
-              title={s.title}
-              description={s.description}
-            />
-          ))}
-        </div>
+        <StepsGrid steps={steps} />
       </div>
     </section>
   );

@@ -3,11 +3,12 @@ import userEvent from "@testing-library/user-event";
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { PileProvider, usePileContext } from "../../contexts/pile_context";
+import { PileProvider } from "../../contexts/pile_context";
 import { ShopperProvider } from "../../contexts/shopper_context";
 import { ViewportProvider } from "../../contexts/viewport_context";
 import type { Listing } from "../../types/inertia";
 import PileSheet from "../pile_sheet";
+import { PilePopulator } from "./test_helpers";
 
 const mockedPage = vi.hoisted(() => ({
   shopper: { discogs_username: "shopper1" } as { discogs_username: string } | null,
@@ -56,20 +57,6 @@ const makeListing = (overrides: Partial<Listing> = {}): Listing => ({
   discogs_url: "https://www.discogs.com/sell/item/1",
   ...overrides,
 });
-
-function PilePopulator({
-  children,
-  pileRecords,
-}: {
-  children: React.ReactNode;
-  pileRecords: Listing[];
-}) {
-  const { addToPile } = usePileContext();
-  React.useEffect(() => {
-    pileRecords.forEach((r) => addToPile(r));
-  }, [addToPile, pileRecords]);
-  return <>{children}</>;
-}
 
 function PileSheetInner({ pileRecords }: { pileRecords: Listing[] }) {
   return (

@@ -10,6 +10,14 @@ interface UseDialogFocusTrapResult {
   titleRef: React.RefObject<HTMLSpanElement | null>;
 }
 
+interface EngageFocusTrapOpts {
+  prevRef: React.MutableRefObject<HTMLElement | null>;
+  titleRef: React.RefObject<HTMLSpanElement | null>;
+  dialogRef: React.RefObject<HTMLDivElement | null>;
+  onClose: () => void;
+  returnFocusRef: React.RefObject<HTMLElement | null> | undefined;
+}
+
 const FOCUSABLE_SELECTOR = [
   "a[href]",
   "button:not([disabled])",
@@ -102,14 +110,9 @@ function restoreFocus(previousFocus: HTMLElement | null, returnFocus: HTMLElemen
   }
 }
 
-function engageFocusTrap(
-  prevRef: React.MutableRefObject<HTMLElement | null>,
-  titleRef: React.RefObject<HTMLSpanElement | null>,
-  dialogRef: React.RefObject<HTMLDivElement | null>,
-  onClose: () => void,
-  retRef: React.RefObject<HTMLElement | null> | undefined,
-): () => void {
-  prevRef.current = document.activeElement as HTMLElement | null;
+function engageFocusTrap(opts: EngageFocusTrapOpts): () => void {
+  const { prevRef, titleRef, dialogRef, onClose, returnFocusRef: retRef } = opts;
+  Object.assign(prevRef, { current: document.activeElement as HTMLElement | null });
   titleRef.current?.focus();
   const handler = createTabHandler(onClose, dialogRef, titleRef);
   document.addEventListener("keydown", handler);
@@ -132,7 +135,10 @@ export function useDialogFocusTrap(
   const prevRef = useRef<HTMLElement | null>(null);
   useEffect(() => {
     if (!open) { return; }
-    return engageFocusTrap(prevRef, titleRef, dialogRef, onClose, retRef);
+    return engageFocusTrap({
+      prevRef, titleRef, dialogRef, onClose,
+      returnFocusRef: retRef,
+    });
   }, [open, onClose, dialogRef, titleRef, retRef]);
   return { dialogRef, titleRef };
 }

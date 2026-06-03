@@ -14,8 +14,10 @@ interface Props {
   hideChipBar: boolean;
 }
 
-function BrowseContent(props: Props) {
-  if (props.mode === "wall") return <WallPanel crate={props.wall} />;
+export default function BrowsePanel(props: Props) {
+  if (props.mode === "wall") {
+    return <WallPanel crate={props.wall} />;
+  }
   return (
     <CrateBrowsePanel
       config={COPY.cratePanels[props.mode]}
@@ -26,8 +28,4 @@ function BrowseContent(props: Props) {
       hideChipBar={props.hideChipBar}
     />
   );
-}
-
-export default function BrowsePanel(props: Props) {
-  return <BrowseContent {...props} />;
 }

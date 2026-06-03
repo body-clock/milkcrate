@@ -28,13 +28,16 @@ interface UseTactileTransformResult {
 
 const TILT_HOVER_ADJUST = 1.5;
 
-function computeTransform(
-  reducedMotion: boolean,
-  disableTilt: boolean,
-  isPressed: boolean,
-  restingTilt: number,
-  proximity: number,
-): MotionStyle {
+interface ComputeTransformInputs {
+  reducedMotion: boolean;
+  disableTilt: boolean;
+  isPressed: boolean;
+  restingTilt: number;
+  proximity: number;
+}
+
+function computeTransform(inputs: ComputeTransformInputs): MotionStyle {
+  const { reducedMotion, disableTilt, isPressed, restingTilt, proximity } = inputs;
   if (reducedMotion) {
     return { rotate: 0, scale: 1, y: 0 };
   }
@@ -58,7 +61,7 @@ export function useTactileTransform(
   const { restingTilt = 0, disableTilt = false, reducedMotion = false } = options;
 
   const transform = useMemo<MotionStyle>(
-    () => computeTransform(reducedMotion, disableTilt, isPressed, restingTilt, proximity),
+    () => computeTransform({ reducedMotion, disableTilt, isPressed, restingTilt, proximity }),
     [reducedMotion, disableTilt, isPressed, restingTilt, proximity],
   );
 

@@ -1,9 +1,8 @@
 import type { BrowseMode } from "@/hooks/use_browse_routing";
-import { COPY } from "@/lib/copy";
 import type { Crate } from "@/types/inertia";
 
-import PanelContent from "./panel_content";
-import WideSidebar from "./wide_sidebar";
+import WideLayoutPanel from "./wide_layout_panel";
+import WideLayoutSidebar from "./wide_layout_sidebar";
 
 interface Props {
   mode: BrowseMode;
@@ -18,35 +17,11 @@ interface Props {
   wall: Crate;
 }
 
-function WideLayoutBody(props: Props) {
+export default function WideLayout(props: Props) {
   return (
     <div className="flex gap-8 items-start">
-      <WideSidebar
-        mode={props.mode}
-        listingCount={props.listingCount}
-        genreCount={props.genreCount}
-        panelTitle={
-          props.mode === "wall" ? undefined : COPY.cratePanels[props.mode].title
-        }
-        currentCrates={props.currentCrates}
-        activeSlug={props.activeSlug}
-        onSelectCrate={props.selectCrate}
-        onWallSelect={props.onWallSelect}
-        onBrowseModeSelect={props.onBrowseModeSelect}
-      />
-      <PanelContent
-        mode={props.mode}
-        wall={props.wall}
-        currentCrates={props.currentCrates}
-        activeSlug={props.activeSlug}
-        startIndex={props.startIndex}
-        selectCrate={props.selectCrate}
-        hideChipBar
-      />
+      <WideLayoutSidebar {...props} />
+      <WideLayoutPanel {...props} />
     </div>
   );
-}
-
-export default function WideLayout(props: Props) {
-  return <WideLayoutBody {...props} />;
 }

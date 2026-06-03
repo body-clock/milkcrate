@@ -14,7 +14,7 @@ interface Props {
   hideChipBar: boolean;
 }
 
-function PanelBody(props: Props) {
+export default function PanelContent(props: Props) {
   return (
     <AnimatedPanel mode={props.mode}>
       <BrowsePanel
@@ -28,8 +28,4 @@ function PanelBody(props: Props) {
       />
     </AnimatedPanel>
   );
-}
-
-export default function PanelContent(props: Props) {
-  return <PanelBody {...props} />;
 }

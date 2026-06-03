@@ -35,15 +35,15 @@ function useDiscogsForm() {
   const [validationError, setValidationError] = useState<string | null>(null);
   const announcerRef = useRef<HTMLDivElement>(null);
   const announce = useCallback(
-    (m: string) => { if (announcerRef.current) announcerRef.current.textContent = m; }, []);
+    (m: string) => { if (announcerRef.current) { announcerRef.current.textContent = m; } }, []);
   const { state, lookup, reset } = useDiscogsLookup(announce);
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault(); const err = validateUsername(username.trim());
-    setValidationError(err); if (!err) lookup(username.trim());
+    setValidationError(err); if (!err) { lookup(username.trim()); }
   }, [username, lookup]);
   const handleUsernameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setUsername(e.target.value); setValidationError(null);
-    if (state.status !== "idle") reset();
+    if (state.status !== "idle") { reset(); }
   }, [state.status, reset]);
   return { username, validationError, announcerRef, state,
     handleSubmit, handleUsernameChange, reset, isSubmitting: state.status === "loading" };

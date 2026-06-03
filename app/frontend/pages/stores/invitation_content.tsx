@@ -4,13 +4,13 @@ import AnimatedBrandMark from "./invitation_animated_brand_mark";
 import ContentBody from "./invitation_content_body";
 import { useInvitationProbe } from "./use_invitation_probe";
 
-export default function InvitationContent({
-  slug,
-  oauth_available,
-}: {
+interface InvitationContentProps {
   slug: string;
   oauth_available?: boolean;
-}) {
+}
+
+export default function InvitationContent(props: InvitationContentProps) {
+  const { slug, oauth_available } = props;
   const { displayStatus, sellerName, csrfToken } = useInvitationProbe(slug);
 
   return (

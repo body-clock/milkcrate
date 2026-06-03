@@ -15,7 +15,7 @@ interface Props {
   onBrowseModeSelect: (mode: BrowseMode) => void;
 }
 
-function CompactLayoutBody(props: Props) {
+export default function CompactLayout(props: Props) {
   return (
     <div className="flex flex-col gap-5 pb-[calc(6rem+env(safe-area-inset-bottom))]">
       <PanelContent
@@ -34,8 +34,4 @@ function CompactLayoutBody(props: Props) {
       />
     </div>
   );
-}
-
-export default function CompactLayout(props: Props) {
-  return <CompactLayoutBody {...props} />;
 }

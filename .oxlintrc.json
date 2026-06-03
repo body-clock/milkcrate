@@ -16,11 +16,12 @@
   },
   "overrides": [
     {
-      "files": ["*.test.*", "*.spec.*", "**/__tests__/**"],
+      "files": ["*.test.*", "*.spec.*", "**/__tests__/**", "**/test/**"],
       "rules": {
         "eslint/max-lines-per-function": "off",
         "eslint/max-lines": "off",
-        "eslint/max-nested-callbacks": "off"
+        "eslint/max-nested-callbacks": "off",
+        "import/no-unassigned-import": "off"
       }
     }
   ],

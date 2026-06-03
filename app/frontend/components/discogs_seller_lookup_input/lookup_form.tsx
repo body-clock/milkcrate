@@ -1,6 +1,6 @@
 import Button from "@/components/ui/button";
-import Field from "@/components/ui/field";
 import SubmitContent from "./submit_content";
+import UsernameField from "./username_field";
 import type { Props } from "./types";
 
 interface LookupFormProps {
@@ -13,40 +13,17 @@ interface LookupFormProps {
   handleUsernameChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-export default function LookupForm({
-  username,
-  validationError,
-  isSubmitting,
-  copy,
-  inputRef,
-  handleSubmit,
-  handleUsernameChange,
-}: LookupFormProps) {
+export default function LookupForm(props: LookupFormProps) {
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-3"
-    >
-      <Field
-        id="seller-discogs-username"
-        label={copy.seller_input_label}
-        error={validationError ?? undefined}
-        busy={isSubmitting}
-        className="min-w-0 flex-1"
-      >
-        <input
-          ref={inputRef}
-          type="text"
-          value={username}
-          onChange={handleUsernameChange}
-          placeholder={copy.seller_input_placeholder}
-          className="min-h-11"
-          autoComplete="off"
-          spellCheck={false}
-        />
-      </Field>
-      <Button type="submit" busy={isSubmitting} size="lg" className="tracking-wide">
-        <SubmitContent isSubmitting={isSubmitting} label={copy.seller_submit} />
+    <form onSubmit={props.handleSubmit}
+      className="flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-3">
+      <UsernameField
+        inputRef={props.inputRef} username={props.username}
+        handleUsernameChange={props.handleUsernameChange} copy={props.copy}
+        validationError={props.validationError} isSubmitting={props.isSubmitting}
+      />
+      <Button type="submit" busy={props.isSubmitting} size="lg" className="tracking-wide">
+        <SubmitContent isSubmitting={props.isSubmitting} label={props.copy.seller_submit} />
       </Button>
     </form>
   );

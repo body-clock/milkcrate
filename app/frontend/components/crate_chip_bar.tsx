@@ -1,7 +1,6 @@
 import type { Crate } from "../types/inertia";
 import { CrateChipEmpty } from "./crate_chip_empty";
-import { CrateChipHeader } from "./crate_chip_header";
-import CrateTabs from "./crate_tabs";
+import CrateChipBarBody from "./crate_chip_bar_body";
 
 interface Props {
   title: string;
@@ -11,57 +10,19 @@ interface Props {
   onSelectCrate: (slug: string, startIndex?: number) => void;
 }
 
-interface CrateChipBarBodyProps {
-  title: string;
-  description?: string;
-  crates: Crate[];
-  selectedSlug: string | null;
-  onSelectCrate: (slug: string, startIndex?: number) => void;
-}
-
-function CrateChipBarBody({
-  title,
-  description,
-  crates,
-  selectedSlug,
-  onSelectCrate,
-}: CrateChipBarBodyProps) {
-  return (
-    <div className="rounded-2xl border border-mc-border bg-mc-bg-card px-3 py-3 shadow-sm">
-      <CrateChipHeader
-        title={title}
-        description={description}
-        crateCount={crates.length}
-      />
-      <CrateTabs
-        crates={crates}
-        activeSlug={selectedSlug}
-        onSelect={(s) => onSelectCrate(s)}
-        compact
-      />
-    </div>
-  );
-}
-
-export default function CrateChipBar({
-  title,
-  description,
-  crates,
-  activeSlug,
-  onSelectCrate,
-}: Props) {
-  if (crates.length === 0) {
-    return <CrateChipEmpty title={title} />;
+export default function CrateChipBar(props: Props) {
+  if (props.crates.length === 0) {
+    return <CrateChipEmpty title={props.title} />;
   }
   const selectedSlug =
-    activeSlug && crates.some((c) => c.slug === activeSlug) ? activeSlug : null;
+    props.activeSlug && props.crates.some((c) => c.slug === props.activeSlug) ? props.activeSlug : null;
   return (
     <CrateChipBarBody
-      title={title}
-      description={description}
-      crates={crates}
+      title={props.title}
+      description={props.description}
+      crates={props.crates}
       selectedSlug={selectedSlug}
-      onSelectCrate={onSelectCrate}
+      onSelectCrate={props.onSelectCrate}
     />
   );
 }

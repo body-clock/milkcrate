@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 
-import FeatureCard from "@/components/home/feature_card";
+import CharacterGrid from "@/components/home/character_grid";
 import { EASE_OUT } from "@/lib/motion_tokens";
 
 interface FeatureData {
@@ -18,8 +18,6 @@ const fadeUp = {
   visible: { opacity: 1, y: 0, transition: { duration: FADE_UP_DURATION, ease: EASE_OUT } },
 };
 
-const CHARACTER_GRID = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-4xl mx-auto";
-
 export default function CharacterSection({ title, features }: Props) {
   return (
     <motion.section
@@ -36,11 +34,7 @@ export default function CharacterSection({ title, features }: Props) {
       >
         {title}
       </motion.h2>
-      <div className={CHARACTER_GRID}>
-        {features.map((f) => (
-          <FeatureCard key={f.title} title={f.title} description={f.description} />
-        ))}
-      </div>
+      <CharacterGrid features={features} />
     </motion.section>
   );
 }
