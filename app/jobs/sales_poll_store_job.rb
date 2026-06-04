@@ -6,8 +6,17 @@ class SalesPollStoreJob < ApplicationJob
 
   def perform(store_id)
     store = Store.find(store_id)
-    StoreSales::OrderPoller.new(store).call
+    result = StoreSales::OrderPoller.new(store).call
+    enqueue_curation_if_needed(store, result)
   rescue ActiveRecord::RecordNotFound
     Rails.logger.warn("[SalesPollStoreJob] store #{store_id} not found, discarding")
+  end
+
+  private
+
+  def enqueue_curation_if_needed(store, result)
+    return unless result && result[:removed_count]&.positive?
+
+    DailyCurationJob.perform_later(store.id)
   end
 end

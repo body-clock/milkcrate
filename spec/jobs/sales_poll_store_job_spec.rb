@@ -17,6 +17,48 @@ RSpec.describe SalesPollStoreJob do
       expect(poller).to have_received(:call)
     end
 
+    context "when poller removes listings" do
+      before do
+        allow(poller).to receive(:call).and_return(
+          { order_count: 1, removed_count: 1, cursor_advanced: true }
+        )
+      end
+
+      it "enqueues DailyCurationJob" do
+        expect {
+          described_class.new.perform(store.id)
+        }.to have_enqueued_job(DailyCurationJob).with(store.id)
+      end
+    end
+
+    context "when poller removes no listings" do
+      before do
+        allow(poller).to receive(:call).and_return(
+          { order_count: 1, removed_count: 0, cursor_advanced: false }
+        )
+      end
+
+      it "does not enqueue DailyCurationJob" do
+        expect {
+          described_class.new.perform(store.id)
+        }.not_to have_enqueued_job(DailyCurationJob)
+      end
+    end
+
+    context "when poller removes multiple listings" do
+      before do
+        allow(poller).to receive(:call).and_return(
+          { order_count: 2, removed_count: 3, cursor_advanced: true }
+        )
+      end
+
+      it "enqueues exactly one DailyCurationJob" do
+        expect {
+          described_class.new.perform(store.id)
+        }.to have_enqueued_job(DailyCurationJob).exactly(:once)
+      end
+    end
+
     context "when store is not found" do
       it "logs a warning and does not raise" do
         expect(Rails.logger).to receive(:warn).with(/store 999999 not found/)
