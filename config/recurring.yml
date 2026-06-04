@@ -23,3 +23,8 @@ production:
     class: DailyCurationJob
     queue: default
     schedule: every day at 1am
+
+  sales_poll_dispatcher:
+    class: SalesPollDispatcherJob
+    queue: default
+    schedule: every minute
