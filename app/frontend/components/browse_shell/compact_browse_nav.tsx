@@ -37,7 +37,7 @@ const CrateChipRow = memo(function CrateChipRow({ crates, activeSlug, onSelect }
   onSelect: (slug: string, startIndex?: number) => void;
 }) {
   return (
-    <div className="mt-1.5 border-t border-mc-border pt-1.5">
+    <div className="pt-1.5">
       <CrateTabs
         crates={crates}
         activeSlug={activeSlug}
@@ -51,22 +51,31 @@ const CrateChipRow = memo(function CrateChipRow({ crates, activeSlug, onSelect }
 });
 
 function CompactBrowseNavInner(props: Props) {
+  const showCrates = props.mode !== "wall" && props.currentCrates.length > 0;
+
   return (
     <nav
       aria-label={COPY.browseNavLabel}
       className="fixed inset-x-4 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-40"
     >
-      <div className="mx-auto max-w-md rounded-[1.5rem] border border-mc-border bg-mc-bg-card/96 p-1.5 shadow-[0_20px_40px_-24px_rgba(0,0,0,0.45)] backdrop-blur">
+      <div className="mx-auto max-w-md rounded-[1.5rem] border border-mc-border bg-mc-bg-card/96 p-1.5 shadow-[0_20px_40px_-24px_rgba(0,0,0,0.45)] backdrop-blur transition-[border-radius] duration-200">
         <BrowseNavContent
           mode={props.mode}
           onWallSelect={props.onWallSelect}
           onBrowseModeSelect={props.onBrowseModeSelect}
         />
-        <CrateChipRow
-          crates={props.currentCrates}
-          activeSlug={props.activeSlug}
-          onSelect={props.onSelectCrate}
-        />
+        <div
+          className="grid transition-[grid-template-rows] duration-300 ease-out"
+          style={{ gridTemplateRows: showCrates ? "1fr" : "0fr" }}
+        >
+          <div className="overflow-hidden">
+            <CrateChipRow
+              crates={props.currentCrates}
+              activeSlug={props.activeSlug}
+              onSelect={props.onSelectCrate}
+            />
+          </div>
+        </div>
       </div>
     </nav>
   );
