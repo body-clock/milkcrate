@@ -21,7 +21,8 @@ class SalesPollDispatcherJob < ApplicationJob
 
   def due_stores
     Store.joins(:store_owner)
-      .where.not(store_owners: { discogs_oauth_token: nil, discogs_oauth_token_secret: nil })
+      .where.not(store_owners: { discogs_oauth_token: nil })
+      .where.not(store_owners: { discogs_oauth_token_secret: nil })
       .where("last_sales_polled_at IS NULL OR last_sales_polled_at < ?", POLL_INTERVAL.ago)
       .limit(MAX_STORES_PER_RUN)
   end
