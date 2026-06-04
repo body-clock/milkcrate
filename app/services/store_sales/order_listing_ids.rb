@@ -32,9 +32,10 @@ module StoreSales
     def extract_listing_id(item)
       return nil unless item.is_a?(Hash)
 
-      # Try common keys in order of likelihood
-      id = item["listing_id"] || item[:listing_id]
-      id ||= item["id"] || item[:id]
+      # In Discogs marketplace orders, item.id IS the listing identifier.
+      # 'listing_id' is tried as a fallback for safety if the API shape changes.
+      id = item["id"] || item[:id]
+      id ||= item["listing_id"] || item[:listing_id]
 
       normalize_id(id)
     end

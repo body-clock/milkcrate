@@ -23,7 +23,7 @@ RSpec.describe StoreSales::OrderPoller do
               "id" => "order-123",
               "status" => "New Order",
               "last_activity" => "2026-06-04T12:00:00Z",
-              "items" => [ { "listing_id" => "listing-abc" } ]
+              "items" => [ { "id" => 41578242 } ]
             }
           ]
         }
@@ -31,7 +31,7 @@ RSpec.describe StoreSales::OrderPoller do
 
       before do
         allow(client).to receive(:list_orders).and_return(orders_response)
-        create(:listing, store: store, discogs_listing_id: "listing-abc")
+        create(:listing, store: store, discogs_listing_id: "41578242")
       end
 
       it "polls recent orders and removes sold listings" do
@@ -40,7 +40,7 @@ RSpec.describe StoreSales::OrderPoller do
         expect(result[:order_count]).to eq(1)
         expect(result[:removed_count]).to eq(1)
         expect(result[:cursor_advanced]).to be true
-        expect(store.listings.where(discogs_listing_id: "listing-abc")).to be_empty
+        expect(store.listings.where(discogs_listing_id: "41578242")).to be_empty
       end
 
       it "creates DiscogsOrderEvent for processed orders" do
@@ -103,7 +103,7 @@ RSpec.describe StoreSales::OrderPoller do
               "id" => "order-123",
               "status" => "New Order",
               "last_activity" => "2026-06-04T12:00:00Z",
-              "items" => [ { "listing_id" => "listing-abc" } ]
+              "items" => [ { "id" => 41578242 } ]
             }
           ]
         }
@@ -111,7 +111,7 @@ RSpec.describe StoreSales::OrderPoller do
 
       before do
         allow(client).to receive(:list_orders).and_return(orders_response)
-        create(:listing, store: store, discogs_listing_id: "listing-abc")
+        create(:listing, store: store, discogs_listing_id: "41578242")
 
         # Pre-process the order
         DiscogsOrderEvent.create!(
@@ -119,7 +119,7 @@ RSpec.describe StoreSales::OrderPoller do
           discogs_order_id: "order-123",
           status: "New Order",
           last_activity_at: Time.parse("2026-06-04T12:00:00Z"),
-          listing_ids: [ "listing-abc" ],
+          listing_ids: [ "41578242" ],
           removed_listing_count: 1,
           processed_at: Time.parse("2026-06-04T12:00:00Z")
         )
@@ -129,7 +129,7 @@ RSpec.describe StoreSales::OrderPoller do
         result = described_class.new(store).call
 
         expect(result[:removed_count]).to eq(0)
-        expect(store.listings.where(discogs_listing_id: "listing-abc")).to be_present
+        expect(store.listings.where(discogs_listing_id: "41578242")).to be_present
       end
     end
 
@@ -141,7 +141,7 @@ RSpec.describe StoreSales::OrderPoller do
               "id" => "order-123",
               "status" => "Shipped",
               "last_activity" => "2026-06-04T13:00:00Z",
-              "items" => [ { "listing_id" => "listing-abc" } ]
+              "items" => [ { "id" => 41578242 } ]
             }
           ]
         }
@@ -156,7 +156,7 @@ RSpec.describe StoreSales::OrderPoller do
           discogs_order_id: "order-123",
           status: "New Order",
           last_activity_at: Time.parse("2026-06-04T12:00:00Z"),
-          listing_ids: [ "listing-abc" ],
+          listing_ids: [ "41578242" ],
           removed_listing_count: 1,
           processed_at: Time.parse("2026-06-04T12:00:00Z")
         )
@@ -234,13 +234,13 @@ RSpec.describe StoreSales::OrderPoller do
               "id" => "order-1",
               "status" => "New Order",
               "last_activity" => "2026-06-04T12:00:00Z",
-              "items" => [ { "listing_id" => "listing-1" } ]
+              "items" => [ { "id" => 111 } ]
             },
             {
               "id" => "order-2",
               "status" => "New Order",
               "last_activity" => "2026-06-04T13:00:00Z",
-              "items" => [ { "listing_id" => "listing-2" } ]
+              "items" => [ { "id" => 222 } ]
             }
           ]
         }
@@ -248,8 +248,8 @@ RSpec.describe StoreSales::OrderPoller do
 
       before do
         allow(client).to receive(:list_orders).and_return(orders_response)
-        create(:listing, store: store, discogs_listing_id: "listing-1")
-        create(:listing, store: store, discogs_listing_id: "listing-2")
+        create(:listing, store: store, discogs_listing_id: "111")
+        create(:listing, store: store, discogs_listing_id: "222")
       end
 
       it "processes all orders and advances cursor to max activity" do

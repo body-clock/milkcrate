@@ -5,36 +5,50 @@ require "rails_helper"
 RSpec.describe StoreSales::OrderListingIds do
   describe ".call" do
     context "with standard Discogs order payload" do
-      it "extracts a single listing ID from items" do
+      it "extracts a single listing ID from item id (primary key)" do
         order = {
           "items" => [
-            { "listing_id" => "1234567890", "id" => 1 }
+            {
+              "id" => 41578242,
+              "release" => { "id" => 1, "description" => "Some Release" },
+              "price" => { "currency" => "USD", "value" => 42.0 }
+            }
           ]
         }
 
-        expect(described_class.call(order)).to eq([ "1234567890" ])
+        expect(described_class.call(order)).to eq([ "41578242" ])
       end
 
       it "extracts multiple listing IDs from multi-item order" do
         order = {
           "items" => [
-            { "listing_id" => "111", "id" => 1 },
-            { "listing_id" => "222", "id" => 2 },
-            { "listing_id" => "333", "id" => 3 }
+            { "id" => 111, "release" => { "id" => 1 } },
+            { "id" => 222, "release" => { "id" => 2 } },
+            { "id" => 333, "release" => { "id" => 3 } }
           ]
         }
 
         expect(described_class.call(order)).to eq([ "111", "222", "333" ])
       end
 
-      it "falls back to id key when listing_id is absent" do
+      it "falls back to listing_id key when id is absent" do
         order = {
           "items" => [
-            { "id" => "9876543210" }
+            { "listing_id" => "9876543210" }
           ]
         }
 
         expect(described_class.call(order)).to eq([ "9876543210" ])
+      end
+
+      it "prefers id over listing_id when both present" do
+        order = {
+          "items" => [
+            { "id" => 41578242, "listing_id" => "should-not-match" }
+          ]
+        }
+
+        expect(described_class.call(order)).to eq([ "41578242" ])
       end
     end
 
@@ -42,7 +56,7 @@ RSpec.describe StoreSales::OrderListingIds do
       it "extracts listing IDs from symbol-keyed items" do
         order = {
           items: [
-            { listing_id: "555" }
+            { id: 555 }
           ]
         }
 
@@ -51,13 +65,13 @@ RSpec.describe StoreSales::OrderListingIds do
     end
 
     context "with blank or nil IDs" do
-      it "ignores items with blank listing IDs" do
+      it "ignores items with blank IDs" do
         order = {
           "items" => [
-            { "listing_id" => "111" },
-            { "listing_id" => "" },
-            { "listing_id" => nil },
-            { "listing_id" => "222" }
+            { "id" => 111 },
+            { "id" => "" },
+            { "id" => nil },
+            { "id" => 222 }
           ]
         }
 
@@ -67,7 +81,7 @@ RSpec.describe StoreSales::OrderListingIds do
       it "ignores items with no ID keys at all" do
         order = {
           "items" => [
-            { "listing_id" => "111" },
+            { "id" => 111 },
             { "title" => "No ID here" }
           ]
         }
@@ -112,7 +126,7 @@ RSpec.describe StoreSales::OrderListingIds do
       it "skips non-hash items in the array" do
         order = {
           "items" => [
-            { "listing_id" => "111" },
+            { "id" => 111 },
             "not a hash",
             nil
           ]
@@ -126,9 +140,9 @@ RSpec.describe StoreSales::OrderListingIds do
       it "deduplicates listing IDs" do
         order = {
           "items" => [
-            { "listing_id" => "111" },
-            { "listing_id" => "111" },
-            { "listing_id" => "222" }
+            { "id" => 111 },
+            { "id" => 111 },
+            { "id" => 222 }
           ]
         }
 
@@ -140,7 +154,7 @@ RSpec.describe StoreSales::OrderListingIds do
       it "converts numeric IDs to strings" do
         order = {
           "items" => [
-            { "listing_id" => 12345 }
+            { "id" => 12345 }
           ]
         }
 
