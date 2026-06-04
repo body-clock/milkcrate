@@ -4,17 +4,18 @@ import { StoreNameLink } from "./app_header_store_name";
 
 interface AppHeaderBrandProps {
   storeName?: string;
+  discogsUsername?: string;
   isCompact: boolean;
 }
 
-export function AppHeaderBrand({ storeName, isCompact }: AppHeaderBrandProps) {
-  if (!storeName) {
+export function AppHeaderBrand({ storeName, discogsUsername, isCompact }: AppHeaderBrandProps) {
+  if (!storeName || !discogsUsername) {
     return <BrandMarkLink />;
   }
 
   return (
     <div className="flex min-w-0 flex-col">
-      <StoreNameLink username={storeName} />
+      <StoreNameLink username={discogsUsername} storeName={storeName} />
       <StoreSubLink isCompact={isCompact} />
     </div>
   );

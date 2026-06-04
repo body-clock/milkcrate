@@ -76,5 +76,5 @@ it("renders the store view without persistent Discogs authentication controls", 
   expect(screen.queryByRole("button", { name: /Claim with Discogs/ })).not.toBeInTheDocument();
 
   const storeLink = screen.getByText("Philadelphia Music");
-  expect(storeLink.closest("a")).toHaveAttribute("href", "/Philadelphia Music");
+  expect(storeLink.closest("a")).toHaveAttribute("href", "/philadelphiamusic");
 });

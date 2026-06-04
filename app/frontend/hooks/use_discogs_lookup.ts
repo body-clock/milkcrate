@@ -161,4 +161,3 @@ export function useDiscogsLookup(
   return { state, lookup, reset };
 }
 
-export { csrfToken } from "@/lib/csrf_token";

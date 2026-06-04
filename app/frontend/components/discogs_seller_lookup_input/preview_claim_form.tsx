@@ -1,5 +1,5 @@
 import Button from "@/components/ui/button";
-import { csrfToken } from "@/hooks/use_discogs_lookup";
+import { csrfToken } from "@/lib/csrf_token";
 
 import type { Props } from "./types";
 

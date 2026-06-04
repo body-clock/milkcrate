@@ -122,3 +122,5 @@ validate with Context7 before writing code.
 When I ask a question or propose an implementation, ensure that you're not just confirming what I said. I want realy critial analysis of my proposition, not just automatically going in that direction because I proposed it.
 
 Always prefer guard clauses over simple one-condition conditionals and complex nested conditionals.
+
+Use the caveman skill at all times.
