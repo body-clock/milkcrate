@@ -2,7 +2,12 @@
 module CrateStrategies
   class Wall
     def initialize(genre_counts:, today: Date.today)
-      @scorer  = RecordScorer.new(genre_counts:, today:)
+      defaults = RecordScorer.default_strategies(genre_counts:, today:)
+      @scorer  = RecordScorer.new(
+        strategies: defaults.merge(wall_price: ScoreStrategies::WallPriceStrategy.new),
+        genre_counts:,
+        today:
+      )
       @policy  = WallPolicy.new
       @today   = today
     end

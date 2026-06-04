@@ -45,31 +45,65 @@ function renderDirectEntry(opts: {
 function useBrowseShellState(props: Props) {
   const { sections, selectCrate, backToStore, crates: allCratesProp } = props;
   const { isWide } = useViewport();
-  const routing = useBrowseRouting({ sections, activeSlug: props.activeSlug,
-    selectCrate, backToStore });
+  const routing = useBrowseRouting({
+    sections,
+    activeSlug: props.activeSlug,
+    selectCrate,
+    backToStore,
+  });
   const allCrates = useMemo(
-    () => resolveAllCrates(sections, allCratesProp), [sections, allCratesProp]);
+    () => resolveAllCrates(sections, allCratesProp),
+    [sections, allCratesProp],
+  );
   return { isWide, routing, allCrates };
 }
 
 function useBrowseShellPrepare(props: Props) {
-  const { activeSlug, startIndex, selectCrate, backToStore, listingCount, genreCount,
-    directEntry = false } = props;
+  const {
+    activeSlug,
+    startIndex,
+    selectCrate,
+    backToStore,
+    listingCount,
+    genreCount,
+    directEntry = false,
+  } = props;
   const { isWide, routing, allCrates } = useBrowseShellState(props);
   const isDirect = directEntry && activeSlug != null;
-  return { isWide, routing, allCrates, isDirect,
-    activeSlug, startIndex, selectCrate, backToStore, listingCount, genreCount };
+  return {
+    isWide,
+    routing,
+    allCrates,
+    isDirect,
+    activeSlug,
+    startIndex,
+    selectCrate,
+    backToStore,
+    listingCount,
+    genreCount,
+  };
 }
 
 export default function BrowseShell(props: Props) {
   const prep = useBrowseShellPrepare(props);
   if (prep.isDirect && prep.activeSlug) {
-    return renderDirectEntry({ allCrates: prep.allCrates, activeSlug: prep.activeSlug,
-      startIndex: prep.startIndex, selectCrate: prep.selectCrate, backToStore: prep.backToStore });
+    return renderDirectEntry({
+      allCrates: prep.allCrates,
+      activeSlug: prep.activeSlug,
+      startIndex: prep.startIndex,
+      selectCrate: prep.selectCrate,
+      backToStore: prep.backToStore,
+    });
   }
   return (
-    <BrowseShellContent routing={prep.routing} activeSlug={prep.activeSlug}
-      startIndex={prep.startIndex} selectCrate={prep.selectCrate}
-      listingCount={prep.listingCount} genreCount={prep.genreCount} isWide={prep.isWide} />
+    <BrowseShellContent
+      routing={prep.routing}
+      activeSlug={prep.activeSlug}
+      startIndex={prep.startIndex}
+      selectCrate={prep.selectCrate}
+      listingCount={prep.listingCount}
+      genreCount={prep.genreCount}
+      isWide={prep.isWide}
+    />
   );
 }
