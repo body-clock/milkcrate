@@ -114,5 +114,26 @@ RSpec.describe StoreSync::InventoryUpdater do
         importer.remove_stale([])
       }.to change(store.listings, :count).from(3).to(0)
     end
+
+    it "increments inventory_version when listings are deleted" do
+      create(:listing, store:, discogs_listing_id: "keep-me")
+      create(:listing, store:, discogs_listing_id: "stale")
+      importer = described_class.new(store)
+      current_records = [ record_attrs(discogs_listing_id: "keep-me") ]
+
+      expect {
+        importer.remove_stale(current_records)
+      }.to change { store.reload.inventory_version }.by(1)
+    end
+
+    it "does not increment inventory_version when no listings are deleted" do
+      create(:listing, store:, discogs_listing_id: "keep-me")
+      importer = described_class.new(store)
+      current_records = [ record_attrs(discogs_listing_id: "keep-me") ]
+
+      expect {
+        importer.remove_stale(current_records)
+      }.not_to change { store.reload.inventory_version }
+    end
   end
 end

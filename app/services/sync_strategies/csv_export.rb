@@ -25,12 +25,7 @@ module SyncStrategies
     end
 
     def build_client(store)
-      return @client if @client
-      owner = store.store_owner
-      DiscogsClient.new(
-        access_token: owner.discogs_oauth_token,
-        access_token_secret: owner.discogs_oauth_token_secret
-      )
+      @client ||= store.discogs_oauth_client
     end
   end
 end

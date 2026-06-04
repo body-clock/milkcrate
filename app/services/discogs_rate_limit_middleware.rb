@@ -1,10 +1,10 @@
 # Faraday middleware that tracks and logs Discogs API rate limit headers.
 class DiscogsRateLimitMiddleware < Faraday::Middleware
+  include Discogs::RateLimit
+
   SLEEP = 1.1       # baseline pacing: ~55 req/min
   LOW = 5           # remaining threshold to trigger extended pause
   PAUSE = 10        # seconds to sleep when remaining <= LOW
-  MAX_RETRIES = 3   # max 429 retry attempts per request
-  BACKOFF_BASE = 2  # exponential backoff base (2^attempt seconds)
 
   def call(env)
     sleep_if_needed
@@ -22,10 +22,6 @@ class DiscogsRateLimitMiddleware < Faraday::Middleware
     return response if attempt > MAX_RETRIES
     sleep(backoff_for(attempt))
     request_with_retry(env, attempt: attempt + 1)
-  end
-
-  def backoff_for(attempt)
-    [ (BACKOFF_BASE**attempt), 60 ].min
   end
 
   def pause_if_quota_low(response)
