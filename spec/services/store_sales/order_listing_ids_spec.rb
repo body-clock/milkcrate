@@ -31,24 +31,14 @@ RSpec.describe StoreSales::OrderListingIds do
         expect(described_class.call(order)).to eq([ "111", "222", "333" ])
       end
 
-      it "falls back to listing_id key when id is absent" do
+      it "returns nil for items with no id key" do
         order = {
           "items" => [
-            { "listing_id" => "9876543210" }
+            { "release" => { "id" => 1 } }
           ]
         }
 
-        expect(described_class.call(order)).to eq([ "9876543210" ])
-      end
-
-      it "prefers id over listing_id when both present" do
-        order = {
-          "items" => [
-            { "id" => 41578242, "listing_id" => "should-not-match" }
-          ]
-        }
-
-        expect(described_class.call(order)).to eq([ "41578242" ])
+        expect(described_class.call(order)).to eq([])
       end
     end
 

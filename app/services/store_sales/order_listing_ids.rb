@@ -32,11 +32,9 @@ module StoreSales
     def extract_listing_id(item)
       return nil unless item.is_a?(Hash)
 
-      # In Discogs marketplace orders, item.id IS the listing identifier.
-      # 'listing_id' is tried as a fallback for safety if the API shape changes.
+      # item.id IS the marketplace listing identifier in Discogs orders.
+      # Accept string keys (JSON) and symbol keys (Hash-with-indifferent-access).
       id = item["id"] || item[:id]
-      id ||= item["listing_id"] || item[:listing_id]
-
       normalize_id(id)
     end
 
