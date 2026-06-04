@@ -3,48 +3,43 @@ project_tracker: github
 # Cardinal Rules
 
 **Never use eslint-disable, oxlint-disable, or any lint-suppression comment.**
-Every lint offense must be resolved with a real code fix: extract components,
-split functions, restructure logic, or adjust the lint rule if it is genuinely
-wrong for this codebase. Suppression comments rot over time and hide real bugs.
+Resolve lint offenses with real code fix: extract components, split functions,
+restructure logic, or adjust lint rule if genuinely wrong. Suppression comments
+rot over time, hide real bugs.
 
-**Never merge into `main` without explicit user permission.** Merging to
-production is a human decision. The agent may propose a merge, describe what
-would ship, and ask for confirmation, but must never execute `git checkout
-main && git merge` or `git push origin main` unless the user has explicitly
-authorized that specific merge. Pushing to `main` triggers an automatic
-deploy — treat it as a production deployment gate.
+**Never merge into `main` without explicit user permission.** Merge to prod =
+human decision. Agent may propose merge, describe what ships, ask confirmation.
+Never execute `git checkout main && git merge` or `git push origin main` without
+explicit authorization. Push to `main` triggers auto-deploy — treat as prod gate.
 
 # ce-work Branching
 
-This project uses `development` as its integration branch (not `main`). When
-`ce-work` detects that the current branch is `development`, it should create a
-new feature branch from `development` (pulling `origin/development` first), not
-from the remote HEAD default.
+Project uses `development` as integration branch (not `main`). When `ce-work`
+detects current branch = `development`, create feature branch from `development`
+(pull `origin/development` first), not remote HEAD default.
 
-In Phase 1 Step 2 of ce-work, treat `development` as if it were the default
-branch for branching decisions. Feature branches should be named e.g.
-`feat/my-feature` or `fix/my-fix` and target `development`.
+Phase 1 Step 2 of ce-work: treat `development` as default branch for branching
+decisions. Feature branches: `feat/my-feature` or `fix/my-fix`, target `development`.
 
 # Documented Solutions
 
-`docs/solutions/` — documented solutions to past problems (bugs, best practices,
-architecture patterns), organized by category with YAML frontmatter (`module`,
-`tags`, `problem_type`). Relevant when implementing or debugging in documented
-areas.
+`docs/solutions/` — solutions to past problems (bugs, best practices, architecture
+patterns), organized by category with YAML frontmatter (`module`, `tags`,
+`problem_type`). Relevant when implementing or debugging documented areas.
 
-When planning new features or architectural changes, use the `layered-rails` skill for analysis:
+Plan new features or architectural changes: use `layered-rails` skill for analysis:
 
 - `/layers:gradual` — plan incremental adoption of layered patterns
 - `/layers:analyze` — full codebase architecture analysis
-- `/layers:review` — review code from a layered architecture perspective
-- `/layers:spec-test` — apply the specification test to evaluate layer placement
+- `/layers:review` — review code from layered architecture perspective
+- `/layers:spec-test` — apply specification test to evaluate layer placement
 
 ## Code Review Extensions
 
-In addition to the standard ce-code-review persona catalog, always dispatch these
-additional reviewers in parallel with the standard persona agents. Their output is
-unstructured and must be synthesized into the final report (same treatment as
-`ce-agent-native-reviewer` and `ce-learnings-researcher`).
+Beyond standard ce-code-review persona catalog, always dispatch these reviewers
+in parallel with standard persona agents. Output unstructured, synthesize into
+final report (same treatment as `ce-agent-native-reviewer` and
+`ce-learnings-researcher`).
 
 ### Always-on extension reviewers
 
@@ -67,60 +62,68 @@ unstructured and must be synthesized into the final report (same treatment as
 | `ce-dhh-rails-reviewer`    | Rails architecture, service objects, session/auth choices, Hotwire-vs-SPA boundaries, abstractions that fight Rails conventions                                                                                                                                                                                                                                                                                                                                                       |
 | `ce-kieran-rails-reviewer` | Rails controllers, models, views, jobs, components, routes, or other application-layer Ruby code where clarity and conventions matter                                                                                                                                                                                                                                                                                                                                                 |
 
-For on-demand Sandi Metz review (outside the code review pipeline), use the `/ce-sandi-metz-review` skill for Ruby/Rails code, or `/sandi-metz-js-review` for JavaScript/React/TypeScript code — each dispatches its respective reviewer to analyze a specific file, directory, or the current diff.
+On-demand Sandi Metz review (outside code review pipeline): use `/ce-sandi-metz-review`
+for Ruby/Rails code, or `/sandi-metz-js-review` for JavaScript/React/TypeScript code —
+each dispatches respective reviewer to analyze specific file, directory, or current diff.
 
-These Rails reviewers complement the standard persona catalog. They are opinionated lenses
-on Rails-specific patterns — dispatch them in addition to (not instead of) the standard
+Rails reviewers complement standard persona catalog. Opinionated lenses on
+Rails-specific patterns — dispatch in addition to (not instead of) standard
 `ce-correctness-reviewer`, `ce-testing-reviewer`, etc.
 
 ### Reviewer config
 
-The canonical list is in `compound-engineering.local.md` (see palkan/skills integration
-docs). This file is the configuration source of truth; the instructions above are the
-implementation wiring.
+Canonical list in `compound-engineering.local.md` (see palkan/skills integration
+docs). This file = config source of truth; instructions above = implementation wiring.
 
 ## Server Management
 
-The developer runs `bin/dev` in a tmux session. I must **never** start or stop
-`bin/dev`, `bin/rails server`, `bin/vite`, `bin/jobs`, or any background
-process. If a task needs a running server (testing pages, verifying UI changes),
-I should ask the developer to start it and paste output, or use `curl` against
-their running server for quick checks.
+Developer runs `bin/dev` in tmux session. Never start or stop `bin/dev`,
+`bin/rails server`, `bin/vite`, `bin/jobs`, or any background process. Task needs
+running server (testing pages, verifying UI changes): ask developer to start it,
+paste output, or use `curl` against running server for quick checks.
 
 ## Server Logs Panel
 
-`.pi/extensions/server-logs.ts` provides a toggleable server log panel inside pi.
+`.pi/extensions/server-logs.ts` provides toggleable server log panel inside pi.
 
 - **Usage:** Type `/logs` to open, `Escape` to close
-- Reads the last 40 lines from `log/development.log`
+- Reads last 40 lines from `log/development.log`
 - Auto-refreshes via file watcher
 - Colorized output (red=errors, yellow=warnings, green=success, accent=requests)
 - Close with `Escape`
 
 ## Context7 (Accurate Documentation)
 
-Before implementing or proposing code that involves any library, framework, or API
+Before implementing or proposing code with any library, framework, or API
 (Next.js, Rails, Tailwind, Stripe, shadcn/ui, etc.), query Context7 for current,
-version-specific documentation to avoid hallucinated APIs.
+version-specific docs to avoid hallucinated APIs.
 
 **Workflow:**
 
 1. **Find the library:** `npx ctx7 library "<library-name>" "<what I'm trying to do>"`
 2. **Get docs:** `npx ctx7 docs <libraryId> "<specific question>"`
-3. Include relevant code snippets from the output in your response
+3. Include relevant code snippets from output in response
 
-Libraries I commonly use in this project:
+Libraries commonly used in this project:
 
 - Rails / Ruby gems → `npx ctx7 library "<gem>" | jq -r '.[0]["context7-id"]'`
 - Next.js → `npx ctx7 docs /vercel/next.js "<question>"`
 - shadcn/ui → `npx ctx7 library "shadcn/ui" "<question>"`
 - Tailwind CSS → `npx ctx7 docs /tailwindlabs/tailwindcss "<question>"`
 
-**CRITICAL: Do not skip this step.** Hallucinated APIs waste time. Always
-validate with Context7 before writing code.
+**CRITICAL: Do not skip this step.** Hallucinated APIs waste time. Always validate
+with Context7 before writing code.
 
-When I ask a question or propose an implementation, ensure that you're not just confirming what I said. I want realy critial analysis of my proposition, not just automatically going in that direction because I proposed it.
+When I ask question or propose implementation: don't just confirm what I said.
+Want real critical analysis of proposition, not auto-going in that direction
+because I proposed it.
 
-Always prefer guard clauses over simple one-condition conditionals and complex nested conditionals.
+Always prefer guard clauses over simple one-condition conditionals and complex
+nested conditionals.
 
-Use the caveman skill at all times.
+Use caveman skill at all times.
+
+Working on issue, suggest fix not in scope: redirect to creating issue for that
+specific problem before implementation. Scope ambiguous: assume change in scope.
+Scope very clear (specific issue): use that context to determine if proposed
+change in scope.
