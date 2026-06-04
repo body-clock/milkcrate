@@ -148,17 +148,17 @@ export function useDiscogsLookup(
   onAnnounceOrUrl?: ((message: string) => void) | string,
 ): UseDiscogsLookupResult {
   const { onAnnounce, lookupUrl } = parseParam(onAnnounceOrUrl);
-  const ls = useLookupState();
+  const { abortRef, timeoutRef, setState, state } = useLookupState();
   const announce = useCallback((m: string) => onAnnounce?.(m), [onAnnounce]);
   const lookup = useCallback(
-    (username: string) => performLookup({ username, lookupUrl, ar: ls.abortRef,
-      tr: ls.timeoutRef, setState: ls.setState, announce }),
-    [announce, lookupUrl, ls],
+    (username: string) => performLookup({ username, lookupUrl, ar: abortRef,
+      tr: timeoutRef, setState, announce }),
+    [announce, lookupUrl, abortRef, timeoutRef, setState],
   );
   const reset = useCallback(() => {
-    cancelLookup(ls.abortRef, ls.timeoutRef); ls.setState({ status: "idle" });
-  }, [ls]);
-  return { state: ls.state, lookup, reset };
+    cancelLookup(abortRef, timeoutRef); setState({ status: "idle" });
+  }, [abortRef, timeoutRef, setState]);
+  return { state, lookup, reset };
 }
 
 export { csrfToken } from "@/lib/csrf_token";
