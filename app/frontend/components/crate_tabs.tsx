@@ -10,6 +10,10 @@ interface Props {
   onSelect: (slug: string) => void;
   compact?: boolean;
   vertical?: boolean;
+  classesFn?: (compact: boolean, selected: boolean) => string;
+  /** Skip auto-scroll-to-active when activeSlug changes. Use in nav contexts where
+   *  expanding/collapsing the container fights with the scroll animation. */
+  disableScrollOnActivate?: boolean;
 }
 
 type NavKey = "forward" | "back";
@@ -82,9 +86,10 @@ function useScrollActiveTab(
   vertical: boolean,
   activeSlug: string | null,
   activeTabRef: React.RefObject<HTMLButtonElement | null>,
+  disableScrollOnActivate: boolean,
 ) {
   useEffect(() => {
-    if (vertical) {
+    if (vertical || disableScrollOnActivate) {
       return;
     }
     activeTabRef.current?.scrollIntoView?.({
@@ -92,7 +97,7 @@ function useScrollActiveTab(
       block: "nearest",
       inline: "center",
     });
-  }, [activeSlug, vertical, activeTabRef]);
+  }, [activeSlug, vertical, activeTabRef, disableScrollOnActivate]);
 }
 
 export function verticalTabClasses(selected: boolean): string {
@@ -126,13 +131,14 @@ function sharedState(
   activeSlug: string | null,
   onSelect: (slug: string) => void,
   vertical: boolean,
+  disableScrollOnActivate: boolean,
 ): CrateTabsSharedState {
   const tabsRef = useRef<HTMLDivElement>(null);
   const activeTabRef = useRef<HTMLButtonElement>(null);
   const selectedIndex = crates.findIndex((c) => c.slug === activeSlug);
   const hasSelection = selectedIndex !== -1;
   const handleKeyDown = useKeyboardNav(crates, vertical, onSelect, tabsRef);
-  useScrollActiveTab(vertical, activeSlug, activeTabRef);
+  useScrollActiveTab(vertical, activeSlug, activeTabRef, disableScrollOnActivate);
   return { tabsRef, activeTabRef, hasSelection, handleKeyDown };
 }
 
@@ -142,13 +148,16 @@ export default function CrateTabs({
   onSelect,
   compact = false,
   vertical: isVertical = false,
+  classesFn,
+  disableScrollOnActivate = false,
 }: Props) {
-  const s = sharedState(crates, activeSlug, onSelect, isVertical);
+  const s = sharedState(crates, activeSlug, onSelect, isVertical, disableScrollOnActivate);
   const tabProps = { s, crates, activeSlug, onSelect, tabIndexValue };
+  const hClassesFn = classesFn ?? horizontalTabClasses;
   if (isVertical) {
     return <CrateTabsRenderVertical {...tabProps} classesFn={verticalTabClasses} />;
   }
   return (
-    <CrateTabsRenderHorizontal {...tabProps} compact={compact} classesFn={horizontalTabClasses} />
+    <CrateTabsRenderHorizontal {...tabProps} compact={compact} classesFn={hClassesFn} />
   );
 }

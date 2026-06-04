@@ -60,7 +60,7 @@ export default function RecordGrid(props: RecordGridProps) {
     gridCols: props.gridCols, isCompact: props.isCompact, onDragEnd: props.onDragEnd,
   });
   return (
-    <div className={props.isCompact ? "overflow-hidden" : "w-full"}
+    <div className="w-full"
       style={props.isCompact ? { position: "relative", aspectRatio: "2/3" } : undefined}>
       <AnimatePresence custom={props.direction}>
         <motion.div key={props.pageIndex} {...mp}>

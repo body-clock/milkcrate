@@ -17,7 +17,7 @@ interface Props {
 
 export default function CompactLayout(props: Props) {
   return (
-    <div className="flex flex-col gap-5 pb-[calc(6rem+env(safe-area-inset-bottom))]">
+    <div className="flex flex-col gap-5 pb-[calc(8rem+env(safe-area-inset-bottom))]">
       <PanelContent
         mode={props.mode}
         wall={props.wall}
@@ -25,10 +25,13 @@ export default function CompactLayout(props: Props) {
         activeSlug={props.activeSlug}
         startIndex={props.startIndex}
         selectCrate={props.selectCrate}
-        hideChipBar={false}
+        hideChipBar={true}
       />
       <CompactBrowseNav
         mode={props.mode}
+        currentCrates={props.currentCrates}
+        activeSlug={props.activeSlug}
+        onSelectCrate={props.selectCrate}
         onWallSelect={props.onWallSelect}
         onBrowseModeSelect={props.onBrowseModeSelect}
       />
