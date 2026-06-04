@@ -1,9 +1,9 @@
-import CrateTabs from "@/components/crate_tabs";
 import type { BrowseMode } from "@/hooks/use_browse_routing";
 import { COPY } from "@/lib/copy";
 import type { Crate } from "@/types/inertia";
 
 import BrowseNavContent from "./browse_nav_content";
+import CompactCrateSection from "./compact_crate_section";
 
 interface Props {
   mode: BrowseMode;
@@ -12,21 +12,6 @@ interface Props {
   onSelectCrate: (slug: string, startIndex?: number) => void;
   onWallSelect: () => void;
   onBrowseModeSelect: (mode: "featured" | "genres") => void;
-}
-
-/** Nav-specific tab styling that matches the mode pill language.
- *  - Same rounded-[1rem] as BrowseModeButton for visual consistency
- *  - Transparent background when unselected (like mode pills)
- *  - Accent fill when selected
- *  - Slightly shorter min-h since crates are secondary nav in the bar
- */
-function navTabClasses(_compact: boolean, selected: boolean): string {
-  const base =
-    "whitespace-nowrap rounded-[1rem] cursor-pointer transition-colors active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus focus-visible:ring-offset-1 focus-visible:ring-offset-mc-bg min-h-9 px-2.5 py-1 text-xs";
-  const color = selected
-    ? "bg-mc-accent text-mc-on-accent font-semibold"
-    : "text-mc-text-dim hover:text-mc-text";
-  return `${base} ${color}`;
 }
 
 export default function CompactBrowseNav(props: Props) {
@@ -43,23 +28,12 @@ export default function CompactBrowseNav(props: Props) {
           onWallSelect={props.onWallSelect}
           onBrowseModeSelect={props.onBrowseModeSelect}
         />
-        <div
-          className="grid transition-[grid-template-rows] duration-300 ease-out"
-          style={{ gridTemplateRows: showCrates ? "1fr" : "0fr" }}
-        >
-          <div className="overflow-hidden">
-            <div className="pt-1.5">
-              <CrateTabs
-                crates={props.currentCrates}
-                activeSlug={props.activeSlug}
-                onSelect={(slug) => props.onSelectCrate(slug)}
-                compact
-                classesFn={navTabClasses}
-                disableScrollOnActivate
-              />
-            </div>
-          </div>
-        </div>
+        <CompactCrateSection
+          show={showCrates}
+          crates={props.currentCrates}
+          activeSlug={props.activeSlug}
+          onSelect={props.onSelectCrate}
+        />
       </div>
     </nav>
   );

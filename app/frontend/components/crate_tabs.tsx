@@ -130,9 +130,9 @@ function sharedState(
   crates: Crate[],
   activeSlug: string | null,
   onSelect: (slug: string) => void,
-  vertical: boolean,
-  disableScrollOnActivate: boolean,
+  opts: { vertical: boolean; disableScrollOnActivate: boolean },
 ): CrateTabsSharedState {
+  const { vertical, disableScrollOnActivate } = opts;
   const tabsRef = useRef<HTMLDivElement>(null);
   const activeTabRef = useRef<HTMLButtonElement>(null);
   const selectedIndex = crates.findIndex((c) => c.slug === activeSlug);
@@ -151,7 +151,10 @@ export default function CrateTabs({
   classesFn,
   disableScrollOnActivate = false,
 }: Props) {
-  const s = sharedState(crates, activeSlug, onSelect, isVertical, disableScrollOnActivate);
+  const s = sharedState(crates, activeSlug, onSelect, {
+    vertical: isVertical,
+    disableScrollOnActivate,
+  });
   const tabProps = { s, crates, activeSlug, onSelect, tabIndexValue };
   const hClassesFn = classesFn ?? horizontalTabClasses;
   if (isVertical) {
