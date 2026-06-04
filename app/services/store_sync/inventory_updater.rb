@@ -17,11 +17,16 @@ module StoreSync
     end
 
     def remove_stale(listings)
-      current_ids = listings.map { |r| r[:discogs_listing_id] }
-      current_ids.empty? ? @store.listings.delete_all : @store.listings.where.not(discogs_listing_id: current_ids).delete_all
+      deleted_count = delete_stale_listings(listings)
+      @store.increment_inventory_version! if deleted_count.positive?
     end
 
     private
+
+    def delete_stale_listings(listings)
+      current_ids = listings.map { |r| r[:discogs_listing_id] }
+      current_ids.empty? ? @store.listings.delete_all : @store.listings.where.not(discogs_listing_id: current_ids).delete_all
+    end
 
     def persist_listings(records)
       existing = index_existing(records)

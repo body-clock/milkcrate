@@ -59,6 +59,15 @@ RSpec.describe StoreSales::SoldListingRemover do
         expect(other_store.listings.where(discogs_listing_id: "other-sold-111")).to exist
         expect(other_store.listings.count).to eq(2)
       end
+
+      it "changes the storefront curation cache key" do
+        original_key = StorefrontCuration::CacheManager.send(:curation_cache_key, store)
+
+        remover.call([ "sold-111" ])
+
+        new_key = StorefrontCuration::CacheManager.send(:curation_cache_key, store.reload)
+        expect(new_key).not_to eq(original_key)
+      end
     end
 
     context "with no matching listings" do
