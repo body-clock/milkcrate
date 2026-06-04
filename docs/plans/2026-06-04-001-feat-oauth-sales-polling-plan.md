@@ -1,7 +1,7 @@
 ---
 title: "feat: Poll OAuth Discogs Sales to Keep Storefront Inventory Fresh"
 type: feat
-status: active
+status: completed
 date: 2026-06-04
 ---
 
