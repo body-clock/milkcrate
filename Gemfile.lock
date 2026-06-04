@@ -197,7 +197,7 @@ GEM
       activesupport (>= 6.1)
     hashie (5.1.0)
       logger
-    honeybadger (6.6.1)
+    honeybadger (6.6.2)
       logger
       ostruct
     i18n (1.14.8)
@@ -671,7 +671,7 @@ DEPENDENCIES
   fugit (1.12.1) sha256=5898f478ede9b415f0804e42b8f3fd53f814bd85eebffceebdbc34e1107aaf68
   globalid (1.3.0) sha256=05c639ad6eb4594522a0b07983022f04aa7254626ab69445a0e493aa3786ff11
   hashie (5.1.0) sha256=c266471896f323c446ea8207f8ffac985d2718df0a0ba98651a3057096ca3870
-  honeybadger (6.6.1) sha256=f674bd910c5fe55fd4ec9b02b430e1c7a6255aa24b160502cfa63009a75ecbe0
+  honeybadger (6.6.2) sha256=00104d705923cc94af8dac25c636928ed82034a4adfa17024b685a637e5e54e9
   i18n (1.14.8) sha256=285778639134865c5e0f6269e0b818256017e8cde89993fdfcbfb64d088824a5
   ice_nine (0.11.2) sha256=5d506a7d2723d5592dc121b9928e4931742730131f22a1a37649df1c1e2e63db
   importmap-rails (2.2.3) sha256=7101be2a4dc97cf1558fb8f573a718404c5f6bcfe94f304bf1f39e444feeb16a
