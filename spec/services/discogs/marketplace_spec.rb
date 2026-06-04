@@ -92,7 +92,84 @@ RSpec.describe Discogs::Marketplace do
   end
 
   describe "#list_orders" do
-    it "returns parsed orders" do
+    let(:default_params) do
+      { "page" => "1", "per_page" => "50", "sort" => "last_activity", "sort_order" => "desc" }
+    end
+
+    it "includes page, per_page, sort, and sort_order in the request" do
+      response = oauth_response(code: 200, body: '{"orders":[]}')
+      allow(oauth_access_token).to receive(:get).and_return(response)
+
+      client.list_orders
+
+      expect(oauth_access_token).to have_received(:get).with(
+        a_string_matching(/page=1.*per_page=50.*sort=last_activity.*sort_order=desc/)
+      )
+    end
+
+    it "includes status when provided" do
+      response = oauth_response(code: 200, body: '{"orders":[]}')
+      allow(oauth_access_token).to receive(:get).and_return(response)
+
+      client.list_orders(status: "New Order")
+
+      expect(oauth_access_token).to have_received(:get).with(
+        a_string_including("status=New+Order")
+      )
+    end
+
+    it "URL-encodes status values with spaces" do
+      response = oauth_response(code: 200, body: '{"orders":[]}')
+      allow(oauth_access_token).to receive(:get).and_return(response)
+
+      client.list_orders(status: "New Order")
+
+      expect(oauth_access_token).to have_received(:get).with(
+        a_string_including("status=New+Order")
+      )
+    end
+
+    it "accepts custom page, per_page, sort, and sort_order" do
+      response = oauth_response(code: 200, body: '{"orders":[]}')
+      allow(oauth_access_token).to receive(:get).and_return(response)
+
+      client.list_orders(page: 2, per_page: 100, sort: "created", sort_order: "asc")
+
+      expect(oauth_access_token).to have_received(:get).with(
+        a_string_matching(/page=2.*per_page=100.*sort=created.*sort_order=asc/)
+      )
+    end
+
+    it "retries on 429 rate limit responses" do
+      rate_limit_response = oauth_response(code: 429, body: "rate limited")
+      success_response = oauth_response(code: 200, body: '{"orders":[]}')
+
+      allow(oauth_access_token).to receive(:get).and_return(rate_limit_response, success_response)
+      allow(client).to receive(:sleep)
+
+      result = client.list_orders
+
+      expect(result).to eq({ "orders" => [] })
+      expect(oauth_access_token).to have_received(:get).twice
+    end
+
+    it "gives up after MAX_RETRIES on persistent 429" do
+      rate_limit_response = oauth_response(code: 429, body: "rate limited")
+      allow(oauth_access_token).to receive(:get).and_return(rate_limit_response)
+      allow(client).to receive(:sleep)
+
+      expect { client.list_orders }.to raise_error(Discogs::Errors::RateLimitError)
+      expect(oauth_access_token).to have_received(:get).exactly(4).times
+    end
+
+    it "raises ApiError on non-2xx non-429 responses" do
+      response = oauth_response(code: 500, body: "server error")
+      allow(oauth_access_token).to receive(:get).and_return(response)
+
+      expect { client.list_orders }.to raise_error(Discogs::Errors::ApiError)
+    end
+
+    it "returns parsed orders on success" do
       response = oauth_response(code: 200, body: '{"orders":[]}')
       allow(oauth_access_token).to receive(:get).and_return(response)
 
