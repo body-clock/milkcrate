@@ -3,6 +3,7 @@ class Store < ApplicationRecord
   belongs_to :store_owner, optional: true
 
   has_many :listings, dependent: :destroy
+  has_many :discogs_order_events, dependent: :destroy
 
   before_validation :normalize_discogs_username, if: :discogs_username_changed?
 
@@ -52,6 +53,11 @@ class Store < ApplicationRecord
     else
       SyncStrategies::PublicApi.new
     end
+  end
+
+  def increment_inventory_version!
+    self.class.update_counters(id, inventory_version: 1)
+    reload
   end
 
   private

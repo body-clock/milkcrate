@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_26_000002) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_04_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -32,6 +32,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_26_000002) do
     t.string "password_digest", null: false
     t.datetime "updated_at", null: false
     t.index ["email"], name: "index_admins_on_email", unique: true
+  end
+
+  create_table "discogs_order_events", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "discogs_order_id", null: false
+    t.datetime "last_activity_at"
+    t.string "listing_ids", default: [], null: false, array: true
+    t.datetime "processed_at", null: false
+    t.integer "removed_listing_count", default: 0, null: false
+    t.string "status"
+    t.bigint "store_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["store_id", "discogs_order_id"], name: "index_discogs_order_events_on_store_id_and_discogs_order_id", unique: true
+    t.index ["store_id", "last_activity_at"], name: "index_discogs_order_events_on_store_id_and_last_activity_at"
   end
 
   create_table "discogs_shoppers", force: :cascade do |t|
@@ -255,11 +269,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_26_000002) do
     t.integer "enrichment_progress_pct"
     t.string "enrichment_status", default: "idle", null: false
     t.integer "inventory_page_count", default: 0, null: false
+    t.integer "inventory_version", default: 0, null: false
     t.datetime "last_enriched_at"
+    t.text "last_sales_poll_error"
+    t.datetime "last_sales_poll_error_at"
+    t.datetime "last_sales_polled_at"
     t.text "last_sync_error"
     t.datetime "last_sync_error_at"
     t.datetime "last_synced_at"
     t.string "name"
+    t.boolean "research_partner", default: false, null: false
+    t.datetime "sales_poll_cursor_at"
     t.bigint "store_owner_id"
     t.integer "sync_progress_pct"
     t.string "sync_source", default: "public_api", null: false
@@ -283,6 +303,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_26_000002) do
   end
 
   add_foreign_key "admin_totps", "admins"
+  add_foreign_key "discogs_order_events", "stores"
   add_foreign_key "listings", "stores"
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_claimed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
