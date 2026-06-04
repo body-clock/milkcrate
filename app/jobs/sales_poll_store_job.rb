@@ -15,7 +15,7 @@ class SalesPollStoreJob < ApplicationJob
   private
 
   def enqueue_curation_if_needed(store, result)
-    return unless result && result[:removed_count]&.positive?
+    return unless result && result[:removed_count] > 0
 
     DailyCurationJob.perform_later(store.id)
   end

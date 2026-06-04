@@ -67,6 +67,8 @@ module StoreSales
       return false unless event&.processed_at.present?
 
       current_activity = parse_timestamp(order["last_activity"])
+      return false unless current_activity
+
       event.processed_at >= current_activity - 1.minute
     end
 
