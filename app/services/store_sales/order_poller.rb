@@ -5,8 +5,6 @@
 # from the store's store_owner.
 module StoreSales
   class OrderPoller
-    OVERLAP_WINDOW = 10.minutes
-
     def initialize(store)
       @store = store
     end
@@ -45,17 +43,23 @@ module StoreSales
     end
 
     def process_single_order(order)
-      return nil if already_processed_recently?(find_existing_event(order), order)
-
+      order_id = processing_order_id(order) or return nil
       listing_ids = OrderListingIds.call(order)
-      removal_result = remove_sold_listings(listing_ids)
-      persist_event(order, listing_ids, removal_result)
-
-      { activity: parse_timestamp(order["last_activity"]), removed_count: removal_result[:removed_count] }
+      result = SoldListingRemover.new(@store).call(listing_ids)
+      persist_event(order_id, order, listing_ids, result)
+      activity_result(order, result)
     end
 
-    def find_existing_event(order)
+    def processing_order_id(order)
       order_id = order["id"].to_s
+      already_processed_recently?(find_existing_event(order_id), order) ? nil : order_id
+    end
+
+    def activity_result(order, result)
+      { activity: parse_timestamp(order["last_activity"]), removed_count: result[:removed_count] }
+    end
+
+    def find_existing_event(order_id)
       @store.discogs_order_events.find_by(discogs_order_id: order_id)
     end
 
@@ -66,18 +70,13 @@ module StoreSales
       event.processed_at >= current_activity - 1.minute
     end
 
-    def remove_sold_listings(listing_ids)
-      SoldListingRemover.new(@store).call(listing_ids)
-    end
-
-    def persist_event(order, listing_ids, removal_result)
-      event = find_or_init_event(order)
+    def persist_event(order_id, order, listing_ids, removal_result)
+      event = find_or_init_event(order_id)
       assign_event_attributes(event, order, listing_ids, removal_result)
       event.save!
     end
 
-    def find_or_init_event(order)
-      order_id = order["id"].to_s
+    def find_or_init_event(order_id)
       @store.discogs_order_events.find_or_initialize_by(discogs_order_id: order_id)
     end
 
