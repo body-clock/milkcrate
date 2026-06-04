@@ -42,6 +42,15 @@ export const SCALE_INNER_HOVER = 1.015;
 export const LIFT_HOVER = 2; // px
 export const TILT_HOVER = 1.5; // deg
 
+// ── Easing presets ──────────────────────────────────────────
+
+/** Home page fade-up easing bezier. Duplicated across home/ before centralization. */
+const EASE_X = 0.25;
+const EASE_Y1 = 0.46;
+const EASE_X2 = 0.45;
+const EASE_Y2 = 0.94;
+export const EASE_OUT = [EASE_X, EASE_Y1, EASE_X2, EASE_Y2] as const;
+
 // ── Transition presets ────────────────────────────────────────
 // Convenience exports so consumers reference the preset, not the
 // underlying spring by name.

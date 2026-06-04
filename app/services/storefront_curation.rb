@@ -8,30 +8,26 @@ class StorefrontCuration
   end
 
   def crates
-    picks_list, picks_ids = picks_setup
-    featured_crates = build_featured_crates(excluded_ids: picks_ids)
+    wall = Wall.new(eligible_listings:, genre_counts:)
+    featured_crates = build_featured_crates(excluded_ids: wall.excluded_ids)
     featured_ids = featured_crates.flat_map(&:listings).map(&:id).to_set
 
     [
-      CuratedCrate.new(slug: "picks", name: "Milkcrate Picks", listings: picks_list),
+      wall.crate,
       *featured_crates,
-      *build_genre_crates(excluded_ids: picks_ids | featured_ids)
+      *build_genre_crates(excluded_ids: wall.excluded_ids | featured_ids)
     ]
   end
 
   def storefront_groups
-    picks_crate = CuratedCrate.new(
-      slug: "picks",
-      name: "Milkcrate Picks",
-      listings: picks_strategy.select(eligible_listings, excluded_ids: Set.new, count: 12)
-    )
-    seen_ids = picks_crate.listings.map(&:id).to_set
+    wall = Wall.new(eligible_listings:, genre_counts:)
+    seen_ids = wall.excluded_ids
 
     featured_crates = build_featured_crates(excluded_ids: seen_ids)
     featured_crates.each { |crate| crate.listings.each { |listing| seen_ids.add(listing.id) } }
 
     {
-      picks: picks_crate,
+      wall: wall.crate,
       featured: featured_crates,
       genres: build_genre_crates(excluded_ids: seen_ids)
     }
@@ -39,15 +35,10 @@ class StorefrontCuration
 
   def surfaced_listings
     groups = storefront_groups
-    ([ groups[:picks] ] + groups[:featured] + groups[:genres]).flat_map(&:listings).uniq(&:id)
+    ([ groups[:wall] ] + groups[:featured] + groups[:genres]).flat_map(&:listings).uniq(&:id)
   end
 
   private
-
-  def picks_setup
-    picks_list = picks_strategy.select(eligible_listings, excluded_ids: Set.new, count: 12)
-    [ picks_list, picks_list.map(&:id).to_set ]
-  end
 
   def build_featured_crates(excluded_ids:)
     seen = excluded_ids.dup
@@ -115,8 +106,6 @@ class StorefrontCuration
     strategy.select(eligible_listings, excluded_ids: seen_ids)
   end
   # Strategies
-  def picks_strategy = @picks_strategy ||= CrateStrategies::Picks.new(genre_counts:, today: Date.today)
-
   def new_arrivals_strategy = @new_arrivals_strategy ||= CrateStrategies::NewArrivals.new(genre_counts:, today: Date.today)
 
   def thematic_strategy

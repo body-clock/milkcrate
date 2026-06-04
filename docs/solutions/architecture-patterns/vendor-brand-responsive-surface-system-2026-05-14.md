@@ -1,6 +1,7 @@
 ---
 title: "Vendor brand and responsive surface system — shared brand, shell, and primitives"
 date: 2026-05-14
+last_updated: 2026-06-02
 category: architecture-patterns
 module: storefront
 problem_type: architecture_pattern
@@ -19,7 +20,7 @@ tags: [brand, shell, primitives, responsive, viewport, emoji, design-tokens, acc
 
 ## Context
 
-Milkcrate had three separate surface families — marketing (home, apply), store browsing (Featured, StoreFloor, CrateView), and admin (Rails ERB) — each with its own header treatment, emoji-based branding (`🥛 Milkcrate`), and responsive behavior. The animation token system (`storefront-animation-token-system-2026-05-08.md`) unified animation values but the visual identity and layout shared no common vocabulary.
+Milkcrate had three separate surface families — marketing (home, apply), store browsing (Featured, BrowseShell, CrateView), and admin (Rails ERB) — each with its own header treatment, emoji-based branding (`🥛 Milkcrate`), and responsive behavior. The animation token system (`storefront-animation-token-system-2026-05-08.md`) unified animation values but the visual identity and layout shared no common vocabulary.
 
 The vendor brand unification plan (2026-05-14) replaced this with a three-layer system: a single brand mark (U1), a shared shell contract (U2), and composable preview primitives (U3). Every public surface — marketing, store, crate, apply, and admin — now uses the same brand tokens and responsive vocabulary while keeping its own content and behavior decisions.
 
@@ -114,25 +115,24 @@ The homepage uses `MarketingPreviewPresenter` (backend) to bound the preview pay
 
 When adding new section types to `StorefrontPreview`, update both the presenter caps and the fallback data.
 
-### Layer 3 — Preview Primitives (`RecordTile`, `CrateShelf`, `StorefrontPreview`)
+### Layer 3 — Preview Primitives (`RecordTile`, `StorefrontPreview`)
 
-Three composable React components that create a shared visual language for record covers and crate displays:
+Composable React components that create a shared visual language for record covers:
 
 | Component | Purpose | Interactive mode |
 |-----------|---------|-----------------|
 | `RecordTile` | Lightweight, non-interactive cover display. Image or ♪ placeholder. | Never |
-| `CrateShelf` | Crate header + 2-column record grid. Two modes. | `interactive={true}`: clickable header + thumbnails call `onSelectCrate`. `interactive={false}`: static display. |
 | `StorefrontPreview` | Section-level preview: picks wall, featured crates, genre grid. Responsive grids per tier. | Links in "interactive" variant; otherwise decorative. |
 
-**`RecordTile`** is the building block. It replaces the duplicated `{src ? <img> : <div>♪</div>}` pattern that appeared in CrateCard, StoreFloor compact scroll, and the old homepage decorative crates. `RecordCard` remains the full flip/detail component for CrateView and pile interactions.
+**`RecordTile`** is the building block. It replaces the duplicated `{src ? <img> : <div>♪</div>}` pattern that appeared in the old StoreFloor compact scroll, and the old homepage decorative crates. `RecordCard` remains the full flip/detail component for CrateView and pile interactions.
 
-**`CrateShelf`** is the crate-level building block. In interactive mode, it follows the same `role="button"` pattern as `CrateCard` — keyboard-accessible, closest-check for nested interactive elements. In non-interactive mode, it renders the same visual structure without clickable elements — useful for marketing preview sections.
+**`StorefrontPreview`** composes `RecordTile` into section-level preview layouts with tier-aware grids.
 
-**`StorefrontPreview`** composes `RecordTile` and `CrateShelf` into section-level preview layouts with tier-aware grids (compact: 2-col carousel; comfy: responsive grid; wide: full-width grid).
+**Note:** `CrateShelf` and `CrateCard` were removed when store browsing was consolidated into `BrowseShell` (see `unified-store-browsing-browseshell-2026-06-02.md`). `RecordTile` and `StorefrontPreview` remain for non-browsing surfaces.
 
 **When to use primitives:** Any surface that displays records or crates visually. Marketing pages use non-interactive mode. Store browsing surfaces use interactive mode.
 
-**When NOT to use primitives:** `RecordCard` and `CrateCard` remain for product surfaces that need richer interaction — record flip animation, tactile hover, coordinated multi-element animation. The primitives are for shared visual display; the specialized components are for interactive behavior.
+**When NOT to use primitives:** `RecordCard` remains for surfaces that need richer interaction — record flip animation, tactile hover. The primitives are for shared visual display; `RecordCard` is for interactive behavior.
 
 ### Guard-Parity Audit Checklist
 
@@ -153,14 +153,14 @@ When refactoring a component that has responsive branches (`isCompact`, `isComfy
 
 - **Single identity.** One `BrandMark` propagates to React headers, ERB layouts, favicon, PWA manifest, and social surfaces without per-surface emoji hunting.
 - **Layout drift is mechanically prevented.** The shell is a contract — every surface gets the same skip-link, header region, and content wrapper. No layout can accidentally replace or drop the skip-link because it doesn't own that concern.
-- **Visual language is composable.** Marketing can use the same `RecordTile` as store browsing without importing `StoreFloor`'s full interaction model. Primitives separate "what it looks like" from "what it does."
+- **Visual language is composable.** Marketing can use the same `RecordTile` as store browsing without importing the full browsing interaction model. Primitives separate "what it looks like" from "what it does."
 - **Responsive governance is CI-enforceable.** The cross-surface matrix (`responsive_surface_matrix.test.tsx`) and emoji regression matrix (`page_smoke.test.tsx`) catch provider-stripping regressions and emoji re-introductions before they reach review.
 
 ## When to Apply
 
 - When adding a new public-facing page — use `MarketingLayout` or `AppLayout` (which use `MilkcrateShell` + `BrandMark`). Add the page to the responsive matrix.
 - When changing the header structure across surfaces — modify `MilkcrateShell`'s slot interface, not individual layouts.
-- When displaying records/crates outside of `StoreFloor` — use `RecordTile`/`CrateShelf`/`StorefrontPreview` instead of copying the visual pattern.
+- When displaying records/crates outside of `BrowseShell` — use `RecordTile`/`StorefrontPreview` instead of copying the visual pattern.
 - When refactoring a responsive branch — run the guard-parity checklist before merging.
 - When the brand mark evolves — update `BrandMark` and the static icon assets together; the single-source-of-truth principle means one component change propagates.
 

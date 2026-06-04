@@ -1,5 +1,10 @@
 # Milkcrate settings — override per environment or via env vars.
 
+storefront:
+  # Number of records on the Wall.
+  # Override per environment via STOREFRONT_WALL_COUNT env var.
+  wall_count: 12
+
 demo_store:
   name: Beautiful World Syndicate
   discogs_username: philadelphiamusic

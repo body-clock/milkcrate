@@ -92,7 +92,7 @@ RSpec.describe "Stores", type: :request do
 
       crates = inertia.props["crates"]
       slugs = crates.map { |c| c["slug"] }
-      expect(slugs).to include("picks", "jazz", "rock")
+      expect(slugs).to include("wall", "jazz", "rock")
     end
 
     it "excludes records from a genre bin when that genre is not primary" do
@@ -127,9 +127,9 @@ RSpec.describe "Stores", type: :request do
         get "/teststore"
 
         sections = inertia.props["storefront_sections"]
-        expect(sections.map { |s| s["key"] }).to include("picks_wall", "genre_grid")
-        expect(sections.first["key"]).to eq("picks_wall")
-        expect(sections.first.dig("crate", "slug")).to eq("picks")
+        expect(sections.map { |s| s["key"] }).to include("wall", "genre_grid")
+        expect(sections.first["key"]).to eq("wall")
+        expect(sections.first.dig("crate", "slug")).to eq("wall")
       end
     end
   end

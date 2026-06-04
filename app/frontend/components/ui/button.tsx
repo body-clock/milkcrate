@@ -1,5 +1,12 @@
-import React from "react"
-import { actionClassName, type ActionSize, type ActionVariant } from "./action"
+import React from "react";
+
+import { actionClassName, type ActionSize, type ActionVariant } from "./action";
+
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: ActionVariant;
+  size?: ActionSize;
+  busy?: boolean;
+}
 
 export default function Button({
   variant = "primary",
@@ -10,11 +17,7 @@ export default function Button({
   children,
   type = "button",
   ...props
-}: React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: ActionVariant
-  size?: ActionSize
-  busy?: boolean
-}) {
+}: ButtonProps) {
   return (
     <button
       type={type}
@@ -25,5 +28,5 @@ export default function Button({
     >
       {children}
     </button>
-  )
+  );
 }

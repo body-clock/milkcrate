@@ -43,7 +43,7 @@ RSpec.describe MarketingPreviewPresenter do
         expect(result[:sections]).to be_an(Array)
         section_keys = result[:sections].map { |s| s[:key] }
         # picks_wall is always present when store has listings
-        expect(section_keys).to include("picks_wall")
+        expect(section_keys).to include("wall")
       end
 
       it "caps records per crate to at most MAX_PREVIEW_RECORDS" do

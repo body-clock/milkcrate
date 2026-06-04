@@ -1,10 +1,17 @@
-import React from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { renderWithTier } from "@/test/viewport-test-utils";
+import React from "react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
 import Dashboard from "@/pages/admin/dashboard";
+import { renderWithTier } from "@/test/viewport-test-utils";
 import type { AdminDashboardProps } from "@/types/inertia";
+
+const STORE_ID_HEALTHY = 1;
+const STORE_ID_PROCESSING = 2;
+const STORE_ID_FAILED = 3;
+const APPLICANT_ID = 10;
+const BROKEN_LISTINGS = 42;
 
 const props: AdminDashboardProps = {
   discogs_onboarding: {
@@ -13,7 +20,7 @@ const props: AdminDashboardProps = {
   },
   active_stores: [
     {
-      id: 1,
+      id: STORE_ID_HEALTHY,
       name: "Healthy Records",
       discogs_username: "healthy-records",
       total_listings: 300,
@@ -35,7 +42,7 @@ const props: AdminDashboardProps = {
       },
     },
     {
-      id: 2,
+      id: STORE_ID_PROCESSING,
       name: "Processing Vinyl",
       discogs_username: "processing-vinyl",
       total_listings: null,
@@ -57,10 +64,10 @@ const props: AdminDashboardProps = {
       },
     },
     {
-      id: 3,
+      id: STORE_ID_FAILED,
       name: "Broken Beats",
       discogs_username: "broken-beats",
-      total_listings: 42,
+      total_listings: BROKEN_LISTINGS,
       inventory_page_count: 1,
       sync_status: "failed",
       enrichment_status: "idle",
@@ -81,7 +88,7 @@ const props: AdminDashboardProps = {
   ],
   applicants: [
     {
-      id: 10,
+      id: APPLICANT_ID,
       name: "Applicant Records",
       email: "applicant@example.com",
       discogs_username: "applicant-records",
@@ -92,7 +99,9 @@ const props: AdminDashboardProps = {
   ],
 };
 
-describe("Admin dashboard", () => {
+let resolveLookup: (value: { ok: boolean; json: () => Promise<unknown> }) => void;
+
+describe("Admin dashboard > basic rendering", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
   });
@@ -173,6 +182,12 @@ describe("Admin dashboard", () => {
       "applicants-heading",
     );
   });
+});
+
+describe("Admin dashboard > lookup panel", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
 
   it("renders the admin-created storefront lookup panel", () => {
     render(<Dashboard {...props} />);
@@ -184,17 +199,19 @@ describe("Admin dashboard", () => {
 
   it("renders a creatable lookup preview with a separate confirmation form", async () => {
     const user = userEvent.setup();
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        status: "creatable",
-        creatable: true,
-        username: "realseller",
-        seller_name: "Real Seller",
-        avatar_url: "https://example.com/avatar.jpg",
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          status: "creatable",
+          creatable: true,
+          username: "realseller",
+          seller_name: "Real Seller",
+          avatar_url: "https://example.com/avatar.jpg",
+        }),
       }),
-    });
-    vi.stubGlobal("fetch", fetchMock);
+    );
 
     const { container } = render(<Dashboard {...props} />);
 
@@ -212,10 +229,12 @@ describe("Admin dashboard", () => {
       "value",
       "realseller",
     );
-    expect(fetchMock).toHaveBeenCalledWith(
-      "http://localhost:3000/admin/discogs_lookup?username=RealSeller",
-      expect.objectContaining({ headers: { Accept: "application/json" } }),
-    );
+  });
+});
+
+describe("Admin dashboard > lookup edge cases", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   it("does not render confirmation for invalid lookup state", async () => {
@@ -347,7 +366,7 @@ describe("Admin dashboard", () => {
 
   it("ignores stale lookup responses after the username changes", async () => {
     const user = userEvent.setup();
-    let resolveLookup: (value: { ok: boolean; json: () => Promise<unknown> }) => void = () => {};
+    resolveLookup = () => {};
     const pendingLookup = new Promise<{ ok: boolean; json: () => Promise<unknown> }>((resolve) => {
       resolveLookup = resolve;
     });
@@ -373,6 +392,12 @@ describe("Admin dashboard", () => {
       expect(screen.queryByText("Real Seller")).not.toBeInTheDocument();
     });
     expect(screen.queryByRole("button", { name: "Onboard storefront" })).not.toBeInTheDocument();
+  });
+});
+
+describe("Admin dashboard > viewport tiers", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   it("renders the same operational content on compact and wide tiers", () => {

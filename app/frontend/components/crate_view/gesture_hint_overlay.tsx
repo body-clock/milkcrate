@@ -1,5 +1,5 @@
-import GhostFingerCue from "../ghost_finger_cue";
 import { isLessonEligible } from "../../lib/first_swipe_lesson";
+import GhostFingerCue from "../ghost_finger_cue";
 
 interface GestureHintOverlayProps {
   isCompact: boolean;
@@ -18,9 +18,19 @@ export default function GestureHintOverlay({
   total,
   prefersReducedMotion,
 }: GestureHintOverlayProps) {
-  if (!isCompact) return null;
-  if (!showGestureHint) return null;
-  if (!isLessonEligible({ isCompact, isPopulated: total > 0 })) return null;
+  if (!isCompact) {
+    return null;
+  }
+  if (!showGestureHint) {
+    return null;
+  }
+  if (!isLessonEligible({ isCompact, isPopulated: total > 0 })) {
+    return null;
+  }
 
-  return <GhostFingerCue reducedMotion={prefersReducedMotion} />;
+  return (
+    <div data-testid="gesture-hint-overlay">
+      <GhostFingerCue reducedMotion={prefersReducedMotion} />
+    </div>
+  );
 }

@@ -133,18 +133,18 @@ RSpec.describe CratePresenter do
     let(:jazz) { fake_listing(id: 1, genres: [ "Jazz" ]) }
     let(:rock) { fake_listing(id: 2, genres: [ "Rock" ]) }
 
-    it "places picks first with slug 'picks'" do
+    it "places wall first with slug 'wall'" do
       store    = fake_store
-      curated_crates = [ fake_curated_crate(slug: "picks", name: "Milkcrate Picks", listings: [ jazz ]) ]
+      curated_crates = [ fake_curated_crate(slug: "wall", name: "The Wall", listings: [ jazz ]) ]
       crates   = described_class.new(store).build_crates(curated_crates)
 
-      expect(crates.first[:slug]).to eq("picks")
-      expect(crates.first[:name]).to eq("Milkcrate Picks")
+      expect(crates.first[:slug]).to eq("wall")
+      expect(crates.first[:name]).to eq("The Wall")
     end
 
-    it "includes picks records in the first crate" do
+    it "includes wall records in the first crate" do
       store    = fake_store
-      curated_crates = [ fake_curated_crate(slug: "picks", name: "Milkcrate Picks", listings: [ jazz ]) ]
+      curated_crates = [ fake_curated_crate(slug: "wall", name: "The Wall", listings: [ jazz ]) ]
       crates   = described_class.new(store).build_crates(curated_crates)
 
       expect(crates.first[:count]).to eq(1)
@@ -163,52 +163,52 @@ RSpec.describe CratePresenter do
     it "produces one crate per unique primary genre" do
       store    = fake_store
       curated_crates = [
-        fake_curated_crate(slug: "picks", name: "Milkcrate Picks", listings: []),
+        fake_curated_crate(slug: "wall", name: "The Wall", listings: []),
         fake_curated_crate(slug: "jazz", name: "Jazz", listings: [ jazz ]),
         fake_curated_crate(slug: "rock", name: "Rock", listings: [ rock ])
       ]
       crates   = described_class.new(store).build_crates(curated_crates)
 
-      genre_slugs = crates.reject { |c| c[:slug] == "picks" }.map { |c| c[:slug] }
+      genre_slugs = crates.reject { |c| c[:slug] == "wall" }.map { |c| c[:slug] }
       expect(genre_slugs).to match_array(%w[jazz rock])
     end
 
     it "skips genre crates with no records" do
       store    = fake_store
-      curated_crates = [ fake_curated_crate(slug: "picks", name: "Milkcrate Picks", listings: []) ]
+      curated_crates = [ fake_curated_crate(slug: "wall", name: "The Wall", listings: []) ]
       crates   = described_class.new(store).build_crates(curated_crates)
 
-      genre_slugs = crates.reject { |c| c[:slug] == "picks" }.map { |c| c[:slug] }
+      genre_slugs = crates.reject { |c| c[:slug] == "wall" }.map { |c| c[:slug] }
       expect(genre_slugs).to be_empty
     end
   end
 
   describe "#build_storefront_sections" do
-    let(:picks) { fake_curated_crate(slug: "picks", name: "Milkcrate Picks", listings: [ fake_listing(id: 1) ]) }
+    let(:wall) { fake_curated_crate(slug: "wall", name: "The Wall", listings: [ fake_listing(id: 1) ]) }
     let(:featured) { fake_curated_crate(slug: "new-arrivals", name: "New Arrivals", listings: [ fake_listing(id: 2) ]) }
     let(:genre) { fake_curated_crate(slug: "jazz", name: "Jazz", listings: [ fake_listing(id: 3) ]) }
 
     it "assigns storefront section keys in display order" do
       sections = described_class.new(fake_store).build_storefront_sections(
-        picks:,
+        wall:,
         featured: [ featured ],
         genres: [ genre ]
       )
 
-      expect(sections.map { |section| section[:key] }).to eq(%w[picks_wall featured_crates genre_grid])
-      expect(sections.first.dig(:crate, :slug)).to eq("picks")
+      expect(sections.map { |section| section[:key] }).to eq(%w[wall featured_crates genre_grid])
+      expect(sections.first.dig(:crate, :slug)).to eq("wall")
       expect(sections.second[:crates].map { |crate| crate[:slug] }).to eq([ "new-arrivals" ])
       expect(sections.third[:crates].map { |crate| crate[:slug] }).to eq([ "jazz" ])
     end
 
     it "omits the featured section when no featured crates are present" do
       sections = described_class.new(fake_store).build_storefront_sections(
-        picks:,
+        wall:,
         featured: [],
         genres: [ genre ]
       )
 
-      expect(sections.map { |section| section[:key] }).to eq(%w[picks_wall genre_grid])
+      expect(sections.map { |section| section[:key] }).to eq(%w[wall genre_grid])
     end
   end
 end

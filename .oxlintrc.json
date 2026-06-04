@@ -14,6 +14,31 @@
     "nursery": "warn",
     "style": "off"
   },
+  "overrides": [
+    {
+      "files": ["*.test.*", "*.spec.*", "**/__tests__/**", "**/test/**"],
+      "rules": {
+        "eslint/max-lines-per-function": "off",
+        "eslint/max-lines": "off",
+        "eslint/max-nested-callbacks": "off",
+        "import/no-unassigned-import": "off"
+      }
+    },
+    {
+      "files": ["scripts/**"],
+      "rules": {
+        "eslint/max-lines-per-function": "off",
+        "eslint/max-lines": "off",
+        "eslint/max-depth": "off",
+        "eslint/max-nested-callbacks": "off",
+        "eslint/max-params": "off",
+        "eslint/complexity": "off",
+        "eslint/max-statements": "off",
+        "eslint/no-await-in-loop": "off",
+        "eslint/no-magic-numbers": "off"
+      }
+    }
+  ],
   "rules": {
     "no-unused-vars": "off",
     "no-console": "off",
@@ -26,9 +51,37 @@
     "sort-imports": "off",
     "sort-keys": "off",
     "func-style": "off",
-    "no-magic-numbers": "off",
+    "no-magic-numbers": [
+      "warn",
+      { "ignore": [0, 1, -1], "ignoreEnums": true, "ignoreReadonlyClassProperties": true }
+    ],
     "jest/no-hooks": "off",
     "jest/prefer-lowercase-title": "off",
-    "react/jsx-max-depth": "off"
+    "react/jsx-max-depth": ["warn", { "max": 3 }],
+
+    "eslint/max-lines-per-function": [
+      "warn",
+      { "max": 25, "skipBlankLines": true, "skipComments": true }
+    ],
+    "eslint/max-lines": ["warn", { "max": 150, "skipBlankLines": true, "skipComments": true }],
+    "eslint/max-depth": ["warn", { "max": 3 }],
+    "eslint/max-nested-callbacks": ["warn", { "max": 3 }],
+    "eslint/max-params": ["warn", { "max": 4 }],
+    "eslint/complexity": ["warn", { "max": 10 }],
+    "eslint/max-statements": ["warn", { "max": 15 }],
+    "react/no-unstable-nested-components": "error",
+    "react/no-multi-comp": "warn",
+    "eslint/no-else-return": ["warn", { "allowElseIf": false }],
+    "eslint/no-negated-condition": "warn",
+    "eslint/no-lonely-if": "warn",
+    "eslint/no-nested-ternary": "warn",
+    "eslint/no-param-reassign": ["warn", { "props": true }],
+    "eslint/prefer-arrow-callback": "warn",
+    "eslint/prefer-const": "warn",
+    "eslint/prefer-destructuring": ["warn", { "object": true, "array": false }],
+    "eslint/curly": ["warn", "all"],
+    "eslint/default-param-last": "warn",
+    "eslint/no-unneeded-ternary": "warn",
+    "eslint/no-useless-return": "warn"
   }
 }

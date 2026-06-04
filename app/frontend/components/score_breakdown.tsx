@@ -1,7 +1,10 @@
-import type { Listing } from "@/types/inertia"
+import type { Listing } from "@/types/inertia";
+
+import { ScoreRow } from "./score_row";
+import { ScoreTotalRow } from "./score_total_row";
 
 interface Props {
-  listing: Listing
+  listing: Listing;
 }
 
 const STRATEGY_LABELS: Record<string, string> = {
@@ -13,13 +16,15 @@ const STRATEGY_LABELS: Record<string, string> = {
   freshness: "Freshness",
   noise: "Noise",
   price: "Price",
-}
+};
 
 export default function ScoreBreakdown({ listing }: Props) {
-  if (!listing.score_breakdown) return null
+  if (!listing.score_breakdown) {
+    return null;
+  }
 
-  const breakdown = listing.score_breakdown
-  const total = Object.values(breakdown).reduce((sum, v) => sum + v, 0)
+  const breakdown = listing.score_breakdown;
+  const total = Object.values(breakdown).reduce((sum, v) => sum + v, 0);
 
   return (
     <div className="mt-2 mb-1 rounded border border-mc-border/50 bg-mc-bg-raised/70 px-2.5 py-1.5 text-[10px] font-mono leading-snug">
@@ -27,24 +32,11 @@ export default function ScoreBreakdown({ listing }: Props) {
         Score
       </div>
       <div className="grid grid-cols-[1fr_auto] gap-x-2 gap-y-px">
-        {Object.entries(breakdown).flatMap(([key, value]) => [
-          <span key={`l-${key}`} className="truncate tabular-nums text-mc-text-dim/80">
-            {STRATEGY_LABELS[key] ?? key}
-          </span>,
-          <span
-            key={`v-${key}`}
-            className={`text-right tabular-nums ${value >= 0 ? "text-mc-feedback-success" : "text-mc-feedback-danger"}`}
-          >
-            {value >= 0 ? "+" : ""}{value.toFixed(1)}
-          </span>,
-        ])}
+        {Object.entries(breakdown).flatMap(([key, value]) => (
+          <ScoreRow key={key} id={key} label={STRATEGY_LABELS[key] ?? key} value={value} />
+        ))}
       </div>
-      <div className="mt-0.5 flex justify-between border-t border-mc-border/20 pt-0.5 text-mc-text font-semibold tabular-nums">
-        <span>Total</span>
-        <span className={total >= 0 ? "text-mc-feedback-success" : "text-mc-feedback-danger"}>
-          {total >= 0 ? "+" : ""}{total.toFixed(1)}
-        </span>
-      </div>
+      <ScoreTotalRow total={total} />
     </div>
-  )
+  );
 }

@@ -31,14 +31,14 @@ en:
   pages:
     home:
       headline: "Browse Discogs like a record store, not an inventory."
-      subhead: "Curated crates from real record stores. Flip through picks, explore genre bins, and discover records you won't find through search alone."
+      subhead: "Curated crates from real record stores. Flip through the wall, explore genre bins, and discover records you won't find through search alone."
       cta_demo: "Browse a store →"
-      hero_subhead: "Browse curated crates from real record stores. No account needed."
+      hero_subhead: "Browse record crates from real stores. No account needed."
       steps:
         step1_title: "Connect with Discogs"
         step1_body: "Authorize with Discogs to claim your storefront. We'll sync your full inventory automatically."
         step2_title: "We curate & organize"
-        step2_body: "Your inventory becomes curated crates: picks, featured bins, and genre bins. A browsable storefront in minutes."
+        step2_body: "Your inventory becomes browsable crates: the wall, featured bins, and genre bins. A browsable storefront in minutes."
         step3_title: "Share your store"
         step3_body: "One link. Your customers browse like they're in the shop. Share it anywhere."
       preview_blurb: "The longer the store is up, the better the data becomes. Cycles daily."

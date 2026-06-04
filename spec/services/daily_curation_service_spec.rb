@@ -13,19 +13,19 @@ RSpec.describe DailyCurationService do
   end
 
   describe "#curate" do
-    let(:picks_listings) { [ make_lp_listing(genres: [ "Jazz" ]) ] }
+    let(:wall_listings) { [ make_lp_listing(genres: [ "Jazz" ]) ] }
     let(:genre_listings) { [ make_lp_listing(genres: [ "Rock" ]) ] }
-    let(:all_surfaced) { picks_listings + genre_listings }
+    let(:all_surfaced) { wall_listings + genre_listings }
 
     let(:curation) do
       instance_spy(StorefrontCuration,
         crates: [
-          CuratedCrate.new(slug: "picks", name: "Milkcrate Picks", listings: picks_listings),
+          CuratedCrate.new(slug: "wall", name: "The Wall", listings: wall_listings),
           CuratedCrate.new(slug: "rock", name: "Rock", listings: genre_listings)
         ],
         surfaced_listings: all_surfaced,
         storefront_groups: {
-          picks: CuratedCrate.new(slug: "picks", name: "Milkcrate Picks", listings: picks_listings),
+          wall: CuratedCrate.new(slug: "wall", name: "The Wall", listings: wall_listings),
           featured: [],
           genres: [ CuratedCrate.new(slug: "rock", name: "Rock", listings: genre_listings) ]
         }
@@ -36,8 +36,8 @@ RSpec.describe DailyCurationService do
       allow(StorefrontCuration).to receive(:new).with(store).and_return(curation)
       allow(CratePresenter).to receive(:new).and_wrap_original do |original, *args|
         instance_spy(CratePresenter,
-          build_storefront_sections: [ { key: "picks_wall", crate: { slug: "picks", records: [] } } ],
-          build_crates: [ { slug: "picks", records: [] } ]
+          build_storefront_sections: [ { key: "wall", crate: { slug: "wall", records: [] } } ],
+          build_crates: [ { slug: "wall", records: [] } ]
         )
       end
       allow(StorefrontCuration::CacheManager).to receive(:write_curation_cache).and_return(true)
@@ -49,8 +49,8 @@ RSpec.describe DailyCurationService do
       described_class.new.curate(store)
 
       aggregate_failures do
-        expect(picks_listings.first.reload.last_surfaced_at).to be_present
-        expect(picks_listings.first.surface_count).to eq(1)
+        expect(wall_listings.first.reload.last_surfaced_at).to be_present
+        expect(wall_listings.first.surface_count).to eq(1)
         expect(genre_listings.first.reload.last_surfaced_at).to be_present
         expect(genre_listings.first.surface_count).to eq(1)
         expect(uncurated.reload.last_surfaced_at).to be_nil
@@ -61,9 +61,9 @@ RSpec.describe DailyCurationService do
     it "increments surface_count by 1 for duplicated listings" do
       single_listing = make_lp_listing(genres: [ "Jazz" ])
       single_curation = instance_spy(StorefrontCuration,
-        crates: [ CuratedCrate.new(slug: "picks", name: "Milkcrate Picks", listings: [ single_listing ]) ],
+        crates: [ CuratedCrate.new(slug: "wall", name: "The Wall", listings: [ single_listing ]) ],
         surfaced_listings: [ single_listing ],
-        storefront_groups: { picks: CuratedCrate.new(slug: "picks", name: "Milkcrate Picks", listings: [ single_listing ]), featured: [], genres: [] }
+        storefront_groups: { wall: CuratedCrate.new(slug: "wall", name: "The Wall", listings: [ single_listing ]), featured: [], genres: [] }
       )
       allow(StorefrontCuration).to receive(:new).with(store).and_return(single_curation)
 

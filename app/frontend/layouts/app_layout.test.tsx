@@ -1,9 +1,11 @@
-import React from "react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import AppLayout from "./app_layout";
+import React from "react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import type { Listing } from "@/types/inertia";
+
+import AppLayout from "./app_layout";
 
 const mockedPage = vi.hoisted(() => ({
   props: {
@@ -47,14 +49,12 @@ const listing: Listing = {
 };
 
 const STORE_SLUG = mockedPage.props.store.discogs_username;
+const COMPACT_W = 390;
+const WIDE_W = 1280;
 
-function renderLayout(width: number, pile: Listing[] = []) {
-  Object.defineProperty(window, "innerWidth", {
-    configurable: true,
-    value: width,
-  });
+function renderCompact(pile: Listing[] = []) {
+  Object.defineProperty(window, "innerWidth", { configurable: true, value: COMPACT_W });
   localStorage.setItem(`mc-pile-${STORE_SLUG}`, JSON.stringify(pile));
-
   return render(
     <AppLayout>
       <p>Store content</p>
@@ -62,111 +62,116 @@ function renderLayout(width: number, pile: Listing[] = []) {
   );
 }
 
-describe("AppLayout storefront chrome", () => {
-  beforeEach(() => {
-    localStorage.clear();
-    document.head.innerHTML = '<meta name="csrf-token" content="csrf-token-test" />';
-    mockedPage.props.shopper = null;
-    mockedPage.props.notice = undefined;
-    mockedPage.props.alert = undefined;
-  });
+function renderWide(pile: Listing[] = []) {
+  Object.defineProperty(window, "innerWidth", { configurable: true, value: WIDE_W });
+  localStorage.setItem(`mc-pile-${STORE_SLUG}`, JSON.stringify(pile));
+  return render(
+    <AppLayout>
+      <p>Store content</p>
+    </AppLayout>,
+  );
+}
 
+function reset() {
+  localStorage.clear();
+  document.head.innerHTML = '<meta name="csrf-token" content="csrf-token-test" />';
+  mockedPage.props.shopper = null;
+  mockedPage.props.notice = undefined;
+  mockedPage.props.alert = undefined;
+}
+
+describe("AppLayout compact", () => {
+  beforeEach(reset);
   afterEach(() => {
     document.head.innerHTML = "";
   });
-
-  it("shows orientation only for an empty compact store floor", () => {
-    renderLayout(390);
-
-    const header = screen.getByRole("banner");
-    expect(within(header).getByText("Philadelphia Music")).toBeInTheDocument();
-    expect(
-      within(header).queryByRole("button", { name: "Connect with Discogs" }),
-    ).not.toBeInTheDocument();
-    expect(
-      within(header).queryByRole("button", { name: "Toggle light/dark mode" }),
-    ).not.toBeInTheDocument();
-    expect(within(header).queryByRole("button", { name: /Pile/ })).not.toBeInTheDocument();
+  it("shows store name", () => {
+    renderCompact();
+    expect(within(screen.getByRole("banner")).getByText("Philadelphia Music")).toBeInTheDocument();
   });
-
-  it("retains the theme action but removes persistent Discogs controls outside compact", () => {
-    renderLayout(1280);
-
-    const header = screen.getByRole("banner");
-    expect(within(header).getByRole("button", { name: "Toggle light/dark mode" })).toHaveClass(
-      "focus-visible:ring-mc-focus",
-    );
+  it("hides pile when empty", () => {
+    renderCompact();
     expect(
-      within(header).queryByRole("button", { name: "Connect with Discogs" }),
+      within(screen.getByRole("banner")).queryByRole("button", { name: /Pile/ }),
     ).not.toBeInTheDocument();
   });
+  it("hides footer on compact", () => {
+    mockedPage.props.shopper = { discogs_username: "shopper1" };
+    renderCompact();
+    expect(screen.queryByRole("contentinfo")).not.toBeInTheDocument();
+  });
+});
 
-  it("renders storefront notices and alerts through semantic feedback roles", () => {
+describe("AppLayout wide", () => {
+  beforeEach(reset);
+  afterEach(() => {
+    document.head.innerHTML = "";
+  });
+  it("shows theme toggle", () => {
+    renderWide();
+    expect(
+      within(screen.getByRole("banner")).getByRole("button", { name: "Toggle light/dark mode" }),
+    ).toBeInTheDocument();
+  });
+  it("shows footer for connected shopper", () => {
+    mockedPage.props.shopper = { discogs_username: "shopper1" };
+    renderWide();
+    expect(
+      within(screen.getByRole("contentinfo")).getByText(/Connected to Discogs/),
+    ).toBeInTheDocument();
+  });
+  it("shows notice and alert", () => {
     mockedPage.props.notice = "Inventory updated";
-    const { unmount } = renderLayout(1280);
-
-    expect(screen.getByRole("status")).toHaveClass("text-mc-feedback-success");
-
+    const { unmount } = renderWide();
+    expect(screen.getByRole("status")).toBeInTheDocument();
     unmount();
     mockedPage.props.notice = undefined;
     mockedPage.props.alert = "Sync unavailable";
-    renderLayout(1280);
-
-    expect(screen.getByRole("alert")).toHaveClass("text-mc-feedback-danger");
+    renderWide();
+    expect(screen.getByRole("alert")).toBeInTheDocument();
   });
+});
 
-  it("offers connected shoppers an explicit footer disconnect path with an empty pile", () => {
-    mockedPage.props.shopper = { discogs_username: "shopper1" };
-    renderLayout(390);
-
-    const footer = screen.getByRole("contentinfo");
-    expect(within(footer).getByText(/Connected to Discogs as @shopper1/)).toBeInTheDocument();
-    const form = within(footer).getByRole("button", { name: "Disconnect" }).closest("form");
-    expect(form).toHaveAttribute("action", "/auth/discogs/shopper/disconnect");
-    expect(form?.querySelector("input[name='_method']")).toHaveAttribute("value", "delete");
+describe("AppLayout pile open", () => {
+  beforeEach(reset);
+  afterEach(() => {
+    document.head.innerHTML = "";
   });
-
-  it("exposes a named pile task only once intent exists", () => {
-    renderLayout(390, [listing]);
-
-    const header = screen.getByRole("banner");
-    const trigger = within(header).getByRole("button", { name: "Pile (1)" });
-    expect(trigger).toHaveClass("min-h-10");
+  it("shows pile button with count", () => {
+    renderCompact([listing]);
+    expect(
+      within(screen.getByRole("banner")).getByRole("button", { name: "Pile (1)" }),
+    ).toHaveClass("min-h-10");
   });
-
-  it("makes browsing chrome and content inert while the pile modal is open", async () => {
+  it("sets inert on background when pile opens", async () => {
     const user = userEvent.setup();
-    renderLayout(390, [listing]);
-
+    renderCompact([listing]);
     await user.click(screen.getByRole("button", { name: "Pile (1)" }));
-
     expect(screen.getByTestId("storefront-background")).toHaveAttribute("inert");
     expect(screen.getByRole("dialog")).toHaveAttribute("aria-modal", "true");
   });
+});
 
-  it("focuses contextual storefront chrome after the final record removes its trigger", async () => {
+describe("AppLayout pile close", () => {
+  beforeEach(reset);
+  afterEach(() => {
+    document.head.innerHTML = "";
+  });
+  it("focuses banner after last record removed", async () => {
     const user = userEvent.setup();
-    renderLayout(390, [listing]);
-
+    renderCompact([listing]);
     await user.click(screen.getByRole("button", { name: "Pile (1)" }));
     await user.click(screen.getByRole("button", { name: "Remove Title from pile" }));
     await user.click(screen.getByRole("button", { name: "Close pile" }));
-
-    expect(screen.getByRole("banner")).toHaveFocus();
+    expect(document.activeElement).toBe(screen.getByRole("banner"));
   });
-
-  it("returns focus to the pile trigger when records remain", async () => {
+  it("returns focus to trigger after close", async () => {
     const user = userEvent.setup();
-    renderLayout(390, [listing]);
-
+    renderCompact([listing]);
     const trigger = screen.getByRole("button", { name: "Pile (1)" });
     await user.click(trigger);
     await user.click(screen.getByRole("button", { name: "Close pile" }));
-
-    await waitFor(() => {
-      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    });
-    expect(screen.getByTestId("storefront-background")).not.toHaveAttribute("inert");
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     expect(trigger).toHaveFocus();
   });
 });

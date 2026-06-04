@@ -10,12 +10,15 @@ module StorefrontCurationHelpers
   # Stubs strategies and scorer so tests control what each crate section contains.
   # genre_scores: { listing_id => score } — controls RecordScorer output for genre crates.
   # featured: array of CuratedCrate — stubs build_featured_crates return value.
-  def curation_with_strategies(store, picks:, genre_scores: {}, featured: [])
+  def curation_with_strategies(store, wall:, genre_scores: {}, featured: [])
     curation = described_class.new(store)
 
-    picks_double = instance_double(CrateStrategies::Picks)
-    allow(picks_double).to receive(:select).and_return(picks)
-    allow(curation).to receive(:picks_strategy).and_return(picks_double)
+    wall_crate = CuratedCrate.new(slug: "wall", name: "The Wall", listings: wall)
+    wall_double = instance_double(Wall,
+      crate: wall_crate,
+      excluded_ids: wall.map(&:id).to_set
+    )
+    allow(Wall).to receive(:new).and_return(wall_double)
 
     allow(curation).to receive(:build_featured_crates).and_return(featured)
 

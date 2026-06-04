@@ -61,6 +61,23 @@ record, crate, score, connection, and pile behavior. Dialog lifecycle, shopper
 connection, browsing, Wantlist handoff, and tactile interaction remain owned by
 their existing domain-facing components.
 
+The storefront product model is a single session: store orientation, wall,
+crate, record, pile, and Discogs handoff. Storefront presentation may use this
+tactile language in headings, controls, and aria labels when it clarifies
+shopper intent. Integration-facing code keeps precise Discogs names such as
+OAuth, Wantlist, listing, release, and seller.
+
+"Register" is not a primary shopper-facing noun. The pile is an intent layer,
+not a cart, reservation, register, or checkout. Handoff language should make
+clear that Milkcrate preserves browsing context and sends the shopper to
+Discogs for the external action.
+
+Compact hierarchy is the source sequence. Larger tiers reveal context,
+previews, and parallel inspection from the same state model rather than
+inventing a separate desktop product. Review storefront changes as a system
+across hierarchy, copy, motion, affordance, responsive adaptation, and
+accessibility before treating local component polish as the main risk.
+
 Implemented composition:
 
 - `AppLayout` and the store route render flash and sync lifecycle states with

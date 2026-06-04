@@ -1,17 +1,24 @@
-import React from "react"
-import { describe, expect, it, vi } from "vitest"
-import { render, screen, waitFor, within } from "@testing-library/react"
-import userEvent from "@testing-library/user-event"
-import Home from "../../pages/home"
-import Apply from "../../pages/apply"
-import StoreShow from "../../pages/stores/show"
-import Invitation from "../../pages/stores/invitation"
-import Dashboard from "../../pages/admin/dashboard"
-import type { AdminDashboardProps, StoreShowProps, InvitationProps } from "../../types/inertia"
+import { render, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import React from "react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+import { ViewportProvider } from "../../contexts/viewport_context";
+import Dashboard from "../../pages/admin/dashboard";
+import Apply from "../../pages/apply";
+import Home from "../../pages/home";
+import Invitation from "../../pages/stores/invitation";
+import StoreShow from "../../pages/stores/show";
+import type { AdminDashboardProps, StoreShowProps, InvitationProps } from "../../types/inertia";
+
+const VIEWPORT_WIDE = 1280;
+const VIEWPORT_COMPACT = 390;
 
 vi.mock("@inertiajs/react", () => ({
   Link: ({ children, href, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
-    <a href={href} {...props}>{children}</a>
+    <a href={href} {...props}>
+      {children}
+    </a>
   ),
   useForm: () => ({
     data: {
@@ -35,11 +42,12 @@ vi.mock("@inertiajs/react", () => ({
       },
     },
   }),
-}))
+}));
 
 const homeCopy = {
   headline: "Your Discogs inventory, now a storefront.",
-  subhead: "Milkcrate turns your existing Discogs listings into a warm, browsable record shop that you can share in seconds.",
+  subhead:
+    "Milkcrate turns your existing Discogs listings into a warm, browsable record shop that you can share in seconds.",
   cta_demo: "Browse a store \u2192",
   cta_apply: "Get your store on Milkcrate",
   footnote: "Early access. We handle the setup.",
@@ -47,7 +55,7 @@ const homeCopy = {
     step1_title: "Share your Discogs",
     step1_body: "Tell us your Discogs username. That's it.",
     step2_title: "We sync & curate",
-    step2_body: "Your inventory becomes curated crates: picks, featured bins, and genre bins.",
+    step2_body: "Your inventory becomes browsable crates: the wall, featured bins, and genre bins.",
     step3_title: "Share your store",
     step3_body: "One link. Your customers browse like they're in the shop.",
   },
@@ -57,13 +65,13 @@ const homeCopy = {
   record_fair_body:
     "QR codes on cards, bags, and signage turn foot traffic into return visitors, long after the fair ends.",
   store_character_title: "Your shop. Crated for browsing.",
-}
+};
 
 const previewFallback = {
   store_name: "Philadelphia Music",
   store_slug: null,
   sections: [],
-}
+};
 
 const applyCopy = {
   headline: "Get your store on Milkcrate",
@@ -73,9 +81,12 @@ const applyCopy = {
   confirmation_headline: "You're on the list.",
   confirmation_body: "We'll review your store and reach out to you directly.",
   context_title: "What you need to know",
-  context_discogs_why: "We start with your Discogs username to review inventory quickly. API-key based onboarding is part of our deeper integration direction.",
-  context_what_happens: "After you submit, we review your store, curate your inventory into browsable crates, and reach out when your storefront is live.",
-  context_no_commitment: "No commitment. We're onboarding stores one at a time to make sure every storefront gets personal attention.",
+  context_discogs_why:
+    "We start with your Discogs username to review inventory quickly. API-key based onboarding is part of our deeper integration direction.",
+  context_what_happens:
+    "After you submit, we review your store, curate your inventory into browsable crates, and reach out when your storefront is live.",
+  context_no_commitment:
+    "No commitment. We're onboarding stores one at a time to make sure every storefront gets personal attention.",
   field_hint_discogs: "We pull your inventory from your public Discogs storefront.",
   field_hint_email: "We'll reach out when your Milkcrate storefront is ready.",
   fields: {
@@ -85,7 +96,7 @@ const applyCopy = {
     inventory_size: "Approximate inventory size",
     notes: "Anything else?",
   },
-}
+};
 
 const storeShowProps: StoreShowProps = {
   store: {
@@ -100,6 +111,14 @@ const storeShowProps: StoreShowProps = {
     last_enriched_at: null,
   },
   crates: [],
+};
+
+function renderStoreShow(props: StoreShowProps) {
+  return render(
+    <ViewportProvider>
+      <StoreShow {...props} />
+    </ViewportProvider>,
+  );
 }
 
 const adminProps: AdminDashboardProps = {
@@ -142,118 +161,138 @@ const adminProps: AdminDashboardProps = {
       submitted_at: "2026-05-15T12:00:00Z",
     },
   ],
-}
+};
 
 describe("page smoke tests", () => {
-  it("renders the home page", () => {
-    render(<Home copy={homeCopy} preview={previewFallback} />)
+  afterEach(() => {
+    history.replaceState({}, "", "/");
+  });
 
-    expect(screen.getByRole("heading", { name: homeCopy.headline })).toBeInTheDocument()
-  })
+  it("renders the store page without an external viewport provider", () => {
+    render(<StoreShow {...storeShowProps} />);
+
+    expect(screen.getByRole("link", { name: "Philadelphia Music" })).toBeInTheDocument();
+  });
+
+  it("renders the home page", () => {
+    render(<Home copy={homeCopy} preview={previewFallback} />);
+
+    expect(screen.getByRole("heading", { name: homeCopy.headline })).toBeInTheDocument();
+  });
 
   it("home page header does not render emoji wordmark", () => {
-    render(<Home copy={homeCopy} preview={previewFallback} />)
+    render(<Home copy={homeCopy} preview={previewFallback} />);
 
     // The layout header link should use BrandMark, not the old emoji wordmark.
     // The wordmark text is plain "Milkcrate" without emoji prefix.
-    const header = document.querySelector("header")
-    expect(header?.textContent).toContain("Milkcrate.")
-    expect(header?.textContent).not.toContain("🥛")
-  })
+    const header = document.querySelector("header");
+    expect(header?.textContent).toContain("Milkcrate.");
+    expect(header?.textContent).not.toContain("🥛");
+  });
 
   it("renders the apply page", () => {
-    render(<Apply copy={applyCopy} turnstile={{ enabled: false, site_key: null }} />)
+    render(<Apply copy={applyCopy} turnstile={{ enabled: false, site_key: null }} />);
 
-    expect(screen.getByRole("heading", { name: applyCopy.headline })).toBeInTheDocument()
-  })
+    expect(screen.getByRole("heading", { name: applyCopy.headline })).toBeInTheDocument();
+  });
 
   it("apply page does not render emoji branding", () => {
-    render(<Apply copy={applyCopy} turnstile={{ enabled: false, site_key: null }} />)
+    render(<Apply copy={applyCopy} turnstile={{ enabled: false, site_key: null }} />);
 
-    const textContent = document.body.textContent || ""
-    expect(textContent).not.toContain("🥛")
-    expect(textContent).not.toContain("📦")
-  })
+    const textContent = document.body.textContent || "";
+    expect(textContent).not.toContain("🥛");
+    expect(textContent).not.toContain("📦");
+  });
 
   it("renders the store page", () => {
-    render(<StoreShow {...storeShowProps} />)
+    renderStoreShow(storeShowProps);
 
-    expect(screen.getByText(/No vinyl found yet/)).toBeInTheDocument()
-  })
+    expect(screen.getByText(/No vinyl found yet/)).toBeInTheDocument();
+  });
 
   it("does not render zero listing count as stray text", () => {
-    render(
-      <StoreShow
-        {...storeShowProps}
-        store={{ ...storeShowProps.store, description: null, total_listings: 0 }}
-      />,
-    )
+    renderStoreShow({
+      ...storeShowProps,
+      store: { ...storeShowProps.store, description: null, total_listings: 0 },
+    });
 
-    expect(screen.queryByText("0")).not.toBeInTheDocument()
-  })
+    expect(screen.queryByText("0")).not.toBeInTheDocument();
+  });
+
+  it("renders store with failed sync status", () => {
+    renderStoreShow({
+      ...storeShowProps,
+      store: { ...storeShowProps.store, sync_status: "failed", last_sync_error_at: null },
+    });
+
+    expect(screen.getByRole("link", { name: "Philadelphia Music" })).toBeInTheDocument();
+  });
 
   it("renders the admin dashboard", () => {
-    render(<Dashboard {...adminProps} />)
+    render(<Dashboard {...adminProps} />);
 
-    expect(screen.getByRole("heading", { name: "Store operations" })).toBeInTheDocument()
-    expect(screen.getByText("Healthy Records")).toBeInTheDocument()
-    expect(screen.getByText("Applicant Records")).toBeInTheDocument()
-  })
+    expect(screen.getByRole("heading", { name: "Store operations" })).toBeInTheDocument();
+    expect(screen.getByText("Healthy Records")).toBeInTheDocument();
+    expect(screen.getByText("Applicant Records")).toBeInTheDocument();
+  });
 
   it("store page footer does not render emoji branding", () => {
-    render(<StoreShow {...storeShowProps} />)
+    renderStoreShow(storeShowProps);
 
     // The footer "Powered by Milkcrate" should be plain text — no emoji.
-    const footer = document.querySelector("footer")
-    expect(footer).toBeInTheDocument()
-    expect(footer?.textContent).not.toContain("🥛")
-    expect(footer?.textContent).toContain("Milkcrate.")
-  })
+    const footer = document.querySelector("footer");
+    expect(footer).toBeInTheDocument();
+    expect(footer?.textContent).not.toContain("🥛");
+    expect(footer?.textContent).toContain("Milkcrate.");
+  });
 
   // Cross-surface emoji regression matrix — guards against any page
   // re-introducing milk emoji or emoji-based wordmarks.
   describe.each([
     ["home", () => render(<Home copy={homeCopy} preview={previewFallback} />)],
-    ["apply", () => render(<Apply copy={applyCopy} turnstile={{ enabled: false, site_key: null }} />)],
-    ["store", () => render(<StoreShow {...storeShowProps} />)],
+    [
+      "apply",
+      () => render(<Apply copy={applyCopy} turnstile={{ enabled: false, site_key: null }} />),
+    ],
+    ["store", () => renderStoreShow(storeShowProps)],
     ["admin", () => render(<Dashboard {...adminProps} />)],
   ])("emoji regression: %s page", (_label, renderPage) => {
     it("does not render the milk emoji (🥛)", () => {
-      renderPage()
-      expect(document.body.textContent).not.toContain("🥛")
-    })
+      renderPage();
+      expect(document.body.textContent).not.toContain("🥛");
+    });
 
     it("does not render the old emoji wordmark (🥛 Milkcrate)", () => {
-      renderPage()
-      expect(document.body.textContent).not.toContain("🥛 Milkcrate")
-    })
+      renderPage();
+      expect(document.body.textContent).not.toContain("🥛 Milkcrate");
+    });
 
     it("does not render decorative emoji icons (📀, 👀, 📦, ♪)", () => {
-      renderPage()
-      const text = document.body.textContent || ""
-      expect(text).not.toContain("📀")
-      expect(text).not.toContain("👀")
-      expect(text).not.toContain("📦")
-    })
+      renderPage();
+      const text = document.body.textContent || "";
+      expect(text).not.toContain("📀");
+      expect(text).not.toContain("👀");
+      expect(text).not.toContain("📦");
+    });
 
     it("does not render deprecated control or feedback recipe classes", () => {
-      const { container } = renderPage()
-      expect(container.innerHTML).not.toMatch(/\bmc-(?:btn|input|notice)\b/)
-    })
-  })
+      const { container } = renderPage();
+      expect(container.innerHTML).not.toMatch(/\bmc-(?:btn|input|notice)\b/);
+    });
+  });
 
-  it("hides store description after entering a crate", async () => {
-    const user = userEvent.setup()
+  it("navigates to a crate without errors", async () => {
+    const user = userEvent.setup();
     Object.defineProperty(window, "innerWidth", {
       configurable: true,
-      value: 390,
-    })
+      value: VIEWPORT_WIDE,
+    });
     const props: StoreShowProps = {
       ...storeShowProps,
       crates: [
         {
-          slug: "picks",
-          name: "Milkcrate Picks",
+          slug: "wall",
+          name: "The Wall",
           count: 1,
           records: [
             {
@@ -279,10 +318,10 @@ describe("page smoke tests", () => {
       ],
       storefront_sections: [
         {
-          key: "picks_wall",
+          key: "wall",
           crate: {
-            slug: "picks",
-            name: "Milkcrate Picks",
+            slug: "wall",
+            name: "The Wall",
             count: 1,
             records: [
               {
@@ -306,71 +345,260 @@ describe("page smoke tests", () => {
             ],
           },
         },
+        {
+          key: "featured_crates",
+          crates: [
+            {
+              slug: "jazz",
+              name: "Jazz",
+              count: 1,
+              records: [
+                {
+                  id: 2,
+                  discogs_listing_id: "def",
+                  artist: "Jazz Artist",
+                  title: "Jazz Record",
+                  label: null,
+                  year: null,
+                  format: null,
+                  genres: [],
+                  styles: [],
+                  condition: null,
+                  price: "15.00",
+                  currency: "USD",
+                  cover_image_url: null,
+                  thumbnail_url: null,
+                  notes: null,
+                  discogs_url: "https://www.discogs.com/sell/item/2",
+                },
+              ],
+            },
+          ],
+        },
+        { key: "genre_grid", crates: [] },
       ],
+    };
+
+    renderStoreShow(props);
+
+    expect(screen.getByRole("link", { name: "Philadelphia Music" })).toBeInTheDocument();
+
+    // Select a crate via the browse shell's Featured chip bar
+    await user.click(screen.getByRole("button", { name: "Featured" }));
+    await user.click(screen.getByRole("tab", { name: "Jazz" }));
+
+    expect(window.history.state?.crateSlug).toBe("jazz");
+  });
+
+  it("renders the compact browse shell on a narrow viewport", async () => {
+    const user = userEvent.setup();
+    const originalWidth = window.innerWidth;
+    Object.defineProperty(window, "innerWidth", {
+      configurable: true,
+      value: VIEWPORT_COMPACT,
+    });
+
+    try {
+      renderStoreShow({
+        ...storeShowProps,
+        crates: [
+          {
+            slug: "jazz",
+            name: "Jazz",
+            count: 1,
+            records: [
+              {
+                id: 1,
+                discogs_listing_id: "jazz-1",
+                artist: "Artist 1",
+                title: "Jazz One",
+                label: null,
+                year: null,
+                format: null,
+                genres: [],
+                styles: [],
+                condition: null,
+                price: "10.00",
+                currency: "USD",
+                cover_image_url: null,
+                thumbnail_url: null,
+                notes: null,
+                discogs_url: "https://www.discogs.com/sell/item/jazz-1",
+              },
+            ],
+          },
+          {
+            slug: "rock",
+            name: "Rock",
+            count: 1,
+            records: [
+              {
+                id: 2,
+                discogs_listing_id: "rock-1",
+                artist: "Artist 2",
+                title: "Rock One",
+                label: null,
+                year: null,
+                format: null,
+                genres: [],
+                styles: [],
+                condition: null,
+                price: "12.00",
+                currency: "USD",
+                cover_image_url: null,
+                thumbnail_url: null,
+                notes: null,
+                discogs_url: "https://www.discogs.com/sell/item/rock-1",
+              },
+            ],
+          },
+        ],
+        storefront_sections: [
+          {
+            key: "wall",
+            crate: {
+              slug: "wall",
+              name: "The Wall",
+              count: 1,
+              records: [
+                {
+                  id: 1,
+                  discogs_listing_id: "wall-1",
+                  artist: "Artist 1",
+                  title: "Wall One",
+                  label: null,
+                  year: null,
+                  format: null,
+                  genres: [],
+                  styles: [],
+                  condition: null,
+                  price: "10.00",
+                  currency: "USD",
+                  cover_image_url: null,
+                  thumbnail_url: null,
+                  notes: null,
+                  discogs_url: "https://www.discogs.com/sell/item/wall-1",
+                },
+              ],
+            },
+          },
+          {
+            key: "featured_crates",
+            crates: [
+              {
+                slug: "jazz",
+                name: "Jazz",
+                count: 1,
+                records: [
+                  {
+                    id: 1,
+                    discogs_listing_id: "jazz-1",
+                    artist: "Artist 1",
+                    title: "Jazz One",
+                    label: null,
+                    year: null,
+                    format: null,
+                    genres: [],
+                    styles: [],
+                    condition: null,
+                    price: "10.00",
+                    currency: "USD",
+                    cover_image_url: null,
+                    thumbnail_url: null,
+                    notes: null,
+                    discogs_url: "https://www.discogs.com/sell/item/jazz-1",
+                  },
+                ],
+              },
+            ],
+          },
+          { key: "genre_grid", crates: [] },
+        ],
+      });
+
+      expect(screen.getByRole("button", { name: "The Wall" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Featured" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Genres" })).toBeInTheDocument();
+      expect(screen.getByText(/The store's taste at a glance/i)).toBeInTheDocument();
+
+      await user.click(screen.getByRole("button", { name: "Featured" }));
+
+      expect(
+        within(screen.getByRole("banner")).getByText("Philadelphia Music"),
+      ).toBeInTheDocument();
+      expect(
+        within(screen.getByRole("banner")).queryByRole("button", { name: "Back to store" }),
+      ).not.toBeInTheDocument();
+    } finally {
+      Object.defineProperty(window, "innerWidth", {
+        configurable: true,
+        value: originalWidth,
+      });
     }
-
-    render(<StoreShow {...props} />)
-
-    expect(screen.getByText("Independent record store in South Philly.")).toBeInTheDocument()
-
-    await user.click(screen.getByRole("button", { name: "Open Milkcrate Picks" }))
-
-    expect(screen.queryByText("Independent record store in South Philly.")).not.toBeInTheDocument()
-    expect(screen.queryByText("120 vinyl listings")).not.toBeInTheDocument()
-    expect(within(screen.getByRole("banner")).getByRole("button", { name: "Back to store" })).toBeInTheDocument()
-    expect(within(screen.getByRole("main")).queryByRole("button", { name: "Back to store" })).not.toBeInTheDocument()
-  })
+  });
 
   describe("invitation page", () => {
     const inviteProps: InvitationProps = {
       waitlist_present: false,
       slug: "test-slug",
-    }
+    };
 
     it("renders the invitation page without crashing", async () => {
-      render(<Invitation {...inviteProps} />)
+      render(<Invitation {...inviteProps} />);
       // Fetch fails in test env, so probe settles on error → generic invitation
       await waitFor(() => {
-        expect(screen.getByRole("heading", { name: /This page is available/i })).toBeInTheDocument()
-      })
-    })
+        expect(
+          screen.getByRole("heading", { name: /This page is available/i }),
+        ).toBeInTheDocument();
+      });
+    });
 
     it("renders waitlist acknowledgment when waitlist_present is true", async () => {
-      render(<Invitation {...inviteProps} waitlist_present={true} />)
+      render(<Invitation {...inviteProps} waitlist_present={true} />);
       await waitFor(() => {
-        expect(screen.getByRole("heading", { name: /This URL has been claimed/i })).toBeInTheDocument()
-      })
+        expect(
+          screen.getByRole("heading", { name: /This URL has been claimed/i }),
+        ).toBeInTheDocument();
+      });
       // BrandMark wordmark appears at least once (header + possibly hero area)
-      expect(screen.getAllByText("Milkcrate.").length).toBeGreaterThanOrEqual(1)
-    })
+      expect(screen.getAllByText("Milkcrate.").length).toBeGreaterThanOrEqual(1);
+    });
 
     it("handles fetch error gracefully for valid slugs", async () => {
-      render(<Invitation {...inviteProps} slug="valid-store" />)
+      render(<Invitation {...inviteProps} slug="valid-store" />);
       // The fetch will fail in test (no server), so it should settle on generic invitation
       await waitFor(() => {
-        expect(screen.getByRole("heading", { name: /This page is available/i })).toBeInTheDocument()
-      })
-    })
+        expect(
+          screen.getByRole("heading", { name: /This page is available/i }),
+        ).toBeInTheDocument();
+      });
+    });
 
     it("skips probe and shows generic invitation for short slugs", async () => {
-      render(<Invitation {...inviteProps} slug="ab" />)
+      render(<Invitation {...inviteProps} slug="ab" />);
       await waitFor(() => {
-        expect(screen.getByRole("heading", { name: /This page is available/i })).toBeInTheDocument()
-      })
-    })
+        expect(
+          screen.getByRole("heading", { name: /This page is available/i }),
+        ).toBeInTheDocument();
+      });
+    });
 
     it("skips probe for reserved slugs", async () => {
-      render(<Invitation {...inviteProps} slug="admin" />)
+      render(<Invitation {...inviteProps} slug="admin" />);
       await waitFor(() => {
-        expect(screen.getByRole("heading", { name: /This page is available/i })).toBeInTheDocument()
-      })
-    })
+        expect(
+          screen.getByRole("heading", { name: /This page is available/i }),
+        ).toBeInTheDocument();
+      });
+    });
 
     it("skips probe for slugs with invalid characters", async () => {
-      render(<Invitation {...inviteProps} slug="bad!slug" />)
+      render(<Invitation {...inviteProps} slug="bad!slug" />);
       await waitFor(() => {
-        expect(screen.getByRole("heading", { name: /This page is available/i })).toBeInTheDocument()
-      })
-    })
-  })
-})
+        expect(
+          screen.getByRole("heading", { name: /This page is available/i }),
+        ).toBeInTheDocument();
+      });
+    });
+  });
+});

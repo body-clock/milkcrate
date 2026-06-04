@@ -44,28 +44,28 @@ All crates (picks, featured, and genre) are selected by a shared `RecordScorer` 
 
 The curation layer is organized around a strategy pattern in `CrateStrategies`:
 
-| Strategy | What it does |
-|----------|-------------|
-| `CrateStrategies::Picks` | Scores the full inventory, applies genre-diversity caps, returns top N |
-| `CrateStrategies::NewArrivals` | Finds the best recency window, scores matching records |
-| `CrateStrategies::Thematic` | Picks a random style or genre theme, filters to matches, scores |
-| `CrateStrategies::Genre` | Builds one crate per primary genre, capped by genre |
-| `CrateStrategies::HiddenGems` | Surfaces high-score records from underrepresented genres |
+| Strategy                       | What it does                                                           |
+| ------------------------------ | ---------------------------------------------------------------------- |
+| `CrateStrategies::Picks`       | Scores the full inventory, applies genre-diversity caps, returns top N |
+| `CrateStrategies::NewArrivals` | Finds the best recency window, scores matching records                 |
+| `CrateStrategies::Thematic`    | Picks a random style or genre theme, filters to matches, scores        |
+| `CrateStrategies::Genre`       | Builds one crate per primary genre, capped by genre                    |
+| `CrateStrategies::HiddenGems`  | Surfaces high-score records from underrepresented genres               |
 
 Each strategy includes `CrateStrategies::SelectionPipeline` (shared score-sort-take logic with ID exclusion and domain filtering) and implements `select(pool, excluded_ids:) -> [Listing]`. Results are scored via `RecordScorer`, sorted best-first, and uncapped — the caller applies `CuratedCrate::CRATE_SIZE`.
 
 `RecordScorer` delegates to eight scoring strategies as service objects, each in `app/services/score_strategies/`:
 
-| Strategy | What it does |
-|----------|-------------|
-| `VintageStrategy` | Year-based bonus (older records score higher) |
-| `ConditionStrategy` | Bonus for mint / NM / VG+ condition |
-| `DesirabilityStrategy` | Discogs want/have ratio and total signal |
-| `CoverQualityStrategy` | Deranks listings where `cover_image_url == thumbnail_url` |
-| `MetadataStrategy` | Penalizes sparse tracklist or missing metadata |
-| `FreshnessStrategy` | Penalizes recently-surfaced records, boosts new inventory |
-| `NoiseStrategy` | Deterministic daily noise for rotation variety |
-| `PriceStrategy` | Small boost for records priced $5+ (commercial value signal) |
+| Strategy               | What it does                                                 |
+| ---------------------- | ------------------------------------------------------------ |
+| `VintageStrategy`      | Year-based bonus (older records score higher)                |
+| `ConditionStrategy`    | Bonus for mint / NM / VG+ condition                          |
+| `DesirabilityStrategy` | Discogs want/have ratio and total signal                     |
+| `CoverQualityStrategy` | Deranks listings where `cover_image_url == thumbnail_url`    |
+| `MetadataStrategy`     | Penalizes sparse tracklist or missing metadata               |
+| `FreshnessStrategy`    | Penalizes recently-surfaced records, boosts new inventory    |
+| `NoiseStrategy`        | Deterministic daily noise for rotation variety               |
+| `PriceStrategy`        | Small boost for records priced $5+ (commercial value signal) |
 
 `StorefrontCuration` orchestrates the strategies, builds `CuratedCrate` containers, and handles top-down deduplication. `CratePresenter` serializes crates into the frontend props.
 
@@ -177,26 +177,26 @@ The app runs at [http://localhost:3000](http://localhost:3000).
 
 Useful local routes:
 
-| Route | Description |
-|-------|-------------|
-| `/` | Marketing homepage |
-| `/apply` | Store application / waitlist form |
-| `/:slug` | Any store by Discogs username, e.g. `/philadelphiamusic` |
-| `/:slug/authorize` | Start Discogs OAuth claim flow for a store |
-| `/auth/discogs/callback` | Discogs OAuth callback (internal, no direct visit) |
-| `/dashboard` | Store owner dashboard (requires OAuth session) |
-| `/dashboard/resync` | Trigger store re-sync from dashboard |
-| `/dashboard/signup` | Begin store onboarding from dashboard |
-| `/api/discogs/lookup/:username` | API endpoint for Discogs username lookup |
-| `/auth/discogs/shopper/authorize` | Shopper Discogs authorization |
-| `/auth/discogs/shopper/disconnect` | Disconnect shopper Discogs account |
-| `/pile/add_to_wantlist` | Add pile items to Discogs wantlist |
-| `/admin` | Admin dashboard — store onboarding, Discogs lookup |
-| `/admin/discogs_lookup` | Discogs username lookup for store onboarding |
-| `/admin/onboarding` | Direct store onboarding |
-| `/admin/waitlists/:waitlist_id/onboarding` | Onboard a waitlisted store |
-| `/jobs` | Mission Control jobs dashboard (development only) |
-| `/dev/login-as/:id` | Dev tool — set store owner session (development only) |
+| Route                                      | Description                                              |
+| ------------------------------------------ | -------------------------------------------------------- |
+| `/`                                        | Marketing homepage                                       |
+| `/apply`                                   | Store application / waitlist form                        |
+| `/:slug`                                   | Any store by Discogs username, e.g. `/philadelphiamusic` |
+| `/:slug/authorize`                         | Start Discogs OAuth claim flow for a store               |
+| `/auth/discogs/callback`                   | Discogs OAuth callback (internal, no direct visit)       |
+| `/dashboard`                               | Store owner dashboard (requires OAuth session)           |
+| `/dashboard/resync`                        | Trigger store re-sync from dashboard                     |
+| `/dashboard/signup`                        | Begin store onboarding from dashboard                    |
+| `/api/discogs/lookup/:username`            | API endpoint for Discogs username lookup                 |
+| `/auth/discogs/shopper/authorize`          | Shopper Discogs authorization                            |
+| `/auth/discogs/shopper/disconnect`         | Disconnect shopper Discogs account                       |
+| `/pile/add_to_wantlist`                    | Add pile items to Discogs wantlist                       |
+| `/admin`                                   | Admin dashboard — store onboarding, Discogs lookup       |
+| `/admin/discogs_lookup`                    | Discogs username lookup for store onboarding             |
+| `/admin/onboarding`                        | Direct store onboarding                                  |
+| `/admin/waitlists/:waitlist_id/onboarding` | Onboard a waitlisted store                               |
+| `/jobs`                                    | Mission Control jobs dashboard (development only)        |
+| `/dev/login-as/:id`                        | Dev tool — set store owner session (development only)    |
 
 ## Store Data
 
@@ -277,36 +277,36 @@ Key pages:
 
 Key components:
 
-| Component | Role |
-|-----------|------|
-| `StoreFloor` | Renders picks wall, featured crates row, and genre grid |
-| `FeaturedCratesRow` | 3-wide featured crate cards (New Arrivals, Daily Rotation) |
-| `GenreGrid` | 4-wide grid of genre crate cards |
-| `CrateCard` | Preview card — shows 4 cover images, crate name, and record count |
-| `CrateView` | Full crate browser — card stack with up/down navigation, desktop details panel |
-| `CrateTabs` | Tab bar for switching between crates (picks, featured, genres) |
-| `CrateShelf` | Full-width shelf layout for horizontal crate card rows |
-| `RecordCard` | Single record display with cover art and flip-to-details on mobile |
-| `RecordTile` | Compact grid tile for records inside a crate |
-| `RecordDetails` | Mobile details panel with tracklist and metadata |
-| `PileSheet` | Client-side pile drawer, stored in `localStorage` under `mc-pile` |
-| `BrandMark` | Milkcrate logo component |
-| `GhostFingerCue` | Animated tutorial cue for first-time visitors |
-| `StorefrontMotionConfig` | Shared Framer Motion configuration for store animations |
-| `ui/Action` | Action trigger with loading state |
-| `ui/Badge` | Reusable badge component |
-| `ui/Button` | Reusable button component |
-| `ui/Card` | Reusable card component |
-| `ui/EmptyState` | Empty state placeholder with icon and message |
-| `ui/FeedbackMessage` | Success/error/info feedback message |
-| `ui/Field` | Form field wrapper with label and errors |
-| `ui/JobProgressBar` | Job progress indicator |
-| `ui/Metric` | Metric display with label and value |
-| `ui/SectionHeader` | Section header with optional description |
-| `ui/StatusDot` | Status indicator dot |
-| `discogs_connection_controls` | Discogs OAuth connection UI for store dashboard |
-| `discogs_seller_lookup_input` | Discogs username lookup for store onboarding |
-| `score_breakdown` | Detailed score breakdown display |
+| Component                     | Role                                                                           |
+| ----------------------------- | ------------------------------------------------------------------------------ |
+| `StoreFloor`                  | Renders picks wall, featured crates row, and genre grid                        |
+| `FeaturedCratesRow`           | 3-wide featured crate cards (New Arrivals, Daily Rotation)                     |
+| `GenreGrid`                   | 4-wide grid of genre crate cards                                               |
+| `CrateCard`                   | Preview card — shows 4 cover images, crate name, and record count              |
+| `CrateView`                   | Full crate browser — card stack with up/down navigation, desktop details panel |
+| `CrateTabs`                   | Tab bar for switching between crates (picks, featured, genres)                 |
+| `CrateShelf`                  | Full-width shelf layout for horizontal crate card rows                         |
+| `RecordCard`                  | Single record display with cover art and flip-to-details on mobile             |
+| `RecordTile`                  | Compact grid tile for records inside a crate                                   |
+| `RecordDetails`               | Mobile details panel with tracklist and metadata                               |
+| `PileSheet`                   | Client-side pile drawer, stored in `localStorage` under `mc-pile`              |
+| `BrandMark`                   | Milkcrate logo component                                                       |
+| `GhostFingerCue`              | Animated tutorial cue for first-time visitors                                  |
+| `StorefrontMotionConfig`      | Shared Framer Motion configuration for store animations                        |
+| `ui/Action`                   | Action trigger with loading state                                              |
+| `ui/Badge`                    | Reusable badge component                                                       |
+| `ui/Button`                   | Reusable button component                                                      |
+| `ui/Card`                     | Reusable card component                                                        |
+| `ui/EmptyState`               | Empty state placeholder with icon and message                                  |
+| `ui/FeedbackMessage`          | Success/error/info feedback message                                            |
+| `ui/Field`                    | Form field wrapper with label and errors                                       |
+| `ui/JobProgressBar`           | Job progress indicator                                                         |
+| `ui/Metric`                   | Metric display with label and value                                            |
+| `ui/SectionHeader`            | Section header with optional description                                       |
+| `ui/StatusDot`                | Status indicator dot                                                           |
+| `discogs_connection_controls` | Discogs OAuth connection UI for store dashboard                                |
+| `discogs_seller_lookup_input` | Discogs username lookup for store onboarding                                   |
+| `score_breakdown`             | Detailed score breakdown display                                               |
 
 Run frontend tests:
 
