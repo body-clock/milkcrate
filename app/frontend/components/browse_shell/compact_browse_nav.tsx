@@ -1,7 +1,7 @@
-import type { BrowseMode } from "@/hooks/use_browse_routing";
-import type { Crate } from "@/types/inertia";
-import { COPY } from "@/lib/copy";
 import CrateTabs from "@/components/crate_tabs";
+import type { BrowseMode } from "@/hooks/use_browse_routing";
+import { COPY } from "@/lib/copy";
+import type { Crate } from "@/types/inertia";
 
 import BrowseNavContent from "./browse_nav_content";
 

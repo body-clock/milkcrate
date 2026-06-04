@@ -157,7 +157,5 @@ export default function CrateTabs({
   if (isVertical) {
     return <CrateTabsRenderVertical {...tabProps} classesFn={verticalTabClasses} />;
   }
-  return (
-    <CrateTabsRenderHorizontal {...tabProps} compact={compact} classesFn={hClassesFn} />
-  );
+  return <CrateTabsRenderHorizontal {...tabProps} compact={compact} classesFn={hClassesFn} />;
 }
