@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { Crate, StorefrontSection } from "../types/inertia";
 
@@ -54,35 +54,6 @@ function syncMode(
   setMode(activeSlug ? modeForSlug(activeSlug, featured, genres) : "wall");
 }
 
-function makeWallHandler(
-  activeSlug: string | null,
-  backToStore: () => void,
-  setMode: React.Dispatch<React.SetStateAction<BrowseMode>>,
-) {
-  return () => {
-    if (activeSlug) {
-      backToStore();
-    }
-    setMode("wall");
-  };
-}
-
-function makeBrowseHandler(
-  activeSlug: string | null,
-  selectCrate: (slug: string, index?: number) => void,
-  cratesByMode: Record<string, Crate[]>,
-  setMode: React.Dispatch<React.SetStateAction<BrowseMode>>,
-) {
-  return (nextMode: "featured" | "genres") => {
-    setMode(nextMode);
-    const crates = cratesByMode[nextMode];
-    const activeCrateIsInMode = activeSlug ? crates.some((c) => c.slug === activeSlug) : false;
-    if (!activeCrateIsInMode && crates[0]) {
-      selectCrate(crates[0].slug);
-    }
-  };
-}
-
 export function useBrowseRouting({
   sections,
   activeSlug,
@@ -96,12 +67,27 @@ export function useBrowseRouting({
     syncMode(activeSlug, featured, genres, setMode);
   }, [activeSlug, featured, genres]);
 
-  const handleWallSelected = makeWallHandler(activeSlug, backToStore, setMode);
-  const handleBrowseModeSelected = makeBrowseHandler(
-    activeSlug,
-    selectCrate,
-    { featured, genres },
-    setMode,
+  const handleWallSelected = useCallback(() => {
+    if (activeSlug) {
+      backToStore();
+    }
+    setMode("wall");
+  }, [activeSlug, backToStore]);
+
+  const cratesByMode = useMemo(() => ({ featured, genres }), [featured, genres]);
+
+  const handleBrowseModeSelected = useCallback(
+    (nextMode: "featured" | "genres") => {
+      setMode(nextMode);
+      const cratesList = cratesByMode[nextMode];
+      const activeCrateIsInMode = activeSlug
+        ? cratesList.some((c) => c.slug === activeSlug)
+        : false;
+      if (!activeCrateIsInMode && cratesList[0]) {
+        selectCrate(cratesList[0].slug);
+      }
+    },
+    [activeSlug, selectCrate, cratesByMode],
   );
 
   return { mode, wall, featured, genres, handleWallSelected, handleBrowseModeSelected };
