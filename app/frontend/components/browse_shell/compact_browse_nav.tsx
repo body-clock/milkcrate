@@ -1,4 +1,5 @@
 import { memo } from "react";
+import { createPortal } from "react-dom";
 import type { BrowseMode } from "@/hooks/use_browse_routing";
 import type { Crate } from "@/types/inertia";
 import { COPY } from "@/lib/copy";
@@ -49,13 +50,13 @@ const CrateChipRow = memo(function CrateChipRow({ crates, activeSlug, onSelect }
   );
 });
 
-export default memo(function CompactBrowseNav(props: Props) {
+function CompactBrowseNavInner(props: Props) {
   const showCrates = props.mode !== "wall" && props.currentCrates.length > 0;
 
   return (
     <nav
       aria-label={COPY.browseNavLabel}
-      className="fixed inset-x-4 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-40 will-change-transform"
+      className="fixed inset-x-4 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-40"
     >
       <div className="mx-auto max-w-md rounded-[1.5rem] border border-mc-border bg-mc-bg-card/96 p-1.5 shadow-[0_20px_40px_-24px_rgba(0,0,0,0.45)] backdrop-blur transition-[border-radius] duration-200">
         <BrowseNavContent
@@ -78,4 +79,10 @@ export default memo(function CompactBrowseNav(props: Props) {
       </div>
     </nav>
   );
+}
+
+export default memo(function CompactBrowseNav(props: Props) {
+  return typeof document !== "undefined"
+    ? createPortal(<CompactBrowseNavInner {...props} />, document.body)
+    : null;
 });
