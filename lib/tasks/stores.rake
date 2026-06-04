@@ -66,6 +66,15 @@ namespace :stores do
     puts "Enrichment complete."
   end
 
+  desc "Force re-enrichment: reset and refresh all metadata — stores:re_enrich[username]"
+  task :re_enrich, [ :username ] => :environment do |_, args|
+    store = find_store(args[:username])
+    release_ids = store.listings.where.not(discogs_release_id: nil).distinct.pluck(:discogs_release_id)
+    count = Release.where(discogs_release_id: release_ids).update_all(enriched_at: nil)
+    puts "Reset enriched_at for #{count} releases belonging to #{store.name}."
+    Rake::Task["stores:enrich"].invoke(store.discogs_username)
+  end
+
   # ── Curate ───────────────────────────────────────────────────
 
   desc "Run daily curation (stamp last_surfaced_at, compute picks rotation) — stores:curate[username]"
