@@ -8,11 +8,17 @@ interface Props extends SharedData, ShellHandlers {
 
 export default function WideLayoutShell(props: Props) {
   return (
-    <WideLayout mode={props.mode} wall={props.wall}
-      currentCrates={props.currentCrates} activeSlug={props.activeSlug}
-      startIndex={props.startIndex} selectCrate={props.selectCrate}
-      listingCount={props.listingCount ?? 0} genreCount={props.genreCount}
+    <WideLayout
+      mode={props.mode}
+      wall={props.wall}
+      currentCrates={props.currentCrates}
+      activeSlug={props.activeSlug}
+      startIndex={props.startIndex}
+      selectCrate={props.selectCrate}
+      listingCount={props.listingCount ?? 0}
+      genreCount={props.genreCount}
       onWallSelect={props.handleWallSelected}
-      onBrowseModeSelect={props.handleBrowseModeSelected} />
+      onBrowseModeSelect={props.handleBrowseModeSelected}
+    />
   );
 }
