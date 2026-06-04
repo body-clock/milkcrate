@@ -1,7 +1,7 @@
-import React, { createContext, useContext } from "react"
-import { MotionConfig, useReducedMotion } from "framer-motion"
+import { MotionConfig, useReducedMotion } from "framer-motion";
+import React, { createContext, useContext } from "react";
 
-const ReducedMotionCtx = createContext<boolean | null>(null)
+const ReducedMotionCtx = createContext<boolean | null>(null);
 
 /**
  * Wraps the component tree with framer-motion's MotionConfig set to
@@ -9,12 +9,8 @@ const ReducedMotionCtx = createContext<boolean | null>(null)
  * via React context so descendant hooks (like useTactileHover) can
  * collapse transforms to identity without per-component ternaries.
  */
-export default function StorefrontMotionConfig({
-  children,
-}: {
-  children: React.ReactNode
-}) {
-  const prefersReducedMotion = useReducedMotion()
+export default function StorefrontMotionConfig({ children }: { children: React.ReactNode }) {
+  const prefersReducedMotion = useReducedMotion();
 
   return (
     <MotionConfig reducedMotion="user">
@@ -22,7 +18,7 @@ export default function StorefrontMotionConfig({
         {children}
       </ReducedMotionCtx.Provider>
     </MotionConfig>
-  )
+  );
 }
 
 /**
@@ -30,11 +26,9 @@ export default function StorefrontMotionConfig({
  * level. Consumers use this to gate animation behavior.
  */
 export function useReducedMotionContext(): boolean {
-  const value = useContext(ReducedMotionCtx)
+  const value = useContext(ReducedMotionCtx);
   if (value === null) {
-    throw new Error(
-      "useReducedMotionContext must be used within StorefrontMotionConfig",
-    )
+    throw new Error("useReducedMotionContext must be used within StorefrontMotionConfig");
   }
-  return value
+  return value;
 }

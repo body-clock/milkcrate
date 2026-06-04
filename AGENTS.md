@@ -2,6 +2,11 @@ project_tracker: github
 
 # Cardinal Rules
 
+**Never use eslint-disable, oxlint-disable, or any lint-suppression comment.**
+Every lint offense must be resolved with a real code fix: extract components,
+split functions, restructure logic, or adjust the lint rule if it is genuinely
+wrong for this codebase. Suppression comments rot over time and hide real bugs.
+
 **Never merge into `main` without explicit user permission.** Merging to
 production is a human decision. The agent may propose a merge, describe what
 would ship, and ask for confirmation, but must never execute `git checkout
@@ -28,6 +33,7 @@ architecture patterns), organized by category with YAML frontmatter (`module`,
 areas.
 
 When planning new features or architectural changes, use the `layered-rails` skill for analysis:
+
 - `/layers:gradual` — plan incremental adoption of layered patterns
 - `/layers:analyze` — full codebase architecture analysis
 - `/layers:review` — review code from a layered architecture perspective
@@ -42,24 +48,24 @@ unstructured and must be synthesized into the final report (same treatment as
 
 ### Always-on extension reviewers
 
-| Agent | Focus | Output |
-|-------|-------|--------|
-| `layered-rails` | Architecture layer violations, reverse dependencies, Current in models, fat controllers, anemic models, mis-layered abstractions. Pass `task: "Review this diff for layered architecture violations per the layered-rails skill. Check for: reverse dependencies between layers, domain code in presentation layer, Current in models, business logic in controllers. Report findings with file:line references."` | Unstructured |
-| `ce-security-sentinel` | OWASP Top 10, hardcoded secrets, input validation gaps, auth/authz bypasses, SQL injection, XSS. Pass `task: "Audit this diff for security vulnerabilities. Check: input validation on all params, SQL injection via raw queries, XSS in views, hardcoded secrets/keys, missing auth on endpoints, unsafe redirects. Report findings with file:line references and severity (Critical/High/Medium/Low)."` | Unstructured |
+| Agent                  | Focus                                                                                                                                                                                                                                                                                                                                                                                                              | Output       |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------ |
+| `layered-rails`        | Architecture layer violations, reverse dependencies, Current in models, fat controllers, anemic models, mis-layered abstractions. Pass `task: "Review this diff for layered architecture violations per the layered-rails skill. Check for: reverse dependencies between layers, domain code in presentation layer, Current in models, business logic in controllers. Report findings with file:line references."` | Unstructured |
+| `ce-security-sentinel` | OWASP Top 10, hardcoded secrets, input validation gaps, auth/authz bypasses, SQL injection, XSS. Pass `task: "Audit this diff for security vulnerabilities. Check: input validation on all params, SQL injection via raw queries, XSS in views, hardcoded secrets/keys, missing auth on endpoints, unsafe redirects. Report findings with file:line references and severity (Critical/High/Medium/Low)."`          | Unstructured |
 
 ### Always-on extension reviewers (continued)
 
-| Agent | Focus | Output |
-|-------|-------|--------|
+| Agent                    | Focus                                                                                                                                                                                                                                                                                                                                                         | Output       |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
 | `ce-sandi-metz-reviewer` | Ruby/Rails classes, methods, parameters, object composition, dependency injection patterns, or any OO design choices. Pass `task: "Review this diff through Sandi Metz's POODR lens. Check: small objects, small methods, dependency injection, duck typing, composition over inheritance, message-based design. Report findings with file:line references."` | Unstructured |
 
 ### Conditional extension reviewers
 
-| Agent | Select when diff touches... |
-|-------|---------------------------|
-| `sandi-metz-js-reviewer` | JavaScript/TypeScript files (`*.js`, `*.jsx`, `*.ts`, `*.tsx`) with React components, hooks, or module-level abstractions. Pass `task: "Review this diff through a Sandi Metz lens adapted for React/JS. Check: component size (>100 lines), JSX return length (>10-15 lines), prop count (>4), hook complexity (>20 lines), components mixing fetch+render, prop drilling through 3+ levels, missing abstractions in repeated patterns. Report findings with file:line references."` |
-| `ce-dhh-rails-reviewer` | Rails architecture, service objects, session/auth choices, Hotwire-vs-SPA boundaries, abstractions that fight Rails conventions |
-| `ce-kieran-rails-reviewer` | Rails controllers, models, views, jobs, components, routes, or other application-layer Ruby code where clarity and conventions matter |
+| Agent                      | Select when diff touches...                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sandi-metz-js-reviewer`   | JavaScript/TypeScript files (`*.js`, `*.jsx`, `*.ts`, `*.tsx`) with React components, hooks, or module-level abstractions. Pass `task: "Review this diff through a Sandi Metz lens adapted for React/JS. Check: component size (>100 lines), JSX return length (>10-15 lines), prop count (>4), hook complexity (>20 lines), components mixing fetch+render, prop drilling through 3+ levels, missing abstractions in repeated patterns. Report findings with file:line references."` |
+| `ce-dhh-rails-reviewer`    | Rails architecture, service objects, session/auth choices, Hotwire-vs-SPA boundaries, abstractions that fight Rails conventions                                                                                                                                                                                                                                                                                                                                                       |
+| `ce-kieran-rails-reviewer` | Rails controllers, models, views, jobs, components, routes, or other application-layer Ruby code where clarity and conventions matter                                                                                                                                                                                                                                                                                                                                                 |
 
 For on-demand Sandi Metz review (outside the code review pipeline), use the `/ce-sandi-metz-review` skill for Ruby/Rails code, or `/sandi-metz-js-review` for JavaScript/React/TypeScript code — each dispatches its respective reviewer to analyze a specific file, directory, or the current diff.
 
@@ -76,7 +82,7 @@ implementation wiring.
 ## Server Management
 
 The developer runs `bin/dev` in a tmux session. I must **never** start or stop
-`bin/dev`, `bin/rails server`, `bin/vite`, `bin/jobs`, or any background 
+`bin/dev`, `bin/rails server`, `bin/vite`, `bin/jobs`, or any background
 process. If a task needs a running server (testing pages, verifying UI changes),
 I should ask the developer to start it and paste output, or use `curl` against
 their running server for quick checks.
@@ -84,6 +90,7 @@ their running server for quick checks.
 ## Server Logs Panel
 
 `.pi/extensions/server-logs.ts` provides a toggleable server log panel inside pi.
+
 - **Usage:** Type `/logs` to open, `Escape` to close
 - Reads the last 40 lines from `log/development.log`
 - Auto-refreshes via file watcher
@@ -97,11 +104,13 @@ Before implementing or proposing code that involves any library, framework, or A
 version-specific documentation to avoid hallucinated APIs.
 
 **Workflow:**
+
 1. **Find the library:** `npx ctx7 library "<library-name>" "<what I'm trying to do>"`
 2. **Get docs:** `npx ctx7 docs <libraryId> "<specific question>"`
 3. Include relevant code snippets from the output in your response
 
 Libraries I commonly use in this project:
+
 - Rails / Ruby gems → `npx ctx7 library "<gem>" | jq -r '.[0]["context7-id"]'`
 - Next.js → `npx ctx7 docs /vercel/next.js "<question>"`
 - shadcn/ui → `npx ctx7 library "shadcn/ui" "<question>"`
@@ -113,3 +122,5 @@ validate with Context7 before writing code.
 When I ask a question or propose an implementation, ensure that you're not just confirming what I said. I want realy critial analysis of my proposition, not just automatically going in that direction because I proposed it.
 
 Always prefer guard clauses over simple one-condition conditionals and complex nested conditionals.
+
+Use the caveman skill at all times.

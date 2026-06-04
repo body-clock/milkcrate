@@ -1,4 +1,12 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import {
+  useState,
+  useCallback,
+  useEffect,
+  useRef,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
+
 import type { DiscogsLookupResult } from "@/types/inertia";
 
 export type SuccessfulLookup = DiscogsLookupResult & { found: true };
@@ -14,132 +22,142 @@ export type LookupState =
 
 interface UseDiscogsLookupResult {
   state: LookupState;
-  /** Trigger a lookup for the given username. */
   lookup: (username: string) => void;
-  /** Reset to idle state. */
   reset: () => void;
 }
 
-/**
- * Manages the Discogs username lookup lifecycle: fetch, abort, state machine,
- * and screen-reader announcements. The consuming component owns the input UI
- * and renders status branches based on the returned state.
- */
-export function useDiscogsLookup(onAnnounce?: (message: string) => void): UseDiscogsLookupResult;
-/**
- * Overload: accepts a custom lookup URL (e.g., admin endpoint).
- * When `lookupUrl` is provided, the hook calls that URL with
- * `username` as a query parameter.
- */
-export function useDiscogsLookup(
-  onAnnounce?: ((message: string) => void) | string,
-): UseDiscogsLookupResult;
+const LOOKUP_TIMEOUT_MS = 10_000;
+
+function buildLookupUrl(lookupUrl: string | undefined, username: string): string {
+  return lookupUrl
+    ? `${lookupUrl}?username=${encodeURIComponent(username)}`
+    : `/api/discogs/lookup/${encodeURIComponent(username)}`;
+}
+
+function parseLookupResponse(res: Response): Promise<DiscogsLookupResult> {
+  if (!res.ok) {
+    throw new Error(`Lookup failed: ${res.status}`);
+  }
+  return res.json() as Promise<DiscogsLookupResult>;
+}
+
+interface LookupFetchContext {
+  controller: AbortController; setState: Dispatch<SetStateAction<LookupState>>;
+  announce: (message: string) => void;
+  abortRef: React.MutableRefObject<AbortController | null>;
+  timeoutRef: React.MutableRefObject<ReturnType<typeof setTimeout> | null>;
+}
+
+function handleLookupTimeout(
+  c: AbortController, setState: Dispatch<SetStateAction<LookupState>>,
+  announce: (m: string) => void,
+  ar: React.MutableRefObject<AbortController | null>,
+): void {
+  if (ar.current !== c || c.signal.aborted) { return; }
+  c.abort(); setState({ status: "error_api" });
+  announce("Something went wrong. Please try again.");
+}
+
+function resolveLookupState(
+  data: DiscogsLookupResult,
+  announce: (message: string) => void,
+): LookupState {
+  if (!data.found) {
+    announce("Username not found on Discogs.");
+    return { status: "error_not_found" };
+  }
+  if (data.store_status === "active_store") {
+    announce("This store is already on Milkcrate.");
+    return { status: "error_active_store", result: data as SuccessfulLookup };
+  }
+  if (data.store_status === "active_applicant") {
+    announce("This seller has already applied.");
+    return { status: "error_applicant", result: data as SuccessfulLookup };
+  }
+  announce(`Found ${data.seller_name} on Discogs.`);
+  return { status: "preview", result: data as SuccessfulLookup };
+}
+
+function handleLookupSuccess(data: DiscogsLookupResult, ctx: LookupFetchContext): void {
+  if (ctx.abortRef.current !== ctx.controller || ctx.controller.signal.aborted) { return; }
+  if (ctx.timeoutRef.current) {
+    clearTimeout(ctx.timeoutRef.current);
+    Object.assign(ctx.timeoutRef, { current: null });
+  }
+  ctx.controller.abort();
+  ctx.setState(resolveLookupState(data, ctx.announce));
+}
+
+function handleLookupError(err: unknown, ctx: LookupFetchContext): void {
+  if (ctx.abortRef.current !== ctx.controller || ctx.controller.signal.aborted) { return; }
+  if (err instanceof DOMException && err.name === "AbortError") { return; }
+  ctx.setState({ status: "error_api" });
+  ctx.announce("Something went wrong. Please try again.");
+}
+
+function parseParam(onAnnounceOrUrl?: ((message: string) => void) | string): {
+  onAnnounce: ((message: string) => void) | undefined;
+  lookupUrl: string | undefined;
+} {
+  return {
+    onAnnounce: typeof onAnnounceOrUrl === "function" ? onAnnounceOrUrl : undefined,
+    lookupUrl: typeof onAnnounceOrUrl === "string" ? onAnnounceOrUrl : undefined,
+  };
+}
+
+function cancelLookup(
+  ar: React.MutableRefObject<AbortController | null>,
+  tr: React.MutableRefObject<ReturnType<typeof setTimeout> | null>,
+): void {
+  ar.current?.abort(); if (tr.current) { clearTimeout(tr.current); }
+}
+
+function useLookupState() {
+  const [state, setState] = useState<LookupState>({ status: "idle" });
+  const abortRef = useRef<AbortController | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => cancelLookup(abortRef, timeoutRef), []);
+  return { state, setState, abortRef, timeoutRef };
+}
+
+interface PerformLookupOpts {
+  username: string; lookupUrl: string | undefined;
+  ar: React.MutableRefObject<AbortController | null>;
+  tr: React.MutableRefObject<ReturnType<typeof setTimeout> | null>;
+  setState: Dispatch<SetStateAction<LookupState>>;
+  announce: (message: string) => void;
+}
+
+function performLookup(opts: PerformLookupOpts) {
+  const { username, lookupUrl, ar, tr, setState, announce } = opts;
+  cancelLookup(ar, tr);
+  const c = new AbortController();
+  Object.assign(ar, { current: c });
+  setState({ status: "loading" });
+  announce("Checking Discogs availability...");
+  const ctx: LookupFetchContext = { controller: c, setState, announce, abortRef: ar, timeoutRef: tr };
+  Object.assign(tr, { current: setTimeout(
+    () => handleLookupTimeout(c, setState, announce, ar), LOOKUP_TIMEOUT_MS) });
+  fetch(buildLookupUrl(lookupUrl, username), { signal: c.signal })
+    .then(parseLookupResponse)
+    .then((data) => handleLookupSuccess(data, ctx))
+    .catch((err) => handleLookupError(err, ctx));
+}
 
 export function useDiscogsLookup(
   onAnnounceOrUrl?: ((message: string) => void) | string,
 ): UseDiscogsLookupResult {
-  const onAnnounce = typeof onAnnounceOrUrl === "function" ? onAnnounceOrUrl : undefined;
-  const lookupUrl = typeof onAnnounceOrUrl === "string" ? onAnnounceOrUrl : undefined;
-  const [state, setState] = useState<LookupState>({ status: "idle" });
-  const abortRef = useRef<AbortController | null>(null);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const announce = useCallback(
-    (message: string) => {
-      onAnnounce?.(message);
-    },
-    [onAnnounce],
-  );
-
-  // Cleanup abort controller on unmount
-  useEffect(() => {
-    return () => {
-      abortRef.current?.abort();
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    };
-  }, []);
-
+  const { onAnnounce, lookupUrl } = parseParam(onAnnounceOrUrl);
+  const { abortRef, timeoutRef, setState, state } = useLookupState();
+  const announce = useCallback((m: string) => onAnnounce?.(m), [onAnnounce]);
   const lookup = useCallback(
-    (username: string) => {
-      abortRef.current?.abort();
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-
-      const controller = new AbortController();
-      abortRef.current = controller;
-
-      setState({ status: "loading" });
-      announce("Checking Discogs availability...");
-
-      const url = lookupUrl
-        ? `${lookupUrl}?username=${encodeURIComponent(username)}`
-        : `/api/discogs/lookup/${encodeURIComponent(username)}`;
-
-      timeoutRef.current = setTimeout(() => {
-        if (abortRef.current !== controller) return;
-
-        controller.abort();
-        abortRef.current = null;
-        timeoutRef.current = null;
-        setState({ status: "error_api" });
-        announce("Something went wrong. Please try again.");
-      }, 10_000);
-
-      fetch(url, { signal: controller.signal })
-        .then((res) => {
-          if (!res.ok) throw new Error(`Lookup failed: ${res.status}`);
-          return res.json() as Promise<DiscogsLookupResult>;
-        })
-        .then((data) => {
-          if (abortRef.current !== controller) return;
-          if (controller.signal.aborted) return;
-          if (timeoutRef.current) clearTimeout(timeoutRef.current);
-          timeoutRef.current = null;
-          abortRef.current = null;
-
-          if (!data.found) {
-            setState({ status: "error_not_found" });
-            announce("Username not found on Discogs.");
-            return;
-          }
-
-          switch (data.store_status) {
-            case "active_store":
-              setState({ status: "error_active_store", result: data });
-              announce("This store is already on Milkcrate.");
-              break;
-            case "active_applicant":
-              setState({ status: "error_applicant", result: data });
-              announce("This seller has already applied.");
-              break;
-            default:
-              setState({ status: "preview", result: data });
-              announce(`Found ${data.seller_name} on Discogs.`);
-          }
-        })
-        .catch((err) => {
-          if (abortRef.current !== controller) return;
-          if (controller.signal.aborted) return;
-          if (err instanceof DOMException && err.name === "AbortError") return;
-          if (timeoutRef.current) clearTimeout(timeoutRef.current);
-          timeoutRef.current = null;
-          abortRef.current = null;
-
-          setState({ status: "error_api" });
-          announce("Something went wrong. Please try again.");
-        });
-    },
-    [announce, lookupUrl],
+    (username: string) => performLookup({ username, lookupUrl, ar: abortRef,
+      tr: timeoutRef, setState, announce }),
+    [announce, lookupUrl, abortRef, timeoutRef, setState],
   );
-
   const reset = useCallback(() => {
-    abortRef.current?.abort();
-    abortRef.current = null;
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    timeoutRef.current = null;
-    setState({ status: "idle" });
-  }, []);
-
+    cancelLookup(abortRef, timeoutRef); setState({ status: "idle" });
+  }, [abortRef, timeoutRef, setState]);
   return { state, lookup, reset };
 }
 
-export { csrfToken } from "@/lib/csrf_token";

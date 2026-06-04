@@ -1,10 +1,14 @@
-import React from "react";
-import { describe, expect, it } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import RecordCard from "./record_card";
+import React from "react";
+import { describe, expect, it } from "vitest";
+
 import { PileProvider } from "@/contexts/pile_context";
+
 import type { Listing } from "../types/inertia";
+import RecordCard from "./record_card";
+
+const MOCK_YEAR = 2024;
 
 const makeListing = (overrides: Partial<Listing> = {}): Listing => ({
   id: 1,
@@ -12,7 +16,7 @@ const makeListing = (overrides: Partial<Listing> = {}): Listing => ({
   artist: "Artist",
   title: "Test Record",
   label: "Label",
-  year: 2024,
+  year: MOCK_YEAR,
   format: null,
   genres: ["Rock"],
   styles: [],

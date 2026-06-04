@@ -40,6 +40,9 @@ export interface Crate {
   records: Listing[];
 }
 
+/** Semantic alias — a crate rendered as a wall preview on the homepage. */
+export type WallCrate = Crate;
+
 export interface StorefrontSectionWithCrate {
   key: "wall";
   crate: Crate;

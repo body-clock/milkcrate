@@ -1,19 +1,14 @@
-import "@testing-library/jest-dom"
+import "@testing-library/jest-dom";
 
-// IntersectionObserver — needed by framer-motion whileInView. jsdom doesn't provide it.
 class MockIntersectionObserver implements IntersectionObserver {
-  readonly root: Element | Document | null = null
-  readonly rootMargin: string = "0px"
-  readonly thresholds: ReadonlyArray<number> = [0]
-  constructor(
-    _callback: IntersectionObserverCallback,
-    _options?: IntersectionObserverInit
-  ) {}
+  readonly root: Element | Document | null = null;
+  readonly rootMargin: string = "0px";
+  readonly thresholds: ReadonlyArray<number> = [0];
   observe(): void {}
   unobserve(): void {}
   disconnect(): void {}
   takeRecords(): IntersectionObserverEntry[] {
-    return []
+    return [];
   }
 }
 
@@ -21,7 +16,7 @@ Object.defineProperty(globalThis, "IntersectionObserver", {
   writable: true,
   configurable: true,
   value: MockIntersectionObserver,
-})
+});
 
 if (!window.matchMedia) {
   Object.defineProperty(window, "matchMedia", {
@@ -36,5 +31,5 @@ if (!window.matchMedia) {
       removeListener: () => undefined,
       dispatchEvent: () => false,
     }),
-  })
+  });
 }

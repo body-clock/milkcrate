@@ -1,22 +1,17 @@
-import { actionClassName } from "./ui/action";
 import { csrfToken } from "@/lib/csrf_token";
 
-interface FormProps {
+import { actionClassName } from "./ui/action";
+
+interface ConnectFormProps {
   className?: string;
   buttonClassName?: string;
-}
-
-interface ConnectFormProps extends FormProps {
   storeSlug: string;
   crateSlug?: string;
 }
 
+export { DiscogsDisconnectForm } from "./discogs_disconnect_form";
+
 const defaultConnectButtonClassName = actionClassName({ size: "lg" });
-const defaultDisconnectButtonClassName = actionClassName({
-  variant: "ghost",
-  size: "sm",
-  className: "min-h-11",
-});
 
 export function DiscogsConnectForm({
   storeSlug,
@@ -31,21 +26,6 @@ export function DiscogsConnectForm({
       {crateSlug && <input type="hidden" name="crate_slug" value={crateSlug} />}
       <button type="submit" className={buttonClassName}>
         Connect with Discogs
-      </button>
-    </form>
-  );
-}
-
-export function DiscogsDisconnectForm({
-  className,
-  buttonClassName = defaultDisconnectButtonClassName,
-}: FormProps) {
-  return (
-    <form method="POST" action="/auth/discogs/shopper/disconnect" className={className}>
-      <input type="hidden" name="authenticity_token" value={csrfToken()} />
-      <input type="hidden" name="_method" value="delete" />
-      <button type="submit" className={buttonClassName}>
-        Disconnect
       </button>
     </form>
   );

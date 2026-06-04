@@ -1,9 +1,11 @@
-import React from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { renderWithTier } from "../test/viewport-test-utils";
+import React from "react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
 import type { ViewportTier } from "@/contexts/viewport_context";
+
+import { renderWithTier } from "../test/viewport-test-utils";
 
 // ── Mock @inertiajs/react ──────────────────────────────────────
 vi.mock("@inertiajs/react", () => ({
@@ -51,12 +53,14 @@ vi.mock("@/components/storefront_motion_config", () => ({
   useReducedMotionContext: () => false,
 }));
 
+import { PileProvider } from "../contexts/pile_context";
 // ── Page imports (after mocks) ─────────────────────────────────
 import StoreShow from "../pages/stores/show";
 import type { StoreShowProps, Listing } from "../types/inertia";
-import { PileProvider } from "../contexts/pile_context";
 
 // ── Test data ──────────────────────────────────────────────────
+const PRICE_OFFSET = 10;
+
 const makeListing = (id: number, title: string): Listing => ({
   id,
   discogs_listing_id: String(id),
@@ -68,7 +72,7 @@ const makeListing = (id: number, title: string): Listing => ({
   genres: [],
   styles: [],
   condition: null,
-  price: `${10 + id}.00`,
+  price: `${PRICE_OFFSET + id}.00`,
   currency: "USD",
   cover_image_url: null,
   thumbnail_url: null,

@@ -1,10 +1,14 @@
+import { render, screen, act, fireEvent } from "@testing-library/react";
 import React from "react";
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, act, fireEvent } from "@testing-library/react";
-import PileToast from "./pile_toast";
-import { PileProvider, usePileContext } from "@/contexts/pile_context";
+
 import StorefrontMotionConfig from "@/components/storefront_motion_config";
+import { PileProvider, usePileContext } from "@/contexts/pile_context";
+
 import type { Listing } from "../types/inertia";
+import PileToast from "./pile_toast";
+
+const TOAST_TIMEOUT_ADVANCE = 2001;
 
 const makeListing = (overrides: Partial<Listing> = {}): Listing => ({
   id: 1,
@@ -26,7 +30,6 @@ const makeListing = (overrides: Partial<Listing> = {}): Listing => ({
   ...overrides,
 });
 
-/** Helper that exposes an "Add" button which calls addToPile directly. */
 function AddButton({ listing }: { listing: Listing }) {
   const { addToPile } = usePileContext();
   return (
@@ -51,89 +54,67 @@ beforeEach(() => {
   localStorage.clear();
   vi.useFakeTimers();
 });
-
 afterEach(() => {
   vi.useRealTimers();
 });
 
-describe("PileToast", () => {
-  describe("happy path", () => {
-    it("does not render when nothing has been added", () => {
-      render(
-        <StorefrontMotionConfig>
-          <PileProvider>
-            <PileToast />
-          </PileProvider>
-        </StorefrontMotionConfig>,
-      );
-      expect(screen.queryByRole("status")).not.toBeInTheDocument();
-    });
-
-    it("renders toast with record title after adding to pile", () => {
-      const listing = makeListing({ title: "Purple Rain" });
-      renderWithHelper(listing);
-
-      fireEvent.click(screen.getByRole("button", { name: "Add to pile" }));
-
-      expect(screen.getByRole("status")).toBeInTheDocument();
-      expect(screen.getByText(/Added Purple Rain to pile/)).toBeInTheDocument();
-    });
-
-    it("renders with aria-live=polite", () => {
-      renderWithHelper(makeListing({ title: "Test" }));
-
-      fireEvent.click(screen.getByRole("button", { name: "Add to pile" }));
-
-      expect(screen.getByRole("status")).toHaveAttribute("aria-live", "polite");
-    });
-
-    it("auto-dismisses: clearLastAdded called after 2 seconds", () => {
-      // framer-motion AnimatePresence holds the DOM node during exit animation;
-      // verify dismissal by confirming the timeout fires and the text enters
-      // the exit state (opacity: 0) — the semantic is cleared.
-      renderWithHelper(makeListing({ title: "Time Test" }));
-
-      fireEvent.click(screen.getByRole("button", { name: "Add to pile" }));
-      expect(screen.getByText(/Added Time Test to pile/)).toBeInTheDocument();
-
-      // After 2s the context clears lastAdded; the element enters exit animation
-      act(() => vi.advanceTimersByTime(2001));
-
-      // The element is in exit state (opacity:0) — framer holds it for animation
-      // but the content is semantically dismissed from context.
-      const toastEl = screen.getByText(/Added Time Test to pile/).closest("[role='status']");
-      expect(toastEl).toHaveStyle("opacity: 0");
-    });
+describe("PileToast — happy path", () => {
+  it("does not render when nothing has been added", () => {
+    render(
+      <StorefrontMotionConfig>
+        <PileProvider>
+          <PileToast />
+        </PileProvider>
+      </StorefrontMotionConfig>,
+    );
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 
-  describe("edge cases", () => {
-    it("truncates very long titles with ellipsis", () => {
-      const longTitle = "This Is A Very Long Record Title That Exceeds Thirty Characters";
-      renderWithHelper(makeListing({ title: longTitle }));
+  it("renders toast with record title after adding to pile", () => {
+    renderWithHelper(makeListing({ title: "Purple Rain" }));
+    fireEvent.click(screen.getByRole("button", { name: "Add to pile" }));
+    expect(screen.getByRole("status")).toBeInTheDocument();
+    expect(screen.getByText(/Added Purple Rain to pile/)).toBeInTheDocument();
+  });
 
-      fireEvent.click(screen.getByRole("button", { name: "Add to pile" }));
+  it("renders with aria-live=polite", () => {
+    renderWithHelper(makeListing({ title: "Test" }));
+    fireEvent.click(screen.getByRole("button", { name: "Add to pile" }));
+    expect(screen.getByRole("status")).toHaveAttribute("aria-live", "polite");
+  });
 
-      const toast = screen.getByRole("status");
-      expect(toast.textContent).toContain("\u2026");
-    });
+  it("auto-dismisses: clearLastAdded called after 2 seconds", () => {
+    renderWithHelper(makeListing({ title: "Time Test" }));
+    fireEvent.click(screen.getByRole("button", { name: "Add to pile" }));
+    expect(screen.getByText(/Added Time Test to pile/)).toBeInTheDocument();
+    act(() => vi.advanceTimersByTime(TOAST_TIMEOUT_ADVANCE));
+    const toastEl = screen.getByText(/Added Time Test to pile/).closest("[role='status']");
+    expect(toastEl).toHaveStyle("opacity: 0");
+  });
+});
 
-    it("uses 'record' fallback when title is null", () => {
-      renderWithHelper(makeListing({ title: null }));
+describe("PileToast — edge cases", () => {
+  it("truncates very long titles with ellipsis", () => {
+    const longTitle = "This Is A Very Long Record Title That Exceeds Thirty Characters";
+    renderWithHelper(makeListing({ title: longTitle }));
+    fireEvent.click(screen.getByRole("button", { name: "Add to pile" }));
+    expect(screen.getByRole("status").textContent).toContain("\u2026");
+  });
 
-      fireEvent.click(screen.getByRole("button", { name: "Add to pile" }));
+  it("uses 'record' fallback when title is null", () => {
+    renderWithHelper(makeListing({ title: null }));
+    fireEvent.click(screen.getByRole("button", { name: "Add to pile" }));
+    expect(screen.getByText(/Added record to pile/)).toBeInTheDocument();
+  });
 
-      expect(screen.getByText(/Added record to pile/)).toBeInTheDocument();
-    });
-
-    it("no toast renders when lastAdded is null", () => {
-      render(
-        <StorefrontMotionConfig>
-          <PileProvider>
-            <PileToast />
-          </PileProvider>
-        </StorefrontMotionConfig>,
-      );
-      expect(screen.queryByRole("status")).not.toBeInTheDocument();
-    });
+  it("no toast renders when lastAdded is null", () => {
+    render(
+      <StorefrontMotionConfig>
+        <PileProvider>
+          <PileToast />
+        </PileProvider>
+      </StorefrontMotionConfig>,
+    );
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 });

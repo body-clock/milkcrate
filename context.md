@@ -12,15 +12,15 @@ This analysis documents the architectural principle that **all crate strategies 
 
 Every `CrateStrategies::*` class implements `select(pool, excluded_ids:) -> [Listing]`:
 
-| Strategy | Selection criteria | Sort key | Since |
-|----------|-------------------|----------|-------|
-| `Picks` (line 1-28) | Genre-diverse, shuffled by day seed | `RecordScorer#score` | Original |
-| `NewArrivals` (line 1-32) | Best-fit recency window (7/14/30/90/365d) | `RecordScorer#score` | Original |
-| `Thematic` (line 1-57) | Random style/genre theme from pool | `RecordScorer#score` | Original |
-| `HiddenGems` (line 1-44) | Low engagement, wants > haves, has image | **`RecordScorer#score` (refactored)** | Bug fix |
-| `Genre` (line 1-24) | Single genre filter | `RecordScorer#score` | Extracted |
+| Strategy                  | Selection criteria                        | Sort key                              | Since     |
+| ------------------------- | ----------------------------------------- | ------------------------------------- | --------- |
+| `Picks` (line 1-28)       | Genre-diverse, shuffled by day seed       | `RecordScorer#score`                  | Original  |
+| `NewArrivals` (line 1-32) | Best-fit recency window (7/14/30/90/365d) | `RecordScorer#score`                  | Original  |
+| `Thematic` (line 1-57)    | Random style/genre theme from pool        | `RecordScorer#score`                  | Original  |
+| `HiddenGems` (line 1-44)  | Low engagement, wants > haves, has image  | **`RecordScorer#score` (refactored)** | Bug fix   |
+| `Genre` (line 1-24)       | Single genre filter                       | `RecordScorer#score`                  | Extracted |
 
-**Key insight:** The strategy sits *on top of* the score, not *alongside* it. Strategies may have completely different candidate-selection logic (recency windows, want/have ratios, genre diversity), but once candidates are identified, **every single strategy sorts by descending `RecordScorer#score`**.
+**Key insight:** The strategy sits _on top of_ the score, not _alongside_ it. Strategies may have completely different candidate-selection logic (recency windows, want/have ratios, genre diversity), but once candidates are identified, **every single strategy sorts by descending `RecordScorer#score`**.
 
 ### Why This Matters
 
@@ -38,17 +38,17 @@ Extracted during the Sandi Metz POODR refactors (`refactor/model-sandi-metz-pood
 
 ### All Score Strategies
 
-| Strategy | File | Behavior | Type |
-|----------|------|----------|------|
-| `VintageStrategy` | `vintage_strategy.rb` | +2.0 if year <= 1983 | boost |
-| `ConditionStrategy` | `condition_strategy.rb` | +1.0 if condition matches good list | boost |
-| `DesirabilityStrategy` | `desirability_strategy.rb` | Log-base score + high/low bonus/penalty using `WantHaveRatio` | graduated |
-| `MetadataStrategy` | `metadata_strategy.rb` | -1.0 if no styles | penalty |
-| `CoverQualityStrategy` | `cover_quality_strategy.rb` | +1.0 distinct cover, -0.5 missing, -1.0 cover==thumbnail | graduated |
-| `FreshnessStrategy` | `freshness_strategy.rb` | Penalty for recently surfaced, bonus for long-unseen | graduated |
-| `NoiseStrategy` | `noise_strategy.rb` | Daily deterministic variation (±random based on listing+date hash) | noise |
-| `SectionStrategy` | `section_strategy.rb` | +1.0 if in a curated section | boost |
-| **`PriceStrategy`** | `price_strategy.rb` | **+1.0 if price >= $5.00** | **boost (new)** |
+| Strategy               | File                        | Behavior                                                           | Type            |
+| ---------------------- | --------------------------- | ------------------------------------------------------------------ | --------------- |
+| `VintageStrategy`      | `vintage_strategy.rb`       | +2.0 if year <= 1983                                               | boost           |
+| `ConditionStrategy`    | `condition_strategy.rb`     | +1.0 if condition matches good list                                | boost           |
+| `DesirabilityStrategy` | `desirability_strategy.rb`  | Log-base score + high/low bonus/penalty using `WantHaveRatio`      | graduated       |
+| `MetadataStrategy`     | `metadata_strategy.rb`      | -1.0 if no styles                                                  | penalty         |
+| `CoverQualityStrategy` | `cover_quality_strategy.rb` | +1.0 distinct cover, -0.5 missing, -1.0 cover==thumbnail           | graduated       |
+| `FreshnessStrategy`    | `freshness_strategy.rb`     | Penalty for recently surfaced, bonus for long-unseen               | graduated       |
+| `NoiseStrategy`        | `noise_strategy.rb`         | Daily deterministic variation (±random based on listing+date hash) | noise           |
+| `SectionStrategy`      | `section_strategy.rb`       | +1.0 if in a curated section                                       | boost           |
+| **`PriceStrategy`**    | `price_strategy.rb`         | **+1.0 if price >= $5.00**                                         | **boost (new)** |
 
 ### PriceStrategy Specifics
 
@@ -138,19 +138,19 @@ All crates are wrapped in `CuratedCrate` containers and capped to `CuratedCrate:
 
 ## Key Files and Lines
 
-| File | Lines | Purpose |
-|------|-------|---------|
-| `app/models/record_scorer.rb` | 1-42 | Composes all score strategies, delegates per-listing |
-| `app/models/record_scorer.rb` | 15-25 | `default_strategies` — registration of all score strategies |
-| `app/services/crate_strategies/picks.rb` | 1-28 | Picks strategy (genre-diverse, day-seed shuffle) |
-| `app/services/crate_strategies/new_arrivals.rb` | 1-32 | New Arrivals strategy (recency windows) |
-| `app/services/crate_strategies/thematic.rb` | 1-57 | Thematic strategy (random style/genre theme) |
-| `app/services/crate_strategies/hidden_gems.rb` | 1-44 | Hidden Gems strategy (low engagement filter, scorer rank) |
-| `app/services/crate_strategies/genre.rb` | 1-24 | Genre strategy (single-genre filter, copied extraction) |
-| `app/services/score_strategies/price_strategy.rb` | 1-9 | PriceStrategy: +1 boost at $5 threshold |
-| `app/frontend/components/score_breakdown.tsx` | 1-40 | Frontend breakdown panel showing each score dimension |
-| `app/services/storefront_curation.rb` | 1-150+ | Orchestrator that wires strategies together |
-| `app/values/want_have_ratio.rb` | 1-26 | Value object used by HiddenGems AND DesirabilityStrategy |
+| File                                              | Lines  | Purpose                                                     |
+| ------------------------------------------------- | ------ | ----------------------------------------------------------- |
+| `app/models/record_scorer.rb`                     | 1-42   | Composes all score strategies, delegates per-listing        |
+| `app/models/record_scorer.rb`                     | 15-25  | `default_strategies` — registration of all score strategies |
+| `app/services/crate_strategies/picks.rb`          | 1-28   | Picks strategy (genre-diverse, day-seed shuffle)            |
+| `app/services/crate_strategies/new_arrivals.rb`   | 1-32   | New Arrivals strategy (recency windows)                     |
+| `app/services/crate_strategies/thematic.rb`       | 1-57   | Thematic strategy (random style/genre theme)                |
+| `app/services/crate_strategies/hidden_gems.rb`    | 1-44   | Hidden Gems strategy (low engagement filter, scorer rank)   |
+| `app/services/crate_strategies/genre.rb`          | 1-24   | Genre strategy (single-genre filter, copied extraction)     |
+| `app/services/score_strategies/price_strategy.rb` | 1-9    | PriceStrategy: +1 boost at $5 threshold                     |
+| `app/frontend/components/score_breakdown.tsx`     | 1-40   | Frontend breakdown panel showing each score dimension       |
+| `app/services/storefront_curation.rb`             | 1-150+ | Orchestrator that wires strategies together                 |
+| `app/values/want_have_ratio.rb`                   | 1-26   | Value object used by HiddenGems AND DesirabilityStrategy    |
 
 ---
 

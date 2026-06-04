@@ -1,5 +1,18 @@
-import React from "react"
-import { cn } from "./class_names"
+import React from "react";
+
+import { cn } from "./class_names";
+
+interface SectionHeaderProps {
+  id?: string;
+  title: string;
+  description?: string;
+  action?: React.ReactNode;
+  className?: string;
+}
+
+function sectionHeaderClassName(className?: string) {
+  return cn("mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between", className);
+}
 
 export default function SectionHeader({
   id,
@@ -7,20 +20,16 @@ export default function SectionHeader({
   description,
   action,
   className,
-}: {
-  id?: string
-  title: string
-  description?: string
-  action?: React.ReactNode
-  className?: string
-}) {
+}: SectionHeaderProps) {
   return (
-    <div className={cn("mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between", className)}>
+    <div className={sectionHeaderClassName(className)}>
       <div className="min-w-0">
-        <h2 id={id} className="text-lg font-bold text-mc-text">{title}</h2>
+        <h2 id={id} className="text-lg font-bold text-mc-text">
+          {title}
+        </h2>
         {description && <p className="mt-1 text-sm text-mc-text-dim">{description}</p>}
       </div>
       {action && <div className="flex-shrink-0">{action}</div>}
     </div>
-  )
+  );
 }

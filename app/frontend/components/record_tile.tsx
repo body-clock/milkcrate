@@ -1,12 +1,14 @@
-import { useReducedMotionContext } from "@/components/storefront_motion_config"
-import type { Listing } from "../types/inertia"
+import { useReducedMotionContext } from "@/components/storefront_motion_config";
+
+import type { Listing } from "../types/inertia";
+import { RecordCover } from "./record_cover";
 
 export interface RecordTileProps {
-  listing: Listing
-  className?: string
-  imageLoading?: "eager" | "lazy"
+  listing: Listing;
+  className?: string;
+  imageLoading?: "eager" | "lazy";
   /** When true, adds a gentle hover scale animation on desktop. */
-  tactileHover?: boolean
+  tactileHover?: boolean;
 }
 
 /**
@@ -27,31 +29,19 @@ export default function RecordTile({
   imageLoading = "lazy",
   tactileHover = false,
 }: RecordTileProps) {
-  const reducedMotion = useReducedMotionContext()
-  const src = listing.cover_image_url ?? listing.thumbnail_url
+  const reducedMotion = useReducedMotionContext();
+  const src = listing.cover_image_url ?? listing.thumbnail_url;
 
-  const hoverClass = tactileHover && !reducedMotion
-    ? "hover:scale-[1.015] transition-transform duration-150 ease-out"
-    : ""
+  const hoverClass =
+    tactileHover && !reducedMotion
+      ? "hover:scale-[1.015] transition-transform duration-150 ease-out"
+      : "";
 
   return (
     <div
       className={`aspect-square w-full h-full rounded-sm overflow-hidden border border-mc-border/50 ${hoverClass} ${className}`}
     >
-      {src ? (
-        <img
-          src={src}
-          alt={listing.title ?? ""}
-          className="w-full h-full object-cover"
-          draggable={false}
-          loading={imageLoading}
-          decoding="async"
-        />
-      ) : (
-        <div className="w-full h-full flex items-center justify-center bg-mc-bg-raised text-mc-text-dim text-lg">
-          ♪
-        </div>
-      )}
+      <RecordCover src={src ?? undefined} alt={listing.title ?? ""} imageLoading={imageLoading} />
     </div>
-  )
+  );
 }

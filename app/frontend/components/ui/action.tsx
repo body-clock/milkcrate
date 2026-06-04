@@ -1,5 +1,6 @@
-import React from "react";
 import { cn } from "./class_names";
+
+export { ActionLink } from "./action_link";
 
 export type ActionVariant = "primary" | "secondary" | "ghost" | "danger" | "success";
 export type ActionSize = "sm" | "md" | "lg";
@@ -34,44 +35,5 @@ export function actionClassName({
     sizes[size],
     variants[variant],
     className,
-  );
-}
-
-export function ActionLink({
-  variant = "primary",
-  size = "md",
-  className,
-  busy = false,
-  disabled = false,
-  tabIndex,
-  onClick,
-  children,
-  ...props
-}: React.AnchorHTMLAttributes<HTMLAnchorElement> & {
-  variant?: ActionVariant;
-  size?: ActionSize;
-  busy?: boolean;
-  disabled?: boolean;
-}) {
-  const unavailable = disabled || busy;
-
-  return (
-    <a
-      {...props}
-      className={actionClassName({ variant, size, className })}
-      aria-busy={busy || undefined}
-      aria-disabled={unavailable || undefined}
-      tabIndex={unavailable ? -1 : tabIndex}
-      onClick={(event) => {
-        if (unavailable) {
-          event.preventDefault();
-          return;
-        }
-
-        onClick?.(event);
-      }}
-    >
-      {children}
-    </a>
   );
 }

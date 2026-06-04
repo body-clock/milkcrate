@@ -1,6 +1,5 @@
-import CrateChipBar from "./crate_chip_bar";
-import InlineCrateStage from "./inline_crate_stage";
 import type { Crate } from "../types/inertia";
+import PanelContent from "./crate_browse_panel_content";
 
 export type CrateBrowseMode = "featured" | "genres";
 
@@ -21,42 +20,10 @@ interface Props {
   hideChipBar?: boolean;
 }
 
-export default function CrateBrowsePanel({
-  config,
-  crates,
-  activeSlug,
-  startIndex,
-  onSelectCrate,
-  hideChipBar = false,
-}: Props) {
-  const activeCrate = activeSlug
-    ? (crates.find((crate) => crate.slug === activeSlug) ?? null)
-    : null;
-
+export default function CrateBrowsePanel(props: Props) {
   return (
-    <section role="region" aria-label={config.ariaLabel} className="space-y-4">
-      {!hideChipBar && (
-        <CrateChipBar
-          title={config.title}
-          description={config.description}
-          crates={crates}
-          activeSlug={activeSlug}
-          onSelectCrate={onSelectCrate}
-        />
-      )}
-
-      {activeCrate ? (
-        <InlineCrateStage
-          crates={crates}
-          activeSlug={activeSlug}
-          startIndex={startIndex}
-          onSelectCrate={onSelectCrate}
-        />
-      ) : (
-        <div className="rounded-2xl border border-dashed border-mc-border bg-mc-bg-card/70 px-4 py-5 text-sm text-mc-text-dim">
-          {config.emptyText}
-        </div>
-      )}
+    <section role="region" aria-label={props.config.ariaLabel} className="space-y-4">
+      <PanelContent {...props} hideChipBar={props.hideChipBar ?? false} />
     </section>
   );
 }

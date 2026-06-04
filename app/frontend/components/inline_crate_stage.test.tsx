@@ -1,10 +1,11 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, screen } from "@testing-library/react";
-import InlineCrateStage from "./inline_crate_stage";
-import StorefrontMotionConfig from "./storefront_motion_config";
+import { describe, expect, it, vi } from "vitest";
+
 import { PileProvider } from "../contexts/pile_context";
 import { renderWithTier } from "../test/viewport-test-utils";
 import type { Crate, Listing } from "../types/inertia";
+import InlineCrateStage from "./inline_crate_stage";
+import StorefrontMotionConfig from "./storefront_motion_config";
 
 const makeListing = (id: number): Listing => ({
   id,
@@ -25,7 +26,9 @@ const makeListing = (id: number): Listing => ({
   discogs_url: `https://www.discogs.com/sell/item/${id}`,
 });
 
-const makeCrate = (recordCount = 3): Crate => ({
+const DEFAULT_CRATE_SIZE = 3;
+
+const makeCrate = (recordCount = DEFAULT_CRATE_SIZE): Crate => ({
   slug: "jazz",
   name: "Jazz",
   count: recordCount,

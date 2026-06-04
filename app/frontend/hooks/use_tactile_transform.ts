@@ -1,5 +1,6 @@
-import { useMemo } from "react"
-import type { MotionStyle, Transition } from "framer-motion"
+import type { MotionStyle, Transition } from "framer-motion";
+import { useMemo } from "react";
+
 import {
   SCALE_PRESS,
   SCALE_HOVER,
@@ -7,22 +8,43 @@ import {
   TILT_HOVER,
   springTactile,
   springPress,
-} from "@/lib/motion_tokens"
+} from "@/lib/motion_tokens";
 
 interface UseTactileTransformOptions {
   /** Resting tilt in degrees when not hovered. Default 0. */
-  restingTilt?: number
+  restingTilt?: number;
   /** Disable tilt entirely — rotate always stays at 0. */
-  disableTilt?: boolean
+  disableTilt?: boolean;
   /** Disable all animations — returns identity transforms. */
-  reducedMotion?: boolean
+  reducedMotion?: boolean;
 }
 
 interface UseTactileTransformResult {
   /** Framer Motion animate target. */
-  transform: MotionStyle
+  transform: MotionStyle;
   /** Transition to use for the current state — snappier on press. */
-  transition: Transition
+  transition: Transition;
+}
+
+const TILT_HOVER_ADJUST = 1.5;
+
+interface ComputeTransformInputs {
+  reducedMotion: boolean;
+  disableTilt: boolean;
+  isPressed: boolean;
+  restingTilt: number;
+  proximity: number;
+}
+
+function computeTransform(inputs: ComputeTransformInputs): MotionStyle {
+  const { reducedMotion, disableTilt, isPressed, restingTilt, proximity } = inputs;
+  if (reducedMotion) {
+    return { rotate: 0, scale: 1, y: 0 };
+  }
+  const rotate = disableTilt ? 0 : restingTilt * (TILT_HOVER / TILT_HOVER_ADJUST) * (1 - proximity);
+  const scale = isPressed ? SCALE_PRESS : 1 + (SCALE_HOVER - 1) * proximity;
+  const y = proximity === 0 ? 0 : -LIFT_HOVER * proximity;
+  return { rotate, scale, y };
 }
 
 /**
@@ -34,31 +56,15 @@ export function useTactileTransform(
   isPressed: boolean,
   options: UseTactileTransformOptions = {},
 ): UseTactileTransformResult {
-  const { restingTilt = 0, disableTilt = false, reducedMotion = false } = options
+  const { restingTilt = 0, disableTilt = false, reducedMotion = false } = options;
 
-  const transform = useMemo<MotionStyle>(() => {
-    if (reducedMotion) {
-      return { rotate: 0, scale: 1, y: 0 }
-    }
-
-    // Tilt: straightens as cursor approaches
-    const rotate = disableTilt
-      ? 0
-      : restingTilt * (TILT_HOVER / 1.5) * (1 - proximity)
-
-    // Scale: SCALE_PRESS when pressed, otherwise interpolate
-    const scale = isPressed
-      ? SCALE_PRESS
-      : 1 + (SCALE_HOVER - 1) * proximity
-
-    // Lift: increases as cursor approaches
-    const y = proximity === 0 ? 0 : -LIFT_HOVER * proximity
-
-    return { rotate, scale, y }
-  }, [reducedMotion, disableTilt, isPressed, restingTilt, proximity])
+  const transform = useMemo<MotionStyle>(
+    () => computeTransform({ reducedMotion, disableTilt, isPressed, restingTilt, proximity }),
+    [reducedMotion, disableTilt, isPressed, restingTilt, proximity],
+  );
 
   return {
     transform,
     transition: isPressed ? springPress : springTactile,
-  }
+  };
 }

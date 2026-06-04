@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useMemo, useState } from "react";
+import React, { createContext, useCallback, useContext, useMemo, useState } from "react";
+
 import { usePile } from "../hooks/use_pile";
 import type { Listing } from "../types/inertia";
 
@@ -15,34 +16,32 @@ interface PileContextValue {
 
 const PileContext = createContext<PileContextValue | null>(null);
 
-export function PileProvider({
-  children,
-  storeSlug,
-}: {
-  children: React.ReactNode;
-  storeSlug?: string;
-}) {
-  const pileState = usePile(storeSlug);
+function usePileProviderValue(storeSlug?: string) {
+  const { addToPile: anp, pile, removeFromPile, inPile, clearPile: pcp } = usePile(storeSlug);
   const [lastAdded, setLastAdded] = useState<Listing | null>(null);
-
-  const addToPile = (listing: Listing) => {
-    pileState.addToPile(listing);
-    setLastAdded(listing);
-  };
-
-  const clearLastAdded = () => setLastAdded(null);
-
-  const value = useMemo(
-    () => ({ ...pileState, addToPile, lastAdded, clearLastAdded }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [pileState.pile, lastAdded],
+  const addToPile = useCallback(
+    (listing: Listing) => { anp(listing); setLastAdded(listing); },
+    [anp],
   );
+  const clearLastAdded = useCallback(() => setLastAdded(null), []);
+  return useMemo<PileContextValue>(
+    () => ({ pile, removeFromPile, inPile, clearPile: pcp,
+      addToPile, lastAdded, clearLastAdded }),
+    [pile, removeFromPile, inPile, pcp, addToPile, lastAdded, clearLastAdded],
+  );
+}
 
+export function PileProvider({
+  children, storeSlug,
+}: { children: React.ReactNode; storeSlug?: string }) {
+  const value = usePileProviderValue(storeSlug);
   return <PileContext.Provider value={value}>{children}</PileContext.Provider>;
 }
 
 export function usePileContext() {
-  const pileContext = useContext(PileContext);
-  if (!pileContext) throw new Error("usePileContext must be used within PileProvider");
-  return pileContext;
+  const ctx = useContext(PileContext);
+  if (!ctx) {
+    throw new Error("usePileContext must be used within PileProvider");
+  }
+  return ctx;
 }

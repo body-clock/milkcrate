@@ -1,39 +1,34 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import React from "react";
-import { PileProvider, usePileContext } from "./pile_context";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+
 import type { Listing } from "../types/inertia";
+import { PileProvider, usePileContext } from "./pile_context";
+
+const TEST_LISTING_ID = 99;
 
 const makeListing = (overrides: Partial<Listing> = {}): Listing => ({
-  id: 1,
+  id: TEST_LISTING_ID,
   discogs_listing_id: "abc",
   artist: "Artist",
   title: "Title",
-  label: null,
-  year: null,
-  format: null,
   genres: [],
   styles: [],
-  condition: null,
   price: "10.00",
   currency: "USD",
-  cover_image_url: null,
-  thumbnail_url: null,
-  notes: null,
   discogs_url: "https://www.discogs.com/sell/item/1",
   ...overrides,
 });
 
 function PileConsumer() {
   const { pile, addToPile, removeFromPile, inPile, clearPile } = usePileContext();
-  const listing = makeListing({ id: 99 });
-
+  const listing = makeListing();
   return (
     <div>
       <span data-testid="count">{pile.length}</span>
-      <span data-testid="in-pile">{inPile(99) ? "yes" : "no"}</span>
+      <span data-testid="in-pile">{inPile(TEST_LISTING_ID) ? "yes" : "no"}</span>
       <button onClick={() => addToPile(listing)}>add</button>
-      <button onClick={() => removeFromPile(99)}>remove</button>
+      <button onClick={() => removeFromPile(TEST_LISTING_ID)}>remove</button>
       <button onClick={() => clearPile()}>clear</button>
     </div>
   );
@@ -43,7 +38,7 @@ beforeEach(() => {
   localStorage.clear();
 });
 
-describe("PileContext", () => {
+describe("PileContext — basic state", () => {
   it("provides an empty pile by default", () => {
     render(
       <PileProvider>
@@ -73,7 +68,9 @@ describe("PileContext", () => {
     fireEvent.click(screen.getByText("add"));
     expect(screen.getByTestId("in-pile").textContent).toBe("yes");
   });
+});
 
+describe("PileContext — mutations", () => {
   it("removeFromPile removes the correct listing", () => {
     render(
       <PileProvider>
@@ -103,7 +100,9 @@ describe("PileContext", () => {
     );
     spy.mockRestore();
   });
+});
 
+describe("PileContext — store scoping", () => {
   it("scopes pile per store", () => {
     render(
       <PileProvider storeSlug="store-a">
@@ -112,7 +111,6 @@ describe("PileContext", () => {
     );
     fireEvent.click(screen.getByText("add"));
     expect(screen.getByTestId("count").textContent).toBe("1");
-
     render(
       <PileProvider storeSlug="store-b">
         <PileConsumer />
@@ -128,10 +126,7 @@ describe("PileContext", () => {
       </PileProvider>,
     );
     fireEvent.click(screen.getByText("add"));
-
-    expect(localStorage.getItem("mc-pile-store-a")).toBe(
-      JSON.stringify([{ ...makeListing({ id: 99 }) }]),
-    );
+    expect(localStorage.getItem("mc-pile-store-a")).toBe(JSON.stringify([makeListing()]));
     expect(localStorage.getItem("mc-pile-store-b")).toBeNull();
   });
 
@@ -142,7 +137,6 @@ describe("PileContext", () => {
       </PileProvider>,
     );
     fireEvent.click(screen.getByText("add"));
-
     expect(localStorage.getItem("mc-pile")).not.toBeNull();
   });
 });

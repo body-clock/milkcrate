@@ -1,12 +1,13 @@
-import React, { useRef, useState } from "react";
-import { describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import WallRecordPeekSheet from "./wall_record_peek_sheet";
-import StorefrontMotionConfig from "./storefront_motion_config";
-import { ViewportProvider } from "../contexts/viewport_context";
+import React, { useRef, useState } from "react";
+import { describe, expect, it, vi } from "vitest";
+
 import { PileProvider } from "../contexts/pile_context";
+import { ViewportProvider } from "../contexts/viewport_context";
 import type { Listing } from "../types/inertia";
+import StorefrontMotionConfig from "./storefront_motion_config";
+import WallRecordPeekSheet from "./wall_record_peek_sheet";
 
 const listing: Listing = {
   id: 1,
