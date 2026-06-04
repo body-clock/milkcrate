@@ -60,6 +60,13 @@ class Store < ApplicationRecord
     reload
   end
 
+  def discogs_oauth_client
+    DiscogsClient.new(
+      access_token: discogs_oauth_token,
+      access_token_secret: discogs_oauth_token_secret
+    )
+  end
+
   private
 
   def normalize_discogs_username

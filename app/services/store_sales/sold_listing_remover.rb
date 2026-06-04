@@ -24,9 +24,10 @@ module StoreSales
     private
 
     def find_and_delete_listings(ids)
-      matching = @store.listings.where(discogs_listing_id: ids)
-      removed = matching.pluck(:discogs_listing_id)
-      matching.delete_all
+      removed = @store.listings.where(discogs_listing_id: ids).pluck(:discogs_listing_id)
+      return [] if removed.empty?
+
+      @store.listings.where(discogs_listing_id: removed).delete_all
       removed
     end
 

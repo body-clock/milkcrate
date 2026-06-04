@@ -141,10 +141,7 @@ module StoreSales
     end
 
     def build_client
-      DiscogsClient.new(
-        access_token: @store.discogs_oauth_token,
-        access_token_secret: @store.discogs_oauth_token_secret
-      )
+      @store.discogs_oauth_client
     end
 
     def empty_result

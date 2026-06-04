@@ -4,9 +4,9 @@ module Discogs
   # Uses OAuth::AccessToken for requests. Separated from DiscogsClient so the
   # public API surface (PublicClient) and OAuth-only methods live independently.
   class Marketplace
+    include RateLimit
+
     BASE_URL = "https://api.discogs.com"
-    MAX_RETRIES = 3
-    BACKOFF_BASE = 2
 
     def initialize(access_token:, access_token_secret:)
       @access_token = access_token
@@ -58,10 +58,6 @@ module Discogs
       return response if attempt > MAX_RETRIES
       sleep(backoff_for(attempt))
       with_rate_limit_retry(attempt: attempt + 1) { yield }
-    end
-
-    def backoff_for(attempt)
-      [ (BACKOFF_BASE**attempt), 60 ].min
     end
 
     def oauth_access_token
