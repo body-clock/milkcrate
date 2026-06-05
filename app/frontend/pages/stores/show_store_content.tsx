@@ -29,6 +29,8 @@ export default function ShowStoreContent({ isWide, isCompact, props: p }: ShowSt
 
   return (
     <>
+      {/* Outer gate duplicates StoreSummary's own guard intentionally — prevents
+          guard-drift regression (prior refactor lost a guard on one path) */}
       {p.activeSlug === null && !isCompact && !isWide && (
         <StoreSummary store={p.store} isWide={isWide} isCompact={isCompact} listingCount={p.listingCount} />
       )}
