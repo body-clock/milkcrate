@@ -61,7 +61,7 @@ export default function RecordGrid(props: RecordGridProps) {
   });
   return (
     <div className={props.isCompact ? "overflow-hidden" : "w-full"}
-      style={props.isCompact ? { position: "relative", aspectRatio: "0.67" } : undefined}>
+      style={props.isCompact ? { position: "relative", aspectRatio: "2/3" } : undefined}>
       <AnimatePresence custom={props.direction}>
         <motion.div key={props.pageIndex} {...mp}>
           {props.currentPage.map((listing) => (

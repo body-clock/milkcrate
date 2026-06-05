@@ -46,8 +46,8 @@ export default function WallPanelContent({ crate }: { crate: Crate }) {
   const { gridCols, isCompact, prefersReducedMotion, nav } = useWallPanelData(crate);
   const { selectedListing, returnFocusRef, handleTileTap, isOpen, closePeekSheet } = usePeekSheet();
   return (
-    <section role="region" aria-label={COPY.wall.regionLabel} className="space-y-3">
-      <WallPanelHeading />
+    <section role="region" aria-label={COPY.wall.regionLabel} className="space-y-1 md:space-y-3">
+      <WallPanelHeading isCompact={isCompact} />
       <WallGrid
         nav={nav}
         gridCols={gridCols}
