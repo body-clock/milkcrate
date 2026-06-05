@@ -31,7 +31,6 @@ export default function CompactCrateSection({ show, crates, activeSlug, onSelect
             onSelect={(slug) => onSelect(slug)}
             compact
             classesFn={navTabClasses}
-            disableScrollOnActivate
           />
         </div>
       </div>
