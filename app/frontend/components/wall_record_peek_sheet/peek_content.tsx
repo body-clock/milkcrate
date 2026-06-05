@@ -11,7 +11,6 @@ interface PeekContentProps {
     isCompact: boolean;
     prefersReducedMotion: boolean;
     dialogRef: RefObject<HTMLDivElement | null>;
-    titleRef: RefObject<HTMLSpanElement | null>;
     meta: string;
     allTags: { label: string; dim: boolean }[];
     transition: Record<string, unknown>;

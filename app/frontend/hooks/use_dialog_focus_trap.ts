@@ -113,7 +113,11 @@ function restoreFocus(previousFocus: HTMLElement | null, returnFocus: HTMLElemen
 function engageFocusTrap(opts: EngageFocusTrapOpts): () => void {
   const { prevRef, titleRef, dialogRef, onClose, returnFocusRef: retRef } = opts;
   Object.assign(prevRef, { current: document.activeElement as HTMLElement | null });
-  titleRef.current?.focus();
+  if (titleRef.current) {
+    titleRef.current.focus();
+  } else {
+    dialogRef.current?.focus();
+  }
   const handler = createTabHandler(onClose, dialogRef, titleRef);
   document.addEventListener("keydown", handler);
   const savedPrev = prevRef.current;
