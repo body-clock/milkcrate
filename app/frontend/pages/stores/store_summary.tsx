@@ -23,7 +23,7 @@ export default function StoreSummary({ store, isWide, isCompact, listingCount }:
       {store.description && (
         <p className="text-sm text-mc-text leading-relaxed max-w-prose">{store.description}</p>
       )}
-      {!isWide && listingCount > 0 && (
+      {listingCount > 0 && (
         <p className="text-xs text-mc-text-dim mt-1.5">
           {listingCount.toLocaleString()} vinyl listings
         </p>
