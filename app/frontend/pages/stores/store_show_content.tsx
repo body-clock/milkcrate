@@ -19,7 +19,7 @@ interface Props {
 }
 
 export default function StoreShowContent(props: Props) {
-  const { isWide } = useViewport();
+  const { isWide, isCompact } = useViewport();
   if (props.store.sync_status === "syncing" || props.store.enrichment_status === "enriching") {
     return <ProcessingState store={props.store} />;
   }
@@ -31,5 +31,5 @@ export default function StoreShowContent(props: Props) {
       </>
     );
   }
-  return <ShowStoreContent isWide={isWide} props={props} />;
+  return <ShowStoreContent isWide={isWide} isCompact={isCompact} props={props} />;
 }

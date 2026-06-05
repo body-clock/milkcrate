@@ -11,11 +11,12 @@ const ED = 0.94;
 interface Props {
   store: StoreShowProps["store"];
   isWide: boolean;
+  isCompact: boolean;
   listingCount: number;
 }
 
-export default function StoreSummary({ store, isWide, listingCount }: Props) {
-  if (isWide || (!store.description && listingCount === 0)) { return null; }
+export default function StoreSummary({ store, isWide, isCompact, listingCount }: Props) {
+  if (isCompact || isWide || (!store.description && listingCount === 0)) { return null; }
   return (
     <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
       transition={{ duration: MD, ease: [EA, EB, EC, ED] }} className="mb-6">
