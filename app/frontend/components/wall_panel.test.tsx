@@ -71,11 +71,11 @@ describe("WallPanel", () => {
     renderWall();
     const firstTile = screen.getByRole("button", { name: "Inspect Record 1 on the Wall" });
     await user.click(firstTile);
-    expect(screen.getByRole("dialog", { name: "Wall peek" })).toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: "Record peek" })).toBeInTheDocument();
     await user.keyboard("{Escape}");
     await waitFor(() => expect(firstTile).toHaveFocus());
     await waitFor(() =>
-      expect(screen.queryByRole("dialog", { name: "Wall peek" })).not.toBeInTheDocument(),
+      expect(screen.queryByRole("dialog", { name: "Record peek" })).not.toBeInTheDocument(),
     );
   });
 });

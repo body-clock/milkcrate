@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import type { RefObject } from "react";
 
-import { PeekHeader } from "./peek_header";
+import { CloseButton } from "./close_button";
 
 function panelClass(isCompact: boolean): string {
   if (isCompact) {
@@ -20,22 +20,23 @@ interface PanelProps {
   dialogRef: RefObject<HTMLDivElement | null>;
   isCompact: boolean;
   transition: Record<string, unknown>;
-  titleRef: RefObject<HTMLSpanElement | null>;
   onClose: () => void;
   children: React.ReactNode;
   meta: string;
 }
 
 export function PeekSheetPanel({
-  dialogRef, isCompact, transition, titleRef, onClose, children, meta,
+  dialogRef, isCompact, transition, onClose, children, meta,
 }: PanelProps) {
   const anim = animationValues(isCompact);
   return (
-    <motion.div ref={dialogRef} role="dialog" aria-modal="true"
-      aria-labelledby="wall-peek-title"
+    <motion.div ref={dialogRef} role="dialog" aria-modal="true" tabIndex={-1}
+      aria-label="Record peek"
       aria-describedby={meta ? "wall-peek-meta" : undefined}
       className={panelClass(isCompact)} {...anim} transition={transition}>
-      <PeekHeader titleRef={titleRef} onClose={onClose} />
+      <div className="absolute right-2 top-2 z-10">
+        <CloseButton onClose={onClose} />
+      </div>
       {children}
     </motion.div>
   );

@@ -61,7 +61,7 @@ describe("WallRecordPeekSheet", () => {
       </StorefrontMotionConfig>,
     );
 
-    expect(screen.getByRole("dialog", { name: "Wall peek" })).toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: "Record peek" })).toBeInTheDocument();
     expect(screen.getByText("Big Sky")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "+ Pile" })).toBeInTheDocument();
     expect(
@@ -89,7 +89,7 @@ describe("WallRecordPeekSheet", () => {
     const opener = screen.getByRole("button", { name: "Open wall peek" });
     await user.click(opener);
 
-    expect(screen.getByRole("dialog", { name: "Wall peek" })).toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: "Record peek" })).toBeInTheDocument();
 
     await user.keyboard("{Escape}");
 

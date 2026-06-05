@@ -11,18 +11,19 @@ const ED = 0.94;
 interface Props {
   store: StoreShowProps["store"];
   isWide: boolean;
+  isCompact: boolean;
   listingCount: number;
 }
 
-export default function StoreSummary({ store, isWide, listingCount }: Props) {
-  if (isWide || (!store.description && listingCount === 0)) { return null; }
+export default function StoreSummary({ store, isWide, isCompact, listingCount }: Props) {
+  if (isCompact || isWide || (!store.description && listingCount === 0)) { return null; }
   return (
     <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
       transition={{ duration: MD, ease: [EA, EB, EC, ED] }} className="mb-6">
       {store.description && (
         <p className="text-sm text-mc-text leading-relaxed max-w-prose">{store.description}</p>
       )}
-      {!isWide && listingCount > 0 && (
+      {listingCount > 0 && (
         <p className="text-xs text-mc-text-dim mt-1.5">
           {listingCount.toLocaleString()} vinyl listings
         </p>

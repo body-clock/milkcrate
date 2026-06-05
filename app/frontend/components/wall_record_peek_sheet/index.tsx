@@ -45,12 +45,11 @@ function usePeekSheet(
 ) {
   const { isCompact } = useViewport();
   const prefersReducedMotion = useReducedMotionContext();
-  const { dialogRef, titleRef } = useDialogFocusTrap(open, onClose, { returnFocusRef });
+  const { dialogRef } = useDialogFocusTrap(open, onClose, { returnFocusRef });
   return {
     isCompact,
     prefersReducedMotion,
     dialogRef,
-    titleRef,
     meta: computeMeta(listing),
     allTags: computeAllTags(listing),
     transition: prefersReducedMotion ? reducedMotionTransition : springDrawer,
