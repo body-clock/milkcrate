@@ -48,7 +48,7 @@ function buildMotionProps(opts: MotionBuildProps) {
     exit: showAnimation ? ("exit" as const) : undefined,
     transition, drag: showAnimation ? ("x" as const) : undefined,
     dragConstraints: { left: 0, right: 0 }, dragElastic: 0.3, onDragEnd,
-    className: `grid ${gridCols} gap-2`,
+    className: `grid ${gridCols} ${isCompact ? "gap-1.5" : "gap-2"}`,
     style: isCompact ? { position: "absolute" as const, inset: 0 } : undefined,
   };
 }
@@ -61,7 +61,7 @@ export default function RecordGrid(props: RecordGridProps) {
   });
   return (
     <div className={props.isCompact ? "overflow-hidden" : "w-full"}
-      style={props.isCompact ? { position: "relative", aspectRatio: "2/3" } : undefined}>
+      style={props.isCompact ? { position: "relative", aspectRatio: "0.67" } : undefined}>
       <AnimatePresence custom={props.direction}>
         <motion.div key={props.pageIndex} {...mp}>
           {props.currentPage.map((listing) => (
