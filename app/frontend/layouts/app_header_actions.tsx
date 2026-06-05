@@ -20,7 +20,7 @@ export function AppHeaderActions({
 }: AppHeaderActionsProps) {
   return (
     <div className="flex items-center gap-2.5 sm:gap-3 flex-shrink-0">
-      {pile.length > 0 && <PileButton pile={pile} pileOpen={pileOpen} setPileOpen={setPileOpen} isCompact={isCompact} />}
+      {pile.length > 0 && <PileButton pile={pile} pileOpen={pileOpen} setPileOpen={setPileOpen} />}
       {!isCompact && <ThemeToggle theme={theme} toggle={toggle} />}
     </div>
   );

@@ -141,7 +141,7 @@ describe("AppLayout pile open", () => {
     renderCompact([listing]);
     expect(
       within(screen.getByRole("banner")).getByRole("button", { name: "Pile (1)" }),
-    ).toHaveClass("min-h-8");
+    ).toHaveClass("min-h-10");
   });
   it("sets inert on background when pile opens", async () => {
     const user = userEvent.setup();
