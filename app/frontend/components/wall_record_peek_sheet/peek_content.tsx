@@ -29,7 +29,6 @@ export function PeekContent({ peek, listing, onClose }: PeekContentProps) {
         dialogRef={peek.dialogRef}
         isCompact={peek.isCompact}
         transition={peek.transition}
-        titleRef={peek.titleRef}
         onClose={onClose}
         meta={peek.meta}
       >
