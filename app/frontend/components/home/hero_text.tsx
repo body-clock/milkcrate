@@ -2,8 +2,8 @@ import { motion } from "framer-motion";
 
 import { EASE_OUT } from "@/lib/motion_tokens";
 
-export const FADE_UP_DURATION = 0.5;
-export const fadeUp = {
+const FADE_UP_DURATION = 0.5;
+const fadeUp = {
   hidden: { opacity: 0, y: 12 },
   visible: {
     opacity: 1,

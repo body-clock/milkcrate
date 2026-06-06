@@ -2,7 +2,7 @@ import { motion, type Transition } from "framer-motion";
 
 import BouncingHand from "./bouncing_hand";
 
-export const GHOST_FINGER_CUE_TEST_ID = "ghost-finger-cue";
+const GHOST_FINGER_CUE_TEST_ID = "ghost-finger-cue";
 
 const FADE_IN_DURATION = 0.5;
 const FADE_IN_DELAY = 0.4;

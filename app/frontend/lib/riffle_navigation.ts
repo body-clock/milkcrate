@@ -35,7 +35,7 @@ export const RIFFLE_DELTAS: Record<RiffleDirection, -1 | 1> = {
   deeper: 1,
 };
 
-export const RIFFLE_THRESHOLDS = {
+const RIFFLE_THRESHOLDS = {
   committedDistance: 72,
   velocityMinimumDistance: 10,
   committedVelocity: 300,

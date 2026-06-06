@@ -6,7 +6,7 @@ const BOUNCE_Y = 26;
 const PULSE_DURATION = 2.0;
 const REDUCED_DURATION = 0.2;
 
-export const TIMES_MIDPOINT = 0.5;
+const TIMES_MIDPOINT = 0.5;
 
 const bounceVariants: Variants = {
   start: { y: 0 },
