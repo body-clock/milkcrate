@@ -1,0 +1,255 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-mc: "Spectral", Georgia, serif;
+  --color-mc-bg: var(--mc-bg);
+  --color-mc-bg-raised: var(--mc-bg-raised);
+  --color-mc-bg-card: var(--mc-bg-card);
+  --color-mc-text: var(--mc-text);
+  --color-mc-text-dim: var(--mc-text-dim);
+  --color-mc-accent: var(--mc-accent);
+  --color-mc-accent-dim: var(--mc-accent-dim);
+  --color-mc-on-accent: var(--mc-on-accent);
+  --color-mc-border: var(--mc-border);
+  --color-mc-notice: var(--mc-notice);
+  --color-mc-focus: var(--mc-focus);
+  --color-mc-feedback-neutral: var(--mc-feedback-neutral);
+  --color-mc-feedback-neutral-bg: var(--mc-feedback-neutral-bg);
+  --color-mc-feedback-neutral-border: var(--mc-feedback-neutral-border);
+  --color-mc-feedback-success: var(--mc-feedback-success);
+  --color-mc-feedback-success-bg: var(--mc-feedback-success-bg);
+  --color-mc-feedback-success-border: var(--mc-feedback-success-border);
+  --color-mc-feedback-warning: var(--mc-feedback-warning);
+  --color-mc-feedback-warning-bg: var(--mc-feedback-warning-bg);
+  --color-mc-feedback-warning-border: var(--mc-feedback-warning-border);
+  --color-mc-feedback-danger: var(--mc-feedback-danger);
+  --color-mc-feedback-danger-bg: var(--mc-feedback-danger-bg);
+  --color-mc-feedback-danger-border: var(--mc-feedback-danger-border);
+  --color-mc-feedback-progress: var(--mc-feedback-progress);
+  --color-mc-feedback-progress-bg: var(--mc-feedback-progress-bg);
+  --color-mc-feedback-progress-border: var(--mc-feedback-progress-border);
+}
+
+/* ─── Milkcrate Design Tokens ────────────────────────────────────────────── */
+
+:root {
+  /* Dark mode — deep charcoal, warm tones, oxblood accent */
+  --mc-bg: #15120e;
+  --mc-bg-raised: #1e1a15;
+  --mc-bg-card: #26211b;
+  --mc-text: #e6ddd0;
+  --mc-text-dim: #807060;
+  --mc-accent: #c84830;
+  --mc-accent-dim: #8a3020;
+  --mc-on-accent: #f5f0e8;
+  --mc-border: #352a20;
+  --mc-focus: #efb263;
+  --mc-feedback-neutral: #d4c6b2;
+  --mc-feedback-neutral-bg: #211d18;
+  --mc-feedback-neutral-border: #594a38;
+  --mc-feedback-success: #7ed7a5;
+  --mc-feedback-success-bg: #172a20;
+  --mc-feedback-success-border: #326244;
+  --mc-feedback-warning: #f0c47b;
+  --mc-feedback-warning-bg: #302417;
+  --mc-feedback-warning-border: #76532d;
+  --mc-feedback-danger: #f3a29b;
+  --mc-feedback-danger-bg: #321a19;
+  --mc-feedback-danger-border: #733a34;
+  --mc-feedback-progress: #8acfea;
+  --mc-feedback-progress-bg: #152732;
+  --mc-feedback-progress-border: #31596b;
+  --mc-notice: var(--mc-feedback-neutral-bg);
+
+  /* Motion tokens — inspectable in DevTools, usable by non-React CSS */
+  --mc-spring-stiffness: 300;
+  --mc-spring-damping: 26;
+  --mc-scale-press: 0.985;
+  --mc-scale-hover: 1.025;
+  --mc-tilt-hover: 1.5deg;
+  --mc-lift-hover: 2px;
+  --mc-duration-hover: 0.2s;
+  --mc-duration-press: 0.12s;
+}
+
+[data-theme="light"] {
+  --mc-bg: #f5f0e8;
+  --mc-bg-raised: #e0d8c8;
+  --mc-bg-card: #ece6d8;
+  --mc-text: #1a1410;
+  --mc-text-dim: #6b5a44;
+  --mc-accent: #b07030;
+  --mc-accent-dim: #d4a870;
+  --mc-on-accent: #1a1410;
+  --mc-border: #c8bca8;
+  --mc-focus: #8a411f;
+  --mc-feedback-neutral: #4f4236;
+  --mc-feedback-neutral-bg: #eee7db;
+  --mc-feedback-neutral-border: #bdaf99;
+  --mc-feedback-success: #17623d;
+  --mc-feedback-success-bg: #e4f2e8;
+  --mc-feedback-success-border: #5b966d;
+  --mc-feedback-warning: #774c0c;
+  --mc-feedback-warning-bg: #faeed5;
+  --mc-feedback-warning-border: #bf8a39;
+  --mc-feedback-danger: #8f3028;
+  --mc-feedback-danger-bg: #fae7e4;
+  --mc-feedback-danger-border: #c87870;
+  --mc-feedback-progress: #155775;
+  --mc-feedback-progress-bg: #e0f0f7;
+  --mc-feedback-progress-border: #6197b0;
+  --mc-notice: var(--mc-feedback-neutral-bg);
+}
+
+/* ─── Base ───────────────────────────────────────────────────────────────── */
+
+.mc-body {
+  background: var(--mc-bg);
+  color: var(--mc-text);
+  font-family: var(--font-mc);
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+.mc-header {
+  background: var(--mc-bg-raised);
+}
+/* Deprecated compatibility recipes for the residual server-rendered layout/form.
+   Active React surfaces are rejected by scripts/lint-design-system-tokens.ts. */
+.mc-border {
+  border-color: var(--mc-border);
+}
+.mc-wordmark {
+  color: var(--mc-text);
+  font-family: var(--font-mc);
+}
+.mc-brand-title {
+  color: var(--mc-text);
+  font-family: var(--font-mc);
+}
+.mc-nav-link {
+  color: var(--mc-text-dim);
+  text-decoration: none;
+  transition: color 0.15s;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font: inherit;
+}
+.mc-nav-link:hover {
+  color: var(--mc-text);
+}
+.mc-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--mc-border);
+  background: var(--mc-bg-raised);
+  color: var(--mc-text);
+  font-size: 0.875rem;
+  outline: none;
+}
+.mc-input:focus {
+  border-color: var(--mc-accent);
+}
+.mc-input::placeholder {
+  color: var(--mc-text-dim);
+}
+.mc-text {
+  color: var(--mc-text);
+}
+.mc-dim {
+  color: var(--mc-text-dim);
+}
+.mc-notice {
+  background: var(--mc-notice);
+  color: var(--mc-text);
+}
+
+/* ─── Section Dividers ───────────────────────────────────────────────────── */
+
+.mc-section-header {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--mc-border);
+  padding-bottom: 0.5rem;
+}
+.mc-section-name {
+  font-family: var(--font-mc);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mc-accent);
+}
+.mc-section-count {
+  font-family: var(--font-mc);
+  font-size: 0.65rem;
+  color: var(--mc-text-dim);
+}
+
+/* Deprecated compatibility control recipe; do not consume from React code. */
+.mc-btn {
+  font-size: 0.65rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 2px;
+  border: 1px solid var(--mc-border);
+  background: transparent;
+  color: var(--mc-text-dim);
+  cursor: pointer;
+  text-decoration: none;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  transition: all 0.15s;
+}
+.mc-btn:hover {
+  border-color: var(--mc-accent);
+  color: var(--mc-accent);
+}
+.mc-btn-primary {
+  background: var(--mc-accent);
+  color: var(--mc-bg);
+  border-color: var(--mc-accent);
+}
+.mc-btn-primary:hover {
+  opacity: 0.85;
+  color: var(--mc-bg);
+}
+
+/* ─── Forms ──────────────────────────────────────────────────────────────── */
+
+/* Deprecated compatibility form recipe; do not consume from React code. */
+.mc-form {
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.mc-label {
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mc-text-dim);
+  display: block;
+  margin-bottom: 0.4rem;
+}
+.mc-input {
+  width: 100%;
+  background: var(--mc-bg-raised);
+  border: 1px solid var(--mc-border);
+  border-radius: 2px;
+  color: var(--mc-text);
+  padding: 0.6rem 0.75rem;
+  font-family: ui-serif, Georgia, serif;
+  font-size: 0.9rem;
+  transition: border-color 0.15s;
+}
+.mc-input:focus {
+  outline: none;
+  border-color: var(--mc-accent);
+}
+.mc-submit {
+  align-self: flex-start;
+}

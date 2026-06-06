@@ -2,6 +2,7 @@
 title: "refactor: Fix npx fallow findings — dead code, circular deps, dupes, and complexity"
 type: refactor
 status: completed
+updated: 2026-06-06 (restored live tailwind CSS entrypoint)
 date: 2026-06-06
 ---
 
