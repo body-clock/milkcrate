@@ -9,6 +9,15 @@ class StoresController < ApplicationController
     render_store(store)
   end
 
+  def claim
+    slug = params[:slug].to_s.strip.downcase
+    store = Store.with_discogs_username(slug).first
+    return redirect_unbuilt_store(slug) unless store
+    return redirect_claimed_store(slug) if store.oauth_authorized?
+
+    render_claim(store)
+  end
+
   def authorize
     slug = params[:slug]&.strip&.downcase
     return redirect_to slug.present? ? store_path(slug) : root_path, alert: "Invalid username" if slug.blank?
@@ -20,6 +29,26 @@ class StoresController < ApplicationController
   end
 
   private
+
+  def redirect_unbuilt_store(slug)
+    redirect_to store_path(slug),
+      notice: "Your storefront preview isn't live yet, but you can still claim it with Discogs below."
+  end
+
+  def redirect_claimed_store(slug)
+    redirect_to store_path(slug), notice: "This storefront has already been claimed."
+  end
+
+  def render_claim(store)
+    render inertia: "stores/authorize", props: {
+      store: {
+        name: store.name,
+        discogs_username: store.discogs_username,
+        total_listings: store.total_listings || store.listings.count,
+        storefront_path: store_path(store.discogs_username)
+      }
+    }
+  end
 
   def redirect_to_discogs(slug, result)
     store_owner_oauth_session(slug, result)

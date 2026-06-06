@@ -67,6 +67,57 @@ RSpec.describe "Discogs OAuth flow", type: :request do
     post path, params: { authenticity_token: csrf_token_for(csrf_path) }
   end
 
+  describe "GET /:slug/authorize" do
+    let(:slug) { "ryvvolte_records" }
+
+    context "when a public API storefront already exists" do
+      let!(:store) do
+        create(
+          :store,
+          name: "Ryvvvolte Records",
+          discogs_username: slug,
+          total_listings: 725,
+          sync_source: :public_api
+        )
+      end
+
+      it "renders a shareable OAuth claim page for the existing store" do
+        get "/#{slug}/authorize"
+
+        expect(response).to have_http_status(:ok)
+        expect(inertia).to render_component("stores/authorize")
+        expect(inertia.props[:store]).to include(
+          name: "Ryvvvolte Records",
+          discogs_username: slug,
+          total_listings: 725,
+          storefront_path: store_path(slug)
+        )
+      end
+    end
+
+    context "when no storefront exists" do
+      it "redirects to the invitation page with an encouraging claim message" do
+        get "/#{slug}/authorize"
+
+        expect(response).to redirect_to(store_path(slug))
+        expect(flash[:notice]).to eq(
+          "Your storefront preview isn't live yet, but you can still claim it with Discogs below."
+        )
+      end
+    end
+
+    context "when the storefront is already OAuth authorized" do
+      let!(:store) { create(:store, :oauth_authorized, discogs_username: slug) }
+
+      it "redirects to the storefront" do
+        get "/#{slug}/authorize"
+
+        expect(response).to redirect_to(store_path(slug))
+        expect(flash[:notice]).to eq("This storefront has already been claimed.")
+      end
+    end
+  end
+
   describe "POST /:slug/authorize" do
     around do |example|
       previous = ActionController::Base.allow_forgery_protection
