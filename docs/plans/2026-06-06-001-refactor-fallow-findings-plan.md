@@ -1,7 +1,7 @@
 ---
 title: "refactor: Fix npx fallow findings — dead code, circular deps, dupes, and complexity"
 type: refactor
-status: active
+status: completed
 date: 2026-06-06
 ---
 
