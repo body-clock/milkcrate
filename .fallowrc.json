@@ -1,0 +1,12 @@
+{
+  "$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json",
+  "entry": [
+    "app/frontend/entrypoints/{application,*.entry}.{ts,tsx,js,jsx}",
+    "scripts/*.{ts,mjs,js}",
+    "app/assets/tailwind/application.css"
+  ],
+  "duplicates": {
+    "minOccurrences": 3
+  },
+  "ignorePatterns": []
+}

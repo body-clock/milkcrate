@@ -1,3 +1,4 @@
+/* fallow-ignore-next-line unused-files — Tailwind CLI input, loaded by bin/rails tailwindcss:watch */
 @import "tailwindcss";
 
 @theme inline {
