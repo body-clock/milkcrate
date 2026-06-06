@@ -1,7 +1,7 @@
 import { usePage } from "@inertiajs/react";
 import React, { createContext, useCallback, useContext, useMemo, useState } from "react";
 
-export interface ShopperInfo {
+interface ShopperInfo {
   discogs_username: string;
 }
 

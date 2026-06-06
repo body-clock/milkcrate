@@ -1,7 +1,7 @@
 import type { Crate } from "../types/inertia";
 import PanelContent from "./crate_browse_panel_content";
 
-export type CrateBrowseMode = "featured" | "genres";
+type CrateBrowseMode = "featured" | "genres";
 
 export interface CrateBrowsePanelConfig {
   title: string;

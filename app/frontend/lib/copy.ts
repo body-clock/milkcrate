@@ -74,5 +74,4 @@ export const COPY = {
     `View listing for ${title ?? "this record"} on Discogs (opens in new tab)`,
 } as const;
 
-/** Browse mode labels used in the tab bar. Derives from COPY.browseModes. */
-export const BROWSE_MODE_LABELS: Record<string, string> = COPY.browseModes;
+

@@ -26,4 +26,4 @@ export function IconBackButton({ onClick, label, className = "" }: BaseBackButto
   );
 }
 
-export default IconBackButton;
+

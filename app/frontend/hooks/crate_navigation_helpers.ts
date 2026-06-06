@@ -21,7 +21,7 @@ export function handleRiffleNavigation(riffleDirection: RiffleDirection, opts: C
   applyRiffleMove(opts, move.nextIndex, riffleDirection);
 }
 
-export function applyRiffleMove(
+function applyRiffleMove(
   opts: CrateNavDeps,
   nextIndex: number,
   riffleDirection: RiffleDirection,

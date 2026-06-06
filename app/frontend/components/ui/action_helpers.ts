@@ -1,7 +1,7 @@
 import React from "react";
 
-import { actionClassName } from "./action";
-import type { ActionVariant, ActionSize } from "./action";
+import { actionClassName } from "./action_base";
+import type { ActionVariant, ActionSize } from "./action_base";
 
 interface BuildActionLinkAttrsOpts {
   variant: ActionVariant;

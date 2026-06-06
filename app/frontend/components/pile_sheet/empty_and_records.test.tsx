@@ -1,14 +1,9 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { PileProvider } from "../../contexts/pile_context";
-import { ShopperProvider } from "../../contexts/shopper_context";
-import { ViewportProvider } from "../../contexts/viewport_context";
 import type { Listing } from "../../types/inertia";
-import PileSheet from "../pile_sheet";
-import { PilePopulator } from "./test_helpers";
+import { makeListing, renderPileSheet } from "../../test/shared/pile_sheet_test_helpers";
 
 const mockedPage = vi.hoisted(() => ({
   shopper: { discogs_username: "shopper1" } as { discogs_username: string } | null,
@@ -35,48 +30,6 @@ beforeEach(() => {
 afterEach(() => {
   vi.unstubAllGlobals();
 });
-
-const INITIAL_PILE_ID = 1000;
-let nextId = INITIAL_PILE_ID;
-const makeListing = (overrides: Partial<Listing> = {}): Listing => ({
-  id: nextId++,
-  discogs_listing_id: `discogs-${nextId}`,
-  artist: "Artist",
-  title: "Title",
-  label: null,
-  year: null,
-  format: null,
-  genres: [],
-  styles: [],
-  condition: null,
-  price: "10.00",
-  currency: "USD",
-  cover_image_url: null,
-  thumbnail_url: null,
-  notes: null,
-  discogs_url: "https://www.discogs.com/sell/item/1",
-  ...overrides,
-});
-
-function PileSheetInner({ pileRecords }: { pileRecords: Listing[] }) {
-  return (
-    <PileProvider>
-      <PilePopulator pileRecords={pileRecords}>
-        <PileSheet open={true} onClose={vi.fn()} />
-      </PilePopulator>
-    </PileProvider>
-  );
-}
-
-function renderPileSheet(pileRecords: Listing[]) {
-  return render(
-    <ViewportProvider>
-      <ShopperProvider>
-        <PileSheetInner pileRecords={pileRecords} />
-      </ShopperProvider>
-    </ViewportProvider>,
-  );
-}
 
 describe("PileSheet empty state", () => {
   it("shows empty message when pile is empty", () => {

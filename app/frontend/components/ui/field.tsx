@@ -13,7 +13,7 @@ type FieldControlProps = {
   id?: string;
 };
 
-export const fieldControlClassName =
+const fieldControlClassName =
   "min-h-10 w-full rounded-md border border-mc-border bg-mc-bg px-3 py-2 text-sm text-mc-text outline-none transition-colors placeholder:text-mc-text-dim focus:border-mc-focus focus:ring-2 focus:ring-mc-focus/40 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-mc-feedback-danger-border aria-invalid:focus:ring-mc-feedback-danger/40";
 
 interface FieldProps {
