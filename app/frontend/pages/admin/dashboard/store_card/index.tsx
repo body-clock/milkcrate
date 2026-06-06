@@ -6,7 +6,7 @@ import FeedbackMessage from "@/components/ui/feedback_message";
 import type { AdminStoreSummary } from "@/types/inertia";
 
 import StoreHealthBar from "./health_bar";
-import { severityVariant } from "./health_bar";
+import { severityVariant } from "./health_utils";
 import StoreInfo from "./store_info";
 
 export default function StoreCard({ store }: { store: AdminStoreSummary }) {
