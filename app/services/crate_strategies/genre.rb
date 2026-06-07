@@ -8,14 +8,19 @@ module CrateStrategies
 
     MIN_RECORDS = 4
 
-    def initialize(genre:, genre_counts:, today: Date.today)
+    def initialize(genre:, genre_counts:, curation_axis: :genres, today: Date.today)
       @scorer = RecordScorer.new(genre_counts:, today:)
       @genre  = genre
+      @curation_axis = curation_axis
     end
 
     def select(pool, excluded_ids:)
       candidates = score_and_sort(pool, excluded_ids:, scorer: @scorer) do |candidates|
-        candidates.select { |l| l.primary_genre == @genre }
+        if @curation_axis == :styles
+          candidates.select { |l| Array(l.styles).include?(@genre) }
+        else
+          candidates.select { |l| l.primary_genre == @genre }
+        end
       end
 
       return [] if candidates.size < MIN_RECORDS

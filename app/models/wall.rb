@@ -3,9 +3,10 @@
 class Wall
   attr_reader :crate
 
-  def initialize(eligible_listings:, genre_counts:)
+  def initialize(eligible_listings:, genre_counts:, curation_axis: :genres)
     @eligible_listings = eligible_listings
     @genre_counts = genre_counts
+    @curation_axis = curation_axis
     @crate = CuratedCrate.new(
       slug: "wall",
       name: "The Wall",
@@ -29,6 +30,6 @@ class Wall
   end
 
   def strategy
-    @strategy ||= CrateStrategies::Wall.new(genre_counts: @genre_counts, today: Date.today)
+    @strategy ||= CrateStrategies::Wall.new(genre_counts: @genre_counts, curation_axis: @curation_axis, today: Date.today)
   end
 end
