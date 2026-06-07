@@ -85,8 +85,9 @@ RSpec.describe "Stores", type: :request do
     let!(:store) { create(:store, discogs_username: "teststore") }
 
     it "builds a genre bin for each primary genre present" do
-      create_list(:listing, 100, store: store, genres: [ "Jazz" ], format: "LP")
-      create_list(:listing, 100, store: store, genres: [ "Rock" ], format: "LP")
+      create_list(:listing, 100, store: store, genres: [ "Jazz" ], styles: [ "Bebop" ], format: "LP")
+      create_list(:listing, 100, store: store, genres: [ "Rock" ], styles: [ "Classic Rock" ], format: "LP")
+      create_list(:listing, 100, store: store, genres: [ "Electronic" ], styles: [ "House" ], format: "LP")
 
       get "/teststore"
 
@@ -97,7 +98,9 @@ RSpec.describe "Stores", type: :request do
 
     it "excludes records from a genre bin when that genre is not primary" do
       jazz_primary = create(:listing, store: store, genres: [ "Jazz", "Rock" ], format: "LP")
-      create_list(:listing, 200, store: store, genres: [ "Rock" ], format: "LP")
+      create_list(:listing, 100, store: store, genres: [ "Rock" ], styles: [ "Classic Rock" ], format: "LP")
+      create_list(:listing, 50, store: store, genres: [ "Jazz" ], styles: [ "Bebop" ], format: "LP")
+      create_list(:listing, 50, store: store, genres: [ "Electronic" ], styles: [ "House" ], format: "LP")
 
       get "/teststore"
 
@@ -109,7 +112,10 @@ RSpec.describe "Stores", type: :request do
     end
 
     it "caps each genre bin at 50 records" do
-      create_list(:listing, 200, store: store, genres: [ "Jazz" ], format: "LP")
+      # Leave at least 50 Jazz listings after wall and featured-crate deduplication.
+      create_list(:listing, 200, store: store, genres: [ "Jazz" ], styles: [ "Bebop" ], format: "LP")
+      create_list(:listing, 50, store: store, genres: [ "Rock" ], styles: [ "Classic Rock" ], format: "LP")
+      create_list(:listing, 50, store: store, genres: [ "Electronic" ], styles: [ "House" ], format: "LP")
 
       get "/teststore"
 
@@ -130,6 +136,69 @@ RSpec.describe "Stores", type: :request do
         expect(sections.map { |s| s["key"] }).to include("wall", "genre_grid")
         expect(sections.first["key"]).to eq("wall")
         expect(sections.first.dig("crate", "slug")).to eq("wall")
+      end
+    end
+
+    context "with styles axis (narrow-catalog store)" do
+      it "renders main style crate names and excludes rotation-tier styles from browse grid" do
+        store = create(:store, discogs_username: "narrowstore")
+        create_list(:listing, 50, store:, genres: [ "Rock" ], styles: [ "Punk" ], format: "LP")
+        create_list(:listing, 40, store:, genres: [ "Rock" ], styles: [ "Hardcore" ], format: "LP")
+        create_list(:listing, 4,  store:, genres: [ "Rock" ], styles: [ "Oi" ], format: "LP")
+        create_list(:listing, 106, store:, genres: [ "Rock" ], styles: [ "Other" ], format: "LP")
+
+        get "/narrowstore"
+
+        genre_grid = inertia.props["storefront_sections"].find { |section| section["key"] == "genre_grid" }
+        crate_names = genre_grid.fetch("crates").map { |crate| crate["name"] }
+
+        # Main styles present in browse.
+        expect(crate_names).to include("Punk", "Hardcore", "Other")
+        # Oi 4 < 5% of 200 = 10 → rotation, not in browse grid.
+        expect(crate_names).not_to include("Oi")
+      end
+
+      it "preserves serialized crate object shape" do
+        store = create(:store, discogs_username: "crateshape")
+        create_list(:listing, 20, store:, genres: [ "Rock" ], styles: [ "Punk" ], format: "LP")
+        create_list(:listing, 80, store:, genres: [ "Rock" ], styles: [ "Other" ], format: "LP")
+
+        get "/crateshape"
+
+        crates = inertia.props["crates"]
+        punk_crate = crates.find { |c| c["slug"] == "punk" }
+
+        expect(punk_crate.keys).to include("slug", "name", "count", "records")
+        expect(punk_crate["slug"]).to eq("punk")
+        expect(punk_crate["count"]).to be_a(Integer)
+        expect(punk_crate["records"]).to be_an(Array)
+      end
+
+      it "preserves section keys: wall, genre_grid" do
+        store = create(:store, discogs_username: "sectionkeys")
+        create_list(:listing, 10, store:, genres: [ "Rock" ], styles: [ "Punk" ], format: "LP")
+        create_list(:listing, 90, store:, genres: [ "Rock" ], styles: [ "Other" ], format: "LP")
+
+        get "/sectionkeys"
+
+        sections = inertia.props["storefront_sections"]
+        keys = sections.map { |s| s["key"] }
+        expect(keys).to include("wall", "genre_grid")
+      end
+
+      it "keeps genre-axis behavior unchanged" do
+        store = create(:store, discogs_username: "genrestore")
+        create_list(:listing, 100, store:, genres: [ "Jazz" ], styles: [ "Bebop" ], format: "LP")
+        create_list(:listing, 100, store:, genres: [ "Rock" ], styles: [ "Classic Rock" ], format: "LP")
+        create_list(:listing, 100, store:, genres: [ "Electronic" ], styles: [ "House" ], format: "LP")
+
+        get "/genrestore"
+
+        crates = inertia.props["crates"]
+        crate_names = crates.map { |c| c["name"] }
+
+        # All three genres should have crates (genres axis, count-descending).
+        expect(crate_names).to include("Jazz", "Rock", "Electronic")
       end
     end
   end

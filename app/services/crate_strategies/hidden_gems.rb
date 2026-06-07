@@ -8,9 +8,10 @@ module CrateStrategies
     MAX_ENGAGEMENT  = 100
     MIN_WANTS       = 10
 
-    def initialize(genre_counts:, today: Date.today)
+    def initialize(genre_counts:, curation_axis: GenresAxis.new, today: Date.today)
       @scorer       = RecordScorer.new(genre_counts:, today:)
       @genre_counts = genre_counts
+      @curation_axis = curation_axis
     end
 
     def select(pool, excluded_ids:)
@@ -41,7 +42,7 @@ module CrateStrategies
     end
 
     def under_genre_cap?(listing, genre_seen)
-      genre = listing.primary_genre
+      genre = @curation_axis.key_for(listing)
       return false unless genre && genre_seen[genre] < PER_GENRE_CAP
 
       genre_seen[genre] += 1
