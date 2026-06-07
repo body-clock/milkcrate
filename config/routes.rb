@@ -24,6 +24,14 @@ Rails.application.routes.draw do
     post "totp",        to: "totp#create"
     get  "totp/setup",  to: "totp#setup", as: :totp_setup
     post "totp/setup",  to: "totp#confirm_setup"
+
+    resources :stores, only: [] do
+      member do
+        post :sync
+        post :enrich
+        delete :destroy
+      end
+    end
   end
 
   get "/admin", to: "admin/dashboard#show"

@@ -31,7 +31,7 @@ RSpec.describe "Dashboard", type: :request do
   end
 
   describe "POST /dashboard/resync" do
-    it "queues a single sync for the current store owner" do
+    it "queues a single sync through the shared request object" do
       expect {
         post "/dashboard/resync"
       }.to have_enqueued_job(FullStoreSyncJob).with(store.id)
@@ -49,6 +49,26 @@ RSpec.describe "Dashboard", type: :request do
 
       expect(response).to redirect_to(dashboard_path)
       expect(flash[:alert]).to include("already running")
+    end
+
+    it "shows an alert when the store is not found" do
+      store.destroy!
+
+      post "/dashboard/resync"
+
+      expect(flash[:alert]).to include("not found")
+      expect(response).to redirect_to(dashboard_path)
+    end
+
+    it "shows an alert when enqueue fails" do
+      allow(StoreOperations::QueueSync).to receive(:call).and_return(
+        StoreOperations::QueueSync::Result.new(:enqueue_failed)
+      )
+
+      post "/dashboard/resync"
+
+      expect(flash[:alert]).to include("could not be queued")
+      expect(response).to redirect_to(dashboard_path)
     end
   end
 end

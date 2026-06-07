@@ -1,6 +1,20 @@
 require "rails_helper"
 
 RSpec.describe FullStoreSyncJob do
+  describe "#perform with a missing store" do
+    it "logs a warning and returns without raising" do
+      allow(Rails.logger).to receive(:warn)
+
+      expect {
+        described_class.perform_now(99999)
+      }.not_to raise_error
+
+      expect(Rails.logger).to have_received(:warn)
+        .with(include("store=99999 not found"))
+    end
+  end
+
+
   include ActiveSupport::Testing::TimeHelpers
 
   describe "#perform" do

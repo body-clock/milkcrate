@@ -7,10 +7,18 @@ class DashboardController < SessionAuthenticatedController
   end
 
   def resync
-    return redirect_to(dashboard_path,
-      alert: "A sync is already running for your store. Please wait before requesting another one.") if current_store.sync_syncing?
+    result = StoreOperations::QueueSync.call(current_store)
 
-    FullStoreSyncJob.perform_later(current_store.id)
-    redirect_to dashboard_path, notice: "Full inventory sync has been queued."
+    case result.outcome
+    when :queued
+      redirect_to dashboard_path, notice: "Full inventory sync has been queued."
+    when :blocked
+      redirect_to dashboard_path,
+        alert: "A sync is already running for your store. Please wait before requesting another one."
+    when :missing
+      redirect_to dashboard_path, alert: "Store not found."
+    when :enqueue_failed
+      redirect_to dashboard_path, alert: "Sync could not be queued. Please try again."
+    end
   end
 end

@@ -96,10 +96,15 @@ export interface AdminStoreSummary {
   enrichment_status: string;
   enrichment_progress_pct: number | null;
   catalog_coverage: string;
+  effective_strategy: string;
+  oauth_connected: boolean;
   last_synced_at: string | null;
   last_enriched_at: string | null;
   last_sync_error_at: string | null;
   storefront_path: string;
+  sync_path: string;
+  enrich_path: string;
+  delete_path: string;
   health: AdminStoreHealth;
 }
 

@@ -1,7 +1,24 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+vi.mock("@inertiajs/react", () => ({
+  Link: ({ children, href, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
+  router: {
+    post: vi.fn(),
+    delete: vi.fn(),
+    reload: vi.fn(),
+    visit: vi.fn(),
+  },
+  usePage: () => ({
+    props: {},
+  }),
+}));
 
 import Dashboard from "@/pages/admin/dashboard";
 import { renderWithTier } from "@/test/viewport-test-utils";
@@ -28,10 +45,15 @@ const props: AdminDashboardProps = {
       sync_status: "idle",
       enrichment_status: "idle",
       catalog_coverage: "near_complete",
+      effective_strategy: "Public API",
+      oauth_connected: false,
       last_synced_at: "2026-05-16T10:00:00Z",
       last_enriched_at: "2026-05-16T11:00:00Z",
       last_sync_error_at: null,
       storefront_path: "/healthy-records",
+      sync_path: "/admin/stores/1/sync",
+      enrich_path: "/admin/stores/1/enrich",
+      delete_path: "/admin/stores/1",
       health: {
         key: "healthy",
         label: "Healthy",
@@ -50,10 +72,15 @@ const props: AdminDashboardProps = {
       sync_status: "syncing",
       enrichment_status: "idle",
       catalog_coverage: "unknown",
+      effective_strategy: "Public API",
+      oauth_connected: false,
       last_synced_at: null,
       last_enriched_at: null,
       last_sync_error_at: null,
       storefront_path: "/processing-vinyl",
+      sync_path: "/admin/stores/2/sync",
+      enrich_path: "/admin/stores/2/enrich",
+      delete_path: "/admin/stores/2",
       health: {
         key: "processing",
         label: "Processing",
@@ -72,10 +99,15 @@ const props: AdminDashboardProps = {
       sync_status: "failed",
       enrichment_status: "idle",
       catalog_coverage: "partial",
+      effective_strategy: "Public API",
+      oauth_connected: false,
       last_synced_at: "2026-05-14T10:00:00Z",
       last_enriched_at: "2026-05-14T11:00:00Z",
       last_sync_error_at: "2026-05-16T09:00:00Z",
       storefront_path: "/broken-beats",
+      sync_path: "/admin/stores/3/sync",
+      enrich_path: "/admin/stores/3/enrich",
+      delete_path: "/admin/stores/3",
       health: {
         key: "failed",
         label: "Needs attention",
@@ -392,6 +424,245 @@ describe("Admin dashboard > lookup edge cases", () => {
       expect(screen.queryByText("Real Seller")).not.toBeInTheDocument();
     });
     expect(screen.queryByRole("button", { name: "Onboard storefront" })).not.toBeInTheDocument();
+  });
+});
+
+describe("Admin dashboard > store operations", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("renders effective strategy and OAuth labels for each store", () => {
+    render(<Dashboard {...props} />);
+
+    // Healthy Records: Public API + disconnected
+    const healthyCard = screen.getByText("Healthy Records").closest('[class*="rounded-lg"]')!;
+    expect(within(healthyCard).getByText("Sync source")).toBeInTheDocument();
+    expect(within(healthyCard).getByText("Public API")).toBeInTheDocument();
+    expect(within(healthyCard).getByText("OAuth")).toBeInTheDocument();
+    expect(within(healthyCard).getByText("Disconnected")).toBeInTheDocument();
+  });
+
+  it("renders Sync and Enrich buttons for each store", () => {
+    render(<Dashboard {...props} />);
+
+    const syncButtons = screen.getAllByRole("button", { name: "Sync" });
+    const enrichButtons = screen.getAllByRole("button", { name: "Enrich" });
+    expect(syncButtons).toHaveLength(3);
+    expect(enrichButtons).toHaveLength(3);
+  });
+
+  it("disables Sync button when store is syncing", () => {
+    render(<Dashboard {...props} />);
+
+    const processingCard = screen.getByText("Processing Vinyl").closest('[class*="rounded-lg"]')!;
+    const processingSync = within(processingCard).getByRole("button", { name: "Sync" });
+    expect(processingSync).toBeDisabled();
+
+    // Other stores have sync enabled
+    const healthyCard = screen.getByText("Healthy Records").closest('[class*="rounded-lg"]')!;
+    const healthySync = within(healthyCard).getByRole("button", { name: "Sync" });
+    expect(healthySync).not.toBeDisabled();
+  });
+
+  it("disables Enrich button when store is enriching", () => {
+    const enrichingFixture = {
+      ...props,
+      active_stores: props.active_stores.map((s) =>
+        s.id === STORE_ID_PROCESSING
+          ? { ...s, sync_status: "idle", enrichment_status: "enriching" }
+          : s,
+      ),
+    };
+    render(<Dashboard {...enrichingFixture} />);
+
+    const processingCard = screen.getByText("Processing Vinyl").closest('[class*="rounded-lg"]')!;
+    const processingEnrich = within(processingCard).getByRole("button", { name: "Enrich" });
+    expect(processingEnrich).toBeDisabled();
+
+    // Other stores have enrich enabled
+    const healthyCard = screen.getByText("Healthy Records").closest('[class*="rounded-lg"]')!;
+    const healthyEnrich = within(healthyCard).getByRole("button", { name: "Enrich" });
+    expect(healthyEnrich).not.toBeDisabled();
+  });
+
+  it("calls router.post with sync path when Sync clicked", async () => {
+    const user = userEvent.setup();
+    const { router } = await import("@inertiajs/react");
+    render(<Dashboard {...props} />);
+
+    await user.click(screen.getAllByRole("button", { name: "Sync" })[0]);
+
+    expect(router.post).toHaveBeenCalledTimes(1);
+    expect(router.post).toHaveBeenCalledWith(
+      "/admin/stores/1/sync",
+      {},
+      expect.objectContaining({ preserveScroll: true }),
+    );
+  });
+
+  it("calls router.post with enrich path when Enrich clicked", async () => {
+    const user = userEvent.setup();
+    const { router } = await import("@inertiajs/react");
+    render(<Dashboard {...props} />);
+
+    await user.click(screen.getAllByRole("button", { name: "Enrich" })[0]);
+
+    expect(router.post).toHaveBeenCalledTimes(1);
+    expect(router.post).toHaveBeenCalledWith(
+      "/admin/stores/1/enrich",
+      {},
+      expect.objectContaining({ preserveScroll: true }),
+    );
+  });
+
+  it("shows local danger feedback on network error and clears on Dismiss", async () => {
+    const user = userEvent.setup();
+    const { router } = await import("@inertiajs/react");
+    const routerPost = vi.mocked(router.post);
+    routerPost.mockImplementation((_path, _data, options) => {
+      options?.onNetworkError?.();
+      options?.onFinish?.();
+    });
+    render(<Dashboard {...props} />);
+
+    await user.click(screen.getAllByRole("button", { name: "Sync" })[0]);
+
+    expect(
+      screen.getByText("Network error. Please check your connection."),
+    ).toBeInTheDocument();
+
+    // Dismiss clears the error
+    await user.click(screen.getByText("Dismiss"));
+    expect(
+      screen.queryByText("Network error. Please check your connection."),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows local danger feedback on HTTP error", async () => {
+    const user = userEvent.setup();
+    const { router } = await import("@inertiajs/react");
+    const routerPost = vi.mocked(router.post);
+    routerPost.mockImplementation((_path, _data, options) => {
+      options?.onError?.();
+      options?.onFinish?.();
+    });
+    render(<Dashboard {...props} />);
+
+    await user.click(screen.getAllByRole("button", { name: "Enrich" })[0]);
+
+    expect(
+      screen.getByText("Failed to queue enrichment. Please try again."),
+    ).toBeInTheDocument();
+  });
+
+  it("renders strategy and OAuth at compact and wide tiers", () => {
+    for (const tier of ["compact", "wide"] as const) {
+      const { unmount } = renderWithTier(tier, <Dashboard {...props} />);
+
+      expect(screen.getAllByText("Sync source").length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText("Public API").length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText("OAuth").length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText("Disconnected").length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByRole("button", { name: "Sync" }).length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByRole("button", { name: "Enrich" }).length).toBeGreaterThanOrEqual(1);
+
+      unmount();
+    }
+  });
+
+  // ── Delete action integration tests ────────────────────────
+
+  it("renders Delete store button for each store", () => {
+    render(<Dashboard {...props} />);
+
+    const deleteButtons = screen.getAllByRole("button", { name: "Delete store" });
+    expect(deleteButtons).toHaveLength(3);
+  });
+
+  it("disables Delete store button when store is syncing (AE10)", () => {
+    render(<Dashboard {...props} />);
+
+    const processingCard = screen.getByText("Processing Vinyl").closest('[class*="rounded-lg"]')!;
+    const deleteButton = within(processingCard).getByRole("button", { name: "Delete store" });
+    expect(deleteButton).toBeDisabled();
+
+    // Healthy store has delete enabled
+    const healthyCard = screen.getByText("Healthy Records").closest('[class*="rounded-lg"]')!;
+    const healthyDelete = within(healthyCard).getByRole("button", { name: "Delete store" });
+    expect(healthyDelete).not.toBeDisabled();
+  });
+
+  it("disables Delete store button when store is enriching (AE10)", () => {
+    const enrichingFixture = {
+      ...props,
+      active_stores: props.active_stores.map((s) =>
+        s.id === STORE_ID_PROCESSING
+          ? { ...s, sync_status: "idle", enrichment_status: "enriching" }
+          : s,
+      ),
+    };
+    render(<Dashboard {...enrichingFixture} />);
+
+    const processingCard = screen.getByText("Processing Vinyl").closest('[class*="rounded-lg"]')!;
+    const deleteButton = within(processingCard).getByRole("button", { name: "Delete store" });
+    expect(deleteButton).toBeDisabled();
+  });
+
+  it("shows reason text when Delete is disabled due to active operation (AE10)", () => {
+    render(<Dashboard {...props} />);
+
+    const processingCard = screen.getByText("Processing Vinyl").closest('[class*="rounded-lg"]')!;
+    expect(
+      within(processingCard).getByText(
+        "Complete sync and enrichment before deleting this store.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("does not show reason text when Delete is enabled", () => {
+    render(<Dashboard {...props} />);
+
+    const healthyCard = screen.getByText("Healthy Records").closest('[class*="rounded-lg"]')!;
+    expect(
+      within(healthyCard).queryByText(
+        "Complete sync and enrichment before deleting this store.",
+      ),
+    ).not.toBeInTheDocument();
+  });
+
+  it("opens delete dialog when Delete store button is clicked", async () => {
+    const user = userEvent.setup();
+    render(<Dashboard {...props} />);
+
+    await user.click(screen.getAllByRole("button", { name: "Delete store" })[0]);
+
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByText("Delete Healthy Records")).toBeInTheDocument();
+  });
+
+  it("closes delete dialog when Cancel is clicked", async () => {
+    const user = userEvent.setup();
+    render(<Dashboard {...props} />);
+
+    await user.click(screen.getAllByRole("button", { name: "Delete store" })[0]);
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+    const cancelButtons = screen.getAllByRole("button", { name: "Cancel" });
+    await user.click(cancelButtons[cancelButtons.length - 1]);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("delete button renders at compact and wide tiers (AE9)", () => {
+    for (const tier of ["compact", "wide"] as const) {
+      const { unmount } = renderWithTier(tier, <Dashboard {...props} />);
+      expect(screen.getAllByRole("button", { name: "Delete store" }).length).toBeGreaterThanOrEqual(1);
+      unmount();
+    }
   });
 });
 

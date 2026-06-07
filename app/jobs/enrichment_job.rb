@@ -6,6 +6,8 @@ class EnrichmentJob < ApplicationJob
   def perform(store_id, listing_ids: nil)
     store = Store.find(store_id)
     run_with_progress(store, listing_ids:)
+  rescue ActiveRecord::RecordNotFound
+    Rails.logger.warn("[EnrichmentJob] store=#{store_id} not found, skipping")
   rescue StandardError => error
     log_failure(store || store_id, error)
     raise

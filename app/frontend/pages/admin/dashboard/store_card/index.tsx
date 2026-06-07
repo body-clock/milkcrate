@@ -8,6 +8,7 @@ import type { AdminStoreSummary } from "@/types/inertia";
 import StoreHealthBar from "./health_bar";
 import { severityVariant } from "./health_utils";
 import StoreInfo from "./store_info";
+import StoreOperations from "./store_operations";
 
 export default function StoreCard({ store }: { store: AdminStoreSummary }) {
   return (
@@ -23,6 +24,7 @@ export default function StoreCard({ store }: { store: AdminStoreSummary }) {
             {store.health.last_sync_error_summary}
           </FeedbackMessage>
         )}
+        <StoreOperations store={store} />
       </CardContent>
     </Card>
   );

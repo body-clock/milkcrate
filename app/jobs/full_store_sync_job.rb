@@ -5,6 +5,8 @@ class FullStoreSyncJob < ApplicationJob
 
   def perform(store_id, max_pages: nil)
     sync_store(store_id, max_pages:)
+  rescue ActiveRecord::RecordNotFound
+    Rails.logger.warn("[FullStoreSyncJob] store=#{store_id} not found, skipping")
   rescue StandardError => error
     mark_failed(store_id, error)
     log_failure(store_id, error)
