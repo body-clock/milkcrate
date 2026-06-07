@@ -32,7 +32,7 @@ class StylesAxis < CurationAxis
   private
 
   def selection_for(listings)
-    @_selection_by_id ||= {}
-    @_selection_by_id[listings.object_id] ||= StyleSelection.new(listings)
+    @_selection_by_hash ||= {}
+    @_selection_by_hash[listings.hash] ||= StyleSelection.new(listings)
   end
 end
