@@ -3,19 +3,20 @@ class StoresController < ApplicationController
   layout "inertia_application"
 
   def show
-    store = Store.with_discogs_username(params[:slug]).first
+    slug = params[:slug].strip.downcase
+    store = Store.with_discogs_username(slug).first
     return render_invitation unless store
 
     render_store(store)
   end
 
   def claim
-    slug = params[:slug].to_s.strip.downcase
+    slug = params[:slug].strip.downcase
     store = Store.with_discogs_username(slug).first
-    return redirect_unbuilt_store(slug) unless store
-    return redirect_claimed_store(slug) if store.oauth_authorized?
+    return redirect_to store_path(slug), notice: unbuilt_notice unless store
+    return redirect_to store_path(slug), notice: claimed_notice if store.oauth_authorized?
 
-    render_claim(store)
+    render inertia: "stores/authorize", props: { store: claim_props(store) }
   end
 
   def authorize
@@ -30,23 +31,20 @@ class StoresController < ApplicationController
 
   private
 
-  def redirect_unbuilt_store(slug)
-    redirect_to store_path(slug),
-      notice: "Your storefront preview isn't live yet, but you can still claim it with Discogs below."
+  def unbuilt_notice
+    "Your storefront preview isn't live yet, but you can still claim it with Discogs below."
   end
 
-  def redirect_claimed_store(slug)
-    redirect_to store_path(slug), notice: "This storefront has already been claimed."
+  def claimed_notice
+    "This storefront has already been claimed."
   end
 
-  def render_claim(store)
-    render inertia: "stores/authorize", props: {
-      store: {
-        name: store.name,
-        discogs_username: store.discogs_username,
-        total_listings: store.total_listings || store.listings.count,
-        storefront_path: store_path(store.discogs_username)
-      }
+  def claim_props(store)
+    {
+      name: store.name,
+      discogs_username: store.discogs_username,
+      total_listings: store.total_listings || store.listings.count,
+      storefront_path: store_path(store.discogs_username)
     }
   end
 

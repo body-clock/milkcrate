@@ -11,7 +11,10 @@ const STORE = {
 };
 
 beforeEach(() => {
-  document.head.innerHTML = '<meta name="csrf-token" content="csrf-token-test" />';
+  const meta = document.createElement("meta");
+  meta.name = "csrf-token";
+  meta.content = "csrf-token-test";
+  document.head.appendChild(meta);
 });
 
 it("explains the existing-store OAuth upgrade and posts to the authorize endpoint", () => {

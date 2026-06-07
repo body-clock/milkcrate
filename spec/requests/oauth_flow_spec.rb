@@ -95,6 +95,26 @@ RSpec.describe "Discogs OAuth flow", type: :request do
       end
     end
 
+    context "when storefront has nil total_listings" do
+      let!(:store) do
+        create(
+          :store,
+          name: "Ryvvvolte Records",
+          discogs_username: slug,
+          total_listings: nil,
+          sync_source: :public_api
+        )
+      end
+
+      before { create_list(:listing, 3, store:) }
+
+      it "falls back to store.listings.count" do
+        get "/#{slug}/authorize"
+
+        expect(inertia.props[:store]).to include(total_listings: 3)
+      end
+    end
+
     context "when no storefront exists" do
       it "redirects to the invitation page with an encouraging claim message" do
         get "/#{slug}/authorize"
