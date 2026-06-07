@@ -16,16 +16,22 @@ module CrateStrategies
 
     def select(pool, excluded_ids:)
       candidates = score_and_sort(pool, excluded_ids:, scorer: @scorer) do |candidates|
-        if @curation_axis == :styles
-          candidates.select { |l| Array(l.styles).include?(@genre) }
-        else
-          candidates.select { |l| l.primary_genre == @genre }
-        end
+        candidates.select { |l| matches_axis?(l) }
       end
 
       return [] if candidates.size < MIN_RECORDS
 
       candidates.first(CuratedCrate::CRATE_SIZE)
+    end
+
+    private
+
+    def matches_axis?(listing)
+      if @curation_axis == :styles
+        Array(listing.styles).include?(@genre)
+      else
+        listing.primary_genre == @genre
+      end
     end
   end
 end

@@ -1,4 +1,4 @@
-class StorefrontCuration
+class StorefrontCuration # rubocop:disable Metrics/ClassLength
   CURATION_AXIS_THRESHOLD = 3
   GENRE_DEPTH_RATIO = 0.05
 
