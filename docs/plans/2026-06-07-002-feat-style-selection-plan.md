@@ -36,9 +36,9 @@ The selection policy belongs below `StorefrontCuration`: classification is domai
 
 ### Noise suppression
 
-- R6. A small curated broad-style set initially covers Pop Rock, Rock & Roll, Classic Rock, Hard Rock, and Blues Rock.
-- R7. A broad style is suppressed only when at least 75% of its listings also carry a non-broad style that meets the rotation support threshold before suppression; broad styles with independent coverage remain eligible.
-- R8. A store with no qualifying non-broad styles retains broad styles under the normal support thresholds rather than producing an empty style taxonomy.
+- R6. Removed — the curated broad-styles suppression list (Pop Rock, Rock & Roll, etc.) was rock-specific and couldn't generalize to electronic, jazz, or hip-hop stores. Raw support-count sorting already surfaces genuinely relevant styles.
+- R7. Removed — broad-style co-occurrence suppression eliminated alongside R6.
+- R8. Removed — broad-only fallback no longer needed without suppression.
 
 ### Ranking and rotation
 
@@ -68,8 +68,9 @@ The selection policy belongs below `StorefrontCuration`: classification is domai
 
 - Human or seller editing of style classifications
 - Experiment tooling for tuning thresholds from shopper behavior
-- Per-store configuration of broad labels or thresholds
+- Per-store configuration of thresholds
 - Fallback behavior for stores whose Discogs listings have sparse style metadata
+- Genre-agnostic co-occurrence analysis for broad-style detection (if real-world data shows broad labels crowding distinctive sub-genres)
 
 ### Out of Scope
 
@@ -88,12 +89,8 @@ The selection policy belongs below `StorefrontCuration`: classification is domai
 ```mermaid
 flowchart TB
   A[Eligible listings] --> B[Deduplicate styles within each listing]
-  B --> C[Count support and qualifying co-occurrence]
-  C --> D{Broad style?}
-  D -->|No| F{Meets 5% main threshold?}
-  D -->|Yes| E{At least 75% redundant?}
-  E -->|Yes| S[Suppressed]
-  E -->|No| F
+  B --> C[Count support]
+  C --> F{Meets 5% main threshold?}
   F -->|Yes| M[Main]
   F -->|No| G{Meets 1% rotation threshold?}
   G -->|Yes| R[Rotation]
@@ -121,8 +118,7 @@ The classification is computed once per curation instance and reused by style co
 
 - **Plain domain object:** Add a non-persisted `StyleSelection` under `app/models/`. Rails 8.1 supports plain Ruby domain objects beside Active Record models; no Active Model behavior is needed because this object has no forms, callbacks, or persistence.
 - **Scaled support thresholds:** Main uses 5% and rotation uses 1%, each floored at `CuratedCrate::MIN_RECORDS`. For the 599-listing issue example, thresholds become 30 and 6, matching the described cornerstone and fringe tiers.
-- **Conditional broad-style suppression:** The curated set is a candidate filter, not an unconditional denylist. Co-occurrence prevents a broad label from disappearing when it is the only meaningful description of a store.
-- **Union redundancy ratio:** A broad style's redundancy is the share of its listings that also contain any non-broad style meeting the rotation threshold before suppression. The initial 75% gate requires strong overlap while leaving room for broad styles with substantial independent coverage.
+- **No broad-style suppression.** The initial curated broad-styles list was dropped. Raw support-count ordering already surfaces genuinely relevant styles — a broad label with high count is meaningful to its store. A genre-agnostic co-occurrence filter could be added later if real-world data shows broad labels crowding out distinctive sub-genres.
 - **Two rankings for main styles:** Allocation uses overlap risk, defined as the share of a style's listings also tagged with a higher-support main style. Higher risk allocates first, then lower support, then name. Display ranking remains support-first so shoppers see cornerstone crates in intuitive order.
 - **Axis owns taxonomy differences:** Extend the polymorphic curation-axis contract to expose main counts, allocation order, display order, and thematic candidates. `StorefrontCuration` must not branch on axis class or type.
 - **Thematic remains a selector:** The axis supplies eligible themes; `CrateStrategies::Thematic` keeps ownership of deterministic daily choice and record ranking.
@@ -136,7 +132,7 @@ The classification is computed once per curation instance and reused by style co
 
 **Goal:** Compute stable style tiers and ranking metadata from eligible listings.
 
-**Requirements:** R2, R3, R4, R5, R6, R7, R8
+**Requirements:** R2, R3, R4, R5
 
 **Dependencies:** None
 
@@ -149,10 +145,10 @@ The classification is computed once per curation instance and reused by style co
 
 - Build a plain Ruby domain object from eligible listings.
 - Normalize each listing's styles with compact, unique values before counting.
-- Compute total support, qualifying non-broad styles, broad-style union redundancy, and the four tiers.
+- Compute total support and classify into three tiers: main (≥5%), rotation (≥1%), omitted.
 - Compute overlap risk for main styles against higher-support main styles.
 - Expose immutable result data needed by the axis: main counts, main allocation order, main display order, and rotation names.
-- Keep thresholds and the initial broad-style set as named constants near the policy.
+- Keep thresholds as named constants near the policy.
 - Compute co-occurrence in a single pass over each listing's small style set rather than scanning every style pair across the full catalog.
 
 **Patterns to follow:**
@@ -164,10 +160,7 @@ The classification is computed once per curation instance and reused by style co
 **Test scenarios:**
 
 - Happy path: with 599 eligible listings, counts of 367, 262, 39, 38, 38, and 36 classify as main because the computed main threshold is 30.
-- Happy path: counts from 6 through 29 classify as rotation when they are non-broad and non-suppressed.
-- Covers issue example: Pop Rock at count 30 is suppressed when at least 75% of its records also carry qualifying non-broad styles.
-- Edge case: Pop Rock at count 30 remains main when less than 75% overlaps qualifying non-broad styles.
-- Edge case: a broad-only store retains its broad labels under normal main and rotation thresholds.
+- Happy path: counts from 6 through 29 classify as rotation.
 - Edge case: repeated identical style values on one listing contribute one count.
 - Edge case: nil and empty style arrays do not create entries or raise errors.
 - Boundary: exactly 5% qualifies as main; one record below does not.
@@ -177,7 +170,7 @@ The classification is computed once per curation instance and reused by style co
 
 **Verification:**
 
-- One selection result explains each observed style as main, rotation, suppressed, or omitted.
+- One selection result explains each observed style as main, rotation, or omitted.
 - The issue's sample distribution yields the expected tier boundaries without store-specific thresholds.
 
 ---
@@ -363,7 +356,7 @@ The classification is computed once per curation instance and reused by style co
 ## Acceptance Examples
 
 - AE1. Given the issue's 599-listing store, the main threshold is 30 and the rotation threshold is 6. Punk, Hardcore, Crust, Black Metal, Death Metal, and Grindcore qualify as main.
-- AE2. Given Pop Rock has 30 listings and at least 75% also carry qualifying non-broad styles, Pop Rock is suppressed despite meeting the main threshold.
+- AE2. Given Pop Rock has 30 listings in a punk/metal store, it qualifies as main alongside the other six core styles based purely on support count — the curated broad-styles suppression list has been removed; raw support determines relevance.
 - AE3. Given Oi has 13 listings, it is excluded from the main browse grid and included in thematic rotation.
 - AE4. Given a store carries only Classic Rock with enough support and no qualifying non-broad styles, Classic Rock remains eligible rather than leaving the store with no browse crates.
 - AE5. Given Crust listings also carry Punk, allocation considers Crust before Punk; completed crates are then presented in support-first order.
@@ -385,8 +378,7 @@ The classification is computed once per curation instance and reused by style co
 
 | Risk | Mitigation |
 |---|---|
-| Curated broad-style set encodes product judgment and can become stale | Keep it small, named, and directly unit-tested; defer seller customization to a follow-up issue. |
-| Initial 5%, 1%, and 75% thresholds misclassify another catalog shape | Keep constants isolated and cover small, broad-only, overlap-heavy, and issue-derived fixtures. |
+| Initial 5% and 1% thresholds misclassify another catalog shape | Keep constants isolated and cover small, broad-only, overlap-heavy, and issue-derived fixtures. |
 | Specific-first allocation still cannot preserve a fully nested style under strict dedup | Preserve the existing viability rule and record this case in tests; duplicate style-crate membership remains out of scope. |
 | Co-occurrence calculation adds request-time work | Build counts in one pass and memoize one result per curation instance; existing serialized cache absorbs repeated requests. |
 | Thematic filtering removes a previously available featured crate | Treat no fringe candidate as a valid nil result, matching the existing optional featured-crate contract. |
