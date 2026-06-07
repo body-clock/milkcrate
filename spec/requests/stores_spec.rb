@@ -85,8 +85,9 @@ RSpec.describe "Stores", type: :request do
     let!(:store) { create(:store, discogs_username: "teststore") }
 
     it "builds a genre bin for each primary genre present" do
-      create_list(:listing, 100, store: store, genres: [ "Jazz" ], format: "LP")
-      create_list(:listing, 100, store: store, genres: [ "Rock" ], format: "LP")
+      create_list(:listing, 100, store: store, genres: [ "Jazz" ], styles: [ "Bebop" ], format: "LP")
+      create_list(:listing, 100, store: store, genres: [ "Rock" ], styles: [ "Classic Rock" ], format: "LP")
+      create_list(:listing, 100, store: store, genres: [ "Electronic" ], styles: [ "House" ], format: "LP")
 
       get "/teststore"
 
@@ -97,7 +98,9 @@ RSpec.describe "Stores", type: :request do
 
     it "excludes records from a genre bin when that genre is not primary" do
       jazz_primary = create(:listing, store: store, genres: [ "Jazz", "Rock" ], format: "LP")
-      create_list(:listing, 200, store: store, genres: [ "Rock" ], format: "LP")
+      create_list(:listing, 100, store: store, genres: [ "Rock" ], styles: [ "Classic Rock" ], format: "LP")
+      create_list(:listing, 50, store: store, genres: [ "Jazz" ], styles: [ "Bebop" ], format: "LP")
+      create_list(:listing, 50, store: store, genres: [ "Electronic" ], styles: [ "House" ], format: "LP")
 
       get "/teststore"
 
@@ -109,7 +112,9 @@ RSpec.describe "Stores", type: :request do
     end
 
     it "caps each genre bin at 50 records" do
-      create_list(:listing, 200, store: store, genres: [ "Jazz" ], format: "LP")
+      create_list(:listing, 100, store: store, genres: [ "Jazz" ], styles: [ "Bebop" ], format: "LP")
+      create_list(:listing, 50, store: store, genres: [ "Rock" ], styles: [ "Classic Rock" ], format: "LP")
+      create_list(:listing, 50, store: store, genres: [ "Electronic" ], styles: [ "House" ], format: "LP")
 
       get "/teststore"
 
