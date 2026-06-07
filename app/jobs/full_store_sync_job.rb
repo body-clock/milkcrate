@@ -5,17 +5,19 @@ class FullStoreSyncJob < ApplicationJob
 
   def perform(store_id, max_pages: nil)
     sync_store(store_id, max_pages:)
-  rescue ActiveRecord::RecordNotFound
-    Rails.logger.warn("[FullStoreSyncJob] store=#{store_id} not found, skipping")
   rescue StandardError => error
-    mark_failed(store_id, error)
-    log_failure(store_id, error)
-    raise
+    handle_failure(store_id, error)
   end
 
   private
 
   def sync_store(store_id, max_pages:)
+    sync_with_safety(store_id, max_pages:)
+  rescue ActiveRecord::RecordNotFound
+    Rails.logger.warn("[FullStoreSyncJob] store=#{store_id} not found, skipping")
+  end
+
+  def sync_with_safety(store_id, max_pages:)
     store = Store.find(store_id)
     sync_started_at = Time.current.tap { store.update!(sync_status: "syncing", sync_progress_pct: 0) }
     listing_ids = run_sync(store, max_pages:)
@@ -58,6 +60,12 @@ class FullStoreSyncJob < ApplicationJob
     StoreSync::StatusManager.new(store)
   end
 
+  def handle_failure(store_id, error)
+    mark_failed(store_id, error)
+    log_failure(store_id, error)
+    raise
+  end
+
   def mark_failed(store_id, error)
     store = Store.find_by(id: store_id)
     return unless store
@@ -66,8 +74,9 @@ class FullStoreSyncJob < ApplicationJob
   end
 
   def log_failure(store_id, error)
+    name = Store.find_by(id: store_id)&.discogs_username || store_id
     Rails.logger.error(
-      "[FullStoreSyncJob] store=#{store_id} job_id=#{job_id} failed\n#{error.full_message(highlight: false, order: :top)}"
+      "[FullStoreSyncJob] store=#{name} job_id=#{job_id} failed\n#{error.full_message(highlight: false, order: :top)}"
     )
   end
 end

@@ -26,18 +26,25 @@ class StoreOperations::DeleteStore
     store = Store.find_by(id: @store_id)
     return Result.new(:missing) unless store
 
-    store.with_lock do
-      return Result.new(:active) if store.sync_syncing? || store.enrichment_enriching?
-      return Result.new(:mismatch) unless store.discogs_username == @confirmation
-
-      owner = store.store_owner
-      owner&.lock!
-      store.destroy!
-      owner&.destroy! if owner && owner.stores.reload.empty?
-    end
-
-    Result.new(:deleted)
+    delete_or_reject(store) || Result.new(:deleted)
   rescue ActiveRecord::RecordNotDestroyed, ActiveRecord::RecordInvalid
     Result.new(:failed)
+  end
+
+  private
+
+  def delete_or_reject(store)
+    store.with_lock do
+      next Result.new(:active) if store.sync_syncing? || store.enrichment_enriching?
+      next Result.new(:mismatch) unless store.discogs_username == @confirmation
+      destroy_store_and_owner(store); nil
+    end
+  end
+
+  def destroy_store_and_owner(store)
+    owner = store.store_owner
+    owner&.lock!
+    store.destroy!
+    owner&.destroy! if owner && owner.stores.reload.empty?
   end
 end

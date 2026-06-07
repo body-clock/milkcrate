@@ -4,36 +4,21 @@
 # Delegates to application-layer request objects; no status-transition
 # or job-selection logic lives here.
 class Admin::StoresController < Admin::BaseController
-  before_action :load_store, only: [:sync, :enrich, :destroy]
+  before_action :load_store, only: [ :sync, :enrich, :destroy ]
 
   def sync
     result = StoreOperations::QueueSync.call(@store)
-    redirect_with_result(result, action_name: "Sync")
+    redirect_to admin_path, operation_flash(result.outcome, "Sync")
   end
 
   def enrich
     result = StoreOperations::QueueEnrichment.call(@store)
-    redirect_with_result(result, action_name: "Enrichment")
+    redirect_to admin_path, operation_flash(result.outcome, "Enrichment")
   end
 
   def destroy
-    result = StoreOperations::DeleteStore.call(
-      params[:id],
-      confirmation: params[:confirmation]
-    )
-
-    case result.outcome
-    when :deleted
-      redirect_to admin_path, notice: "Store has been permanently deleted."
-    when :mismatch
-      redirect_to admin_path, alert: "Store name confirmation did not match."
-    when :active
-      redirect_to admin_path, alert: "Cannot delete a store that is currently syncing or enriching."
-    when :missing
-      redirect_to admin_path, alert: "Store not found."
-    when :failed
-      redirect_to admin_path, alert: "Could not delete the store. Please try again."
-    end
+    result = StoreOperations::DeleteStore.call(params[:id], confirmation: params[:confirmation])
+    redirect_to admin_path, delete_flash(result.outcome)
   end
 
   private
@@ -44,17 +29,18 @@ class Admin::StoresController < Admin::BaseController
     redirect_to admin_path, alert: "Store not found."
   end
 
-  def redirect_with_result(result, action_name:)
-    case result.outcome
-    when :queued
-      redirect_to admin_path, notice: "#{action_name} queued for #{@store.name}."
-    when :blocked
-      redirect_to admin_path,
-        alert: "A #{action_name.downcase} is already running for #{@store.name}. Please wait before requesting another one."
-    when :missing
-      redirect_to admin_path, alert: "Store not found."
-    when :enqueue_failed
-      redirect_to admin_path, alert: "#{action_name} could not be queued. Please try again."
-    end
+  def operation_flash(outcome, action)
+    msgs = { queued: { notice: "#{action} queued for #{@store.name}." },
+             blocked: { alert: "A #{action.downcase} is already running for #{@store.name}. Please wait before requesting another one." },
+             missing: { alert: "Store not found." } }
+    msgs.fetch(outcome) { { alert: "#{action} could not be queued. Please try again." } }
+  end
+
+  def delete_flash(outcome)
+    msgs = { deleted: { notice: "Store has been permanently deleted." },
+             mismatch: { alert: "Store name confirmation did not match." },
+             active: { alert: "Cannot delete a store that is currently syncing or enriching." },
+             missing: { alert: "Store not found." } }
+    msgs.fetch(outcome) { { alert: "Could not delete the store. Please try again." } }
   end
 end

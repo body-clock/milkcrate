@@ -4,16 +4,22 @@ class EnrichmentJob < ApplicationJob
   queue_as :default
 
   def perform(store_id, listing_ids: nil)
-    store = Store.find(store_id)
-    run_with_progress(store, listing_ids:)
-  rescue ActiveRecord::RecordNotFound
-    Rails.logger.warn("[EnrichmentJob] store=#{store_id} not found, skipping")
+    run_with_progress(store_id, listing_ids:)
   rescue StandardError => error
-    log_failure(store || store_id, error)
+    log_failure(store_id, error)
     raise
   end
 
   private
+
+  def run_with_progress(store_id, listing_ids:)
+    store = Store.find_by(id: store_id)
+    return Rails.logger.warn("[EnrichmentJob] store=#{store_id} not found, skipping") unless store
+
+    setup_progress(store)
+    run_enrichment(store, listing_ids:)
+    clear_progress(store)
+  end
 
   def setup_progress(store)
     store.update!(enrichment_progress_pct: 0)
@@ -28,14 +34,8 @@ class EnrichmentJob < ApplicationJob
     store.update_columns(enrichment_progress_pct: nil)
   end
 
-  def run_with_progress(store, listing_ids:)
-    setup_progress(store)
-    run_enrichment(store, listing_ids:)
-    clear_progress(store)
-  end
-
-  def log_failure(store_or_id, error)
-    name = store_or_id.respond_to?(:discogs_username) ? store_or_id.discogs_username : store_or_id
+  def log_failure(store_id, error)
+    name = Store.find_by(id: store_id)&.discogs_username || store_id
     Rails.logger.error(
       "[EnrichmentJob] store=#{name} job_id=#{job_id} failed\n#{error.full_message(highlight: false, order: :top)}"
     )

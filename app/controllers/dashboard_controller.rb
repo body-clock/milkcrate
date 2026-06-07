@@ -8,17 +8,15 @@ class DashboardController < SessionAuthenticatedController
 
   def resync
     result = StoreOperations::QueueSync.call(current_store)
+    redirect_to dashboard_path, sync_flash(result.outcome)
+  end
 
-    case result.outcome
-    when :queued
-      redirect_to dashboard_path, notice: "Full inventory sync has been queued."
-    when :blocked
-      redirect_to dashboard_path,
-        alert: "A sync is already running for your store. Please wait before requesting another one."
-    when :missing
-      redirect_to dashboard_path, alert: "Store not found."
-    when :enqueue_failed
-      redirect_to dashboard_path, alert: "Sync could not be queued. Please try again."
-    end
+  private
+
+  def sync_flash(outcome)
+    msgs = { queued: { notice: "Full inventory sync has been queued." },
+             blocked: { alert: "A sync is already running for your store. Please wait before requesting another one." },
+             missing: { alert: "Store not found." } }
+    msgs.fetch(outcome) { { alert: "Sync could not be queued. Please try again." } }
   end
 end
