@@ -8,14 +8,17 @@ import type { AdminStoreSummary } from "@/types/inertia";
 import StoreHealthBar from "./health_bar";
 import { severityVariant } from "./health_utils";
 import StoreInfo from "./store_info";
-import StoreOperations from "./store_operations";
+import StoreOperationsDropdown from "./store_operations_dropdown";
 
 export default function StoreCard({ store }: { store: AdminStoreSummary }) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-start justify-between gap-3">
         <StoreInfo store={store} />
-        <Badge variant={severityVariant(store.health.severity)}>{store.health.label}</Badge>
+        <div className="flex items-center gap-1 shrink-0">
+          <Badge variant={severityVariant(store.health.severity)}>{store.health.label}</Badge>
+          <StoreOperationsDropdown store={store} />
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <StoreHealthBar store={store} />
@@ -24,7 +27,6 @@ export default function StoreCard({ store }: { store: AdminStoreSummary }) {
             {store.health.last_sync_error_summary}
           </FeedbackMessage>
         )}
-        <StoreOperations store={store} />
       </CardContent>
     </Card>
   );

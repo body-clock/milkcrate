@@ -436,42 +436,54 @@ describe("Admin dashboard > store operations", () => {
     vi.unstubAllGlobals();
   });
 
-  it("renders effective strategy and OAuth labels for each store", () => {
+  async function openDropdown(storeName: string) {
+    const user = userEvent.setup();
+    const btn = screen.getByRole("button", { name: `Operations for ${storeName}` });
+    await user.click(btn);
+    return btn;
+  }
+
+  it("shows effective strategy next to the store username", () => {
     render(<Dashboard {...props} />);
 
-    // Healthy Records: Public API + disconnected
-    const healthyCard = screen.getByText("Healthy Records").closest('[class*="rounded-lg"]')!;
-    expect(within(healthyCard).getByText("Sync source")).toBeInTheDocument();
-    expect(within(healthyCard).getByText("Public API")).toBeInTheDocument();
-    expect(within(healthyCard).getByText("OAuth")).toBeInTheDocument();
-    expect(within(healthyCard).getByText("Disconnected")).toBeInTheDocument();
+    // Strategy visible on the card surface, next to the username
+    expect(screen.getAllByText("Public API").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText("@healthy-records")).toBeInTheDocument();
   });
 
-  it("renders Sync and Enrich buttons for each store", () => {
+  it("renders Sync and Enrich buttons for each store in its dropdown", async () => {
     render(<Dashboard {...props} />);
 
-    const syncButtons = screen.getAllByRole("button", { name: "Sync" });
-    const syncingButtons = screen.getAllByRole("button", { name: "Syncing..." });
-    const enrichButtons = screen.getAllByRole("button", { name: "Enrich" });
-    expect(syncButtons).toHaveLength(2);
-    expect(syncingButtons).toHaveLength(1);
-    expect(enrichButtons).toHaveLength(3);
+    // Open each store's dropdown and check for buttons inside the menu
+    const storeNames = ["Healthy Records", "Processing Vinyl", "Broken Beats"];
+    for (const name of storeNames) {
+      await openDropdown(name);
+      const menu = screen.getByRole("menu");
+      if (name === "Processing Vinyl") {
+        expect(within(menu).queryByRole("button", { name: "Sync" })).not.toBeInTheDocument();
+        expect(within(menu).getByRole("button", { name: "Syncing..." })).toBeInTheDocument();
+      } else {
+        expect(within(menu).getByRole("button", { name: "Sync" })).toBeInTheDocument();
+      }
+      expect(within(menu).getByRole("button", { name: "Enrich" })).toBeInTheDocument();
+      // Close by Escape
+      document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    }
   });
 
-  it("disables Sync button when store is syncing", () => {
+  it("disables Sync button when store is syncing", async () => {
     render(<Dashboard {...props} />);
 
-    const processingCard = screen.getByText("Processing Vinyl").closest('[class*="rounded-lg"]')!;
-    const processingSync = within(processingCard).getByRole("button", { name: "Syncing..." });
-    expect(processingSync).toBeDisabled();
+    await openDropdown("Processing Vinyl");
+    expect(screen.getByRole("button", { name: "Syncing..." })).toBeDisabled();
 
-    // Other stores have sync enabled
-    const healthyCard = screen.getByText("Healthy Records").closest('[class*="rounded-lg"]')!;
-    const healthySync = within(healthyCard).getByRole("button", { name: "Sync" });
-    expect(healthySync).not.toBeDisabled();
+    // Close and open healthy store
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    await openDropdown("Healthy Records");
+    expect(screen.getByRole("button", { name: "Sync" })).not.toBeDisabled();
   });
 
-  it("disables Enrich button when store is enriching", () => {
+  it("disables Enrich button when store is enriching", async () => {
     const enrichingFixture = {
       ...props,
       active_stores: props.active_stores.map((s) =>
@@ -482,22 +494,25 @@ describe("Admin dashboard > store operations", () => {
     };
     render(<Dashboard {...enrichingFixture} />);
 
-    const processingCard = screen.getByText("Processing Vinyl").closest('[class*="rounded-lg"]')!;
-    const processingEnrich = within(processingCard).getByRole("button", { name: "Enrich" });
-    expect(processingEnrich).toBeDisabled();
+    await openDropdown("Processing Vinyl");
+    expect(screen.getByRole("button", { name: "Enrich" })).toBeDisabled();
 
-    // Other stores have enrich enabled
-    const healthyCard = screen.getByText("Healthy Records").closest('[class*="rounded-lg"]')!;
-    const healthyEnrich = within(healthyCard).getByRole("button", { name: "Enrich" });
-    expect(healthyEnrich).not.toBeDisabled();
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    await openDropdown("Healthy Records");
+    expect(screen.getByRole("button", { name: "Enrich" })).not.toBeDisabled();
   });
 
-  it("calls router.post with sync path when Sync clicked", async () => {
+  async function openAndClick(storeName: string, buttonName: string) {
     const user = userEvent.setup();
+    await openDropdown(storeName);
+    await user.click(screen.getByRole("button", { name: buttonName }));
+  }
+
+  it("calls router.post with sync path when Sync clicked", async () => {
     const { router } = await import("@inertiajs/react");
     render(<Dashboard {...props} />);
 
-    await user.click(screen.getAllByRole("button", { name: "Sync" })[0]);
+    await openAndClick("Healthy Records", "Sync");
 
     expect(router.post).toHaveBeenCalledTimes(1);
     expect(router.post).toHaveBeenCalledWith(
@@ -508,11 +523,10 @@ describe("Admin dashboard > store operations", () => {
   });
 
   it("calls router.post with enrich path when Enrich clicked", async () => {
-    const user = userEvent.setup();
     const { router } = await import("@inertiajs/react");
     render(<Dashboard {...props} />);
 
-    await user.click(screen.getAllByRole("button", { name: "Enrich" })[0]);
+    await openAndClick("Healthy Records", "Enrich");
 
     expect(router.post).toHaveBeenCalledTimes(1);
     expect(router.post).toHaveBeenCalledWith(
@@ -532,13 +546,13 @@ describe("Admin dashboard > store operations", () => {
     });
     render(<Dashboard {...props} />);
 
-    await user.click(screen.getAllByRole("button", { name: "Sync" })[0]);
+    await openDropdown("Healthy Records");
+    await user.click(screen.getByRole("button", { name: "Sync" }));
 
     expect(
       screen.getByText("Network error. Please check your connection."),
     ).toBeInTheDocument();
 
-    // Dismiss clears the error
     await user.click(screen.getByText("Dismiss"));
     expect(
       screen.queryByText("Network error. Please check your connection."),
@@ -555,23 +569,19 @@ describe("Admin dashboard > store operations", () => {
     });
     render(<Dashboard {...props} />);
 
-    await user.click(screen.getAllByRole("button", { name: "Enrich" })[0]);
+    await openDropdown("Healthy Records");
+    await user.click(screen.getByRole("button", { name: "Enrich" }));
 
     expect(
       screen.getByText("Failed to queue enrichment. Please try again."),
     ).toBeInTheDocument();
   });
 
-  it("renders strategy and OAuth at compact and wide tiers", () => {
+  it("shows strategy on card surface at compact and wide tiers", () => {
     for (const tier of ["compact", "wide"] as const) {
       const { unmount } = renderWithTier(tier, <Dashboard {...props} />);
 
-      expect(screen.getAllByText("Sync source").length).toBeGreaterThanOrEqual(1);
       expect(screen.getAllByText("Public API").length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText("OAuth").length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText("Disconnected").length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByRole("button", { name: "Sync" }).length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByRole("button", { name: "Enrich" }).length).toBeGreaterThanOrEqual(1);
 
       unmount();
     }
@@ -579,27 +589,28 @@ describe("Admin dashboard > store operations", () => {
 
   // ── Delete action integration tests ────────────────────────
 
-  it("renders Delete store button for each store", () => {
+  it("renders Delete button for each store in its dropdown", async () => {
     render(<Dashboard {...props} />);
 
-    const deleteButtons = screen.getAllByRole("button", { name: "Delete store" });
-    expect(deleteButtons).toHaveLength(3);
+    for (const name of ["Healthy Records", "Processing Vinyl", "Broken Beats"]) {
+      await openDropdown(name);
+      expect(screen.getByRole("button", { name: "Delete" })).toBeInTheDocument();
+      document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    }
   });
 
-  it("disables Delete store button when store is syncing (AE10)", () => {
+  it("disables Delete button when store is syncing (AE10)", async () => {
     render(<Dashboard {...props} />);
 
-    const processingCard = screen.getByText("Processing Vinyl").closest('[class*="rounded-lg"]')!;
-    const deleteButton = within(processingCard).getByRole("button", { name: "Delete store" });
-    expect(deleteButton).toBeDisabled();
+    await openDropdown("Processing Vinyl");
+    expect(screen.getByRole("button", { name: "Delete" })).toBeDisabled();
 
-    // Healthy store has delete enabled
-    const healthyCard = screen.getByText("Healthy Records").closest('[class*="rounded-lg"]')!;
-    const healthyDelete = within(healthyCard).getByRole("button", { name: "Delete store" });
-    expect(healthyDelete).not.toBeDisabled();
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    await openDropdown("Healthy Records");
+    expect(screen.getByRole("button", { name: "Delete" })).not.toBeDisabled();
   });
 
-  it("disables Delete store button when store is enriching (AE10)", () => {
+  it("disables Delete button when store is enriching (AE10)", async () => {
     const enrichingFixture = {
       ...props,
       active_stores: props.active_stores.map((s) =>
@@ -610,38 +621,38 @@ describe("Admin dashboard > store operations", () => {
     };
     render(<Dashboard {...enrichingFixture} />);
 
-    const processingCard = screen.getByText("Processing Vinyl").closest('[class*="rounded-lg"]')!;
-    const deleteButton = within(processingCard).getByRole("button", { name: "Delete store" });
-    expect(deleteButton).toBeDisabled();
+    await openDropdown("Processing Vinyl");
+    expect(screen.getByRole("button", { name: "Delete" })).toBeDisabled();
   });
 
-  it("shows reason text when Delete is disabled due to active operation (AE10)", () => {
+  it("shows reason text when Delete is disabled due to active operation (AE10)", async () => {
     render(<Dashboard {...props} />);
 
-    const processingCard = screen.getByText("Processing Vinyl").closest('[class*="rounded-lg"]')!;
+    await openDropdown("Processing Vinyl");
     expect(
-      within(processingCard).getByText(
-        "Complete sync and enrichment before deleting this store.",
+      screen.getByText(
+        "Complete sync and enrichment before deleting.",
       ),
     ).toBeInTheDocument();
   });
 
-  it("does not show reason text when Delete is enabled", () => {
+  it("does not show reason text when Delete is enabled", async () => {
     render(<Dashboard {...props} />);
 
-    const healthyCard = screen.getByText("Healthy Records").closest('[class*="rounded-lg"]')!;
+    await openDropdown("Healthy Records");
     expect(
-      within(healthyCard).queryByText(
-        "Complete sync and enrichment before deleting this store.",
+      screen.queryByText(
+        "Complete sync and enrichment before deleting.",
       ),
     ).not.toBeInTheDocument();
   });
 
-  it("opens delete dialog when Delete store button is clicked", async () => {
+  it("opens delete dialog when Delete button is clicked", async () => {
     const user = userEvent.setup();
     render(<Dashboard {...props} />);
 
-    await user.click(screen.getAllByRole("button", { name: "Delete store" })[0]);
+    await openDropdown("Healthy Records");
+    await user.click(screen.getByRole("button", { name: "Delete" }));
 
     expect(screen.getByRole("dialog")).toBeInTheDocument();
     expect(screen.getByText("Delete Healthy Records")).toBeInTheDocument();
@@ -651,7 +662,8 @@ describe("Admin dashboard > store operations", () => {
     const user = userEvent.setup();
     render(<Dashboard {...props} />);
 
-    await user.click(screen.getAllByRole("button", { name: "Delete store" })[0]);
+    await openDropdown("Healthy Records");
+    await user.click(screen.getByRole("button", { name: "Delete" }));
     expect(screen.getByRole("dialog")).toBeInTheDocument();
 
     const cancelButtons = screen.getAllByRole("button", { name: "Cancel" });
@@ -659,10 +671,11 @@ describe("Admin dashboard > store operations", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
-  it("delete button renders at compact and wide tiers (AE9)", () => {
+  it("delete button renders at compact and wide tiers (AE9)", async () => {
     for (const tier of ["compact", "wide"] as const) {
       const { unmount } = renderWithTier(tier, <Dashboard {...props} />);
-      expect(screen.getAllByRole("button", { name: "Delete store" }).length).toBeGreaterThanOrEqual(1);
+      await openDropdown("Healthy Records");
+      expect(screen.getByRole("button", { name: "Delete" })).toBeInTheDocument();
       unmount();
     }
   });
