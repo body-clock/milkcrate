@@ -21,15 +21,13 @@ RSpec.describe "milkcrate tasks" do
   end
 
   describe "stores:sync" do
-    it "calls StoreSyncService for the demo store" do
-      sync_service = instance_double(StoreSyncService, full_sync: 10)
-      allow(ProgressBar).to receive(:create).and_return(double("progress", finish: nil))
-      allow(StoreSyncService).to receive(:new).with(store, progress: anything).and_return(sync_service)
-      allow(EnrichmentJob).to receive(:perform_later)
-      allow(DailyCurationJob).to receive(:perform_later)
+    it "calls FullStoreSyncJob for the demo store" do
+      allow(FullStoreSyncJob).to receive(:perform_now)
 
       expect { Rake::Task["stores:sync"].invoke(store.discogs_username) }
         .to output(/Syncing/).to_stdout
+
+      expect(FullStoreSyncJob).to have_received(:perform_now).with(store.id, max_pages: nil)
     end
   end
 

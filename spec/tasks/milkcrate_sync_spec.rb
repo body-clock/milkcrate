@@ -3,7 +3,6 @@ require "rake"
 
 RSpec.describe "milkcrate sync tasks" do
   let!(:store) { create(:store, discogs_username: Settings.demo_store.discogs_username) }
-  let(:service) { instance_double(StoreSyncService) }
 
   before(:all) do
     Rake.application = Rake::Application.new
@@ -11,20 +10,17 @@ RSpec.describe "milkcrate sync tasks" do
   end
 
   before do
-    require "ruby-progressbar"
-    allow(ProgressBar).to receive(:create).and_return(double("progress", finish: nil))
-    allow(StoreSyncService).to receive(:new).with(store, progress: anything).and_return(service)
-    allow(service).to receive(:full_sync).and_return(4)
+    allow(FullStoreSyncJob).to receive(:perform_now)
   end
 
   after do
     Rake::Task["stores:sync"]&.reenable
   end
 
-  it "uses full_sync for stores:sync" do
-    expect(service).to receive(:full_sync).and_return(4)
-
+  it "enqueues FullStoreSyncJob for stores:sync" do
     expect { Rake::Task["stores:sync"].invoke(store.discogs_username) }
-      .to output(/Synced 4 listings\./).to_stdout
+      .to output(/Synced \d+ listings\./).to_stdout
+
+    expect(FullStoreSyncJob).to have_received(:perform_now).with(store.id, max_pages: nil)
   end
 end
