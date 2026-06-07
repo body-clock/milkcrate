@@ -46,6 +46,12 @@ Rails.application.routes.draw do
   end
 
   # OAuth flow — must be before the catch-all /:slug route
+  get "/:slug/authorize",
+    to: "stores#claim",
+    as: :store_claim,
+    constraints: { slug: DiscogsSellerLookup::ROUTE_USERNAME_REGEX },
+    format: false
+
   post "/:slug/authorize",
     to: "stores#authorize",
     as: :store_authorize,

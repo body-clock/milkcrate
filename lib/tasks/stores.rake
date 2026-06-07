@@ -20,27 +20,15 @@ namespace :stores do
 
   desc "Full inventory sync from Discogs — stores:sync[username]"
   task :sync, [ :username ] => :environment do |_, args|
-    require "ruby-progressbar"
-
     store = find_store(args[:username])
 
     max_pages = ENV["MAX_PAGES"]&.to_i
     page_hint = max_pages ? " (max #{max_pages} pages)" : ""
 
     puts "Syncing #{store.name} (@#{store.discogs_username})#{page_hint}..."
-
-    progress = ProgressBar.create(
-      title: "Pages",
-      total: nil,
-      format: "%t: %c/%C |%B| %e",
-      throttle_rate: 0.5
-    )
-
-    service = StoreSyncService.new(store, progress:)
-    synced_count = service.full_sync(max_pages:)
-    progress.finish
-
-    puts "Synced #{synced_count} listings."
+    FullStoreSyncJob.perform_now(store.id, max_pages:)
+    store.reload
+    puts "Synced #{store.listings.count} listings."
   end
 
   # ── Enrich ───────────────────────────────────────────────────
