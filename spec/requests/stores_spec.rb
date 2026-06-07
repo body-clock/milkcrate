@@ -137,5 +137,86 @@ RSpec.describe "Stores", type: :request do
         expect(sections.first.dig("crate", "slug")).to eq("wall")
       end
     end
+
+    context "with styles axis (narrow-catalog store)" do
+      it "renders main style crate names and excludes rotation-tier styles from browse grid" do
+        store = create(:store, discogs_username: "narrowstore")
+        create_list(:listing, 50, store:, genres: [ "Rock" ], styles: [ "Punk" ], format: "LP")
+        create_list(:listing, 40, store:, genres: [ "Rock" ], styles: [ "Hardcore" ], format: "LP")
+        create_list(:listing, 4,  store:, genres: [ "Rock" ], styles: [ "Oi" ], format: "LP")
+        create_list(:listing, 106, store:, genres: [ "Rock" ], styles: [ "Other" ], format: "LP")
+
+        get "/narrowstore"
+
+        crates = inertia.props["crates"]
+        crate_names = crates.map { |c| c["name"] }
+
+        # Main styles present in browse.
+        expect(crate_names).to include("Punk", "Hardcore", "Other")
+        # Oi 4 < 5% of 200 = 10 → rotation, not in browse grid.
+        expect(crate_names).not_to include("Oi")
+      end
+
+      it "excludes suppressed broad styles from browse grid" do
+        store = create(:store, discogs_username: "narrowpop")
+        # Pop Rock: 8 listings, 6 overlap Punk. Punk 20 listings.
+        create_list(:listing, 6, store:, genres: [ "Rock" ], styles: [ "Punk", "Pop Rock" ], format: "LP")
+        create_list(:listing, 2, store:, genres: [ "Rock" ], styles: [ "Pop Rock" ], format: "LP")
+        create_list(:listing, 14, store:, genres: [ "Rock" ], styles: [ "Punk" ], format: "LP")
+        create_list(:listing, 78, store:, genres: [ "Rock" ], styles: [ "Other" ], format: "LP")
+
+        get "/narrowpop"
+
+        crates = inertia.props["crates"]
+        crate_names = crates.map { |c| c["name"] }
+
+        # Pop Rock suppressed (75% overlap) → not in browse.
+        expect(crate_names).not_to include("Pop Rock")
+        expect(crate_names).to include("Punk", "Other")
+      end
+
+      it "preserves serialized crate object shape" do
+        store = create(:store, discogs_username: "crateshape")
+        create_list(:listing, 20, store:, genres: [ "Rock" ], styles: [ "Punk" ], format: "LP")
+        create_list(:listing, 80, store:, genres: [ "Rock" ], styles: [ "Other" ], format: "LP")
+
+        get "/crateshape"
+
+        crates = inertia.props["crates"]
+        punk_crate = crates.find { |c| c["slug"] == "punk" }
+
+        expect(punk_crate.keys).to include("slug", "name", "count", "records")
+        expect(punk_crate["slug"]).to eq("punk")
+        expect(punk_crate["count"]).to be_a(Integer)
+        expect(punk_crate["records"]).to be_an(Array)
+      end
+
+      it "preserves section keys: wall, genre_grid" do
+        store = create(:store, discogs_username: "sectionkeys")
+        create_list(:listing, 10, store:, genres: [ "Rock" ], styles: [ "Punk" ], format: "LP")
+        create_list(:listing, 90, store:, genres: [ "Rock" ], styles: [ "Other" ], format: "LP")
+
+        get "/sectionkeys"
+
+        sections = inertia.props["storefront_sections"]
+        keys = sections.map { |s| s["key"] }
+        expect(keys).to include("wall", "genre_grid")
+      end
+
+      it "keeps genre-axis behavior unchanged" do
+        store = create(:store, discogs_username: "genrestore")
+        create_list(:listing, 100, store:, genres: [ "Jazz" ], styles: [ "Bebop" ], format: "LP")
+        create_list(:listing, 100, store:, genres: [ "Rock" ], styles: [ "Classic Rock" ], format: "LP")
+        create_list(:listing, 100, store:, genres: [ "Electronic" ], styles: [ "House" ], format: "LP")
+
+        get "/genrestore"
+
+        crates = inertia.props["crates"]
+        crate_names = crates.map { |c| c["name"] }
+
+        # All three genres should have crates (genres axis, count-descending).
+        expect(crate_names).to include("Jazz", "Rock", "Electronic")
+      end
+    end
   end
 end
