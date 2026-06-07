@@ -137,18 +137,15 @@ class StorefrontCuration # rubocop:disable Metrics/ClassLength
   end
 
   def curation_axis
-    @curation_axis ||= begin
-      deep_genres = eligible_listings.map(&:primary_genre).compact.tally
-        .select { |_, count| count >= (eligible_listings.size * GENRE_DEPTH_RATIO) }
-      deep_genres.size >= CURATION_AXIS_THRESHOLD ? :genres : :styles
-    end
+    @curation_axis ||= (deep_genre_count >= CURATION_AXIS_THRESHOLD) ? GenresAxis.new : StylesAxis.new
+  end
+
+  def deep_genre_count
+    eligible_listings.map(&:primary_genre).compact.tally
+      .count { |_, count| count >= (eligible_listings.size * GENRE_DEPTH_RATIO) }
   end
 
   def genre_counts
-    @genre_counts ||= if curation_axis == :styles
-      eligible_listings.flat_map(&:styles).compact.tally
-    else
-      eligible_listings.map(&:primary_genre).compact.tally
-    end
+    @genre_counts ||= curation_axis.tally_from(eligible_listings)
   end
 end

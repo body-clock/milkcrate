@@ -11,7 +11,7 @@ RSpec.describe CrateStrategies::Genre do
   end
 
   context "when curation axis is genres" do
-    let(:curation_axis) { :genres }
+    let(:curation_axis) { GenresAxis.new }
 
     it "selects listings matching the genre by primary_genre" do
       pool = [
@@ -22,7 +22,7 @@ RSpec.describe CrateStrategies::Genre do
         instance_double(Listing, id: 5, primary_genre: "Rock", styles: [ "Indie Rock" ]),
         instance_double(Listing, id: 6, primary_genre: "Rock", styles: [ "Classic Rock" ])
       ]
-      strategy = described_class.new(genre: "Rock", genre_counts: {}, curation_axis: :genres, today: Date.new(2026, 6, 7))
+      strategy = described_class.new(genre: "Rock", genre_counts: {}, curation_axis: GenresAxis.new, today: Date.new(2026, 6, 7))
       selected = strategy.select(pool, excluded_ids: Set.new)
       expect(selected.size).to eq(4)
       expect(selected.map(&:id)).to match_array([ 1, 2, 5, 6 ])
@@ -37,14 +37,14 @@ RSpec.describe CrateStrategies::Genre do
         instance_double(Listing, id: 5, primary_genre: "Jazz", styles: [ "Cool Jazz" ]),
         instance_double(Listing, id: 6, primary_genre: "Jazz", styles: [ "Fusion" ])
       ]
-      strategy = described_class.new(genre: "Jazz", genre_counts: {}, curation_axis: :genres, today: Date.new(2026, 6, 7))
+      strategy = described_class.new(genre: "Jazz", genre_counts: {}, curation_axis: GenresAxis.new, today: Date.new(2026, 6, 7))
       selected = strategy.select(pool, excluded_ids: Set.new)
       expect(selected.map(&:id)).to match_array([ 3, 4, 5, 6 ])
     end
   end
 
   context "when curation axis is styles" do
-    let(:curation_axis) { :styles }
+    let(:curation_axis) { StylesAxis.new }
 
     it "selects listings matching the genre by styles array" do
       pool = [
@@ -54,7 +54,7 @@ RSpec.describe CrateStrategies::Genre do
         instance_double(Listing, id: 4, primary_genre: "Jazz", styles: [ "Bebop" ]),
         instance_double(Listing, id: 5, primary_genre: "Jazz", styles: [ "Cool Jazz" ])
       ]
-      strategy = described_class.new(genre: "Bebop", genre_counts: {}, curation_axis: :styles, today: Date.new(2026, 6, 7))
+      strategy = described_class.new(genre: "Bebop", genre_counts: {}, curation_axis: StylesAxis.new, today: Date.new(2026, 6, 7))
       selected = strategy.select(pool, excluded_ids: Set.new)
       expect(selected.size).to eq(4)
       expect(selected.map(&:id)).to match_array([ 1, 2, 3, 4 ])
@@ -69,7 +69,7 @@ RSpec.describe CrateStrategies::Genre do
         instance_double(Listing, id: 5, primary_genre: "Jazz", styles: [ "Bebop" ]),
         instance_double(Listing, id: 6, primary_genre: "Jazz", styles: [ "Bebop" ])
       ]
-      strategy = described_class.new(genre: "Bebop", genre_counts: {}, curation_axis: :styles, today: Date.new(2026, 6, 7))
+      strategy = described_class.new(genre: "Bebop", genre_counts: {}, curation_axis: StylesAxis.new, today: Date.new(2026, 6, 7))
       selected = strategy.select(pool, excluded_ids: Set.new)
       expect(selected.map(&:id)).to match_array([ 1, 4, 5, 6 ])
     end

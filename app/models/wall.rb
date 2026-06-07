@@ -3,7 +3,7 @@
 class Wall
   attr_reader :crate
 
-  def initialize(eligible_listings:, genre_counts:, curation_axis: :genres)
+  def initialize(eligible_listings:, genre_counts:, curation_axis: GenresAxis.new)
     @eligible_listings = eligible_listings
     @genre_counts = genre_counts
     @curation_axis = curation_axis
