@@ -1,7 +1,8 @@
 # Namespace for crate selection strategies that power storefront crates.
 module CrateStrategies
   class Wall
-    def initialize(genre_counts:, today: Date.today)
+    def initialize(genre_counts:, curation_axis: GenresAxis.new, today: Date.today)
+      @curation_axis = curation_axis
       defaults = RecordScorer.default_strategies(genre_counts:, today:)
       @scorer  = RecordScorer.new(
         strategies: defaults.merge(wall_price: ScoreStrategies::WallPriceStrategy.new),
@@ -44,7 +45,7 @@ module CrateStrategies
     end
 
     def apply_genre_cap(listing, genre_cap:, genre_seen:)
-      genre = listing.primary_genre
+      genre = @curation_axis.key_for(listing)
       return if genre_seen[genre] >= genre_cap
 
       genre_seen[genre] += 1

@@ -49,6 +49,8 @@ RSpec.describe StorefrontCuration do
     it "adds genre crates after wall" do
       store = create(:store)
       listings = lp_listings(store, count: 5, genres: [ "Jazz" ], styles: [ "Bop" ])
+      lp_listing(store, genres: [ "Rock" ], styles: [ "Classic Rock" ])
+      lp_listing(store, genres: [ "Electronic" ], styles: [ "House" ])
 
       curation = curation_with_strategies(store, wall: [], genre_scores: listings.each_with_index.to_h { |l, i| [ l.id, i + 1 ] })
       crates = curation.crates
@@ -59,6 +61,8 @@ RSpec.describe StorefrontCuration do
     it "excludes records that appear on the wall" do
       store = create(:store)
       listing = lp_listing(store, genres: [ "Jazz" ])
+      lp_listing(store, genres: [ "Rock" ])
+      lp_listing(store, genres: [ "Electronic" ])
 
       curation = curation_with_strategies(store, wall: [ listing ], genre_scores: { listing.id => 10 })
       jazz_crate = curation.crates.find { |crate| crate.name == "Jazz" }
@@ -68,6 +72,8 @@ RSpec.describe StorefrontCuration do
     it "skips genres with no records remaining after wall exclusion" do
       store = create(:store)
       listing = lp_listing(store, genres: [ "Jazz" ])
+      lp_listing(store, genres: [ "Rock" ])
+      lp_listing(store, genres: [ "Electronic" ])
 
       curation = curation_with_strategies(store, wall: [ listing ], genre_scores: { listing.id => 10 })
       expect(curation.crates.map(&:name)).not_to include("Jazz")
@@ -80,6 +86,8 @@ RSpec.describe StorefrontCuration do
       jazz3 = lp_listing(store, genres: [ "Jazz" ])
       jazz4 = lp_listing(store, genres: [ "Jazz" ])
       jazz5 = lp_listing(store, genres: [ "Jazz" ])
+      lp_listing(store, genres: [ "Rock" ])
+      lp_listing(store, genres: [ "Electronic" ])
 
       curation = curation_with_strategies(store, wall: [ jazz1 ], genre_scores: { jazz1.id => 5, jazz2.id => 10, jazz3.id => 9, jazz4.id => 8, jazz5.id => 7 })
       jazz_crate = curation.crates.find { |crate| crate.name == "Jazz" }
