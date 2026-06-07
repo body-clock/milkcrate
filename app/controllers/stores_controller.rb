@@ -13,8 +13,8 @@ class StoresController < ApplicationController
   def claim
     slug = params[:slug].strip.downcase
     store = Store.with_discogs_username(slug).first
-    return redirect_to store_path(slug), notice: unbuilt_notice unless store
-    return redirect_to store_path(slug), notice: claimed_notice if store.oauth_authorized?
+    return redirect_to store_path(slug), notice: t(".unbuilt_notice") unless store
+    return redirect_to store_path(slug), notice: t(".claimed_notice") if store.oauth_authorized?
 
     render inertia: "stores/authorize", props: { store: claim_props(store) }
   end
@@ -30,14 +30,6 @@ class StoresController < ApplicationController
   end
 
   private
-
-  def unbuilt_notice
-    "Your storefront preview isn't live yet, but you can still claim it with Discogs below."
-  end
-
-  def claimed_notice
-    "This storefront has already been claimed."
-  end
 
   def claim_props(store)
     {
