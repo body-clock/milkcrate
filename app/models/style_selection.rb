@@ -108,7 +108,8 @@ class StyleSelection
   def compute_overlap_risk
     ordered = main_styles_by_support
     ordered.each_with_object({}).with_index { |(style, risks), idx|
-      add_overlap_entry(style, ordered[0...idx], risks)
+      higher = ordered[0...idx].select { |candidate| support.fetch(candidate, 0) > support.fetch(style, 0) }
+      add_overlap_entry(style, higher, risks)
     }
   end
 

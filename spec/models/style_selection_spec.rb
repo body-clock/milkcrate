@@ -175,16 +175,12 @@ RSpec.describe StyleSelection do
       expect(sel.overlap_risk["Crust"]).to be_within(0.01).of(4.0 / 6)
     end
 
-    it "returns zero risk for styles with no higher-support main styles" do
-      all = listings(50, styles: %w[Punk]) +
-            listings(50, styles: %w[Metal])
+    it "returns zero risk for styles with no overlap with higher-support main styles" do
+      all = listings(49, styles: %w[Punk]) +
+            listings(51, styles: %w[Metal])
 
       sel = described_class.new(all)
 
-      # Both main, but one has to come first by support. Metal at 50, Punk at 50 → tie, alpha decides.
-      # "Metal" < "Punk" alphabetically, so Metal is first in the sorted-by-support list.
-      # Punk has Metal as higher → some overlap?
-      # Actually they have completely separate listings, so overlap_risk["Punk"] = 0
       expect(sel.overlap_risk["Punk"]).to eq(0)
     end
   end
@@ -317,6 +313,15 @@ RSpec.describe StyleSelection do
       # Allocation order: lowest support first when risk is tied.
       # Hardcore (10) before Punk (15)
       expect(sel.allocation_order).to eq(%w[Hardcore Punk Other])
+    end
+
+    it "does not treat equal-support styles as overlap risks for each other" do
+      overlapping = listings(5, styles: %w[Alpha Beta])
+      other = listings(95, styles: %w[Other])
+
+      sel = described_class.new(overlapping + other)
+
+      expect(sel.allocation_order).to eq(%w[Alpha Beta Other])
     end
   end
 end

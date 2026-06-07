@@ -148,8 +148,8 @@ RSpec.describe "Stores", type: :request do
 
         get "/narrowstore"
 
-        crates = inertia.props["crates"]
-        crate_names = crates.map { |c| c["name"] }
+        genre_grid = inertia.props["storefront_sections"].find { |section| section["key"] == "genre_grid" }
+        crate_names = genre_grid.fetch("crates").map { |crate| crate["name"] }
 
         # Main styles present in browse.
         expect(crate_names).to include("Punk", "Hardcore", "Other")
