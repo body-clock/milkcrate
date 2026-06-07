@@ -311,6 +311,59 @@ RSpec.describe StorefrontCuration do
         names = groups[:genres].map(&:name)
         expect(names).not_to include("Hardcore")
       end
+
+      it "rotates fringe styles in the thematic featured slot" do
+        store = create(:store)
+        punk  = lp_listings(store, count: 6, genres: [ "Rock" ], styles: [ "Punk" ])
+        oi    = lp_listings(store, count: 4, genres: [ "Rock" ], styles: [ "Oi" ])
+        other = lp_listings(store, count: 90, genres: [ "Jazz" ], styles: [ "Other" ])
+
+        curation = described_class.new(store)
+        groups = curation.storefront_groups
+
+        # Oi is rotation-tier → eligible for thematic.
+        # Punk and Other are main → excluded from thematic.
+        featured = groups[:featured]
+        thematic = featured.find { |c| c.slug == "thematic" }
+
+        if thematic
+          expect(thematic.name).to eq("Oi")
+          expect(thematic.listings.size).to eq(4)
+        end
+        # Main styles should not appear as thematic.
+        expect(featured.map(&:name)).not_to include("Punk")
+        expect(featured.map(&:name)).not_to include("Other")
+      end
+
+      it "excludes suppressed broad styles from thematic candidates" do
+        store = create(:store)
+        # Pop Rock: 5 listings, 4 overlap Punk. Punk 9 listings (all main).
+        punk_pop = lp_listings(store, count: 4, genres: [ "Rock" ], styles: [ "Punk", "Pop Rock" ])
+        pop_only = lp_listings(store, count: 1, genres: [ "Rock" ], styles: [ "Pop Rock" ])
+        punk_only = lp_listings(store, count: 5, genres: [ "Rock" ], styles: [ "Punk" ])
+        other = lp_listings(store, count: 90, genres: [ "Jazz" ], styles: [ "Other" ])
+
+        curation = described_class.new(store)
+        groups = curation.storefront_groups
+
+        featured = groups[:featured]
+        # Pop Rock suppressed (80% overlap) → not a thematic candidate.
+        expect(featured.map(&:name)).not_to include("Pop Rock")
+      end
+
+      it "returns no thematic crate when no rotation candidate is viable" do
+        store = create(:store)
+        # Only main styles, no rotation-tier.
+        punk  = lp_listings(store, count: 10, genres: [ "Rock" ], styles: [ "Punk" ])
+        other = lp_listings(store, count: 90, genres: [ "Jazz" ], styles: [ "Other" ])
+
+        curation = described_class.new(store)
+        groups = curation.storefront_groups
+
+        featured = groups[:featured]
+        thematic = featured.find { |c| c.slug == "thematic" }
+        expect(thematic).to be_nil
+      end
     end
   end
 

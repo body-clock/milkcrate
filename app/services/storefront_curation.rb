@@ -118,6 +118,7 @@ class StorefrontCuration # rubocop:disable Metrics/ClassLength
     @thematic_strategy ||= CrateStrategies::Thematic.new(
       store_id: @store.id,
       genre_counts:,
+      themes: curation_axis.thematic_candidates(eligible_listings),
       today: Date.today
     )
   end
