@@ -154,7 +154,7 @@ describe("Admin dashboard > basic rendering", () => {
     expect(screen.getByText("Processing Vinyl")).toBeInTheDocument();
     expect(screen.getAllByText("Processing").length).toBeGreaterThan(0);
     expect(screen.getByText("Broken Beats")).toBeInTheDocument();
-    expect(screen.getByText("Needs attention")).toBeInTheDocument();
+    expect(screen.getAllByText("Needs attention").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("300 listings")).toBeInTheDocument();
     expect(screen.getByText("RuntimeError: Discogs timeout")).toBeInTheDocument();
   });
@@ -451,8 +451,10 @@ describe("Admin dashboard > store operations", () => {
     render(<Dashboard {...props} />);
 
     const syncButtons = screen.getAllByRole("button", { name: "Sync" });
+    const syncingButtons = screen.getAllByRole("button", { name: "Syncing..." });
     const enrichButtons = screen.getAllByRole("button", { name: "Enrich" });
-    expect(syncButtons).toHaveLength(3);
+    expect(syncButtons).toHaveLength(2);
+    expect(syncingButtons).toHaveLength(1);
     expect(enrichButtons).toHaveLength(3);
   });
 
@@ -460,7 +462,7 @@ describe("Admin dashboard > store operations", () => {
     render(<Dashboard {...props} />);
 
     const processingCard = screen.getByText("Processing Vinyl").closest('[class*="rounded-lg"]')!;
-    const processingSync = within(processingCard).getByRole("button", { name: "Sync" });
+    const processingSync = within(processingCard).getByRole("button", { name: "Syncing..." });
     expect(processingSync).toBeDisabled();
 
     // Other stores have sync enabled

@@ -105,7 +105,7 @@ export function DeleteStoreDialog({ store, onClose }: DeleteStoreDialogProps) {
               hover:bg-mc-bg-raised hover:text-mc-text
               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus
               disabled:opacity-50 disabled:cursor-not-allowed"
-            aria-label="Cancel"
+            aria-label="Close dialog"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

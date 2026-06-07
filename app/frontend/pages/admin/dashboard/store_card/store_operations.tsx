@@ -32,8 +32,9 @@ export default function StoreOperations({ store }: { store: AdminStoreSummary })
           busy={syncBusy}
           disabled={syncDisabled}
           onClick={submitSync}
+          title="Full inventory refresh from Discogs — replaces all listings"
         >
-          {syncBusy ? "Syncing..." : "Sync"}
+          {syncBusy ? "Syncing..." : store.sync_status === "syncing" ? "Syncing..." : "Sync"}
         </Button>
         <Button
           variant="secondary"
@@ -41,6 +42,7 @@ export default function StoreOperations({ store }: { store: AdminStoreSummary })
           busy={enrichBusy}
           disabled={enrichDisabled}
           onClick={submitEnrich}
+          title="Refresh metadata (genres, images) for existing listings"
         >
           {enrichBusy ? "Enriching..." : "Enrich"}
         </Button>

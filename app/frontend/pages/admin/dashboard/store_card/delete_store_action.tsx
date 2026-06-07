@@ -15,7 +15,10 @@ export function DeleteStoreAction({ store }: DeleteStoreActionProps) {
 
   return (
     <>
-      <div className="pt-3 border-t border-mc-border">
+      <div className="mt-4 pt-3 border-t-2 border-mc-feedback-danger-border/40 bg-mc-feedback-danger-bg/10 rounded-sm px-3 pb-3 -mx-3">
+        <p className="text-xs font-semibold uppercase tracking-wider text-mc-feedback-danger mb-2">
+          Danger zone
+        </p>
         <Button
           variant="danger"
           size="sm"
