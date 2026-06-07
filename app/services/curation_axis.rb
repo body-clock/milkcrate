@@ -13,4 +13,24 @@ class CurationAxis
   def tally_from(_listings)
     raise NotImplementedError
   end
+
+  # Hash of {name => count} for styles/genres that qualify for browse crates.
+  def main_counts(listings)
+    raise NotImplementedError
+  end
+
+  # Array of names in the order crates should be built (before dedup).
+  def allocation_order(listings)
+    raise NotImplementedError
+  end
+
+  # Array of names in the order crates should appear in the storefront.
+  def display_order(listings)
+    raise NotImplementedError
+  end
+
+  # Array of StorefrontTheme candidates for the themed featured slot.
+  def thematic_candidates(listings)
+    raise NotImplementedError
+  end
 end

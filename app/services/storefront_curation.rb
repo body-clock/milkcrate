@@ -85,10 +85,13 @@ class StorefrontCuration # rubocop:disable Metrics/ClassLength
 
   def build_genre_crates(excluded_ids:)
     seen_ids = excluded_ids.dup
+    built = curation_axis.allocation_order(eligible_listings).filter_map { |genre| genre_crate(genre:, seen_ids:) }
+    sort_for_display(built)
+  end
 
-    genre_counts.sort_by { |_, count| -count }.filter_map do |genre, _|
-      genre_crate(genre:, seen_ids:)
-    end
+  def sort_for_display(crates)
+    display = curation_axis.display_order(eligible_listings)
+    crates.sort_by { |crate| display.index(crate.name) || display.size }
   end
 
   def genre_crate(genre:, seen_ids:)
@@ -115,6 +118,7 @@ class StorefrontCuration # rubocop:disable Metrics/ClassLength
     @thematic_strategy ||= CrateStrategies::Thematic.new(
       store_id: @store.id,
       genre_counts:,
+      themes: curation_axis.thematic_candidates(eligible_listings),
       today: Date.today
     )
   end

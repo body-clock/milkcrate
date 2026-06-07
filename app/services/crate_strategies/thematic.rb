@@ -6,9 +6,10 @@ module CrateStrategies
   class Thematic
     MIN_RECORDS = 4
 
-    def initialize(store_id:, genre_counts:, today: Date.today)
+    def initialize(store_id:, genre_counts:, themes: nil, today: Date.today)
       @scorer       = RecordScorer.new(genre_counts:, today:)
       @store_id     = store_id
+      @themes       = themes
       @today        = today
     end
 
@@ -53,7 +54,8 @@ module CrateStrategies
     end
 
     def discover_themes(pool)
-      (style_themes(pool) + genre_themes(pool))
+      candidates = @themes || (style_themes(pool) + genre_themes(pool))
+      candidates
         .select { |theme| theme.eligible?(pool) }
         .sort_by(&:slug)
     end

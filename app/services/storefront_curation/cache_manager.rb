@@ -2,7 +2,7 @@
 class StorefrontCuration::CacheManager
     CURATION_CACHE_TTL = 36.hours
     CURATION_CACHE_RACE_TTL = 30.seconds
-    CURATION_CACHE_KEY = "storefront/curation/v4/%<store_id>s/%<date>s/%<scope>s/%<wall_count>s/%<inventory_version>s"
+    CURATION_CACHE_KEY = "storefront/curation/v5/%<store_id>s/%<date>s/%<scope>s/%<wall_count>s/%<inventory_version>s"
 
     # Returns { sections: [...], crates: [...] } — plain hashes, cache-safe.
     # On cache miss, runs curation + presentation, writes to cache, returns payload.
