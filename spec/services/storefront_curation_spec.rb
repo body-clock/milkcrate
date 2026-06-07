@@ -230,6 +230,88 @@ RSpec.describe StorefrontCuration do
         end
       end
     end
+
+    context "with styles axis" do
+      it "allocates overlapping styles before higher-support independent styles" do
+        store = create(:store)
+        punk     = lp_listings(store, count: 15, genres: [ "Rock" ], styles: [ "Punk" ])
+        hc_only  = lp_listings(store, count: 6,  genres: [ "Rock" ], styles: [ "Hardcore" ])
+        crust_hc = lp_listings(store, count: 4,  genres: [ "Rock" ], styles: [ "Crust", "Hardcore" ])
+        crust    = lp_listings(store, count: 2,  genres: [ "Rock" ], styles: [ "Crust" ])
+        other    = lp_listings(store, count: 73, genres: [ "Jazz" ], styles: [ "Other" ])
+        all = punk + hc_only + crust_hc + crust + other
+
+        scores = all.each_with_index.to_h { |l, i| [ l.id, all.size - i ] }
+
+        # Empty wall so no dedup interferes with allocation-order test.
+        curation = curation_with_strategies(store, wall: [], genre_scores: scores)
+        groups = curation.storefront_groups
+
+        names = groups[:genres].map(&:name)
+        # Allocation order: Crust (highest overlap risk), Hardcore, Punk, Other.
+        # Built in that order; display reorders by support: Other, Punk, Hardcore, Crust.
+        expect(names).to eq(%w[Other Punk Hardcore Crust])
+      end
+
+      it "displays crates in support-first order after allocation" do
+        store = create(:store)
+        punk     = lp_listings(store, count: 10, genres: [ "Rock" ], styles: [ "Punk" ])
+        hc       = lp_listings(store, count: 6,  genres: [ "Rock" ], styles: [ "Hardcore" ])
+        other    = lp_listings(store, count: 84, genres: [ "Jazz" ], styles: [ "Other" ])
+        all = punk + hc + other
+
+        scores = all.each_with_index.to_h { |l, i| [ l.id, all.size - i ] }
+        curation = curation_with_strategies(store, wall: [], genre_scores: scores)
+        groups = curation.storefront_groups
+
+        names = groups[:genres].map(&:name)
+        # Display order: Other (84), Punk (10), Hardcore (6)
+        expect(names).to eq(%w[Other Punk Hardcore])
+      end
+
+      it "omits rotation-tier styles from browse crates" do
+        store = create(:store)
+        punk  = lp_listings(store, count: 6, genres: [ "Rock" ], styles: [ "Punk" ])
+        oi    = lp_listings(store, count: 4, genres: [ "Rock" ], styles: [ "Oi" ])
+        other = lp_listings(store, count: 90, genres: [ "Jazz" ], styles: [ "Other" ])
+        all = punk + oi + other
+
+        scores = all.each_with_index.to_h { |l, i| [ l.id, all.size - i ] }
+        curation = curation_with_strategies(store, wall: [], genre_scores: scores)
+        groups = curation.storefront_groups
+
+        names = groups[:genres].map(&:name)
+        # Oi 4 < 5% of 100 = 5 → rotation, not in browse.
+        expect(names).not_to include("Oi")
+        expect(names).to include("Punk", "Other")
+      end
+
+      it "returns empty browse group when no style meets main threshold" do
+        store = create(:store)
+        lp_listings(store, count: 3, genres: [ "Rock" ], styles: [ "Punk" ])
+        lp_listings(store, count: 3, genres: [ "Jazz" ], styles: [ "Bebop" ])
+
+        curation = curation_with_strategies(store, wall: [], genre_scores: {})
+        groups = curation.storefront_groups
+
+        expect(groups[:genres]).to eq([])
+      end
+
+      it "omits style that falls below MIN_RECORDS after wall dedup" do
+        store = create(:store)
+        hc   = lp_listings(store, count: 4, genres: [ "Rock" ], styles: [ "Hardcore" ])
+        other = lp_listings(store, count: 96, genres: [ "Jazz" ], styles: [ "Other" ])
+        all = hc + other
+
+        scores = all.each_with_index.to_h { |l, i| [ l.id, all.size - i ] }
+        # Wall takes 1 Hardcore listing, leaving 3 → below MIN_RECORDS.
+        curation = curation_with_strategies(store, wall: [ hc.first ], genre_scores: scores)
+        groups = curation.storefront_groups
+
+        names = groups[:genres].map(&:name)
+        expect(names).not_to include("Hardcore")
+      end
+    end
   end
 
   describe "#surfaced_listings" do
