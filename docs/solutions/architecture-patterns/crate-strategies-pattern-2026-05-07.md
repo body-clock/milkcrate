@@ -1,7 +1,7 @@
 ---
 title: "Strategy-based crate selection with uniform scoring"
 date: 2026-05-07
-last_updated: 2026-05-22
+last_updated: 2026-06-07
 category: architecture-patterns
 module: storefront
 problem_type: architecture_pattern
@@ -83,7 +83,7 @@ Each strategy lives in its own file under `app/services/crate_strategies/`:
 | `NewArrivals` | `new_arrivals.rb` | Best-fit recency window (7/14/30/90/365d), then scored | Original |
 | `Thematic` | `thematic.rb` | Random style/genre theme from pool, then scored | Original |
 | `HiddenGems` | `hidden_gems.rb` | Low engagement (total ≤ 100), wants > haves (≥ 10), has image, genre cap 3 | Added later; ranking fixed to use RecordScorer |
-| `Genre` | `genre.rb` | Single genre filter (`primary_genre`), scored, capped | Extracted from StorefrontCuration |
+| `Genre` | `genre.rb` | Single genre filter (`primary_genre`), scored, capped. Accepts a `curation_axis:` parameter (GenresAxis/StylesAxis) for field-level filtering — axis owns the matching logic, strategy owns the selection pipeline. | Extracted from StorefrontCuration |
 
 ```ruby
 # app/services/crate_strategies/picks.rb
@@ -164,13 +164,14 @@ module CrateStrategies
   class Genre
     MIN_RECORDS = 4
 
-    def initialize(genre:, genre_counts:, today: Date.today)
+    def initialize(genre:, genre_counts:, curation_axis: GenresAxis.new, today: Date.today)
       @scorer = RecordScorer.new(genre_counts:, today:)
       @genre  = genre
+      @curation_axis = curation_axis
     end
 
     def select(pool, excluded_ids:)
-      # Select: match primary_genre
+      # Select: filter by axis (primary_genre or styles.include?)
       # Rank: pure RecordScorer score
       # Capped: CuratedCrate::CRATE_SIZE
     end
@@ -245,6 +246,9 @@ the correct 50-record version.
   with duplicated constants
 - Debugging a crate where the score breakdown doesn't match the ordering —
   check if the strategy has its own custom ranking
+- A strategy has axis-dependent field selection (e.g., `primary_genre` vs
+  `styles`) — extract a polymorphic axis object rather than threading a
+  symbol and branching in every strategy
 
 ## Examples
 
@@ -318,3 +322,4 @@ CrateStrategies::Genre.new(genre:, genre_counts:, today:)
 - `app/services/score_strategies/price_strategy.rb` — scorer-level price boost
 - `app/frontend/components/score_breakdown.tsx` — dev debug panel showing per-strategy scores
 - [Experiment pipeline simplification and scoring recalibration](../workflow-issues/experiment-pipeline-simplification-2026-05-21.md) — human-in-the-loop validation and strategy calibration
+- [Replace type-code conditionals with polymorphic curation axis](replace-type-code-with-polymorphism-2026-06-07.md) — CurationAxis base class + GenresAxis/StylesAxis subclasses; the axis IS the behavior difference, strategies just call `axis.key_for` or `axis.matches?`
