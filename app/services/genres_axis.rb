@@ -16,7 +16,7 @@ class GenresAxis < CurationAxis
   end
 
   def allocation_order(listings)
-    main_counts(listings).sort_by { |name, count| [-count, name] }.map(&:first)
+    main_counts(listings).sort_by { |name, count| [ -count, name ] }.map(&:first)
   end
 
   def display_order(listings)

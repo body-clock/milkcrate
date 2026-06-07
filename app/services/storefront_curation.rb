@@ -85,13 +85,13 @@ class StorefrontCuration # rubocop:disable Metrics/ClassLength
 
   def build_genre_crates(excluded_ids:)
     seen_ids = excluded_ids.dup
+    built = curation_axis.allocation_order(eligible_listings).filter_map { |genre| genre_crate(genre:, seen_ids:) }
+    sort_for_display(built)
+  end
 
-    built = curation_axis.allocation_order(eligible_listings).filter_map do |genre|
-      genre_crate(genre:, seen_ids:)
-    end
-
+  def sort_for_display(crates)
     display = curation_axis.display_order(eligible_listings)
-    built.sort_by { |crate| display.index(crate.name) || display.size }
+    crates.sort_by { |crate| display.index(crate.name) || display.size }
   end
 
   def genre_crate(genre:, seen_ids:)
