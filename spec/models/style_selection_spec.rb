@@ -11,15 +11,6 @@ RSpec.describe StyleSelection do
     Array.new(count) { listing(styles:) }
   end
 
-  # Helper: build 599 listings with a realistic narrow-store distribution.
-  # Returns [listings_array, selection].
-  def build_issue_fixture(counts)
-    all = counts.flat_map { |style, count| listings(count, styles: [ style ]) }
-    # For listings that should carry multiple styles (overlap), we rebuild
-    # them below in specific tests.
-    [all, described_class.new(all)]
-  end
-
   describe "#support" do
     it "deduplicates styles within each listing" do
       l = listing(styles: %w[Punk Punk Hardcore])
