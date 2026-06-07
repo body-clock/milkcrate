@@ -15,7 +15,8 @@ export default function StoreCard({ store }: { store: AdminStoreSummary }) {
     <Card>
       <CardHeader className="flex flex-row items-start justify-between gap-3">
         <StoreInfo store={store} />
-        <div className="flex items-center gap-1 shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="text-[11px] text-mc-text-dim whitespace-nowrap">{store.effective_strategy}</span>
           <Badge variant={severityVariant(store.health.severity)}>{store.health.label}</Badge>
           <StoreOperationsDropdown store={store} />
         </div>

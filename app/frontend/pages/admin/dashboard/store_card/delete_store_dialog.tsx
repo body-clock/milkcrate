@@ -14,7 +14,6 @@ export function DeleteStoreDialog({ store, onClose }: DeleteStoreDialogProps) {
   const [typedValue, setTypedValue] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
   const titleId = useId();
   const inputId = useId();
   const errorId = useId();
@@ -147,7 +146,6 @@ export function DeleteStoreDialog({ store, onClose }: DeleteStoreDialogProps) {
               Type <strong>{store.discogs_username}</strong> to confirm
             </label>
             <input
-              ref={inputRef}
               id={inputId}
               type="text"
               autoComplete="off"

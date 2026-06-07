@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import EmptyState from "@/components/ui/empty_state";
 import SectionHeader from "@/components/ui/section_header";
-import type { AdminDashboardProps } from "@/types/inertia";
+import type { AdminStoreSummary } from "@/types/inertia";
 
 import { StoreGrid } from "./store_grid";
 
@@ -14,7 +14,7 @@ const FILTERS: { value: FilterValue; label: string }[] = [
   { value: "processing", label: "Processing" },
 ];
 
-function matchFilter(store: AdminDashboardProps["active_stores"][number], filter: FilterValue): boolean {
+function matchFilter(store: AdminStoreSummary, filter: FilterValue): boolean {
   if (filter === "all") return true;
   if (filter === "processing") {
     return store.sync_status === "syncing" || store.enrichment_status === "enriching";
