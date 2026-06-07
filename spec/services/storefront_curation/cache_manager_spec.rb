@@ -57,6 +57,23 @@ RSpec.describe StorefrontCuration::CacheManager do
         expect(key).not_to include("available")
       end
     end
+
+    it "includes inventory_version in the cache key" do
+      store.update!(inventory_version: 5)
+      key = described_class.send(:curation_cache_key, store)
+
+      expect(key).to include("/5")
+    end
+
+    it "produces different keys for different inventory_versions" do
+      store.update!(inventory_version: 0)
+      key_v0 = described_class.send(:curation_cache_key, store)
+
+      store.update!(inventory_version: 1)
+      key_v1 = described_class.send(:curation_cache_key, store)
+
+      expect(key_v0).not_to eq(key_v1)
+    end
   end
 
   describe "delegation from StorefrontCuration" do

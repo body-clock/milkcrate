@@ -14,7 +14,7 @@ export function AppHeaderBrand({ storeName, discogsUsername, isCompact }: AppHea
   }
 
   return (
-    <div className="flex min-w-0 flex-col">
+    <div className="flex min-h-10 min-w-0 flex-col justify-center">
       <StoreNameLink username={discogsUsername} storeName={storeName} />
       <StoreSubLink isCompact={isCompact} />
     </div>

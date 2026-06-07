@@ -195,4 +195,55 @@ RSpec.describe Store, type: :model do
       expect(strategy).to respond_to(:call).with(1).argument
     end
   end
+
+  describe "sales polling fields" do
+    it "defaults inventory_version to 0" do
+      store = create(:store)
+      expect(store.inventory_version).to eq(0)
+    end
+
+    it "defaults sales_poll_cursor_at to nil" do
+      store = create(:store)
+      expect(store.sales_poll_cursor_at).to be_nil
+    end
+
+    it "defaults last_sales_polled_at to nil" do
+      store = create(:store)
+      expect(store.last_sales_polled_at).to be_nil
+    end
+  end
+
+  describe "#increment_inventory_version!" do
+    it "increments inventory_version by 1" do
+      store = create(:store, inventory_version: 3)
+      store.increment_inventory_version!
+      expect(store.inventory_version).to eq(4)
+    end
+
+    it "increments from default 0 to 1" do
+      store = create(:store)
+      store.increment_inventory_version!
+      expect(store.inventory_version).to eq(1)
+    end
+
+    it "increments atomically using update_counters" do
+      store = create(:store, inventory_version: 5)
+      store.increment_inventory_version!
+      expect(store.reload.inventory_version).to eq(6)
+    end
+  end
+
+  describe "associations" do
+    it "has many discogs_order_events" do
+      store = create(:store)
+      event = create(:discogs_order_event, store: store)
+      expect(store.discogs_order_events).to include(event)
+    end
+
+    it "destroys associated discogs_order_events when destroyed" do
+      store = create(:store)
+      create(:discogs_order_event, store: store)
+      expect { store.destroy }.to change(DiscogsOrderEvent, :count).by(-1)
+    end
+  end
 end

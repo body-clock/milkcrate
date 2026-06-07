@@ -17,10 +17,11 @@ interface Props {
 
 interface ShowStoreContentProps {
   isWide: boolean;
+  isCompact: boolean;
   props: Props;
 }
 
-export default function ShowStoreContent({ isWide, props: p }: ShowStoreContentProps) {
+export default function ShowStoreContent({ isWide, isCompact, props: p }: ShowStoreContentProps) {
   const genreCount =
     p.storefront_sections
       .filter((s): s is Extract<StorefrontSection, { crates: unknown[] }> => "crates" in s)
@@ -28,8 +29,10 @@ export default function ShowStoreContent({ isWide, props: p }: ShowStoreContentP
 
   return (
     <>
-      {p.activeSlug === null && (
-        <StoreSummary store={p.store} isWide={isWide} listingCount={p.listingCount} />
+      {/* Outer gate duplicates StoreSummary's own guard intentionally — prevents
+          guard-drift regression (prior refactor lost a guard on one path) */}
+      {p.activeSlug === null && !isCompact && !isWide && (
+        <StoreSummary store={p.store} isWide={isWide} isCompact={isCompact} listingCount={p.listingCount} />
       )}
       <SyncFailedBanner store={p.store} />
       <BrowseShell

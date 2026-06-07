@@ -11,7 +11,6 @@ interface PeekContentProps {
     isCompact: boolean;
     prefersReducedMotion: boolean;
     dialogRef: RefObject<HTMLDivElement | null>;
-    titleRef: RefObject<HTMLSpanElement | null>;
     meta: string;
     allTags: { label: string; dim: boolean }[];
     transition: Record<string, unknown>;
@@ -29,7 +28,6 @@ export function PeekContent({ peek, listing, onClose }: PeekContentProps) {
         dialogRef={peek.dialogRef}
         isCompact={peek.isCompact}
         transition={peek.transition}
-        titleRef={peek.titleRef}
         onClose={onClose}
         meta={peek.meta}
       >

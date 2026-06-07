@@ -9,6 +9,7 @@ import { renderWithTier } from "../../test/viewport-test-utils";
 import type { Listing } from "../../types/inertia";
 import PileSheet from "../pile_sheet";
 import { PilePopulator } from "./test_helpers";
+import { makeListing } from "../../test/shared/pile_sheet_test_helpers";
 
 const mockedPage = vi.hoisted(() => ({
   shopper: { discogs_username: "shopper1" } as { discogs_username: string } | null,
@@ -34,28 +35,6 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.unstubAllGlobals();
-});
-
-const INITIAL_PILE_ID = 1000;
-let nextId = INITIAL_PILE_ID;
-const makeListing = (overrides: Partial<Listing> = {}): Listing => ({
-  id: nextId++,
-  discogs_listing_id: `discogs-${nextId}`,
-  artist: "Artist",
-  title: "Title",
-  label: null,
-  year: null,
-  format: null,
-  genres: [],
-  styles: [],
-  condition: null,
-  price: "10.00",
-  currency: "USD",
-  cover_image_url: null,
-  thumbnail_url: null,
-  notes: null,
-  discogs_url: "https://www.discogs.com/sell/item/1",
-  ...overrides,
 });
 
 describe("PileSheet responsive layout", () => {

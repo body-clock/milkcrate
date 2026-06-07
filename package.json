@@ -10,12 +10,12 @@
   },
   "dependencies": {
     "@inertiajs/react": "^3.0.3",
-    "@inertiajs/vite": "^3.1.1",
     "framer-motion": "^12.38.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5"
   },
   "devDependencies": {
+    "@inertiajs/vite": "^3.1.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",

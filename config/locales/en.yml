@@ -76,3 +76,7 @@ en:
         email: "Email"
         inventory_size: "Approximate inventory size"
         notes: "Anything else?"
+  stores:
+    claim:
+      unbuilt_notice: "Your storefront preview isn't live yet, but you can still claim it with Discogs below."
+      claimed_notice: "This storefront has already been claimed."

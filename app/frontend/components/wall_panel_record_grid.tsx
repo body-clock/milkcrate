@@ -48,7 +48,7 @@ function buildMotionProps(opts: MotionBuildProps) {
     exit: showAnimation ? ("exit" as const) : undefined,
     transition, drag: showAnimation ? ("x" as const) : undefined,
     dragConstraints: { left: 0, right: 0 }, dragElastic: 0.3, onDragEnd,
-    className: `grid ${gridCols} gap-2`,
+    className: `grid ${gridCols} ${isCompact ? "gap-1.5" : "gap-2"}`,
     style: isCompact ? { position: "absolute" as const, inset: 0 } : undefined,
   };
 }

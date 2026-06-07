@@ -288,7 +288,8 @@ RSpec.describe StorefrontCuration do
         store_id: store.id,
         date: Date.current.iso8601,
         scope: "available",
-        wall_count: Settings.storefront.wall_count
+        wall_count: Settings.storefront.wall_count,
+        inventory_version: store.inventory_version
       }
 
       described_class.cached_curation(store, cache: cache)
@@ -299,7 +300,8 @@ RSpec.describe StorefrontCuration do
         store_id: store.id,
         date: (Date.current + 1.day).iso8601,
         scope: "available",
-        wall_count: Settings.storefront.wall_count
+        wall_count: Settings.storefront.wall_count,
+        inventory_version: store.inventory_version
       }
       expect(cache.exist?(other_key)).to be false
     end
@@ -309,13 +311,15 @@ RSpec.describe StorefrontCuration do
         store_id: store.id,
         date: Date.current.iso8601,
         scope: "available",
-        wall_count: Settings.storefront.wall_count
+        wall_count: Settings.storefront.wall_count,
+        inventory_version: store.inventory_version
       }
       all_key = StorefrontCuration::CacheManager::CURATION_CACHE_KEY % {
         store_id: store.id,
         date: Date.current.iso8601,
         scope: "all",
-        wall_count: Settings.storefront.wall_count
+        wall_count: Settings.storefront.wall_count,
+        inventory_version: store.inventory_version
       }
 
       described_class.cached_curation(store, cache: cache)
@@ -356,7 +360,8 @@ RSpec.describe StorefrontCuration do
         store_id: store.id,
         date: Date.current.iso8601,
         scope: "available",
-        wall_count: Settings.storefront.wall_count
+        wall_count: Settings.storefront.wall_count,
+        inventory_version: store.inventory_version
       }
 
       described_class.write_curation_cache(store, payload, cache: cache)
@@ -370,13 +375,15 @@ RSpec.describe StorefrontCuration do
         store_id: store.id,
         date: Date.current.iso8601,
         scope: "available",
-        wall_count: Settings.storefront.wall_count
+        wall_count: Settings.storefront.wall_count,
+        inventory_version: store.inventory_version
       }
       all_key = StorefrontCuration::CacheManager::CURATION_CACHE_KEY % {
         store_id: store.id,
         date: Date.current.iso8601,
         scope: "all",
-        wall_count: Settings.storefront.wall_count
+        wall_count: Settings.storefront.wall_count,
+        inventory_version: store.inventory_version
       }
 
       described_class.write_curation_cache(store, payload, filter_available: false, cache: cache)

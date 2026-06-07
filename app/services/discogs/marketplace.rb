@@ -4,6 +4,8 @@ module Discogs
   # Uses OAuth::AccessToken for requests. Separated from DiscogsClient so the
   # public API surface (PublicClient) and OAuth-only methods live independently.
   class Marketplace
+    include RateLimit
+
     BASE_URL = "https://api.discogs.com"
 
     def initialize(access_token:, access_token_secret:)
@@ -35,14 +37,28 @@ module Discogs
       Array.wrap(extract_exports(body)).compact
     end
 
-    def list_orders(status: nil, page: 1)
-      path = "#{BASE_URL}/marketplace/orders?page=#{page}"
-      path += "&status=#{ERB::Util.url_encode(status)}" if status
-      response = oauth_access_token.get(path)
+    def list_orders(status: nil, page: 1, per_page: 50, sort: "last_activity", sort_order: "desc")
+      params = build_orders_params(status:, page:, per_page:, sort:, sort_order:)
+      path = "#{BASE_URL}/marketplace/orders?#{URI.encode_www_form(params)}"
+      response = with_rate_limit_retry { oauth_access_token.get(path) }
       parse_oauth_response(response)
     end
 
     private
+
+    def build_orders_params(status:, page:, per_page:, sort:, sort_order:)
+      params = { page: page, per_page: per_page, sort: sort, sort_order: sort_order }
+      params[:status] = status if status.present?
+      params
+    end
+
+    def with_rate_limit_retry(attempt: 1)
+      response = yield
+      return response unless response.code.to_i == 429
+      return response if attempt > MAX_RETRIES
+      sleep(backoff_for(attempt))
+      with_rate_limit_retry(attempt: attempt + 1) { yield }
+    end
 
     def oauth_access_token
       @oauth_access_token ||= begin
@@ -53,10 +69,9 @@ module Discogs
     def parse_oauth_response(response)
       code = response.code.to_i
       return { "status" => "not_modified" } if code == 304
-
+      return raise Errors::RateLimitError, "Discogs rate limit hit" if code == 429
       parsed = parse_response_body(response)
-      return parsed if (200..299).include?(code)
-      rate_limit_or_error(code, response)
+      (200..299).include?(code) ? parsed : raise(Errors::ApiError, "Discogs API error: #{code} — #{response.body}")
     end
 
     def parse_raw_body(body, response)
@@ -72,11 +87,6 @@ module Discogs
       when Hash, Array then body
       else parse_raw_body(body, response)
       end
-    end
-
-    def rate_limit_or_error(code, response)
-      return raise Errors::RateLimitError, "Discogs rate limit hit" if code == 429
-      raise Errors::ApiError, "Discogs API error: #{code} — #{response.body}"
     end
 
     def extract_exports(body)

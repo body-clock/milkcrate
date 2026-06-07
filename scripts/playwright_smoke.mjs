@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+// fallow-ignore-next-line unused-files — manual/CI smoke test, not a build entry point
+
 /**
  * Comprehensive Playwright smoke test for Milkcrate.
  *

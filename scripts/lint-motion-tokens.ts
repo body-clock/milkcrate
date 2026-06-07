@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+// fallow-ignore-next-line unused-files — imported by design_system_foundations.test.ts
+
 /**
  * Scans .tsx/.ts files for inline animation values that should be
  * sourced from @/lib/motion_tokens instead.

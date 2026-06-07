@@ -1,3 +1,4 @@
+// fallow-ignore-next-line unused-files — Vite entrypoint, loaded by vite-plugin-ruby
 import { createInertiaApp, router } from "@inertiajs/react";
 import type { ComponentType } from "react";
 import { createRoot } from "react-dom/client";

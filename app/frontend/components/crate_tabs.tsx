@@ -72,7 +72,7 @@ function useKeyboardNav(
   return handleKeyDown;
 }
 
-export function tabIndexValue(selected: boolean, hasSelection: boolean, i: number): number {
+function tabIndexValue(selected: boolean, hasSelection: boolean, i: number): number {
   if (selected) {
     return 0;
   }
@@ -100,7 +100,7 @@ function useScrollActiveTab(
   }, [activeSlug, vertical, activeTabRef, disableScrollOnActivate]);
 }
 
-export function verticalTabClasses(selected: boolean): string {
+function verticalTabClasses(selected: boolean): string {
   const base =
     "w-full text-left rounded-md cursor-pointer transition-[background-color,color,transform] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus focus-visible:ring-offset-1 focus-visible:ring-offset-mc-bg px-3 py-2 text-sm";
   if (selected) {
@@ -109,7 +109,7 @@ export function verticalTabClasses(selected: boolean): string {
   return `${base} text-mc-text-dim hover:bg-mc-bg-raised hover:text-mc-text`;
 }
 
-export function horizontalTabClasses(compact: boolean, selected: boolean): string {
+function horizontalTabClasses(compact: boolean, selected: boolean): string {
   const base =
     "whitespace-nowrap rounded cursor-pointer transition-[background-color,color,border-color,transform] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mc-focus focus-visible:ring-offset-1 focus-visible:ring-offset-mc-bg";
   const size = compact ? "min-h-11 px-3 py-1.5 text-xs" : "px-2.5 py-1 text-xs sm:text-sm";

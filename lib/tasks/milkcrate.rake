@@ -19,10 +19,10 @@ namespace :milkcrate do
   task sync: :environment do
     puts "WARNING: `milkcrate:sync` is deprecated. Use `stores:sync[username]` instead."
     store = demo_store
-    service = StoreSyncService.new(store)
     puts "Syncing #{store.name} (@#{store.discogs_username})..."
-    synced_count = service.full_sync
-    puts "Synced #{synced_count} listings."
+    FullStoreSyncJob.perform_now(store.id)
+    store.reload
+    puts "Synced #{store.listings.count} listings."
   end
 
   desc "[DEPRECATED] Use stores:enrich[username] instead"

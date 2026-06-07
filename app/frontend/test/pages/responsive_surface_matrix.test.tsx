@@ -602,6 +602,27 @@ describe("responsive surface matrix", () => {
     expect(screen.getByText(/The store's taste at a glance/i)).toBeInTheDocument();
   });
 
+  it("compact tier hides StoreSummary description and listing count", () => {
+    renderStoreShowAtTier("compact", compactStoreProps);
+
+    expect(screen.queryByText(storeShowProps.store.description!)).not.toBeInTheDocument();
+    expect(screen.queryByText(/vinyl listings/i)).not.toBeInTheDocument();
+  });
+
+  it("comfy tier shows StoreSummary description and listing count", () => {
+    renderStoreShowAtTier("comfy", compactStoreProps);
+
+    expect(screen.getByText(storeShowProps.store.description!)).toBeInTheDocument();
+    expect(screen.getByText(/vinyl listings/i)).toBeInTheDocument();
+  });
+
+  it("wide tier hides StoreSummary (unchanged behavior)", () => {
+    renderStoreShowAtTier("wide", compactStoreProps);
+
+    expect(screen.queryByText(storeShowProps.store.description!)).not.toBeInTheDocument();
+    expect(screen.queryByText(/vinyl listings/i)).not.toBeInTheDocument();
+  });
+
   it("switching browse modes auto-selects the first crate in the new mode", async () => {
     const user = userEvent.setup();
     renderStoreShowAtTier("compact", compactStoreProps);
