@@ -36,4 +36,52 @@ RSpec.describe GenresAxis do
       expect(axis.tally_from([ a ])).to eq({})
     end
   end
+
+  describe "#main_counts" do
+    it "returns all genre counts" do
+      a = instance_double(Listing, primary_genre: "Rock")
+      b = instance_double(Listing, primary_genre: "Jazz")
+
+      expect(axis.main_counts([ a, b ])).to eq("Rock" => 1, "Jazz" => 1)
+    end
+  end
+
+  describe "#allocation_order" do
+    it "sorts genres by count descending then name" do
+      a = instance_double(Listing, primary_genre: "Rock")
+      b = instance_double(Listing, primary_genre: "Rock")
+      c = instance_double(Listing, primary_genre: "Jazz")
+
+      expect(axis.allocation_order([ a, b, c ])).to eq(%w[Rock Jazz])
+    end
+  end
+
+  describe "#display_order" do
+    it "matches allocation order" do
+      a = instance_double(Listing, primary_genre: "Rock")
+      b = instance_double(Listing, primary_genre: "Jazz")
+
+      expect(axis.display_order([ a, b ])).to eq(axis.allocation_order([ a, b ]))
+    end
+  end
+
+  describe "#thematic_candidates" do
+    it "returns StorefrontTheme objects for genres and styles in the pool" do
+      a = instance_double(Listing, primary_genre: "Rock", styles: [ "Punk" ])
+
+      candidates = axis.thematic_candidates([ a ])
+
+      expect(candidates).to all(be_a(StorefrontTheme))
+      slugs = candidates.map(&:slug)
+      expect(slugs).to include("style-punk", "genre-rock")
+    end
+
+    it "excludes nil styles" do
+      a = instance_double(Listing, primary_genre: "Rock", styles: nil)
+
+      candidates = axis.thematic_candidates([ a ])
+
+      expect(candidates.map(&:slug)).to eq([ "genre-rock" ])
+    end
+  end
 end
