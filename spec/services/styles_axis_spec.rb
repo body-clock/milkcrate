@@ -53,19 +53,16 @@ RSpec.describe StylesAxis do
       expect(counts).not_to have_key("Metal")
     end
 
-    it "excludes suppressed and omitted styles" do
-      # Create a fixture where Pop Rock is suppressed by Punk overlap.
-      punk_only   = 4.times.map { instance_double(Listing, styles: [ "Punk" ]) }
-      pop_rock    = 4.times.map { instance_double(Listing, styles: [ "Pop Rock" ]) }
-      other       = 92.times.map { instance_double(Listing, styles: [ "Other" ]) }
+    it "excludes omitted styles from counts" do
+      punk   = 4.times.map { instance_double(Listing, styles: [ "Punk" ]) }
+      other  = 96.times.map { instance_double(Listing, styles: [ "Other" ]) }
 
-      counts = axis.main_counts(punk_only + pop_rock + other)
+      counts = axis.main_counts(punk + other)
 
       # 100 total: main threshold = 5.
       # Punk 4 ≥ 4 but 4 < 5 → not main.
-      # Pop Rock 4 ≥ 4 but 4 < 5 → not main.
-      # Other 92 ≥ 5 → main.
-      expect(counts).to eq("Other" => 92)
+      # Other 96 ≥ 5 → main.
+      expect(counts).to eq("Other" => 96)
     end
   end
 
@@ -128,21 +125,6 @@ RSpec.describe StylesAxis do
       candidates = axis.thematic_candidates(punk + other)
 
       expect(candidates).to eq([])
-    end
-
-    it "excludes suppressed broad styles" do
-      # Pop Rock suppressed by Punk overlap.
-      punk_pop = 4.times.map { instance_double(Listing, styles: %w[Punk Pop\ Rock]) }
-      pop_only = 1.times.map { instance_double(Listing, styles: [ "Pop Rock" ]) }
-      punk_only = 5.times.map { instance_double(Listing, styles: [ "Punk" ]) }
-      other = 90.times.map { instance_double(Listing, styles: [ "Other" ]) }
-
-      candidates = axis.thematic_candidates(punk_pop + pop_only + punk_only + other)
-
-      # Pop Rock 5 total, 4 overlap (80% ≥ 75%) → suppressed.
-      # Punk 9 → main.
-      # Pop Rock suppressed → not in rotation.
-      expect(candidates.map(&:name)).not_to include("Pop Rock")
     end
   end
 

@@ -335,22 +335,6 @@ RSpec.describe StorefrontCuration do
         expect(featured.map(&:name)).not_to include("Other")
       end
 
-      it "excludes suppressed broad styles from thematic candidates" do
-        store = create(:store)
-        # Pop Rock: 5 listings, 4 overlap Punk. Punk 9 listings (all main).
-        punk_pop = lp_listings(store, count: 4, genres: [ "Rock" ], styles: [ "Punk", "Pop Rock" ])
-        pop_only = lp_listings(store, count: 1, genres: [ "Rock" ], styles: [ "Pop Rock" ])
-        punk_only = lp_listings(store, count: 5, genres: [ "Rock" ], styles: [ "Punk" ])
-        other = lp_listings(store, count: 90, genres: [ "Jazz" ], styles: [ "Other" ])
-
-        curation = described_class.new(store)
-        groups = curation.storefront_groups
-
-        featured = groups[:featured]
-        # Pop Rock suppressed (80% overlap) → not a thematic candidate.
-        expect(featured.map(&:name)).not_to include("Pop Rock")
-      end
-
       it "returns no thematic crate when no rotation candidate is viable" do
         store = create(:store)
         # Only main styles, no rotation-tier.

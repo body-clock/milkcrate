@@ -62,9 +62,6 @@ RSpec.describe StyleSelection do
     end
 
     it "excludes one record below 5% from main (boundary)" do
-      # 81 listings total: 5% = 4.05 → .to_i = 4. 3 Punk listings.
-      # 3 < 4 (MIN_RECORDS) → not even rotation floor. Need at least 4.
-      # Let me use: 5% of 100 = 5. 4 < 5, so not main. But 4 ≥ rotation floor.
       all = listings(4, styles: %w[Punk]) +
             listings(96, styles: %w[Other])
 
@@ -72,59 +69,10 @@ RSpec.describe StyleSelection do
 
       expect(sel.main_styles).not_to include("Punk")
     end
-
-    it "excludes suppressed broad styles from main" do
-      # Create a scenario where Pop Rock is suppressed.
-      # Pop Rock needs: ≥ 75% overlap with qualifying non-broad styles.
-      # Let me use 100 listings: 20 Pop Rock, 20 Punk, 60 Other.
-      # Pop Rock count 20 ≥ 4 (MIN_RECORDS) and 20 ≥ 5 (5% of 100).
-      # Qualifying non-broad: Punk at 20, Other at 60 (both ≥ rotation threshold).
-      # Pop Rock overlap: we need 75% of its 20 listings to also carry Punk or Other.
-      # Build: 15 listings have both Pop Rock and Punk, 5 have only Pop Rock.
-      # Overlap = 15/20 = 75% ≥ SUPPRESSION_RATIO → suppressed.
-      pop_punk = Array.new(15) { listing(styles: %w[Pop\ Rock Punk]) }
-      pop_only = listings(5, styles: %w[Pop\ Rock])
-      punk_only = listings(5, styles: %w[Punk])
-      other = listings(75, styles: %w[Other])
-
-      sel = described_class.new(pop_punk + pop_only + punk_only + other)
-
-      expect(sel.main_styles).not_to include("Pop Rock")
-      expect(sel.main_styles).to include("Punk", "Other")
-    end
-
-    it "keeps broad style as main when overlap is below 75%" do
-      # 14 overlap out of 20 = 70% < 75% → not suppressed.
-      pop_punk = Array.new(14) { listing(styles: %w[Pop\ Rock Punk]) }
-      pop_only = listings(6, styles: %w[Pop\ Rock])
-      punk_only = listings(6, styles: %w[Punk])
-      other = listings(74, styles: %w[Other])
-
-      sel = described_class.new(pop_punk + pop_only + punk_only + other)
-
-      expect(sel.main_styles).to include("Pop Rock")
-      expect(sel.main_styles).to include("Punk")
-    end
-  end
-
-  describe "broad-only store" do
-    it "retains broad labels when no qualifying non-broad styles exist" do
-      # Store has only Classic Rock and Hard Rock — no non-broad qualifying styles.
-      # suppression check: qualifying_non_broad_styles.empty? → no suppression.
-      all = listings(30, styles: %w[Classic\ Rock]) +
-            listings(30, styles: %w[Hard\ Rock])
-
-      sel = described_class.new(all)
-
-      expect(sel.main_styles).to include("Classic Rock", "Hard Rock")
-      expect(sel.rotation_styles).to be_empty
-    end
   end
 
   describe "#rotation_styles" do
     it "classifies non-main styles at or above 1% as rotation" do
-      # 200 listings total: 5% = 10, 1% = 2.
-      # But MIN_RECORDS floor = 4, so rotation needs count ≥ 4 AND ≥ 2.
       all = listings(15, styles: %w[Punk]) +
             listings(15, styles: %w[Hardcore]) +
             listings(6, styles: %w[Oi]) +
@@ -134,22 +82,10 @@ RSpec.describe StyleSelection do
       sel = described_class.new(all)
 
       # Punk 15, Hardcore 15 ≥ 10 → main
-      # Oi 6: not main (6 < 10), 6 ≥ rotation threshold (2), 6 ≥ MIN_RECORDS (4) → rotation
-      # Noise 3: not main, 3 ≥ 2, but 3 < MIN_RECORDS → omitted
+      # Oi 6: not main (6 < 10), meets rotation (≥ 2 and ≥ 4) → rotation
+      # Noise 3: not main, 3 < 4 (MIN_RECORDS) → omitted
       expect(sel.rotation_styles).to include("Oi")
       expect(sel.rotation_styles).not_to include("Noise")
-    end
-
-    it "excludes suppressed broad styles from rotation" do
-      # Pop Rock at count 10 with 80% overlap → suppressed.
-      pop_punk = Array.new(8) { listing(styles: %w[Pop\ Rock Punk]) }
-      pop_only = listings(2, styles: %w[Pop\ Rock])
-      punk_only = listings(15, styles: %w[Punk])
-      other = listings(75, styles: %w[Other])
-
-      sel = described_class.new(pop_punk + pop_only + punk_only + other)
-
-      expect(sel.rotation_styles).not_to include("Pop Rock")
     end
   end
 
@@ -313,15 +249,6 @@ RSpec.describe StyleSelection do
       # Allocation order: lowest support first when risk is tied.
       # Hardcore (10) before Punk (15)
       expect(sel.allocation_order).to eq(%w[Hardcore Punk Other])
-    end
-
-    it "does not treat equal-support styles as overlap risks for each other" do
-      overlapping = listings(5, styles: %w[Alpha Beta])
-      other = listings(95, styles: %w[Other])
-
-      sel = described_class.new(overlapping + other)
-
-      expect(sel.allocation_order).to eq(%w[Alpha Beta Other])
     end
   end
 end

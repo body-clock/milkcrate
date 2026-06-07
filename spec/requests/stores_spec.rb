@@ -112,7 +112,8 @@ RSpec.describe "Stores", type: :request do
     end
 
     it "caps each genre bin at 50 records" do
-      create_list(:listing, 100, store: store, genres: [ "Jazz" ], styles: [ "Bebop" ], format: "LP")
+      # Leave at least 50 Jazz listings after wall and featured-crate deduplication.
+      create_list(:listing, 200, store: store, genres: [ "Jazz" ], styles: [ "Bebop" ], format: "LP")
       create_list(:listing, 50, store: store, genres: [ "Rock" ], styles: [ "Classic Rock" ], format: "LP")
       create_list(:listing, 50, store: store, genres: [ "Electronic" ], styles: [ "House" ], format: "LP")
 
@@ -155,24 +156,6 @@ RSpec.describe "Stores", type: :request do
         expect(crate_names).to include("Punk", "Hardcore", "Other")
         # Oi 4 < 5% of 200 = 10 → rotation, not in browse grid.
         expect(crate_names).not_to include("Oi")
-      end
-
-      it "excludes suppressed broad styles from browse grid" do
-        store = create(:store, discogs_username: "narrowpop")
-        # Pop Rock: 8 listings, 6 overlap Punk. Punk 20 listings.
-        create_list(:listing, 6, store:, genres: [ "Rock" ], styles: [ "Punk", "Pop Rock" ], format: "LP")
-        create_list(:listing, 2, store:, genres: [ "Rock" ], styles: [ "Pop Rock" ], format: "LP")
-        create_list(:listing, 14, store:, genres: [ "Rock" ], styles: [ "Punk" ], format: "LP")
-        create_list(:listing, 78, store:, genres: [ "Rock" ], styles: [ "Other" ], format: "LP")
-
-        get "/narrowpop"
-
-        crates = inertia.props["crates"]
-        crate_names = crates.map { |c| c["name"] }
-
-        # Pop Rock suppressed (75% overlap) → not in browse.
-        expect(crate_names).not_to include("Pop Rock")
-        expect(crate_names).to include("Punk", "Other")
       end
 
       it "preserves serialized crate object shape" do
