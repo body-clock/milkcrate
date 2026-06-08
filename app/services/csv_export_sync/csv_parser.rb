@@ -51,6 +51,7 @@ module CsvExportSync
 
     def recover(body, error)
       return recover_newlines(body) if error.message.include?("Unquoted fields do not allow new line")
+      return recover_newlines(body) if error.message.include?("New line must be")
       return liberal_parse(body) if error.message.include?("Illegal quoting")
       raise
     end
