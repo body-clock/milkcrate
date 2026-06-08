@@ -38,6 +38,7 @@ gem "rotp"
 gem "rqrcode"
 gem "rack-attack"
 gem "bcrypt"
+gem "rubyzip"
 
 group :development, :test do
   gem "dotenv-rails"

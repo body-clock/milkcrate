@@ -57,7 +57,7 @@ module CsvExportSync
     end
 
     def recover_newlines(body)
-      repaired = body.gsub(/(?<!\r)\n/, " ")
+      repaired = body.gsub(/(?<!\r)\n/, " ").gsub(/\r(?!\n)/, " ")
       CSV.parse(repaired, headers: true)
     rescue CSV::MalformedCSVError => error
       raise unless error.message.include?("Illegal quoting")

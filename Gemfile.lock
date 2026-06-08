@@ -465,6 +465,7 @@ GEM
       simplecov (>= 0.22.0)
       tty-which (~> 0.5.0)
       virtus (~> 2.0)
+    rubyzip (3.3.1)
     securerandom (0.4.1)
     sexp_processor (4.17.5)
     simplecov (0.22.0)
@@ -596,6 +597,7 @@ DEPENDENCIES
   rspec-rails
   rubocop-rails-omakase
   rubycritic
+  rubyzip
   solid_cable
   solid_cache
   solid_queue

@@ -27,7 +27,7 @@ module Discogs
     def download_export(export_id)
       response = oauth_access_token.get("#{BASE_URL}/inventory/export/#{export_id}/download")
       validate_download_response(response)
-      response.body
+      extract_csv(response.body)
     end
 
     def recent_exports
@@ -49,6 +49,20 @@ module Discogs
       return if response.code.to_i == 200
 
       ApiResponseError.raise!(response, prefix: "Export download failed: HTTP #{response.code}")
+    end
+
+    def extract_csv(body)
+      return unzip_csv(body) if body.start_with?("PK")
+      body
+    end
+
+    def unzip_csv(body)
+      require "zip"
+      Zip::InputStream.open(StringIO.new(body)) do |stream|
+        entry = stream.get_next_entry
+        raise Errors::ApiError, "Empty ZIP from Discogs export" unless entry
+        stream.read
+      end
     end
 
     def build_orders_params(status:, page:, per_page:, sort:, sort_order:)
