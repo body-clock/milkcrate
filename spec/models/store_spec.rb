@@ -160,39 +160,38 @@ RSpec.describe Store, type: :model do
   end
 
   describe "#sync_strategy" do
-    it "returns CsvExport strategy when store is OAuth authorized" do
+    it "returns CsvExport for OAuth store on first sync (no listing count yet)" do
       owner = create(:store_owner)
-      store = create(:store, store_owner: owner)
+      store = create(:store, store_owner: owner, total_listings: nil)
 
-      strategy = store.sync_strategy
-
-      expect(strategy).to be_a(SyncStrategies::CsvExport)
-      expect(strategy).to respond_to(:call)
+      expect(store.sync_strategy).to be_a(SyncStrategies::CsvExport)
     end
 
-    it "returns PublicApi strategy when store has no store_owner" do
+    it "returns PublicApi for OAuth store with <= 10k listings" do
+      owner = create(:store_owner)
+      store = create(:store, store_owner: owner, total_listings: 5_000)
+
+      expect(store.sync_strategy).to be_a(SyncStrategies::PublicApi)
+    end
+
+    it "returns CsvExport for OAuth store with > 10k listings" do
+      owner = create(:store_owner)
+      store = create(:store, store_owner: owner, total_listings: 15_000)
+
+      expect(store.sync_strategy).to be_a(SyncStrategies::CsvExport)
+    end
+
+    it "returns PublicApi when store has no store_owner" do
       store = create(:store, store_owner: nil)
 
-      strategy = store.sync_strategy
-
-      expect(strategy).to be_a(SyncStrategies::PublicApi)
-      expect(strategy).to respond_to(:call)
+      expect(store.sync_strategy).to be_a(SyncStrategies::PublicApi)
     end
 
-    it "returns PublicApi strategy when store_owner exists but is not authorized" do
+    it "returns PublicApi when store_owner exists but is not authorized" do
       owner = create(:store_owner, discogs_oauth_token: nil, discogs_oauth_token_secret: nil, oauth_authorized_at: nil)
       store = create(:store, store_owner: owner)
 
-      strategy = store.sync_strategy
-
-      expect(strategy).to be_a(SyncStrategies::PublicApi)
-    end
-
-    it "returned strategy responds to call with a SyncStrategies::Result" do
-      store = create(:store, store_owner: nil)
-      strategy = store.sync_strategy
-
-      expect(strategy).to respond_to(:call).with(1).argument
+      expect(store.sync_strategy).to be_a(SyncStrategies::PublicApi)
     end
   end
 

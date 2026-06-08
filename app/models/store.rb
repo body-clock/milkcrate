@@ -47,12 +47,12 @@ class Store < ApplicationRecord
     listings.where(id: listing_ids)
   end
 
+  CSV_EXPORT_THRESHOLD = 10_000
+
   def sync_strategy
-    if oauth_authorized?
-      SyncStrategies::CsvExport.new
-    else
-      SyncStrategies::PublicApi.new
-    end
+    return SyncStrategies::PublicApi.new unless oauth_authorized?
+    return SyncStrategies::CsvExport.new if total_listings.nil? || total_listings > CSV_EXPORT_THRESHOLD
+    SyncStrategies::PublicApi.new
   end
 
   def increment_inventory_version!
