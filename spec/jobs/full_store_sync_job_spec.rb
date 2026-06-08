@@ -60,15 +60,6 @@ RSpec.describe FullStoreSyncJob do
           .to have_enqueued_job(EnrichmentJob).with(store.id, listing_ids: kind_of(Array))
       end
 
-      it "enqueues DailyCurationJob after sync" do
-        allow(mock_strategy).to receive(:call).with(store, hash_including(max_pages: nil))
-          .and_return(SyncStrategies::Result.new(listings: [], complete: false))
-
-        expect {
-          described_class.perform_now(store.id)
-        }.to have_enqueued_job(DailyCurationJob).with(store.id)
-      end
-
       it "does not enqueue EnrichmentJob when no listings changed" do
         allow(mock_strategy).to receive(:call).with(store, hash_including(max_pages: nil))
           .and_return(SyncStrategies::Result.new(listings: [], complete: false))
@@ -264,15 +255,6 @@ RSpec.describe FullStoreSyncJob do
 
         expect(store.sync_status).to eq("idle")
         expect(store.last_sync_error).to be_nil
-      end
-
-      it "enqueues DailyCurationJob after sync" do
-        allow(mock_strategy).to receive(:call).with(store, hash_including(max_pages: nil))
-          .and_return(SyncStrategies::Result.new(listings: [], complete: true))
-
-        expect {
-          described_class.perform_now(store.id)
-        }.to have_enqueued_job(DailyCurationJob).with(store.id)
       end
     end
   end

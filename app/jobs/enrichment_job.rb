@@ -30,6 +30,7 @@ class EnrichmentJob < ApplicationJob
     setup_progress(store)
     run_enrichment(store, listing_ids:)
     clear_progress(store)
+    DailyCurationJob.perform_later(store.id)
   end
 
   def log_failure(store_or_id, error)

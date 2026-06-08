@@ -2,7 +2,7 @@ InertiaRails.configure do |config|
   config.layout = "inertia_application"
 
   # Cache busting — ensures users get fresh JS after deployments
-  config.version = -> { ViteRuby.digest }
+  config.version = ViteRuby.digest
 
   # Flash keys are automatically shared as top-level props by Inertia Rails
   # Default: %i[notice alert] — accessible as page.props.notice, page.props.alert

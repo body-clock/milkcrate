@@ -7,7 +7,6 @@ module Discogs
     include RateLimit
 
     BASE_URL = "https://api.discogs.com"
-
     def initialize(access_token:, access_token_secret:)
       @access_token = access_token
       @access_token_secret = access_token_secret
@@ -17,7 +16,7 @@ module Discogs
       response = oauth_access_token.post("#{BASE_URL}/inventory/export")
       body = parse_oauth_response(response)
       export_id = extract_export_id(body) || extract_location_export_id(response)
-      export_id ? { "id" => export_id } : api_error(response)
+      export_id ? { "id" => export_id } : ApiResponseError.raise!(response)
     end
 
     def check_export_status(export_id)
@@ -27,7 +26,7 @@ module Discogs
 
     def download_export(export_id)
       response = oauth_access_token.get("#{BASE_URL}/inventory/export/#{export_id}/download")
-      raise Errors::ApiError, "Export download failed: HTTP #{response.code}" unless response.code.to_i == 200
+      validate_download_response(response)
       response.body
     end
 
@@ -45,6 +44,12 @@ module Discogs
     end
 
     private
+
+    def validate_download_response(response)
+      return if response.code.to_i == 200
+
+      ApiResponseError.raise!(response, prefix: "Export download failed: HTTP #{response.code}")
+    end
 
     def build_orders_params(status:, page:, per_page:, sort:, sort_order:)
       params = { page: page, per_page: per_page, sort: sort, sort_order: sort_order }
@@ -70,15 +75,16 @@ module Discogs
       code = response.code.to_i
       return { "status" => "not_modified" } if code == 304
       return raise Errors::RateLimitError, "Discogs rate limit hit" if code == 429
-      parsed = parse_response_body(response)
-      (200..299).include?(code) ? parsed : raise(Errors::ApiError, "Discogs API error: #{code} — #{response.body}")
+      return parse_response_body(response) if (200..299).include?(code)
+
+      ApiResponseError.raise!(response)
     end
 
     def parse_raw_body(body, response)
       raw = body.to_s
       raw.blank? ? {} : JSON.parse(raw)
     rescue JSON::ParserError
-      raise Errors::ApiError, "Discogs API error: #{response.code} — #{response.body}"
+      ApiResponseError.raise!(response)
     end
 
     def parse_response_body(response)
@@ -94,10 +100,6 @@ module Discogs
       when Array then body
       when Hash then body["exports"] || body["items"]
       end
-    end
-
-    def api_error(response)
-      raise Errors::ApiError, "Discogs API error: #{response.code} — #{response.body}"
     end
 
     def extract_export_id(body)
