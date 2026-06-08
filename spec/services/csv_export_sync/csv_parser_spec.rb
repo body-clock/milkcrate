@@ -84,59 +84,12 @@ RSpec.describe CsvExportSync::CsvParser do
       end
     end
 
-    context "with illegal quoting in a field" do
-      let(:csv_body) do
-        <<~CSV
-          #{csv_headers}
-          123,456,Artist "Name",Title,Label,CAT001,Vinyl,Very Good,12.99,2026-01-15,Great record,For Sale
-        CSV
-      end
-
-      it "parses with liberal quoting and preserves the field value" do
-        result = parser.call(csv_body, store_id: 1)
-
-        expect(result.records.one?).to be(true)
-        expect(result.records.first[:artist]).to eq('Artist "Name"')
-      end
-    end
-
-    context "with illegal quoting that liberal_parsing cannot recover from" do
+    context "with malformed CSV" do
       let(:csv_body) { "listing_id,title\n\"unclosed\n" }
 
       it "raises a ParseError" do
         expect { parser.call(csv_body, store_id: 1) }
           .to raise_error(CsvExportSync::ParseError, /CSV parsing failed/)
-      end
-    end
-
-    context "with a bare newline in an unquoted field from a CRLF export" do
-      let(:csv_body) do
-        [
-          csv_headers,
-          "123,456,Artist,Title,Label,CAT001,Vinyl,Very Good,12.99,2026-01-15,Line one\nLine two,For Sale"
-        ].join("\r\n")
-      end
-
-      it "flattens the newline and parses the listing" do
-        result = parser.call(csv_body, store_id: 1)
-
-        expect(result.records.one?).to be(true)
-        expect(result.records.first[:notes]).to eq("Line one Line two")
-      end
-    end
-
-    context "when mixed row endings would merge separate records" do
-      let(:csv_body) do
-        [
-          csv_headers,
-          "123,456,Artist,Title,Label,CAT001,Vinyl,Very Good,12.99,2026-01-15,,For Sale\n" \
-            "124,457,Artist 2,Title 2,Label,CAT002,Vinyl,Mint,10.00,2026-01-16,,For Sale"
-        ].join("\r\n")
-      end
-
-      it "rejects the malformed row instead of returning shifted data" do
-        expect { parser.call(csv_body, store_id: 1) }
-          .to raise_error(CsvExportSync::ParseError, /unexpected number of fields/)
       end
     end
   end

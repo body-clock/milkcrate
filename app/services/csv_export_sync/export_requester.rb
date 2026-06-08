@@ -85,7 +85,14 @@ module CsvExportSync
     end
 
     def download_export(export_id)
-      @client.download_export(export_id)
+      body = @client.download_export(export_id)
+      unzip_if_needed(body)
+    end
+
+    def unzip_if_needed(body)
+      return body unless body.start_with?("PK")
+      require "zip"
+      Zip::InputStream.open(StringIO.new(body)) { |s| s.get_next_entry && s.read } || raise(ExportError, "Empty ZIP from Discogs export")
     end
 
     def extract_export_id(response)

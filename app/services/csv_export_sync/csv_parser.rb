@@ -38,34 +38,9 @@ module CsvExportSync
     end
 
     def parse_records(csv_body, store_id:)
-      rows = try_parse(csv_body)
+      rows = CSV.parse(csv_body, headers: true)
       validate_row_widths(rows)
       rows.filter_map { |row| normalize_row(row, store_id:) }
-    end
-
-    def try_parse(body)
-      CSV.parse(body, headers: true)
-    rescue CSV::MalformedCSVError => error
-      recover(body, error)
-    end
-
-    def recover(body, error)
-      return recover_newlines(body) if error.message.include?("Unquoted fields do not allow new line")
-      return recover_newlines(body) if error.message.include?("New line must be")
-      return liberal_parse(body) if error.message.include?("Illegal quoting")
-      raise
-    end
-
-    def recover_newlines(body)
-      repaired = body.gsub(/(?<!\r)\n/, " ").gsub(/\r(?!\n)/, " ")
-      CSV.parse(repaired, headers: true)
-    rescue CSV::MalformedCSVError => error
-      raise unless error.message.include?("Illegal quoting")
-      liberal_parse(repaired)
-    end
-
-    def liberal_parse(body)
-      CSV.parse(body, headers: true, liberal_parsing: true)
     end
 
     def validate_row_widths(rows)
