@@ -20,7 +20,7 @@ vi.mock("@inertiajs/react", () => ({
 }));
 
 describe("owner dashboard", () => {
-  it("renders the sync error as concise prose", () => {
+  it("shows sync status without exposing raw error details", () => {
     render(
       <Dashboard
         store={{
@@ -31,22 +31,15 @@ describe("owner dashboard", () => {
           total_listings: 120,
           sync_status: "failed",
           last_synced_at: "2026-05-16T10:00:00Z",
-          last_sync_error_summary: "Discogs timeout",
           last_sync_error_at: "2026-05-16T11:00:00Z",
           oauth_authorized_at: "2026-05-16T09:00:00Z",
         }}
       />,
     );
 
-    expect(screen.getByRole("heading", { name: "Last sync error" })).toBeInTheDocument();
-    expect(screen.getByText("Discogs timeout")).toBeInTheDocument();
-    expect(document.querySelector("pre")).toBeNull();
-    expect(screen.getByText("Discogs timeout").closest("[role='alert']")).toHaveClass(
-      "text-mc-feedback-danger",
-    );
-    expect(screen.getByText("Sync failed").parentElement?.innerHTML).toContain(
-      "mc-feedback-danger",
-    );
+    expect(screen.getByText("Sync failed")).toBeInTheDocument();
+    expect(screen.queryByText("Discogs timeout")).toBeNull();
+    expect(screen.queryByRole("heading", { name: "Last sync error" })).toBeNull();
   });
 
   it("uses the shared shell landmark and skip-navigation contract", () => {
@@ -60,7 +53,6 @@ describe("owner dashboard", () => {
           total_listings: 120,
           sync_status: "idle",
           last_synced_at: null,
-          last_sync_error_summary: null,
           last_sync_error_at: null,
           oauth_authorized_at: null,
         }}
