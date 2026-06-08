@@ -19,14 +19,14 @@ RSpec.describe "Dashboard", type: :request do
   end
 
   describe "GET /dashboard" do
-    it "renders a sanitized sync error summary for the owner" do
+    it "exposes sync error timestamp without raw error details" do
       get "/dashboard"
 
       expect(response).to have_http_status(:ok)
       expect(inertia).to render_component("dashboard/index")
-      expect(inertia.props[:store]["last_sync_error_summary"]).to eq("Discogs timeout")
       expect(inertia.props[:store]["last_sync_error_at"]).to eq(store.last_sync_error_at.iso8601(3))
-      expect(inertia.props[:store]).not_to include("last_sync_error", "discogs_oauth_token", "discogs_oauth_token_secret")
+      expect(inertia.props[:store]).not_to include("last_sync_error_summary", "last_sync_error",
+        "discogs_oauth_token", "discogs_oauth_token_secret")
     end
   end
 
