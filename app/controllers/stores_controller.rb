@@ -87,7 +87,6 @@ class StoresController < ApplicationController
       description: store.description,
       total_listings: store.total_listings || store.listings.count,
       sync_status: store.sync_status,
-      last_sync_error_at: store.last_sync_error_at,
       enrichment_status: store.enrichment_status,
       last_enriched_at: store.last_enriched_at,
       oauth_authorized: store.oauth_authorized?,

@@ -14,7 +14,6 @@ class DashboardPresenter
         total_listings: @store.total_listings,
         sync_status: @store.sync_status,
         last_synced_at: @store.last_synced_at,
-        last_sync_error_summary: sync_error_summary,
         last_sync_error_at: @store.last_sync_error_at,
         oauth_authorized_at: @store.oauth_authorized_at
       }
@@ -25,12 +24,5 @@ class DashboardPresenter
 
   def store_path(username)
     "/#{username}"
-  end
-
-  def sync_error_summary
-    summary = @store.last_sync_error.to_s.lines.first&.strip
-    return nil if summary.blank?
-
-    summary.sub(/\A[^:]+:\s*/, "")
   end
 end

@@ -1,7 +1,6 @@
 import type { DashboardProps } from "@/types/inertia";
 
 import StoreInfoCard from "./store_info_card";
-import SyncErrorCard from "./sync_error_card";
 import { handleResync } from "./use_resync";
 import WelcomeCard from "./welcome_card";
 
@@ -53,9 +52,6 @@ export default function DashboardCards({
         submitting={submitting}
         onResync={() => handleResync(setSubmitting)}
       />
-      {store.last_sync_error_summary && (
-        <SyncErrorCard summary={store.last_sync_error_summary} errorAt={store.last_sync_error_at} />
-      )}
     </div>
   );
 }

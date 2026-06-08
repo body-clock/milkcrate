@@ -84,7 +84,23 @@ RSpec.describe CsvExportSync::CsvParser do
       end
     end
 
-    context "with malformed CSV" do
+    context "with illegal quoting in a field" do
+      let(:csv_body) do
+        <<~CSV
+          #{csv_headers}
+          123,456,Artist "Name",Title,Label,CAT001,Vinyl,Very Good,12.99,2026-01-15,Great record,For Sale
+        CSV
+      end
+
+      it "parses with liberal quoting and preserves the field value" do
+        result = parser.call(csv_body, store_id: 1)
+
+        expect(result.records.one?).to be(true)
+        expect(result.records.first[:artist]).to eq('Artist "Name"')
+      end
+    end
+
+    context "with illegal quoting that liberal_parsing cannot recover from" do
       let(:csv_body) { "listing_id,title\n\"unclosed\n" }
 
       it "raises a ParseError" do

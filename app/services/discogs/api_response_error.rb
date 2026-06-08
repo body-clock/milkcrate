@@ -31,7 +31,7 @@ module Discogs
     end
 
     def excerpt
-      @excerpt ||= @response.body.to_s
+      @response.body.to_s
         .encode("UTF-8", invalid: :replace, undef: :replace)
         .squish
         .truncate(BODY_LIMIT)
