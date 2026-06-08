@@ -73,6 +73,16 @@ RSpec.describe Discogs::Marketplace do
 
       expect { client.download_export(42) }.to raise_error(Discogs::Errors::ApiError, /HTTP 500/)
     end
+
+    it "classifies 5xx responses as transient and truncates the response body" do
+      response = oauth_response(code: 502, body: "<!DOCTYPE html>#{'x' * 10_000}")
+      allow(oauth_access_token).to receive(:get).and_return(response)
+
+      expect { client.download_export(42) }
+        .to raise_error(Discogs::Errors::TransientApiError) { |error|
+          expect(error.message.length).to be < 600
+        }
+    end
   end
 
   describe "#recent_exports" do
@@ -167,6 +177,17 @@ RSpec.describe Discogs::Marketplace do
       allow(oauth_access_token).to receive(:get).and_return(response)
 
       expect { client.list_orders }.to raise_error(Discogs::Errors::ApiError)
+    end
+
+    it "classifies HTML 5xx responses as transient without including the full body" do
+      response = oauth_response(code: 502, body: "<!DOCTYPE html>#{'x' * 10_000}")
+      allow(oauth_access_token).to receive(:get).and_return(response)
+
+      expect { client.list_orders }
+        .to raise_error(Discogs::Errors::TransientApiError) { |error|
+          expect(error.message).to include("Discogs API error: 502")
+          expect(error.message.length).to be < 600
+        }
     end
 
     it "returns parsed orders on success" do

@@ -80,6 +80,25 @@ RSpec.describe SalesPollStoreJob do
         }.to raise_error(StandardError, "API error")
       end
     end
+
+    context "when Discogs has a transient failure" do
+      before do
+        allow(poller).to receive(:call).and_raise(
+          Discogs::Errors::TransientApiError,
+          "Discogs API error: 502"
+        )
+      end
+
+      it "logs the failure without reporting the expected upstream outage" do
+        expect(Rails.logger).to receive(:warn).with(
+          /transient Discogs failure for store #{store.id}: Discogs API error: 502/
+        )
+
+        expect {
+          described_class.new.perform(store.id)
+        }.not_to raise_error
+      end
+    end
   end
 
   describe "concurrency key" do

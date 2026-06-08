@@ -49,7 +49,6 @@ class FullStoreSyncJob < ApplicationJob
 
   def dispatch_followup_jobs(store, listing_ids)
     EnrichmentJob.perform_later(store.id, listing_ids:) if listing_ids.any?
-    DailyCurationJob.perform_later(store.id)
   end
 
   def sync_manager(store)

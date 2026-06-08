@@ -22,6 +22,14 @@ RSpec.describe EnrichmentJob do
       described_class.perform_now(store.id)
     end
 
+    it "enqueues DailyCurationJob after successful enrichment" do
+      allow(service).to receive(:enrich_store).with(store, listing_ids: nil)
+
+      expect {
+        described_class.perform_now(store.id)
+      }.to have_enqueued_job(DailyCurationJob).with(store.id)
+    end
+
     it "logs the loaded store username when enrichment fails" do
       allow(Rails.logger).to receive(:error)
       allow(service).to receive(:enrich_store).with(store, listing_ids: nil)

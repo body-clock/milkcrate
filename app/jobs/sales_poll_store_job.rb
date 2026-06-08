@@ -5,14 +5,29 @@ class SalesPollStoreJob < ApplicationJob
   queue_as :default
 
   def perform(store_id)
-    store = Store.find(store_id)
-    result = StoreSales::OrderPoller.new(store).call
-    enqueue_curation_if_needed(store, result)
+    poll_store(Store.find(store_id))
   rescue ActiveRecord::RecordNotFound
-    Rails.logger.warn("[SalesPollStoreJob] store #{store_id} not found, discarding")
+    log_missing_store(store_id)
+  rescue Discogs::Errors::TransientApiError => error
+    log_transient_failure(store_id, error)
   end
 
   private
+
+  def poll_store(store)
+    result = StoreSales::OrderPoller.new(store).call
+    enqueue_curation_if_needed(store, result)
+  end
+
+  def log_missing_store(store_id)
+    Rails.logger.warn("[SalesPollStoreJob] store #{store_id} not found, discarding")
+  end
+
+  def log_transient_failure(store_id, error)
+    Rails.logger.warn(
+      "[SalesPollStoreJob] transient Discogs failure for store #{store_id}: #{error.message}"
+    )
+  end
 
   def enqueue_curation_if_needed(store, result)
     return unless result && result[:removed_count] > 0
