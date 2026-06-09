@@ -1,100 +1,132 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import type { ExploreSearchResponse, ExploreState } from "./types";
 
-interface UseExploreSearchOptions {
-  endpoint: string;
-  debounceMs?: number;
+function url(e: string, q: string): string {
+  return new URL(e, window.location.origin).toString() + "?q=" + encodeURIComponent(q);
 }
 
-interface UseExploreSearchResult {
+const S429 = 429;
+const DB = 300;
+
+function parse(r: Response) {
+  if (r.ok) {
+    return r.json() as Promise<ExploreSearchResponse>;
+  }
+  throw new Error(r.status === S429 ? "Too many requests." : "Search failed.");
+}
+
+function onData(
+  d: ExploreSearchResponse,
+  q: string,
+  f: (s: ExploreState) => void,
+  ref: React.MutableRefObject<string>,
+) {
+  if (ref.current !== q) {
+    return;
+  }
+  f(
+    d.results.length === 0
+      ? { status: "empty", query: q }
+      : { status: "results", results: d.results, total: d.total, query: q },
+  );
+}
+
+function onCatch(
+  e: unknown,
+  q: string,
+  f: (s: ExploreState) => void,
+  ref: React.MutableRefObject<string>,
+) {
+  if (e instanceof DOMException && e.name === "AbortError") {
+    return;
+  }
+  if (ref.current !== q) {
+    return;
+  }
+  f({
+    status: "error",
+    message: e instanceof Error ? e.message : "Something went wrong.",
+    query: q,
+  });
+}
+
+function exec(p: {
+  endpoint: string;
+  q: string;
+  f: (s: ExploreState) => void;
+  abort: React.MutableRefObject<AbortController | null>;
+  latest: React.MutableRefObject<string>;
+}) {
+  const { endpoint, q, f, abort, latest } = p;
+  abort.current?.abort();
+  abort.current = new AbortController();
+  f({ status: "loading" });
+  latest.current = q;
+  fetch(url(endpoint, q), { signal: abort.current.signal })
+    .then(parse)
+    .then((d) => onData(d, q, f, latest))
+    .catch((e) => onCatch(e, q, f, latest));
+}
+
+function searchFn(p: {
+  endpoint: string;
+  setState: React.Dispatch<React.SetStateAction<ExploreState>>;
+  timerRef: React.MutableRefObject<ReturnType<typeof setTimeout> | null>;
+  abortRef: React.MutableRefObject<AbortController | null>;
+  latestRef: React.MutableRefObject<string>;
+}) {
+  const { endpoint, setState, timerRef, abortRef, latestRef } = p;
+  return (query: string) => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+    const q = query.trim();
+    if (q) {
+      timerRef.current = setTimeout(
+        () => exec({ endpoint, q, f: setState, abort: abortRef, latest: latestRef }),
+        DB,
+      );
+    } else {
+      setState({ status: "idle" });
+    }
+  };
+}
+
+function resetFn(
+  setState: React.Dispatch<React.SetStateAction<ExploreState>>,
+  abortRef: React.MutableRefObject<AbortController | null>,
+  timerRef: React.MutableRefObject<ReturnType<typeof setTimeout> | null>,
+) {
+  return () => {
+    abortRef.current?.abort();
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+    setState({ status: "idle" });
+  };
+}
+
+export function useExploreSearch({ endpoint }: { endpoint: string }): {
   state: ExploreState;
   search: (query: string) => void;
   reset: () => void;
-}
-
-function buildSearchUrl(endpoint: string, query: string): string {
-  const url = new URL(endpoint, window.location.origin);
-  url.searchParams.set("q", query);
-  return url.toString();
-}
-
-export function useExploreSearch({
-  endpoint,
-  debounceMs = 300,
-}: UseExploreSearchOptions): UseExploreSearchResult {
+} {
   const [state, setState] = useState<ExploreState>({ status: "idle" });
   const abortRef = useRef<AbortController | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const latestQueryRef = useRef<string>("");
-
-  // Cleanup on unmount
+  const latestRef = useRef<string>("");
   useEffect(() => {
+    const ac = abortRef.current,
+      tm = timerRef.current;
     return () => {
-      abortRef.current?.abort();
-      if (timerRef.current) clearTimeout(timerRef.current);
+      ac?.abort();
+      if (tm) {
+        clearTimeout(tm);
+      }
     };
   }, []);
-
-  const performFetch = useCallback(
-    (query: string) => {
-      latestQueryRef.current = query;
-
-      // Cancel any in-flight request
-      abortRef.current?.abort();
-      const controller = new AbortController();
-      abortRef.current = controller;
-
-      setState({ status: "loading" });
-
-      fetch(buildSearchUrl(endpoint, query), { signal: controller.signal })
-        .then(async (res) => {
-          if (!res.ok) {
-            throw new Error(res.status === 429 ? "Too many requests. Please wait." : "Search failed. Please try again.");
-          }
-          return res.json() as Promise<ExploreSearchResponse>;
-        })
-        .then((data) => {
-          // Only apply if this is still the latest query
-          if (latestQueryRef.current !== query) return;
-          if (data.results.length === 0) {
-            setState({ status: "empty", query });
-          } else {
-            setState({ status: "results", results: data.results, total: data.total, query });
-          }
-        })
-        .catch((err: unknown) => {
-          if (err instanceof DOMException && err.name === "AbortError") return;
-          if (latestQueryRef.current !== query) return;
-          const message =
-            err instanceof Error ? err.message : "Something went wrong. Please try again.";
-          setState({ status: "error", message, query });
-        });
-    },
-    [endpoint],
-  );
-
-  const search = useCallback(
-    (query: string) => {
-      // Clear any pending debounce timer
-      if (timerRef.current) clearTimeout(timerRef.current);
-
-      const trimmed = query.trim();
-      if (!trimmed) {
-        setState({ status: "idle" });
-        return;
-      }
-
-      timerRef.current = setTimeout(() => performFetch(trimmed), debounceMs);
-    },
-    [debounceMs, performFetch],
-  );
-
-  const reset = useCallback(() => {
-    abortRef.current?.abort();
-    if (timerRef.current) clearTimeout(timerRef.current);
-    setState({ status: "idle" });
-  }, []);
-
+  const search = searchFn({ endpoint, setState, timerRef, abortRef, latestRef });
+  const reset = resetFn(setState, abortRef, timerRef);
   return { state, search, reset };
 }
