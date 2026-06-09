@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import Explore from "../index";
+import Explore from "@/pages/explore";
 
 vi.mock("@/components/storefront_motion_config", () => ({
   default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -11,10 +11,16 @@ vi.mock("@/components/storefront_motion_config", () => ({
 }));
 
 const SEARCH_ENDPOINT = "/api/explore/search";
+const HTTP_OK = 200;
+const HTTP_429 = 429;
+const HTTP_500 = 500;
+const DEBOUNCE_MS = 3e2;
+const HTTP_MAX_SUCCESS = 300;
+const DEBOUNCE_WHITESPACE_MS = 350;
 
-function mockFetchResponse(data: unknown, status = 200) {
+function mockFetchResponse(data: unknown, status = HTTP_OK) {
   return vi.fn().mockResolvedValue({
-    ok: status >= 200 && status < 300,
+    ok: status >= HTTP_OK && status < HTTP_MAX_SUCCESS,
     status,
     json: () => Promise.resolve(data),
   });
@@ -75,7 +81,7 @@ describe("Explore page", () => {
 
       const input = screen.getByRole("searchbox");
       await user.type(input, "jazz");
-      vi.advanceTimersByTime(300);
+      vi.advanceTimersByTime(DEBOUNCE_MS);
 
       await waitFor(() => {
         expect(screen.getByRole("status", { name: "Searching" })).toBeInTheDocument();
@@ -126,7 +132,7 @@ describe("Explore page", () => {
 
       const input = screen.getByRole("searchbox");
       await user.type(input, "jazz");
-      vi.advanceTimersByTime(300);
+      vi.advanceTimersByTime(DEBOUNCE_MS);
 
       await waitFor(() => {
         expect(screen.getByText('Found 2 results for "jazz"')).toBeInTheDocument();
@@ -152,7 +158,7 @@ describe("Explore page", () => {
 
       const input = screen.getByRole("searchbox");
       await user.type(input, "zzzzz");
-      vi.advanceTimersByTime(300);
+      vi.advanceTimersByTime(DEBOUNCE_MS);
 
       await waitFor(() => {
         expect(screen.getByText(/No results found/)).toBeInTheDocument();
@@ -162,14 +168,14 @@ describe("Explore page", () => {
     });
 
     it("shows error state when the API returns an error", async () => {
-      globalThis.fetch = mockFetchResponse({ error: "Server error" }, 500);
+      globalThis.fetch = mockFetchResponse({ error: "Server error" }, HTTP_500);
       const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
 
       render(<Explore searchEndpoint={SEARCH_ENDPOINT} placeholder="Search records..." />);
 
       const input = screen.getByRole("searchbox");
       await user.type(input, "jazz");
-      vi.advanceTimersByTime(300);
+      vi.advanceTimersByTime(DEBOUNCE_MS);
 
       await waitFor(() => {
         expect(screen.getByText("Search failed. Please try again.")).toBeInTheDocument();
@@ -179,14 +185,14 @@ describe("Explore page", () => {
     });
 
     it("shows rate limit error when API returns 429", async () => {
-      globalThis.fetch = mockFetchResponse({ error: "Too many requests" }, 429);
+      globalThis.fetch = mockFetchResponse({ error: "Too many requests" }, HTTP_429);
       const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
 
       render(<Explore searchEndpoint={SEARCH_ENDPOINT} placeholder="Search records..." />);
 
       const input = screen.getByRole("searchbox");
       await user.type(input, "jazz");
-      vi.advanceTimersByTime(300);
+      vi.advanceTimersByTime(DEBOUNCE_MS);
 
       await waitFor(() => {
         expect(screen.getByText("Too many requests. Please wait.")).toBeInTheDocument();
@@ -202,7 +208,7 @@ describe("Explore page", () => {
 
       const input = screen.getByRole("searchbox");
       await user.type(input, "   ");
-      vi.advanceTimersByTime(350);
+      vi.advanceTimersByTime(DEBOUNCE_WHITESPACE_MS);
 
       expect(fetchMock).not.toHaveBeenCalled();
       expect(screen.getByText("Search vinyl records from across the market")).toBeInTheDocument();
@@ -216,7 +222,7 @@ describe("Explore page", () => {
 
       const input = screen.getByRole("searchbox");
       await user.type(input, "jazz");
-      vi.advanceTimersByTime(300);
+      vi.advanceTimersByTime(DEBOUNCE_MS);
 
       await waitFor(() => {
         expect(screen.getByRole("searchbox")).toBeDisabled();
@@ -251,7 +257,7 @@ describe("Explore page", () => {
 
       const input = screen.getByRole("searchbox");
       await user.type(input, "artist");
-      vi.advanceTimersByTime(300);
+      vi.advanceTimersByTime(DEBOUNCE_MS);
 
       await waitFor(() => {
         expect(screen.getByText('Found 1 result for "artist"')).toBeInTheDocument();
