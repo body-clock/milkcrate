@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "CSV export sync pipeline", type: :request do
-  let(:store) { create(:store, :oauth_authorized, discogs_username: "teststore") }
+  let(:store) { create(:store, :oauth_authorized, discogs_username: "teststore", total_listings: nil) }
   let(:discogs_client) { instance_double(DiscogsClient) }
 
   # A realistic Discogs CSV export
@@ -17,6 +17,7 @@ RSpec.describe "CSV export sync pipeline", type: :request do
 
   describe "full sync from export to listings" do
     before do
+      allow(discogs_client).to receive(:seller_inventory).and_return({ "pagination" => { "pages" => 1 } })
       allow(discogs_client).to receive(:inventory_export).and_return({ "id" => 42 })
       allow(discogs_client).to receive(:check_export_status).with(42).and_return({ "status" => "completed" })
       allow(discogs_client).to receive(:download_export).with(42).and_return(sample_csv)
@@ -47,6 +48,12 @@ RSpec.describe "CSV export sync pipeline", type: :request do
 
     it "is idempotent — re-syncing doesn't duplicate listings" do
       FullStoreSyncJob.perform_now(store.id)
+
+      # After first sync, total_listings updates → sync_strategy would switch to PublicApi.
+      # Force CsvExport for the re-sync to test idempotent CSV behavior.
+      allow_any_instance_of(Store).to receive(:sync_strategy)
+        .and_return(SyncStrategies::CsvExport.new(client: discogs_client))
+
       expect {
         FullStoreSyncJob.perform_now(store.id)
       }.not_to change(store.listings, :count)
@@ -58,6 +65,8 @@ RSpec.describe "CSV export sync pipeline", type: :request do
       listing = store.listings.find_by!(discogs_listing_id: "1001")
       listing.update!(price: 0.01)
 
+      allow_any_instance_of(Store).to receive(:sync_strategy)
+        .and_return(SyncStrategies::CsvExport.new(client: discogs_client))
       FullStoreSyncJob.perform_now(store.id)
 
       listing.reload
@@ -67,6 +76,7 @@ RSpec.describe "CSV export sync pipeline", type: :request do
 
   describe "FullStoreSyncJob integration" do
     before do
+      allow(discogs_client).to receive(:seller_inventory).and_return({ "pagination" => { "pages" => 1 } })
       allow(discogs_client).to receive(:inventory_export).and_return({ "id" => 42 })
       allow(discogs_client).to receive(:check_export_status).with(42).and_return({ "status" => "completed" })
       allow(discogs_client).to receive(:download_export).with(42).and_return(sample_csv)
@@ -82,6 +92,7 @@ RSpec.describe "CSV export sync pipeline", type: :request do
 
   describe "dashboard after sync" do
     before do
+      allow(discogs_client).to receive(:seller_inventory).and_return({ "pagination" => { "pages" => 1 } })
       allow(discogs_client).to receive(:inventory_export).and_return({ "id" => 42 })
       allow(discogs_client).to receive(:check_export_status).with(42).and_return({ "status" => "completed" })
       allow(discogs_client).to receive(:download_export).with(42).and_return(sample_csv)
@@ -105,6 +116,7 @@ RSpec.describe "CSV export sync pipeline", type: :request do
   describe "error handling" do
     context "when the complete export is empty" do
       before do
+        allow(discogs_client).to receive(:seller_inventory).and_return({ "pagination" => { "pages" => 1 } })
         allow(discogs_client).to receive(:inventory_export).and_return({ "id" => 42 })
         allow(discogs_client).to receive(:check_export_status).with(42).and_return({ "status" => "completed" })
         allow(discogs_client).to receive(:download_export).with(42).and_return("")
@@ -121,6 +133,7 @@ RSpec.describe "CSV export sync pipeline", type: :request do
 
     context "when Discogs export fails" do
       before do
+        allow(discogs_client).to receive(:seller_inventory).and_return({ "pagination" => { "pages" => 1 } })
         allow(discogs_client).to receive(:inventory_export).and_raise(DiscogsClient::ApiError, "Export failed")
         allow(DiscogsClient).to receive(:new).and_return(discogs_client)
       end
@@ -138,6 +151,7 @@ RSpec.describe "CSV export sync pipeline", type: :request do
 
     context "when CSV is malformed" do
       before do
+        allow(discogs_client).to receive(:seller_inventory).and_return({ "pagination" => { "pages" => 1 } })
         allow(discogs_client).to receive(:inventory_export).and_return({ "id" => 42 })
         allow(discogs_client).to receive(:check_export_status).with(42).and_return({ "status" => "completed" })
         allow(discogs_client).to receive(:download_export).with(42).and_return("listing_id,title\n\"unclosed\n")
