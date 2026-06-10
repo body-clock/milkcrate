@@ -9,7 +9,7 @@ gem "tailwindcss-rails"
 # HTTP client for Discogs API
 gem "faraday"
 gem "faraday-retry"
-gem "oauth"
+gem "oauth", ">= 1.1.6"
 gem "csv"
 
 gem "honeybadger", "~> 6.6"
