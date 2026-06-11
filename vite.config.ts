@@ -12,4 +12,7 @@ export default defineConfig({
       "@": path.resolve(__dirname, "app/frontend"),
     },
   },
+  optimizeDeps: {
+    include: ["framer-motion"],
+  },
 });

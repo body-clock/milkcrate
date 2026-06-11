@@ -25,7 +25,7 @@ RSpec.describe "Explore", type: :request do
       get "/explore"
 
       names = inertia.props[:stores].map { |s| s[:name] }
-      expect(names).to eq(["Alpha Records", "Beta Music", "Zulu Records"])
+      expect(names).to eq([ "Alpha Records", "Beta Music", "Zulu Records" ])
     end
 
     it "includes id, name, discogs_username, and total_listings for each store" do
