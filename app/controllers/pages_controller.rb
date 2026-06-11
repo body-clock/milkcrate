@@ -32,7 +32,12 @@ class PagesController < ApplicationController
   def page_seo_for(action)
     seo = SEO_CONFIG[action] || {}
     seo = seo.merge(meta_robots: "noindex") if action == "apply"
+    seo = seo.merge(head_html: home_json_ld_html) if action == "home"
     seo
+  end
+
+  def home_json_ld_html
+    %(<script type="application/ld+json">#{seo_home_json_ld}</script>)
   end
 
   SEO_CONFIG = {

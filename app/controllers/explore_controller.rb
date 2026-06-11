@@ -13,7 +13,12 @@ class ExploreController < ApplicationController
   private
 
   def set_explore_seo
-    @page_seo = I18n.t("pages.seo.explore")
+    @page_seo = I18n.t("pages.seo.explore").merge(head_html: explore_json_ld_html)
+  end
+
+  def explore_json_ld_html
+    stores = stores_data rescue []
+    %(<script type="application/ld+json">#{seo_explore_json_ld(stores)}</script>)
   end
 
   def render_explore_error
