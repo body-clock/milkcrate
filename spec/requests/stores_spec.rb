@@ -58,7 +58,7 @@ RSpec.describe "Stores", type: :request do
       it "includes SEO metadata with store title, OG tags, and JSON-LD" do
         get "/teststore"
 
-        expect(response.body).to include("<title>Test Store Vinyl Records — Milkcrate</title>")
+        expect(response.body).to include("<title>Test Store Vinyl Records")
         expect(response.body).to include('<meta name="description"')
         expect(response.body).to include('<meta property="og:title"')
         expect(response.body).to include('<meta property="og:description"')

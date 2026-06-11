@@ -67,6 +67,13 @@ en:
       apply:
         title: "Claim Your Record Store — Milkcrate"
         meta_description: "Turn your Discogs inventory into a browsable storefront. Join record stores on Milkcrate."
+      store:
+        narrow_title: "%{store_name} — %{genre} Vinyl Records on Milkcrate"
+        broad_title: "%{store_name} Vinyl Records — Browse on Milkcrate"
+        narrow_description: "Browse %{store_name}'s %{genre} vinyl collection on Milkcrate — %{count} records. A %{genre}-focused Discogs store."
+        broad_description: "Browse %{store_name}'s curated vinyl collection on Milkcrate — %{count} records across %{genres}. Discover records from this Discogs seller."
+        broad_description_no_genres: "Browse %{store_name}'s curated vinyl collection on Milkcrate — %{count} records. Discover records from this Discogs seller."
+        philly_suffix: " Philadelphia-based record store."
     apply:
       headline: "Get your store on Milkcrate"
       subhead: "We're onboarding stores one at a time. Fill this out and we'll be in touch."
