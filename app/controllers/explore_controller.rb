@@ -17,12 +17,12 @@ class ExploreController < ApplicationController
   end
 
   def explore_json_ld_html
-    stores = stores_data rescue []
+    stores = stores_data
     %(<script type="application/ld+json">#{seo_explore_json_ld(stores)}</script>)
   end
 
   def render_explore_error
-    set_explore_seo
+    @page_seo = I18n.t("pages.seo.explore")
     render inertia: "explore", props: { stores: [], error: "We couldn't load the store directory right now. Please try again shortly." }
   end
 

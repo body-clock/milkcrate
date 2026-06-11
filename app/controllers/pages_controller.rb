@@ -30,7 +30,7 @@ class PagesController < ApplicationController
   end
 
   def page_seo_for(action)
-    seo = SEO_CONFIG[action] || {}
+    seo = I18n.t("pages.seo.#{action}", default: {})
     seo = seo.merge(meta_robots: "noindex") if action == "apply"
     seo = seo.merge(head_html: home_json_ld_html) if action == "home"
     seo
@@ -39,9 +39,4 @@ class PagesController < ApplicationController
   def home_json_ld_html
     %(<script type="application/ld+json">#{seo_home_json_ld}</script>)
   end
-
-  SEO_CONFIG = {
-    "home" => I18n.t("pages.seo.home"),
-    "apply" => I18n.t("pages.seo.apply")
-  }.freeze
 end

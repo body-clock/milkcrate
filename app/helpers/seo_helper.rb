@@ -42,13 +42,14 @@ module SeoHelper
 
   def seo_explore_json_ld(stores)
     items = stores.map.with_index(1) do |store, i|
+      s = store.with_indifferent_access
       {
         "@type": "ListItem",
         position: i,
         item: {
           "@type": "LocalBusiness",
-          name: store[:name] || store["name"],
-          url: store_url(store[:discogs_username] || store["discogs_username"])
+          name: s[:name],
+          url: store_url(s[:discogs_username])
         }
       }
     end
@@ -98,6 +99,7 @@ module SeoHelper
   end
 
   def genre_diversity(store)
-    GenreDiversityAnalyzer.new(store: store).call
+    @genre_diversity ||= {}
+    @genre_diversity[store.id] ||= GenreDiversityAnalyzer.new(store: store).call
   end
 end
