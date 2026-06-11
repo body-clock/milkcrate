@@ -5,7 +5,7 @@ RSpec.describe SeoHelper, type: :helper do
 
   def create_listings(genres_by_count)
     genres_by_count.each do |genre, count|
-      count.times { create(:listing, store: store, genres: [genre]) }
+      count.times { create(:listing, store: store, genres: [ genre ]) }
     end
   end
 
@@ -55,11 +55,21 @@ RSpec.describe SeoHelper, type: :helper do
     end
 
     it "appends Philadelphia location for Philly-based stores" do
-      skip "location column not yet added — see U5"
+      store.update_column(:location, "Philadelphia, PA")
+      create_listings("Techno" => 3)
+
+      desc = helper.seo_description(store)
+
+      expect(desc).to include(I18n.t("pages.seo.store.philly_suffix").strip)
     end
 
     it "does not append Philadelphia for non-Philly stores" do
-      skip "location column not yet added — see U5"
+      store.update_column(:location, "New York, NY")
+      create_listings("Techno" => 3)
+
+      desc = helper.seo_description(store)
+
+      expect(desc).not_to include("Philadelphia-based")
     end
   end
 
@@ -74,7 +84,7 @@ RSpec.describe SeoHelper, type: :helper do
     end
 
     it "includes store name and URL" do
-      create(:listing, store: store, genres: ["Techno"])
+      create(:listing, store: store, genres: [ "Techno" ])
 
       json_ld = helper.seo_store_json_ld(store)
 
