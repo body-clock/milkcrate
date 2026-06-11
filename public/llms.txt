@@ -1,0 +1,17 @@
+# Milkcrate
+
+> Browse vinyl records like a record store. Curated Discogs storefronts for independent record shops.
+
+Milkcrate uses Ruby on Rails with Inertia.js and React. Store pages are server-rendered with JSON-LD structured data for machine consumption.
+
+## Stores
+
+- [Philadelphia Music](/philadelphiamusic): 90,000+ vinyl records across Electronic, Rock, Jazz
+- [Super Micah](/supermicah): Techno and electronic vinyl specialist
+- [Browse all stores](/explore)
+
+## Info
+
+- Store pages include JSON-LD structured data (LocalBusiness, ItemList, BreadcrumbList) for search engines and AI crawlers
+- All public pages are server-rendered via Inertia SSR — no JavaScript required for crawlers
+- sitemap.xml available at /sitemap.xml.gz
