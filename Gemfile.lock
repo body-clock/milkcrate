@@ -197,7 +197,7 @@ GEM
       activesupport (>= 6.1)
     hashie (5.1.0)
       logger
-    honeybadger (6.6.2)
+    honeybadger (6.9.0)
       logger
       ostruct
     i18n (1.14.8)
@@ -581,7 +581,7 @@ DEPENDENCIES
   factory_bot_rails
   faraday
   faraday-retry
-  honeybadger (~> 6.6)
+  honeybadger (~> 6.9)
   inertia_rails
   inertia_rails-contrib
   kamal
