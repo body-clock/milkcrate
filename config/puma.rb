@@ -32,6 +32,7 @@ threads threads_count, threads_count
 port ENV.fetch("PORT", 3000)
 
 # Allow puma to be restarted by `bin/rails restart` command.
+plugin :inertia_ssr
 plugin :tmp_restart
 
 # Run the Solid Queue supervisor inside of Puma for single-server deployments.
