@@ -2,7 +2,6 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { Listing } from "../../types/inertia";
 import { makeListing, renderPileSheet } from "../../test/shared/pile_sheet_test_helpers";
 
 const mockedPage = vi.hoisted(() => ({

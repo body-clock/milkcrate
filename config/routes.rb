@@ -33,6 +33,8 @@ Rails.application.routes.draw do
 
   root "pages#home"
 
+  get  "/explore", to: "explore#index"
+
   get  "/apply",   to: "pages#apply"
   post "/apply", to: "waitlists#create"
 
