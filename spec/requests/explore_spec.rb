@@ -94,5 +94,13 @@ RSpec.describe "Explore", type: :request do
       expect(store_props.keys).to match_array(%w[id name discogs_username total_listings])
       expect(store_props.keys).not_to include("store_owner_id", "sync_status", "enrichment_status")
     end
+
+    it "includes SEO metadata in the response" do
+      get "/explore"
+
+      expect(response.body).to include("<title>#{I18n.t('pages.seo.explore.title')}</title>")
+      expect(response.body).to include('<meta name="description" content="')
+      expect(response.body).to include('<link rel="canonical"')
+    end
   end
 end

@@ -17,7 +17,7 @@ RSpec.describe "Stores", type: :request do
     end
 
     context "with existing store" do
-      let!(:store) { create(:store, discogs_username: "TestStore") }
+      let!(:store) { create(:store, name: "Test Store", discogs_username: "TestStore") }
 
       include_examples "resolves store at slug", "teststore"
       include_examples "resolves store at slug", "TESTSTORE"
@@ -53,6 +53,19 @@ RSpec.describe "Stores", type: :request do
         get "/teststore"
 
         expect(inertia.props[:store].keys).to include("handoff_available")
+      end
+
+      it "includes SEO metadata with store title, OG tags, and JSON-LD" do
+        get "/teststore"
+
+        expect(response.body).to include("<title>Test Store Vinyl Records — Milkcrate</title>")
+        expect(response.body).to include('<meta name="description"')
+        expect(response.body).to include('<meta property="og:title"')
+        expect(response.body).to include('<meta property="og:description"')
+        expect(response.body).to include('<meta name="twitter:card" content="summary_large_image">')
+        expect(response.body).to include('<script type="application/ld+json">')
+        expect(response.body).to include('"@type":"LocalBusiness"')
+        expect(response.body).to include('<link rel="canonical"')
       end
     end
 

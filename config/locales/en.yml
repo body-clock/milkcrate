@@ -57,6 +57,16 @@ en:
       seller_min_listings: "Milkcrate requires at least 500 listings to create a storefront."
       seller_lookup_error: "Something went wrong. Please try again."
       bottom_signoff: "Start browsing or claim your store."
+    seo:
+      home:
+        title: "Milkcrate — Browse Vinyl Records Like a Record Store"
+        meta_description: "Discover vinyl records from independent record stores. Browse curated crates, genre bins, and walls from Discogs sellers around the world."
+      explore:
+        title: "Record Stores on Milkcrate — Browse Vinyl Shops"
+        meta_description: "Browse independent record stores on Milkcrate. Find vinyl records from Discogs sellers around the world — techno, electronic, rock, jazz, and more."
+      apply:
+        title: "Claim Your Record Store — Milkcrate"
+        meta_description: "Turn your Discogs inventory into a browsable storefront. Join record stores on Milkcrate."
     apply:
       headline: "Get your store on Milkcrate"
       subhead: "We're onboarding stores one at a time. Fill this out and we'll be in touch."

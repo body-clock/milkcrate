@@ -3,19 +3,23 @@ class ExploreController < ApplicationController
   layout "inertia_application"
 
   def index
-    render inertia: "explore", props: {
-      stores: stores_data,
-      error: nil
-    }
+    set_explore_seo
+    render inertia: "explore", props: { stores: stores_data, error: nil }
   rescue ActiveRecord::QueryCanceled, ActiveRecord::ConnectionNotEstablished, ActiveRecord::StatementInvalid => e
     Rails.logger.warn("[ExploreController] Query failed: #{e.message}")
-    render inertia: "explore", props: {
-      stores: [],
-      error: "We couldn't load the store directory right now. Please try again shortly."
-    }
+    render_explore_error
   end
 
   private
+
+  def set_explore_seo
+    @page_seo = I18n.t("pages.seo.explore")
+  end
+
+  def render_explore_error
+    set_explore_seo
+    render inertia: "explore", props: { stores: [], error: "We couldn't load the store directory right now. Please try again shortly." }
+  end
 
   def stores_data
     Store.order(:name)

@@ -2,6 +2,8 @@
 class PagesController < ApplicationController
   layout "inertia_application"
 
+  before_action :set_page_seo
+
   def home
     render inertia: "home", props: {
       copy: t("pages.home").to_h,
@@ -20,4 +22,21 @@ class PagesController < ApplicationController
       initial_discogs_username: params[:discogs_username]
     }
   end
+
+  private
+
+  def set_page_seo
+    @page_seo = page_seo_for(action_name)
+  end
+
+  def page_seo_for(action)
+    seo = SEO_CONFIG[action] || {}
+    seo = seo.merge(meta_robots: "noindex") if action == "apply"
+    seo
+  end
+
+  SEO_CONFIG = {
+    "home" => I18n.t("pages.seo.home"),
+    "apply" => I18n.t("pages.seo.apply")
+  }.freeze
 end

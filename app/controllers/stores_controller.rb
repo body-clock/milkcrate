@@ -55,6 +55,12 @@ class StoresController < ApplicationController
     cached = StorefrontCuration.cached_curation(store,
       filter_available: !Rails.env.development?)
 
+    @page_seo = {
+      title: seo_title(store),
+      meta_description: seo_description(store),
+      head_html: render_to_string(partial: "shared/store_seo", formats: [ :html ], locals: { store: store })
+    }
+
     render inertia: "stores/show", props: {
       store: store_props(store),
       shopper: shopper_props,
