@@ -51,7 +51,11 @@ YAML format:
 
       begin
         result = StoreOnboarding.call(discogs_username: slug)
-        ScrapeStoreLocationJob.perform_later(result.store.id)
+        begin
+          ScrapeStoreLocationJob.perform_later(result.store.id)
+        rescue ArgumentError => e
+          puts " WARN (ScrapeStoreLocationJob enqueue failed: #{e.message})"
+        end
         puts " OK ##{result.store.id}"
         stats[:created] += 1
       rescue StoreOnboarding::Error => e
