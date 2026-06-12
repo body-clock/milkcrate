@@ -25,6 +25,6 @@ RSpec.describe "robots.txt", type: :request do
 
   it "references the sitemap" do
     get "/robots.txt"
-    expect(response.body).to include("Sitemap: https://milkcrate.fm/sitemap.xml.gz")
+    expect(response.body).to include("Sitemap: https://milkcrate.fm/sitemaps/sitemap.xml.gz")
   end
 end

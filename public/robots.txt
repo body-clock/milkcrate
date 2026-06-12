@@ -6,4 +6,4 @@ Disallow: /auth/
 Disallow: /dev/
 Disallow: /jobs/
 
-Sitemap: https://milkcrate.fm/sitemap.xml.gz
+Sitemap: https://milkcrate.fm/sitemaps/sitemap.xml.gz
