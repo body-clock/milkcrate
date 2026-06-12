@@ -34,11 +34,12 @@ RSpec.describe "Pages", type: :request do
       expect(inertia.props["preview"]["sections"]).to be_an(Array)
     end
 
-    it "renders successfully when no demo store exists" do
+    it "includes SEO metadata in the response" do
       get "/"
 
-      expect(inertia).to render_component("home")
-      expect(inertia.props["preview"]["sections"]).to eq([])
+      expect(response.body).to include("<title>#{I18n.t('pages.seo.home.title')}</title>")
+      expect(response.body).to include('<meta name="description" content="')
+      expect(response.body).to include('<link rel="canonical"')
     end
   end
 
@@ -74,6 +75,13 @@ RSpec.describe "Pages", type: :request do
       ts = inertia.props["turnstile"]
       expect(ts["enabled"]).to be true
       expect(ts["site_key"]).to eq("test-site-key")
+    end
+
+    it "includes SEO metadata with noindex directive" do
+      get "/apply"
+
+      expect(response.body).to include("<title>#{I18n.t('pages.seo.apply.title')}</title>")
+      expect(response.body).to include('<meta name="robots" content="noindex">')
     end
   end
 end

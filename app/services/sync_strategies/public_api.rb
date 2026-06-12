@@ -17,7 +17,7 @@ module SyncStrategies
       setup_progress(progress, fetchable, passes)
       desc_raw = fetch_listings(store, sort_order: "desc", max_pages:, progress:)
       asc_raw = fetch_asc_pass(store, total_pages, max_pages:, progress:)
-      normalize_result(desc_raw, asc_raw, store)
+      normalize_result(desc_raw, asc_raw, store, total_pages, max_pages:)
     end
 
     private
@@ -35,15 +35,28 @@ module SyncStrategies
     end
 
     def fetch_asc_pass(store, total_pages, max_pages:, progress:)
-      return SyncStrategies::Result.new(listings: [], complete: false) unless total_pages > DISCOGS_PAGE_LIMIT
+      return StoreSync::InventoryFetcher::Result.new(listings: [], pages_fetched: 0, total_pages: 0) unless total_pages > DISCOGS_PAGE_LIMIT
 
       fetch_listings(store, sort_order: "asc", max_pages:, progress:)
     end
 
-    def normalize_result(desc_raw, asc_raw, store)
+    def normalize_result(desc_raw, asc_raw, store, total_pages, max_pages:)
       all_raw = desc_raw.listings + asc_raw.listings
       normalized = all_raw.filter_map { |raw| @normalizer.call(raw, store_id: store.id) }
-      SyncStrategies::Result.new(listings: normalized, complete: false)
+      complete = compute_complete(desc_raw, asc_raw, total_pages)
+      catalog_coverage = compute_coverage(desc_raw, asc_raw, max_pages)
+      SyncStrategies::Result.new(listings: normalized, complete:, catalog_coverage:)
+    end
+
+    def compute_complete(desc_raw, asc_raw, total_pages)
+      return false if desc_raw.hit_page_limit || asc_raw.hit_page_limit
+
+      desc_raw.pages_fetched + asc_raw.pages_fetched >= total_pages
+    end
+
+    def compute_coverage(desc_raw, asc_raw, max_pages)
+      observed = [ desc_raw.pages_fetched, asc_raw.pages_fetched ].max
+      StoreSync::CoverageClassifier.new(observed_page_count: observed, max_pages:).call
     end
 
     def fetch_listings(store, sort_order:, max_pages:, progress: nil)

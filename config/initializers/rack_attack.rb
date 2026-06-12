@@ -20,6 +20,13 @@ class Rack::Attack
     end
   end
 
+  # Throttle click events by IP: max 60 POSTs to /click per minute
+  throttle("click/ip", limit: 60, period: 1.minute) do |req|
+    if req.path == "/click" && req.post?
+      req.ip
+    end
+  end
+
   # Return 429 with a JSON/HTML response
   self.throttled_responder = ->(env) {
     now = Time.current

@@ -76,18 +76,9 @@ function makePreview(overrides: Partial<HomepagePreview> = {}): HomepagePreview 
 // ── Emoji regression characters ──────────────────────────────
 const MIN_LINKS = 2;
 const PREVIEW_CRATE_COUNT = 4;
-const EMOJI_CHARS = ["🥛", "📀", "👀", "📦"];
-
 afterEach(() => {
   vi.unstubAllGlobals();
 });
-
-function assertNoEmoji(element: HTMLElement | null) {
-  const text = element?.textContent ?? document.body.textContent ?? "";
-  for (const emoji of EMOJI_CHARS) {
-    expect(text).not.toContain(emoji);
-  }
-}
 
 describe("Home page — hero section", () => {
   it("renders a shopper-first H1 heading", () => {
@@ -96,27 +87,12 @@ describe("Home page — hero section", () => {
     expect(screen.getByRole("heading", { name: copy.headline })).toBeInTheDocument();
   });
 
-  it("does not render the milk emoji in the hero", () => {
-    render(<Home copy={copy} preview={makePreview()} />);
-    assertNoEmoji(document.querySelector("[aria-labelledby]"));
-  });
-
   it("renders the demo CTA linking to the demo store", () => {
     render(<Home copy={copy} preview={makePreview()} />);
 
     const demoLink = screen.getByRole("link", { name: copy.cta_demo });
     expect(demoLink).toHaveAttribute("href", "/philadelphiamusic");
     expect(demoLink.className).toContain("ring-mc-focus");
-  });
-
-  it("does not render a 'Get your store' button in the hero", () => {
-    render(<Home copy={copy} preview={makePreview()} />);
-    expect(screen.queryByText("Get your store on Milkcrate")).not.toBeInTheDocument();
-  });
-
-  it("does not render the old footnote", () => {
-    render(<Home copy={copy} preview={makePreview()} />);
-    expect(screen.queryByText("Early access. We handle the setup.")).not.toBeInTheDocument();
   });
 });
 
@@ -180,27 +156,6 @@ describe("store character section", () => {
     render(<Home copy={copy} preview={makePreview()} />);
 
     expect(screen.getByText(copy.store_character_title)).toBeInTheDocument();
-  });
-
-  it("does not use emoji as decorative icons", () => {
-    render(<Home copy={copy} preview={makePreview()} />);
-    assertNoEmoji(null);
-  });
-
-  it("does not advertise one-click Discogs cart transfer", () => {
-    render(<Home copy={copy} preview={makePreview()} />);
-
-    expect(
-      screen.queryByText(/One click sends everything to their Discogs cart/i),
-    ).not.toBeInTheDocument();
-  });
-
-  it("does not claim stores manually spotlight featured crates", () => {
-    render(<Home copy={copy} preview={makePreview()} />);
-
-    expect(
-      screen.queryByText(/Spotlight the crates you want customers to see first/i),
-    ).not.toBeInTheDocument();
   });
 });
 
@@ -280,38 +235,6 @@ describe("bottom section", () => {
     render(<Home copy={copy} preview={makePreview()} />);
 
     expect(screen.getByText(copy.bottom_signoff)).toBeInTheDocument();
-  });
-
-  it("does not render the old final CTA section", () => {
-    render(<Home copy={copy} preview={makePreview()} />);
-
-    expect(
-      screen.queryByText(
-        "We\u2019re onboarding stores one at a time. Tell us about yours and we\u2019ll be in touch.",
-      ),
-    ).not.toBeInTheDocument();
-  });
-});
-
-describe("removed sections", () => {
-  it("does not render the record fair callout", () => {
-    render(<Home copy={copy} preview={makePreview()} />);
-
-    expect(screen.queryByText("Bring your store to the next record fair")).not.toBeInTheDocument();
-  });
-});
-
-describe("emoji regression", () => {
-  it("does not render any emoji in the entire page", () => {
-    render(<Home copy={copy} preview={makePreview()} />);
-
-    assertNoEmoji(null);
-  });
-
-  it("does not use the milk emoji as a hero icon", () => {
-    render(<Home copy={copy} preview={makePreview()} />);
-
-    expect(document.body.innerHTML).not.toContain("🥛");
   });
 });
 

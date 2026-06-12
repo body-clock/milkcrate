@@ -58,7 +58,7 @@ RSpec.describe SyncStrategies::PublicApi do
       result = strategy.call(store)
 
       expect(result.listings).to be_empty
-      expect(result.complete?).to be false
+      expect(result.complete?).to be true
     end
 
     it "returns empty result when inventory is empty" do
@@ -72,7 +72,7 @@ RSpec.describe SyncStrategies::PublicApi do
       result = strategy.call(store)
 
       expect(result.listings).to be_empty
-      expect(result.complete?).to be false
+      expect(result.complete?).to be true
     end
 
     it "propagates API errors" do

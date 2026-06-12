@@ -16,15 +16,16 @@ class FullStoreSyncJob < ApplicationJob
   def sync_store(store_id, max_pages:)
     store = Store.find(store_id)
     sync_started_at = Time.current.tap { store.update!(sync_status: "syncing", sync_progress_pct: 0) }
-    listing_ids = run_sync(store, max_pages:)
-    finalize_sync(store, sync_started_at)
+    result, listing_ids = run_sync(store, max_pages:)
+    finalize_sync(store, sync_started_at, result.catalog_coverage)
     dispatch_followup_jobs(store, listing_ids)
   end
 
   def run_sync(store, max_pages:)
     result = store.sync_strategy.call(store, max_pages:,
       progress: StoreSync::ProgressTracker.new(store))
-    apply_inventory_update(store, result)
+    listing_ids = apply_inventory_update(store, result)
+    [ result, listing_ids ]
   end
 
   def apply_inventory_update(store, result)
@@ -38,12 +39,14 @@ class FullStoreSyncJob < ApplicationJob
     listing_ids
   end
 
-  def finalize_sync(store, sync_started_at)
+  def finalize_sync(store, sync_started_at, catalog_coverage = nil)
     store.update_columns(sync_progress_pct: nil)
-    sync_manager(store).mark_succeeded!(
+    attrs = {
       last_synced_at: sync_started_at,
       total_listings: store.listings.count
-    )
+    }
+    attrs[:catalog_coverage] = catalog_coverage if catalog_coverage
+    sync_manager(store).mark_succeeded!(attrs)
     Rails.logger.info("[FullStoreSyncJob] synced #{store.listings.count} listings for #{store.discogs_username}")
   end
 

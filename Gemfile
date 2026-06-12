@@ -9,10 +9,10 @@ gem "tailwindcss-rails"
 # HTTP client for Discogs API
 gem "faraday"
 gem "faraday-retry"
-gem "oauth"
+gem "oauth", ">= 1.1.6"
 gem "csv"
 
-gem "honeybadger", "~> 6.6"
+gem "honeybadger", "~> 6.9"
 
 # Inertia Rails — server-driven single-page app
 gem "inertia_rails"
@@ -39,6 +39,7 @@ gem "rqrcode"
 gem "rack-attack"
 gem "bcrypt"
 gem "rubyzip"
+gem "sitemap_generator"
 
 group :development, :test do
   gem "dotenv-rails"

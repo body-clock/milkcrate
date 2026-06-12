@@ -2,15 +2,24 @@
 <html>
   <head>
     <script nonce="<%= request.content_security_policy_nonce %>">document.documentElement.setAttribute("data-theme",(localStorage.getItem("mc-theme")||"dark")==="light"?"light":"")</script>
-    <title><%= content_for(:title) || "Milkcrate" %></title>
+    <title><%= @page_seo&.dig(:title) || "Milkcrate" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="theme-color" content="#15120e" data-theme="dark">
     <meta name="theme-color" content="#f2ebe0" data-theme="light">
+    <% if @page_seo&.dig(:meta_description).present? %>
+    <meta name="description" content="<%= @page_seo[:meta_description] %>">
+    <% end %>
+    <% if @page_seo&.dig(:meta_robots).present? %>
+    <meta name="robots" content="<%= @page_seo[:meta_robots] %>">
+    <% end %>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="manifest" href="/manifest.json">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
-    <%= yield :head %>
+    <% if @page_seo&.dig(:head_html).present? %>
+    <%= raw @page_seo[:head_html] %>
+    <% end %>
+    <%= canonical_link %>
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
