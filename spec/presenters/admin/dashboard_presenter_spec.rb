@@ -63,4 +63,87 @@ RSpec.describe Admin::DashboardPresenter do
       create_path: "/admin/onboarding"
     )
   end
+
+  it "sorts active stores by health severity with failed stores first" do
+    healthy = create(:store,
+      name: "Healthy Store",
+      discogs_username: "healthy-store",
+      last_synced_at: 1.hour.ago,
+      last_enriched_at: 1.hour.ago
+    )
+    failed = create(:store,
+      name: "Failed Store",
+      discogs_username: "failed-store",
+      sync_status: "failed",
+      last_sync_error: "Discogs timeout",
+      last_sync_error_at: 30.minutes.ago,
+      last_synced_at: 2.hours.ago,
+      last_enriched_at: 1.hour.ago
+    )
+    processing = create(:store,
+      name: "Processing Store",
+      discogs_username: "processing-store",
+      sync_status: "syncing",
+      last_synced_at: nil,
+      last_enriched_at: nil
+    )
+    stale = create(:store,
+      name: "Stale Store",
+      discogs_username: "stale-store",
+      last_synced_at: 2.days.ago,
+      last_enriched_at: 1.hour.ago
+    )
+
+    store_names = described_class.new.props[:active_stores].map { |s| s[:name] }
+
+    expect(store_names).to eq([ "Failed Store", "Stale Store", "Processing Store", "Healthy Store" ])
+  end
+
+  it "sorts failed stores by most recently failed first" do
+    failed_older = create(:store,
+      name: "Failed Older",
+      discogs_username: "failed-older",
+      sync_status: "failed",
+      last_sync_error: "Timeout",
+      last_sync_error_at: 2.hours.ago,
+      last_synced_at: 3.hours.ago,
+      last_enriched_at: 1.hour.ago
+    )
+    failed_newer = create(:store,
+      name: "Failed Newer",
+      discogs_username: "failed-newer",
+      sync_status: "failed",
+      last_sync_error: "API error",
+      last_sync_error_at: 10.minutes.ago,
+      last_synced_at: 1.hour.ago,
+      last_enriched_at: 1.hour.ago
+    )
+
+    store_names = described_class.new.props[:active_stores].map { |s| s[:name] }
+
+    expect(store_names).to eq([ "Failed Newer", "Failed Older" ])
+  end
+
+  it "sorts healthy stores by most overdue first" do
+    healthy_recent = create(:store,
+      name: "Healthy Recent",
+      discogs_username: "healthy-recent",
+      last_synced_at: 1.hour.ago,
+      last_enriched_at: 1.hour.ago
+    )
+    healthy_overdue = create(:store,
+      name: "Healthy Overdue",
+      discogs_username: "healthy-overdue",
+      last_synced_at: 22.hours.ago,
+      last_enriched_at: 22.hours.ago
+    )
+
+    store_names = described_class.new.props[:active_stores].map { |s| s[:name] }
+
+    expect(store_names).to eq([ "Healthy Overdue", "Healthy Recent" ])
+  end
+
+  it "returns empty array when no stores exist" do
+    expect(described_class.new.props[:active_stores]).to eq([])
+  end
 end

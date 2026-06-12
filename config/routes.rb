@@ -30,6 +30,7 @@ Rails.application.routes.draw do
   get "/admin/discogs_lookup", to: "admin/discogs_lookups#show", as: :admin_discogs_lookup
   post "/admin/onboarding", to: "admin/onboardings#direct", as: :admin_discogs_onboarding
   post "/admin/waitlists/:waitlist_id/onboarding", to: "admin/onboardings#create", as: :admin_waitlist_onboarding
+  post "/admin/stores/:id/retry", to: "admin/stores#retry_sync", as: :admin_store_retry_sync
 
   root "pages#home"
 
