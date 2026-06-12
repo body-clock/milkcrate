@@ -6,7 +6,7 @@ RSpec.describe GenreDiversityAnalyzer do
   def create_listings(genres_by_count)
     genres_by_count.each do |genre, count|
       count.times do
-        create(:listing, store: store, genres: [genre])
+        create(:listing, store: store, genres: [ genre ])
       end
     end
   end
