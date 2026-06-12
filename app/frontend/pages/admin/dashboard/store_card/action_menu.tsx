@@ -23,12 +23,29 @@ export function ActionMenu({ store }: { store: AdminStoreSummary }) {
   }, [open]);
 
   const resyncable = canResync(store);
+  const enrichable = ["failed", "stale", "processing", "partial"].includes(store.health.key);
 
   const handleResync = () => {
     if (!window.confirm(`Resync ${store.name}?`)) {
       return;
     }
     router.post(`/admin/stores/${store.id}/retry`);
+    setOpen(false);
+  };
+
+  const handleRetryEnrichment = () => {
+    if (!window.confirm(`Retry enrichment for ${store.name}?`)) {
+      return;
+    }
+    router.post(`/admin/stores/${store.id}/retry_enrichment`);
+    setOpen(false);
+  };
+
+  const handleDelete = () => {
+    if (!window.confirm(`Delete ${store.name}? This cannot be undone.`)) {
+      return;
+    }
+    router.delete(`/admin/stores/${store.id}`);
     setOpen(false);
   };
 
@@ -43,7 +60,7 @@ export function ActionMenu({ store }: { store: AdminStoreSummary }) {
         ⋮
       </button>
       {open && (
-        <div className="absolute right-0 z-10 mt-1 w-40 rounded-md border border-mc-border bg-mc-bg-card shadow-lg">
+        <div className="absolute right-0 z-10 mt-1 w-48 rounded-md border border-mc-border bg-mc-bg-card shadow-lg">
           {resyncable && (
             <button
               type="button"
@@ -51,6 +68,15 @@ export function ActionMenu({ store }: { store: AdminStoreSummary }) {
               className="block w-full px-3 py-2 text-left text-sm text-mc-text hover:bg-mc-border"
             >
               Resync now
+            </button>
+          )}
+          {enrichable && (
+            <button
+              type="button"
+              onClick={handleRetryEnrichment}
+              className="block w-full px-3 py-2 text-left text-sm text-mc-text hover:bg-mc-border"
+            >
+              Retry enrichment
             </button>
           )}
           <a
@@ -62,6 +88,14 @@ export function ActionMenu({ store }: { store: AdminStoreSummary }) {
           >
             View storefront
           </a>
+          <div className="border-t border-mc-border" />
+          <button
+            type="button"
+            onClick={handleDelete}
+            className="block w-full px-3 py-2 text-left text-sm text-mc-feedback-danger hover:bg-mc-border"
+          >
+            Delete store
+          </button>
         </div>
       )}
     </div>
