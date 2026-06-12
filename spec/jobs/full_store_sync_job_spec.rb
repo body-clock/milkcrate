@@ -47,19 +47,6 @@ RSpec.describe FullStoreSyncJob do
         expect(store.last_sync_error).to be_nil
       end
 
-      it "enqueues EnrichmentJob after sync when there are new listings" do
-        listings = [
-          { discogs_listing_id: "1", artist: "Test", title: "Record", label: "Label",
-            format: "Vinyl", condition: "Mint", price: 10.00, currency: "USD",
-            listed_at: Time.current, last_seen_at: Time.current }
-        ]
-        sync_result = SyncStrategies::Result.new(listings:, complete: false)
-        allow(mock_strategy).to receive(:call).with(store, hash_including(max_pages: nil)).and_return(sync_result)
-
-        expect { described_class.perform_now(store.id) }
-          .to have_enqueued_job(EnrichmentJob).with(store.id, listing_ids: kind_of(Array))
-      end
-
       it "does not enqueue EnrichmentJob when no listings changed" do
         allow(mock_strategy).to receive(:call).with(store, hash_including(max_pages: nil))
           .and_return(SyncStrategies::Result.new(listings: [], complete: false))

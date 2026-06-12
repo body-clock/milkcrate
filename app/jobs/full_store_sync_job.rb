@@ -16,27 +16,16 @@ class FullStoreSyncJob < ApplicationJob
   def sync_store(store_id, max_pages:)
     store = Store.find(store_id)
     sync_started_at = Time.current.tap { store.update!(sync_status: "syncing", sync_progress_pct: 0) }
-    result, listing_ids = run_sync(store, max_pages:)
-    finalize_sync(store, sync_started_at, result.catalog_coverage)
-    dispatch_followup_jobs(store, listing_ids)
-  end
-
-  def run_sync(store, max_pages:)
     result = store.sync_strategy.call(store, max_pages:,
       progress: StoreSync::ProgressTracker.new(store))
-    listing_ids = apply_inventory_update(store, result)
-    [ result, listing_ids ]
+    apply_inventory_update(store, result)
+    finalize_sync(store, sync_started_at, result.catalog_coverage)
   end
 
   def apply_inventory_update(store, result)
     updater = StoreSync::InventoryUpdater.new(store)
-    listing_ids = updater.call(result.listings)
-    remove_stale_if_complete(updater, result, listing_ids)
-  end
-
-  def remove_stale_if_complete(updater, result, listing_ids)
+    updater.call(result.listings)
     updater.remove_stale(result.listings) if result.complete?
-    listing_ids
   end
 
   def finalize_sync(store, sync_started_at, catalog_coverage = nil)
@@ -48,10 +37,6 @@ class FullStoreSyncJob < ApplicationJob
     attrs[:catalog_coverage] = catalog_coverage if catalog_coverage
     sync_manager(store).mark_succeeded!(attrs)
     Rails.logger.info("[FullStoreSyncJob] synced #{store.listings.count} listings for #{store.discogs_username}")
-  end
-
-  def dispatch_followup_jobs(store, listing_ids)
-    EnrichmentJob.perform_later(store.id, listing_ids:) if listing_ids.any?
   end
 
   def sync_manager(store)
