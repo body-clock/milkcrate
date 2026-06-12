@@ -85,6 +85,47 @@ YAML format:
     end
     puts "Done."
   end
+
+  desc "Verify Discogs usernames exist without onboarding.
+Usage:
+  rake 'stores:verify[usernames.yml]'       # Check usernames from YAML
+  rake 'stores:verify[usernames.yml,true]'  # Show only invalid ones"
+  task :verify, [ :file, :quiet ] => :environment do |_t, args|
+    file = args[:file] || Rails.root.join("config", "stores.yml")
+    quiet = args[:quiet] == "true"
+
+    usernames = YAML.safe_load_file(file)["usernames"]
+    total = usernames.size
+    valid = 0
+    invalid = []
+
+    puts "Verifying #{total} usernames against Discogs API..."
+    puts
+
+    usernames.each do |username|
+      slug = username.to_s.strip.downcase
+      print "." unless quiet
+
+      begin
+        DiscogsClient.new.seller_profile(slug)
+        valid += 1
+      rescue Discogs::Errors::ApiError
+        invalid << slug
+        puts "\n  INVALID: #{slug}" unless quiet
+      end
+
+      sleep 0.5
+    end
+
+    puts unless quiet
+    puts
+    puts "#{valid}/#{total} valid, #{invalid.size} invalid"
+
+    if invalid.any?
+      puts "Remove these from stores.yml:"
+      invalid.each { |s| puts "  - #{s}" }
+    end
+  end
 end
 
 def default_usernames
