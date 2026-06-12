@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 
-import Button from "@/components/ui/button";
 import type { AdminDashboardProps } from "@/types/inertia";
 
 import {
@@ -8,6 +7,7 @@ import {
   type HealthFilter,
   type HealthFilterKey,
 } from "./dashboard_constants";
+import { FilterButton } from "./filter_button";
 
 export function DashboardMetrics({
   active_stores,
@@ -23,9 +23,13 @@ export function DashboardMetrics({
   return (
     <div className="flex items-center gap-2 sm:min-w-80">
       {healthFilter.length > 0 && (
-        <Button variant="ghost" size="sm" onClick={() => onHealthFilterChange([])}>
+        <button
+          type="button"
+          onClick={() => onHealthFilterChange([])}
+          className="rounded-md border border-mc-border bg-mc-bg-card px-3 py-1.5 text-xs font-semibold text-mc-text hover:bg-mc-border"
+        >
           All
-        </Button>
+        </button>
       )}
       <FilterButton
         label="Healthy"
@@ -71,22 +75,4 @@ function toggleHealthFilter(
   onChange: (filter: HealthFilter) => void,
 ) {
   onChange(current.includes(key) ? current.filter((k) => k !== key) : [...current, key]);
-}
-
-function FilterButton({
-  label,
-  count,
-  active,
-  onClick,
-}: {
-  label: string;
-  count: number;
-  active: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <Button variant={active ? "primary" : "secondary"} size="sm" onClick={onClick}>
-      {label} {count}
-    </Button>
-  );
 }

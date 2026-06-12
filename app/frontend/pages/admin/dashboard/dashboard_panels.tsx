@@ -6,6 +6,7 @@ import { ActiveStoresSection } from "./active_stores_section";
 import { ApplicantsSection } from "./applicants_section";
 import { type HealthFilter } from "./dashboard_constants";
 import { DiscogsOnboardingPanel } from "./discogs_onboarding_panel";
+import { SearchInput } from "./search_input";
 
 const SEARCH_THRESHOLD = 5;
 
@@ -50,22 +51,4 @@ function useSearchFilter(active_stores: AdminDashboardProps["active_stores"], se
         store.discogs_username.toLowerCase().includes(query),
     );
   }, [active_stores, searchQuery]);
-}
-
-function SearchInput({ query, onChange }: { query: string; onChange: (value: string) => void }) {
-  return (
-    <div className="mb-4">
-      <label htmlFor="store-search" className="sr-only">
-        Search stores
-      </label>
-      <input
-        id="store-search"
-        type="search"
-        placeholder="Search stores…"
-        value={query}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-lg border border-mc-border bg-mc-bg-card px-3 py-2 text-sm text-mc-text placeholder:text-mc-text-dim focus:border-mc-focus focus:outline-none"
-      />
-    </div>
-  );
 }

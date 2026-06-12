@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
 
 import Badge from "@/components/ui/badge";
-import EmptyState from "@/components/ui/empty_state";
 import type { AdminDashboardProps } from "@/types/inertia";
 
-import StoreCard from "./store_card";
+import { CollapsedHint, ExpandedContent } from "./section_content";
 
 const SECTION_CONFIG = {
   attention: { label: "Attention", severity: "danger" as const, defaultExpanded: true },
@@ -12,8 +11,7 @@ const SECTION_CONFIG = {
   healthy: { label: "Healthy", severity: "good" as const, defaultExpanded: false },
 } as const;
 
-type SectionKey = keyof typeof SECTION_CONFIG;
-export type { SectionKey };
+export type SectionKey = keyof typeof SECTION_CONFIG;
 
 export function HealthSection({
   sectionKey,
@@ -26,13 +24,14 @@ export function HealthSection({
 }) {
   const config = SECTION_CONFIG[sectionKey];
   const [expanded, setExpanded] = useState(
-    autoExpand != null ? autoExpand : config.defaultExpanded,
+    autoExpand === undefined ? config.defaultExpanded : autoExpand,
   );
 
   useEffect(() => {
-    if (autoExpand != null && autoExpand !== expanded) {
-      setExpanded(autoExpand);
+    if (autoExpand === undefined || autoExpand === expanded) {
+      return;
     }
+    setExpanded(autoExpand);
   }, [autoExpand, expanded]);
 
   return (
@@ -52,26 +51,5 @@ export function HealthSection({
       </button>
       {expanded ? <ExpandedContent stores={stores} /> : <CollapsedHint count={stores.length} />}
     </div>
-  );
-}
-
-function ExpandedContent({ stores }: { stores: AdminDashboardProps["active_stores"] }) {
-  if (stores.length === 0) {
-    return <EmptyState>No stores in this section.</EmptyState>;
-  }
-  return (
-    <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
-      {stores.map((store) => (
-        <StoreCard key={store.id} store={store} />
-      ))}
-    </div>
-  );
-}
-
-function CollapsedHint({ count }: { count: number }) {
-  return (
-    <p className="text-sm text-mc-text-dim">
-      {count} store{count !== 1 ? "s" : ""} hidden
-    </p>
   );
 }
