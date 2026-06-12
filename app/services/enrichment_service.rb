@@ -1,6 +1,9 @@
 # Enriches listing metadata (genres, styles, images) from MusicBrainz and Discogs APIs.
 class EnrichmentService
+  include ListingDataTransforms
   BATCH_SIZE = 50
+  RATE_LIMIT_MAX_RETRIES = 3
+  RATE_LIMIT_BASE_DELAY = 5
 
   def initialize(discogs: DiscogsClient.new, musicbrainz: MusicBrainzClient.new, progress: nil)
     @discogs = discogs
@@ -74,10 +77,19 @@ class EnrichmentService
   def enrich_batch(batch, store) = batch.each { |release_id| enrich_release_safely(release_id, store) }
 
   def enrich_release_safely(release_id, store)
-    enrich_release(release_id, store)
+    with_rate_limit_retries { enrich_release(release_id, store) }
     @progress&.increment
   rescue DiscogsClient::ApiError => e
     Rails.logger.warn "[EnrichmentService] API error for release #{release_id}: #{e.message}"
+  end
+
+  def with_rate_limit_retries(retries = 0, &block)
+    block.call
+  rescue Discogs::Errors::RateLimitError
+    raise if retries >= RATE_LIMIT_MAX_RETRIES
+
+    sleep(RATE_LIMIT_BASE_DELAY * (retries + 1))
+    retry
   end
 
   def enrich_release(discogs_release_id, store)
@@ -102,35 +114,6 @@ class EnrichmentService
     store.listings
       .where(discogs_release_id: discogs_release_id)
       .update_all(listing_updates(data))
-  end
-
-  def listing_updates(data)
-    { want_count: data.dig("community", "want").to_i,
-      have_count: data.dig("community", "have").to_i,
-      genres: Array(data["genres"]).presence,
-      styles: Array(data["styles"]).presence,
-      format: format_label(data),
-      cover_image_url: extract_primary_image(data),
-      tracklist: extract_tracklist(data).presence }
-      .compact
-  end
-
-  def format_label(data)
-    Array(data["formats"])
-      .flat_map { |f| [ f["name"], *Array(f["descriptions"]) ] }
-      .join(", ").presence
-  end
-
-  def extract_primary_image(data)
-    images = data["images"] || []
-    primary = images.find { |img| img["type"] == "primary" } || images.first
-    primary&.dig("uri")
-  end
-
-  def extract_tracklist(data)
-    (data["tracklist"] || []).map do |track|
-      { "position" => track["position"], "title" => track["title"] }
-    end
   end
 
   def enrichment_manager(store) = @enrichment_manager ||= StoreEnrichment::StatusManager.new(store)

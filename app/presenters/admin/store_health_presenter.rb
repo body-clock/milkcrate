@@ -1,9 +1,29 @@
 # Namespace for admin controllers and presenters.
 module Admin
-  # Serializes store health metrics for the admin monitoring view.
   class StoreHealthPresenter
+    # Severity weights for sorting: lower weight = higher priority (needs attention first).
+    SEVERITY_WEIGHTS = {
+      "failed" => 0,
+      "stale" => 1,
+      "partial" => 2,
+      "processing" => 3,
+      "healthy" => 4
+    }.freeze
+
     def initialize(store)
       @store = store
+    end
+
+    def severity_weight
+      SEVERITY_WEIGHTS.fetch(health[:key], 4)
+    end
+
+    def sort_key
+      if health[:key] == "failed"
+        -(store.last_sync_error_at ? store.last_sync_error_at.to_f : 0)
+      else
+        store.last_synced_at ? store.last_synced_at.to_f : 0
+      end
     end
 
     def props
