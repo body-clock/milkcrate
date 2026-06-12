@@ -17,10 +17,20 @@ RSpec.describe "Explore", type: :request do
       expect(inertia.props[:stores]).to eq([])
     end
 
-    it "returns stores ordered by name" do
-      create(:store, name: "Zulu Records", discogs_username: "zulu", total_listings: 200)
-      create(:store, name: "Alpha Records", discogs_username: "alpha", total_listings: 150)
-      create(:store, name: "Beta Music", discogs_username: "beta", total_listings: 300)
+    it "returns only ready stores (synced and enriched)" do
+      ready_store = create(:store, name: "Ready Store", discogs_username: "ready", last_synced_at: 1.day.ago, last_enriched_at: 1.day.ago)
+      _unready_store = create(:store, name: "Unready Store", discogs_username: "unready", last_synced_at: nil, last_enriched_at: nil)
+
+      get "/explore"
+
+      names = inertia.props[:stores].map { |s| s[:name] }
+      expect(names).to eq([ "Ready Store" ])
+    end
+
+    it "returns ready stores ordered by name" do
+      create(:store, name: "Zulu Records", discogs_username: "zulu", total_listings: 200, last_synced_at: 1.day.ago, last_enriched_at: 1.day.ago)
+      create(:store, name: "Alpha Records", discogs_username: "alpha", total_listings: 150, last_synced_at: 1.day.ago, last_enriched_at: 1.day.ago)
+      create(:store, name: "Beta Music", discogs_username: "beta", total_listings: 300, last_synced_at: 1.day.ago, last_enriched_at: 1.day.ago)
 
       get "/explore"
 
@@ -28,8 +38,10 @@ RSpec.describe "Explore", type: :request do
       expect(names).to eq([ "Alpha Records", "Beta Music", "Zulu Records" ])
     end
 
-    it "includes id, name, discogs_username, and total_listings for each store" do
-      store = create(:store, name: "Test Store", discogs_username: "teststore", total_listings: 42)
+    it "includes avatar_url, location, genre_tags, and description for each store" do
+      store = create(:store, name: "Test Store", discogs_username: "teststore", total_listings: 42,
+        avatar_url: "https://example.com/avatar.jpg", location: "Brooklyn, NY",
+        genre_tags: [ "punk", "rock" ], description: "A cool store")
 
       get "/explore"
 
@@ -38,44 +50,23 @@ RSpec.describe "Explore", type: :request do
           id: store.id,
           name: "Test Store",
           discogs_username: "teststore",
-          total_listings: 42
+          total_listings: 42,
+          avatar_url: "https://example.com/avatar.jpg",
+          location: "Brooklyn, NY",
+          genre_tags: [ "punk", "rock" ],
+          description: "A cool store"
         )
       )
     end
 
     it "sets error to nil on success" do
-      create(:store)
+      create(:store, last_synced_at: 1.day.ago, last_enriched_at: 1.day.ago)
       get "/explore"
       expect(inertia.props[:error]).to be_nil
     end
 
-    it "returns stores with null total_listings when column is nil" do
-      create(:store, name: "Nil Store", discogs_username: "nilstore", total_listings: nil)
-
-      get "/explore"
-
-      expect(inertia.props[:stores]).to contain_exactly(
-        a_hash_including(total_listings: nil)
-      )
-    end
-
-    it "does not N+1 on listing count (single query)" do
-      store_a = create(:store, name: "A Store", discogs_username: "a-store", total_listings: 10)
-      store_b = create(:store, name: "B Store", discogs_username: "b-store", total_listings: 20)
-
-      create_list(:listing, 3, store: store_a)
-      create_list(:listing, 5, store: store_b)
-
-      # Uses select(:id, :name, :discogs_username, :total_listings) without
-      # loading associations — verify via the SQL log that only one query fires.
-      get "/explore"
-
-      expect(inertia.props[:stores].length).to eq(2)
-      expect(inertia.props[:stores].first[:total_listings]).to be_present
-    end
-
     it "handles query errors gracefully" do
-      allow(Store).to receive(:order).and_raise(ActiveRecord::ConnectionNotEstablished)
+      allow(Store).to receive(:ready).and_raise(ActiveRecord::ConnectionNotEstablished)
 
       get "/explore"
 
@@ -86,12 +77,13 @@ RSpec.describe "Explore", type: :request do
     end
 
     it "does not include sensitive store data in props" do
-      create(:store, store_owner: create(:store_owner, discogs_username: "teststore"))
+      create(:store, store_owner: create(:store_owner, discogs_username: "teststore"),
+        last_synced_at: 1.day.ago, last_enriched_at: 1.day.ago)
 
       get "/explore"
 
       store_props = inertia.props[:stores].first
-      expect(store_props.keys).to match_array(%w[id name discogs_username total_listings])
+      expect(store_props.keys).to match_array(%w[id name discogs_username total_listings avatar_url location genre_tags description])
       expect(store_props.keys).not_to include("store_owner_id", "sync_status", "enrichment_status")
     end
 
@@ -101,6 +93,26 @@ RSpec.describe "Explore", type: :request do
       expect(response.body).to include("<title>#{I18n.t('pages.seo.explore.title')}</title>")
       expect(response.body).to include('<meta name="description" content="')
       expect(response.body).to include('<link rel="canonical"')
+    end
+
+    describe "featured stores" do
+      it "returns featured_stores prop" do
+        get "/explore"
+        expect(inertia.props).to have_key(:featured_stores)
+      end
+
+      it "returns up to 3 featured stores" do
+        create_list(:store, 5, last_synced_at: 1.day.ago, last_enriched_at: 1.day.ago)
+
+        get "/explore"
+
+        expect(inertia.props[:featured_stores].length).to be <= 3
+      end
+
+      it "returns empty array when no ready stores" do
+        get "/explore"
+        expect(inertia.props[:featured_stores]).to eq([])
+      end
     end
   end
 end

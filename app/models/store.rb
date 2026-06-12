@@ -12,6 +12,7 @@ class Store < ApplicationRecord
   validates :discogs_user_id, uniqueness: true, allow_nil: true
 
   scope :with_discogs_username, ->(username) { where(discogs_username: username.downcase) }
+  scope :ready, -> { where.not(last_synced_at: nil).where.not(last_enriched_at: nil) }
 
   delegate :discogs_oauth_token, :discogs_oauth_token_secret, :oauth_authorized_at,
     to: :store_owner, allow_nil: true
