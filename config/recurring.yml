@@ -28,3 +28,7 @@ production:
     class: SalesPollDispatcherJob
     queue: default
     schedule: every minute
+
+  sitemap_refresh:
+    command: "SitemapGenerator::Interpreter.run(config_file: 'config/sitemap.rb', verbose: false)"
+    schedule: every day at 5am

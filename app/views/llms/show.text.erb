@@ -1,0 +1,18 @@
+# Milkcrate
+
+> Browse vinyl records like a record store. Curated Discogs storefronts for independent record shops.
+
+Milkcrate uses Ruby on Rails with Inertia.js and React. Store pages are server-rendered with JSON-LD structured data for machine consumption.
+
+## Stores
+
+<% @stores.each do |store| %>
+- [<%= store.name %>](<%= store_url(store.discogs_username) %>)<%= store.total_listings ? ": #{number_with_delimiter(store.total_listings)}+ vinyl records" : "" %>
+<% end %>
+- [Browse all stores](/explore)
+
+## Info
+
+- Store pages include JSON-LD structured data (LocalBusiness, ItemList, BreadcrumbList) for search engines and AI crawlers
+- All public pages are server-rendered via Inertia SSR — no JavaScript required for crawlers
+- sitemap.xml available at /sitemap.xml.gz

@@ -1,0 +1,57 @@
+# Discogs Record Store marketplace usernames for bulk onboarding.
+# To add stores: open a city guide page, paste this in your browser console:
+#
+#   $$('[class*="marketplace"] a').map(a => a.textContent.trim()).filter(Boolean)
+#
+# Copy the results, replace the list below, and run:
+#   rake 'stores:bulk_onboard[config/stores.yml]'
+#
+# To verify usernames are real before adding them, run:
+#   rake 'stores:verify[config/stores.yml]'
+usernames:
+  # --- Already on milcrate ---
+  - philadelphiamusic
+  - supermicah
+
+  # --- Brooklyn / NYC (verified) ---
+  - Black_Gold_Brooklyn
+  - BKRecordExchange
+  - CTshop
+  - FaceRecordsNYC
+  - humanheadnyc
+  - themixtapeclub
+  - SecondHandRecordNYC
+  - superior-elevation
+
+  # --- Los Angeles (verified) ---
+  - freakbeatrecords
+  - rockawayrecords
+  - AmoebaMusic
+  - MountAnalog
+
+  # --- San Francisco (verified) ---
+  - amoebasf
+
+  # --- Other ---
+  - spinarecords
+  - therockshopnj
+
+  # --- Philadelphia (verified) ---
+  - Betternowrecords
+  - horrorpaingoredeath
+  - sitandspinrecords
+  - bordentownrecords
+  - PrincetonRecordEx
+  - SkyValley420
+  - shadydog
+  - yearbookrecords
+  - Squeezeboxrecords
+  - TunesOnline
+  - goodboyvinyl
+  - electric_avenue
+  - Lititz_Music_Co.
+  - Hopfidelity
+  - RecordMuseum
+  - sirenrecords
+  - TheWaxHut
+  - rainbowrecordsde

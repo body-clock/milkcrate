@@ -33,6 +33,11 @@ Rails.application.routes.draw do
 
   root "pages#home"
 
+  get "/llms.txt", to: "llms#show", defaults: { format: "text" }
+  get "/llms-full.txt", to: "llms#full", defaults: { format: "text" }
+
+  post "/click", to: "click_events#create"
+
   get  "/explore", to: "explore#index"
 
   get  "/apply",   to: "pages#apply"

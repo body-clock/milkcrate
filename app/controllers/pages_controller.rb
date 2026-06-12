@@ -2,6 +2,8 @@
 class PagesController < ApplicationController
   layout "inertia_application"
 
+  before_action :set_page_seo
+
   def home
     render inertia: "home", props: {
       copy: t("pages.home").to_h,
@@ -19,5 +21,22 @@ class PagesController < ApplicationController
       },
       initial_discogs_username: params[:discogs_username]
     }
+  end
+
+  private
+
+  def set_page_seo
+    @page_seo = page_seo_for(action_name)
+  end
+
+  def page_seo_for(action)
+    seo = I18n.t("pages.seo.#{action}", default: {})
+    seo = seo.merge(meta_robots: "noindex") if action == "apply"
+    seo = seo.merge(head_html: home_json_ld_html) if action == "home"
+    seo
+  end
+
+  def home_json_ld_html
+    %(<script type="application/ld+json">#{seo_home_json_ld}</script>)
   end
 end
