@@ -12,7 +12,7 @@ gem "faraday-retry"
 gem "oauth", ">= 1.1.6"
 gem "csv"
 
-gem "honeybadger", "~> 6.6"
+gem "honeybadger", "~> 6.9"
 
 # Inertia Rails — server-driven single-page app
 gem "inertia_rails"
