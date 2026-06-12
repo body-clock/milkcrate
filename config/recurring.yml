@@ -19,6 +19,11 @@ production:
     queue: default
     schedule: every day at 11pm
 
+  enrichment_sweep:
+    class: EnrichmentSweepJob
+    queue: default
+    schedule: every day at 3am
+
   daily_curation:
     class: DailyCurationJob
     queue: default
