@@ -5,26 +5,48 @@ class StoreProfileSyncJob < ApplicationJob
   queue_as :default
 
   def perform(store_id)
-    store = Store.find(store_id)
-    profile = fetch_profile(store)
+    sync_store_profile(store_id)
+  rescue StandardError => e
+    handle_error(store_id, e)
+  end
 
+  private
+
+  def handle_error(store_id, error)
+    log_failure(store_id, error)
+    raise unless api_error?(error)
+  end
+
+  def api_error?(error)
+    error.is_a?(Discogs::Errors::ApiError) ||
+      error.is_a?(Discogs::Errors::RateLimitError) ||
+      error.is_a?(DiscogsClient::ApiError)
+  end
+
+  def sync_store_profile(store_id)
+    @store = Store.find(store_id)
+    update_store(@store, fetch_profile(@store))
+  end
+
+  def update_store(store, profile)
     store.update!(
       avatar_url: profile["avatar_url"],
       location: profile["location"],
       description: profile["profile"],
       genre_tags: StoreProfileParser.new(profile["profile"]).genre_tags
     )
-  rescue Discogs::Errors::ApiError, Discogs::Errors::RateLimitError, DiscogsClient::ApiError => e
-    Rails.logger.warn("[StoreProfileSyncJob] store=#{store&.discogs_username} failed: #{e.message}")
-  rescue StandardError => e
-    Rails.logger.error("[StoreProfileSyncJob] store=#{store_id} failed: #{e.message}")
-    raise
   end
-
-  private
 
   def fetch_profile(store)
     client.seller_profile(store.discogs_username)
+  end
+
+  def log_warning(store, error)
+    Rails.logger.warn("[StoreProfileSyncJob] store=#{store&.discogs_username} failed: #{error.message}")
+  end
+
+  def log_failure(store_id, error)
+    Rails.logger.error("[StoreProfileSyncJob] store=#{store_id} failed: #{error.message}")
   end
 
   def client
