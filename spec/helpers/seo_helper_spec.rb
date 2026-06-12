@@ -54,22 +54,21 @@ RSpec.describe SeoHelper, type: :helper do
       expect(desc).to eq(expected_genres)
     end
 
-    it "appends Philadelphia location for Philly-based stores" do
-      store.update_column(:location, "Philadelphia, PA")
+    it "appends location suffix when store has location data" do
+      store.update_column(:location, "Los Angeles, CA")
       create_listings("Techno" => 3)
 
       desc = helper.seo_description(store)
 
-      expect(desc).to include(I18n.t("pages.seo.store.philly_suffix").strip)
+      expect(desc).to include("Based in Los Angeles, CA.")
     end
 
-    it "does not append Philadelphia for non-Philly stores" do
-      store.update_column(:location, "New York, NY")
+    it "does not append location when store has no location" do
       create_listings("Techno" => 3)
 
       desc = helper.seo_description(store)
 
-      expect(desc).not_to include("Philadelphia-based")
+      expect(desc).not_to include("Based in")
     end
   end
 

@@ -7,7 +7,7 @@ module SeoHelper
   def seo_description(store)
     diversity = genre_diversity(store)
     desc = diversity[:narrow] ? narrow_description(store, diversity) : broad_description(store, diversity)
-    desc += I18n.t("pages.seo.store.philly_suffix") if philly_store?(store)
+    desc += I18n.t("pages.seo.store.location_suffix", location: store.location) if store.location.present?
     desc
   end
 
@@ -92,10 +92,6 @@ module SeoHelper
     count = store.total_listings
     count = store.listings.count if count.nil? || count.zero?
     count
-  end
-
-  def philly_store?(store)
-    store.respond_to?(:location) && store.location.to_s.match?(/philadelphia/i)
   end
 
   def genre_diversity(store)

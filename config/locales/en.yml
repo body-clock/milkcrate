@@ -73,7 +73,7 @@ en:
         narrow_description: "Browse %{store_name}'s %{genre} vinyl collection on Milkcrate — %{count} records. A %{genre}-focused Discogs store."
         broad_description: "Browse %{store_name}'s curated vinyl collection on Milkcrate — %{count} records across %{genres}. Discover records from this Discogs seller."
         broad_description_no_genres: "Browse %{store_name}'s curated vinyl collection on Milkcrate — %{count} records. Discover records from this Discogs seller."
-        philly_suffix: " Philadelphia-based record store."
+        location_suffix: " Based in %{location}."
     apply:
       headline: "Get your store on Milkcrate"
       subhead: "We're onboarding stores one at a time. Fill this out and we'll be in touch."
