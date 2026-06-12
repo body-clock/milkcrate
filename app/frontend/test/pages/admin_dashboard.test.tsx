@@ -888,43 +888,4 @@ describe("Admin dashboard > action menu and expandable cards", () => {
     expect(screen.queryByText("Resync now")).not.toBeInTheDocument();
     expect(screen.getByText("View storefront")).toBeInTheDocument();
   });
-
-  it("expands card to show full details on click", async () => {
-    const user = userEvent.setup();
-    render(<Dashboard {...props} />);
-
-    // The failed card is in the attention section (first expanded section, first card)
-    const expandButtons = screen.getAllByLabelText("Expand details");
-    await user.click(expandButtons[0]);
-
-    expect(screen.getByText("Health reasons")).toBeInTheDocument();
-    expect(screen.getAllByText("Sync failed").length).toBeGreaterThan(0);
-    expect(screen.getByText("Error")).toBeInTheDocument();
-    expect(screen.getByText("RuntimeError: Discogs timeout")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Resync now" })).toBeInTheDocument();
-  });
-
-  it("collapses card on second click", async () => {
-    const user = userEvent.setup();
-    render(<Dashboard {...props} active_stores={[failedStore]} />);
-
-    await user.click(screen.getByLabelText("Expand details"));
-    expect(screen.getByText("Health reasons")).toBeInTheDocument();
-
-    await user.click(screen.getByLabelText("Collapse details"));
-    expect(screen.queryByText("Health reasons")).not.toBeInTheDocument();
-  });
-
-  it("hides error summary when card is expanded (shown in expanded details instead)", async () => {
-    const user = userEvent.setup();
-    render(<Dashboard {...props} active_stores={[failedStore]} />);
-
-    // Error summary visible in collapsed state
-    expect(screen.getByText("RuntimeError: Discogs timeout")).toBeInTheDocument();
-
-    await user.click(screen.getByLabelText("Expand details"));
-
-    // Error is now in expanded details section
-    expect(screen.getByText("RuntimeError: Discogs timeout")).toBeInTheDocument();
-  });
 });

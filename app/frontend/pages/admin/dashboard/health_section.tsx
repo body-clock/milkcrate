@@ -42,9 +42,13 @@ export function HealthSection({
         onClick={() => setExpanded(!expanded)}
         className="flex w-full items-center gap-2 text-left"
       >
+        <span
+          className={`text-mc-text-dim transition-transform duration-200 ${expanded ? "rotate-90" : ""}`}
+        >
+          ›
+        </span>
         <span className="text-lg font-bold text-mc-text">{config.label}</span>
         <Badge variant={config.severity}>{stores.length}</Badge>
-        <span className="text-mc-text-dim">{expanded ? "▲" : "▼"}</span>
       </button>
       {expanded ? <ExpandedContent stores={stores} /> : <CollapsedHint count={stores.length} />}
     </div>
