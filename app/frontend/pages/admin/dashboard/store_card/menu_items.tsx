@@ -3,6 +3,7 @@ import { router } from "@inertiajs/react";
 import type { AdminStoreSummary } from "@/types/inertia";
 
 import { canResync } from "../dashboard_constants";
+import { MenuItem } from "./menu_item";
 
 export function MenuItems({ store, onClose }: { store: AdminStoreSummary; onClose: () => void }) {
   const resyncable = canResync(store);
@@ -22,42 +23,6 @@ export function MenuItems({ store, onClose }: { store: AdminStoreSummary; onClos
         Delete store
       </MenuItem>
     </>
-  );
-}
-
-function MenuItem({
-  children,
-  onClick,
-  href,
-  asLink,
-  danger,
-}: {
-  children: React.ReactNode;
-  onClick?: () => void;
-  href?: string;
-  asLink?: boolean;
-  danger?: boolean;
-}) {
-  const className = `block w-full px-3 py-2 text-left text-sm hover:bg-mc-border ${danger ? "text-mc-feedback-danger" : "text-mc-text"}`;
-
-  if (asLink && href) {
-    return (
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={className}
-        onClick={onClick}
-      >
-        {children}
-      </a>
-    );
-  }
-
-  return (
-    <button type="button" onClick={onClick} className={className}>
-      {children}
-    </button>
   );
 }
 

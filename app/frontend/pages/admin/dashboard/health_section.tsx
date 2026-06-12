@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 
-import Badge from "@/components/ui/badge";
 import type { AdminDashboardProps } from "@/types/inertia";
 
-import { CollapsedHint, ExpandedContent } from "./section_content";
+import { CollapsedHint } from "./collapsed_hint";
+import { ExpandedContent } from "./section_content";
+import { SectionHeaderButton } from "./section_header_button";
 
 const SECTION_CONFIG = {
   attention: { label: "Attention", severity: "danger" as const, defaultExpanded: true },
@@ -36,19 +37,13 @@ export function HealthSection({
 
   return (
     <div className="space-y-3">
-      <button
-        type="button"
+      <SectionHeaderButton
+        label={config.label}
+        severity={config.severity}
+        count={stores.length}
+        expanded={expanded}
         onClick={() => setExpanded(!expanded)}
-        className="flex w-full items-center gap-2 text-left"
-      >
-        <span
-          className={`text-mc-text-dim transition-transform duration-200 ${expanded ? "rotate-90" : ""}`}
-        >
-          ›
-        </span>
-        <span className="text-lg font-bold text-mc-text">{config.label}</span>
-        <Badge variant={config.severity}>{stores.length}</Badge>
-      </button>
+      />
       {expanded ? <ExpandedContent stores={stores} /> : <CollapsedHint count={stores.length} />}
     </div>
   );

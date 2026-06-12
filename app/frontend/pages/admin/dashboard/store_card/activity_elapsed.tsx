@@ -2,6 +2,11 @@ import { useMemo } from "react";
 
 import FeedbackMessage from "@/components/ui/feedback_message";
 
+const MS_PER_SECOND = 1000;
+const SECONDS_PER_MINUTE = 60;
+const MS_PER_MINUTE = SECONDS_PER_MINUTE * MS_PER_SECOND;
+const MINUTES_PER_HOUR = 60;
+
 export function ActivityElapsed({
   label,
   timestamp,
@@ -42,7 +47,7 @@ function classifyElapsed(
   yellowThreshold: number,
   redThreshold: number,
 ): { display: string; tone: "progress" | "warning" | "danger" } {
-  const display = formatMinutes(Math.floor(ms / 60_000));
+  const display = formatMinutes(Math.floor(ms / MS_PER_MINUTE));
   if (ms >= redThreshold) {
     return { display, tone: "danger" };
   }
@@ -53,10 +58,10 @@ function classifyElapsed(
 }
 
 function formatMinutes(minutes: number): string {
-  if (minutes < 60) {
+  if (minutes < MINUTES_PER_HOUR) {
     return `${minutes} min`;
   }
-  const hours = Math.floor(minutes / 60);
-  const remaining = minutes % 60;
+  const hours = Math.floor(minutes / MINUTES_PER_HOUR);
+  const remaining = minutes % MINUTES_PER_HOUR;
   return remaining > 0 ? `${hours}h ${remaining}m` : `${hours}h`;
 }

@@ -14,12 +14,14 @@ import { severityVariant } from "./health_utils";
 import StoreInfo from "./store_info";
 
 function StoreCard({ store }: { store: AdminStoreSummary }) {
+  const { health } = store;
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-start justify-between gap-3">
         <StoreInfo store={store} />
         <div className="flex items-center gap-2">
-          <Badge variant={severityVariant(store.health.severity)}>{store.health.label}</Badge>
+          <Badge variant={severityVariant(health.severity)}>{health.label}</Badge>
           <ActionMenu store={store} />
         </div>
       </CardHeader>
@@ -31,9 +33,9 @@ function StoreCard({ store }: { store: AdminStoreSummary }) {
           lastEnrichedAt={store.last_enriched_at}
         />
         <StoreHealthBar store={store} />
-        {store.health.last_sync_error_summary && (
+        {health.last_sync_error_summary && (
           <FeedbackMessage tone="danger" live="assertive">
-            {store.health.last_sync_error_summary}
+            {health.last_sync_error_summary}
           </FeedbackMessage>
         )}
       </CardContent>

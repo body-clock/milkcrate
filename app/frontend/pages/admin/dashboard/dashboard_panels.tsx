@@ -17,7 +17,8 @@ export function DashboardPanels({
   discogs_onboarding,
 }: AdminDashboardProps & { healthFilter: HealthFilter }) {
   const [searchQuery, setSearchQuery] = useState("");
-  const searchFilteredStores = useSearchFilter(active_stores, searchQuery);
+  const filtered = useSearchFilter(active_stores, searchQuery);
+  const showSearch = active_stores.length >= SEARCH_THRESHOLD;
 
   return (
     <div className="flex flex-col gap-8">
@@ -26,29 +27,25 @@ export function DashboardPanels({
         createPath={discogs_onboarding.create_path}
       />
       <ActiveStoresSection
-        active_stores={searchFilteredStores}
+        active_stores={filtered}
         healthFilter={healthFilter}
         hasSearchFilter={searchQuery.trim().length > 0}
       >
-        {active_stores.length >= SEARCH_THRESHOLD && (
-          <SearchInput query={searchQuery} onChange={setSearchQuery} />
-        )}
+        {showSearch && <SearchInput query={searchQuery} onChange={setSearchQuery} />}
       </ActiveStoresSection>
       <ApplicantsSection applicants={applicants} />
     </div>
   );
 }
 
-function useSearchFilter(active_stores: AdminDashboardProps["active_stores"], searchQuery: string) {
+function useSearchFilter(stores: AdminDashboardProps["active_stores"], query: string) {
   return useMemo(() => {
-    if (!searchQuery.trim()) {
-      return active_stores;
+    if (!query.trim()) {
+      return stores;
     }
-    const query = searchQuery.toLowerCase();
-    return active_stores.filter(
-      (store) =>
-        store.name.toLowerCase().includes(query) ||
-        store.discogs_username.toLowerCase().includes(query),
+    const q = query.toLowerCase();
+    return stores.filter(
+      (s) => s.name.toLowerCase().includes(q) || s.discogs_username.toLowerCase().includes(q),
     );
-  }, [active_stores, searchQuery]);
+  }, [stores, query]);
 }
