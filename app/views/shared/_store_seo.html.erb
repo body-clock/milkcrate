@@ -1,0 +1,12 @@
+<meta name="description" content="<%= seo_description(store) %>">
+<meta property="og:title" content="<%= seo_title(store) %>">
+<meta property="og:description" content="<%= seo_description(store) %>">
+<meta property="og:url" content="<%= store_url(store.discogs_username) %>">
+<meta property="og:type" content="website">
+<meta property="og:image" content="<%= default_og_image %>">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="<%= seo_title(store) %>">
+<meta name="twitter:description" content="<%= seo_description(store) %>">
+<script type="application/ld+json">
+<%= seo_store_json_ld(store) %>
+</script>

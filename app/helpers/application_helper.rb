@@ -6,4 +6,13 @@ module ApplicationHelper
   rescue URI::InvalidURIError
     "#"
   end
+
+  def canonical_link
+    url = @page_seo&.dig(:canonical_url) || request.path
+    tag.link(rel: "canonical", href: "#{request.base_url}#{url}")
+  end
+
+  def store_url(slug)
+    "#{request.base_url}/#{slug}"
+  end
 end

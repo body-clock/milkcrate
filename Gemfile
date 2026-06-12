@@ -39,6 +39,7 @@ gem "rqrcode"
 gem "rack-attack"
 gem "bcrypt"
 gem "rubyzip"
+gem "sitemap_generator"
 
 group :development, :test do
   gem "dotenv-rails"
