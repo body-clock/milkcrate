@@ -1,6 +1,4 @@
-# Namespace for admin controllers and presenters.
 module Admin
-  # Serializes admin dashboard data (store health, sync stats) for Inertia views.
   class DashboardPresenter
     def props
       {
@@ -20,15 +18,15 @@ module Admin
     end
 
     def active_stores
-      Store.order(created_at: :desc).map { |store| StoreHealthPresenter.new(store).props }
+      Store.all.map { |store| StoreHealthPresenter.new(store) }
+        .sort_by { |presenter| [ presenter.severity_weight, presenter.sort_key ] }
+        .map(&:props)
     end
 
     def applicants
-      live_usernames = Store.pluck(:discogs_username).compact.to_set
-
       Waitlist
+        .where.not(discogs_username: Store.select(:discogs_username))
         .order(created_at: :desc)
-        .reject { |waitlist| live_usernames.include?(waitlist.discogs_username) }
         .map { |waitlist| applicant_props(waitlist) }
     end
 

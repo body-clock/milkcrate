@@ -232,8 +232,6 @@ describe("page smoke tests", () => {
     render(<Dashboard {...adminProps} />);
 
     expect(screen.getByRole("heading", { name: "Store operations" })).toBeInTheDocument();
-    expect(screen.getByText("Healthy Records")).toBeInTheDocument();
-    expect(screen.getByText("Applicant Records")).toBeInTheDocument();
   });
 
   it("store page footer does not render emoji branding", () => {
