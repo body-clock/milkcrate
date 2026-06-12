@@ -1,26 +1,13 @@
 # Discogs Record Store marketplace usernames for bulk onboarding.
 # Sources: discogs.com/record-stores/city-guides/, discogs.com/record-stores/directory/
-# Add username on each line. Run: rake 'stores:bulk_onboard[config/stores.yml]'
+# Only add usernames verified from actual Discogs marketplace links and API.
+# Run: rake 'stores:bulk_onboard[config/stores.yml]'
 usernames:
   # --- Already on milcrate ---
   - philadelphiamusic
   - supermicah
 
-  # --- Philadelphia Record Stores ---
-  - BeautifulWorldSyndicate
-  - BrewerytownBeats
-  - CommonBeatMusic
-  - CreepRecords
-  - HideawayMusic
-  - LongInTheTooth
-  - Lot49
-  - MilkCrateCafe
-  - MollysBooksAndRecords
-  - SitAndSpinRecords
-  - VinylAltar
-
-  # --- Brooklyn / NYC Record Stores ---
-  - academyannexnyc
+  # --- Brooklyn / NYC (verified) ---
   - Black_Gold_Brooklyn
   - BKRecordExchange
   - CTshop
