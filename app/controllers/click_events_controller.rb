@@ -6,7 +6,7 @@ class ClickEventsController < ApplicationController
   def create
     return head(:no_content) unless (store = resolve_store)
     create_click(store)
-  rescue StandardError => e
+  rescue ActiveRecord::ActiveRecordError => e
     Rails.logger.warn("[ClickEventsController] Failed to record click: #{e.message}")
     head :no_content
   end
