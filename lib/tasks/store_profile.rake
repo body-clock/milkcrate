@@ -15,7 +15,7 @@ namespace :store_profile do
   end
 
   desc "Sync Discogs profile data for a specific store"
-  task :sync_one, [:username] => :environment do |_t, args|
+  task :sync_one, [ :username ] => :environment do |_t, args|
     username = args[:username]
     store = Store.find_by(discogs_username: username)
 

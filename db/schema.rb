@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_11_203928) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_12_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -272,6 +272,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_11_203928) do
   end
 
   create_table "stores", force: :cascade do |t|
+    t.string "avatar_url"
     t.string "catalog_coverage", default: "unknown", null: false
     t.datetime "created_at", null: false
     t.text "description"
@@ -279,6 +280,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_11_203928) do
     t.string "discogs_username"
     t.integer "enrichment_progress_pct"
     t.string "enrichment_status", default: "idle", null: false
+    t.text "genre_tags", default: [], array: true
     t.integer "inventory_page_count", default: 0, null: false
     t.integer "inventory_version", default: 0, null: false
     t.datetime "last_enriched_at"
