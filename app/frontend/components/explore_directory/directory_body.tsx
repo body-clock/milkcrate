@@ -9,15 +9,19 @@ import StoreDirectoryGrid from "./store_directory_grid";
 export default function DirectoryBody({
   error,
   stores,
+  label,
+  emptyState,
 }: {
   error: string | null;
   stores: ExploreStoreData[];
+  label: string;
+  emptyState: string;
 }) {
   if (error) {
     return <ErrorAlert error={error} />;
   }
   if (stores.length === 0) {
-    return <EmptyState />;
+    return <EmptyState message={emptyState} />;
   }
-  return <StoreDirectoryGrid stores={stores} />;
+  return <StoreDirectoryGrid stores={stores} label={label} />;
 }

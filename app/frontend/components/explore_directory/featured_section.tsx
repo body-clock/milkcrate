@@ -11,9 +11,10 @@ const gridVariants = {
 
 interface FeaturedSectionProps {
   stores: ExploreStoreData[];
+  label: string;
 }
 
-export default function FeaturedSection({ stores }: FeaturedSectionProps) {
+export default function FeaturedSection({ stores, label }: FeaturedSectionProps) {
   if (stores.length === 0) {
     return null;
   }
@@ -21,7 +22,7 @@ export default function FeaturedSection({ stores }: FeaturedSectionProps) {
   return (
     <section>
       <div className="mc-section-header">
-        <h2 className="mc-section-name">Featured Stores</h2>
+        <h2 className="mc-section-name">{label}</h2>
         <span className="mc-section-count">{stores.length}</span>
       </div>
       <motion.div

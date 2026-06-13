@@ -15,11 +15,17 @@ const gridVariants = {
   visible: { transition: { staggerChildren: 0.06, delayChildren: 0.05 } },
 };
 
-export default function StoreDirectoryGrid({ stores }: { stores: ExploreStoreData[] }) {
+export default function StoreDirectoryGrid({
+  stores,
+  label,
+}: {
+  stores: ExploreStoreData[];
+  label: string;
+}) {
   return (
     <>
       <div className="mc-section-header">
-        <h2 className="mc-section-name">All Stores</h2>
+        <h2 className="mc-section-name">{label}</h2>
         <span className="mc-section-count">{stores.length}</span>
       </div>
       <motion.div

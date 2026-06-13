@@ -17,15 +17,25 @@ export interface ExploreStoreData {
   description: string | null;
 }
 
+export interface ExploreCopy {
+  headline: string;
+  subhead: string;
+  featured_label: string;
+  all_stores_label: string;
+  empty_state: string;
+}
+
 export interface ExploreDirectoryProps {
   stores: ExploreStoreData[];
   featured_stores: ExploreStoreData[];
+  copy: ExploreCopy;
   error: string | null;
 }
 
 export default function ExploreDirectory({
   stores,
   featured_stores,
+  copy,
   error,
 }: ExploreDirectoryProps) {
   return (
@@ -33,9 +43,14 @@ export default function ExploreDirectory({
       <PageHead />
       <MarketingLayout>
         <div className="space-y-8">
-          <HeaderSection />
-          <FeaturedSection stores={featured_stores} />
-          <DirectoryBody error={error} stores={stores} />
+          <HeaderSection copy={copy} />
+          <FeaturedSection stores={featured_stores} label={copy.featured_label} />
+          <DirectoryBody
+            error={error}
+            stores={stores}
+            label={copy.all_stores_label}
+            emptyState={copy.empty_state}
+          />
         </div>
       </MarketingLayout>
     </>

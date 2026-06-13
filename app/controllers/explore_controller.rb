@@ -6,7 +6,7 @@ class ExploreController < ApplicationController
 
   def index
     set_explore_seo
-    render inertia: "explore", props: { stores: stores_data, featured_stores: featured_stores_data, error: nil }
+    render inertia: "explore", props: { stores: stores_data, featured_stores: featured_stores_data, copy: t("pages.explore").to_h, error: nil }
   rescue ActiveRecord::QueryCanceled, ActiveRecord::ConnectionNotEstablished, ActiveRecord::StatementInvalid => e
     Rails.logger.warn("[ExploreController] Query failed: #{e.message}")
     render_explore_error
@@ -25,7 +25,7 @@ class ExploreController < ApplicationController
 
   def render_explore_error
     @page_seo = I18n.t("pages.seo.explore")
-    render inertia: "explore", props: { stores: [], featured_stores: [], error: "We couldn't load the store directory right now. Please try again shortly." }
+    render inertia: "explore", props: { stores: [], featured_stores: [], copy: t("pages.explore").to_h, error: "We couldn't load the store directory right now. Please try again shortly." }
   end
 
   def stores_data

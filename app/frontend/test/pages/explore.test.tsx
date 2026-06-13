@@ -3,7 +3,7 @@ import React from "react";
 import { describe, expect, it, vi } from "vitest";
 
 import ExploreDirectory from "../../pages/explore";
-import type { ExploreDirectoryProps, ExploreStoreData } from "../../pages/explore";
+import type { ExploreCopy, ExploreDirectoryProps, ExploreStoreData } from "../../pages/explore";
 
 vi.mock("@inertiajs/react", () => ({
   Link: ({ children, href, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
@@ -40,10 +40,19 @@ function makeStore(overrides: Partial<ExploreStoreData> = {}): ExploreStoreData 
   };
 }
 
+const defaultCopy: ExploreCopy = {
+  headline: "Explore Record Stores",
+  subhead: "Discover independent record stores powered by MilkCrate.",
+  featured_label: "Featured Stores",
+  all_stores_label: "All Stores",
+  empty_state: "No stores have joined yet. Check back soon!",
+};
+
 function makeProps(overrides: Partial<ExploreDirectoryProps> = {}): ExploreDirectoryProps {
   return {
     stores: [],
     featured_stores: [],
+    copy: defaultCopy,
     error: null,
     ...overrides,
   };

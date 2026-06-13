@@ -57,6 +57,12 @@ en:
       seller_min_listings: "Milkcrate requires at least 500 listings to create a storefront."
       seller_lookup_error: "Something went wrong. Please try again."
       bottom_signoff: "Start browsing or claim your store."
+    explore:
+      headline: "Explore Record Stores"
+      subhead: "Discover independent record stores powered by MilkCrate. Browse their inventory like a real record store."
+      featured_label: "Featured Stores"
+      all_stores_label: "All Stores"
+      empty_state: "No stores have joined yet. Check back soon!"
     seo:
       home:
         title: "Milkcrate — Browse Vinyl Records Like a Record Store"
