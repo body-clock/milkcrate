@@ -6,7 +6,7 @@ export default function StoreCardImage({ store }: { store: ExploreStoreData }) {
   }
 
   return (
-    <div className="aspect-[4/3] w-full overflow-hidden bg-mc-bg-card">
+    <div className="h-36 w-full shrink-0 overflow-hidden bg-mc-bg-card">
       <img
         src={store.avatar_url}
         alt={store.name}

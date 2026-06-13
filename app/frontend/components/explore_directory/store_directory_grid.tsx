@@ -27,10 +27,10 @@ export default function StoreDirectoryGrid({ stores }: { stores: ExploreStoreDat
         whileInView="visible"
         viewport={{ once: true, margin: "-40px" }}
         variants={gridVariants}
-        className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+        className="grid auto-rows-fr gap-4 sm:grid-cols-2 lg:grid-cols-4"
       >
         {stores.map((store) => (
-          <motion.div key={store.id} variants={fadeUp}>
+          <motion.div key={store.id} variants={fadeUp} className="h-full">
             <StoreCard store={store} />
           </motion.div>
         ))}
