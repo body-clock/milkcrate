@@ -13,7 +13,7 @@ export default function StoreCard({ store }: StoreCardProps) {
   return (
     <Link
       href={`/${store.discogs_username}`}
-      className="group overflow-hidden rounded-lg border border-mc-border shadow-sm transition-shadow hover:shadow-md dark:shadow-black/20"
+      className="block overflow-hidden rounded-lg border border-mc-border shadow-sm transition-shadow hover:shadow-md dark:shadow-black/20"
     >
       <StoreCardImage store={store} />
       <StoreCardInfo store={store} />
