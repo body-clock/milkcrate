@@ -25,7 +25,7 @@ export default function FeaturedCard({ store }: { store: ExploreStoreData }) {
       >
         <div className="relative aspect-[4/5] w-full">
           <FeaturedCardImage store={store} />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
           <FeaturedCardContent store={store} />
         </div>
       </Link>
