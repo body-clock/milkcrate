@@ -4,7 +4,7 @@
 
 Hey,
 
-I found {{store_name}} on Discogs and turned your inventory into [url=https://milkcrate.fm]a storefront[/url] where people can flip through crates like they would in your {{location}} shop. I organized your {{diverse|focused}} collection into browsable sections in a way that hopefully feels nicer than scrolling through Discogs.
+I found {{store_name}} on Discogs and turned your inventory into [url=https://milkcrate.fm/{{discogs_username}}]a storefront[/url] where people can flip through crates like they would in your {{location}} shop. I organized your {{diverse|focused}} collection into browsable sections in a way that hopefully feels nicer than scrolling through Discogs.
 
 I'm experimenting with this idea of a discovery layer for your store and would love your help testing it out.{{philly_visit}}
 
@@ -31,7 +31,7 @@ Patrick
 - No business terms. No "leverage," "curated," "seamless."
 - No em-dashes.
 - Feel human. Like you found their store and thought of them.
-- "a storefront" always links to https://milkcrate.fm
+- "a storefront" links to the store's page on Milkcrate
 - The "experimenting" and "Philly visit" lines run together as one paragraph
 - Only add Philly visit when store is confirmed brick-and-mortar
 
@@ -39,33 +39,53 @@ Patrick
 
 | Username | Store | Location | Physical | Sent |
 |----------|-------|----------|----------|------|
-| black_gold_brooklyn | Black Gold Brooklyn | Brooklyn, NY | No | ✓ |
-| bkrecordexchange | Brooklyn Record Exchange | Greenpoint, Brooklyn | Yes | ✓ |
-| facerecordsnyc | Face Records NYC | Williamsburg, Brooklyn | Yes | ✓ |
-| themixtapeclub | The Mixtape Club | New York | Yes | ✓ |
-| secondhandrecordnyc | Second Hand Records NYC | Brooklyn, NY | No | ✓ |
-| superior-elevation | Superior Elevation Records | Williamsburg, Brooklyn | Yes | ✓ |
-| freakbeatrecords | Freak Beat Records | Unknown | No | ✓ |
-| rockawayrecords | Rockaway Records | Silver Lake, LA | Yes | ✓ |
-| amoebamusic | Amoeba Music | Hollywood, CA | Yes | ✓ |
-| mountanalog | Mount Analog | Los Angeles | Yes | ✓ |
-| rockawayrecords | Rockaway Records | Silver Lake, LA | Yes | ✓ |
-| spinarecords | Spina Records | Princeton Junction, NJ | No | ✓ |
-| therockshopnj | The Rock Shop | PA/NJ | Yes | ✓ |
-| princetonrecordex | Princeton Record Exchange | Princeton, NJ | Yes | ✓ |
-| skyvalley420 | Sky Valley Records | Somerdale, NJ | Yes | ✓ |
-| shadydog | Shady Dog Records | Berwyn, PA | Yes | ✓ |
-| yearbookrecords | Yearbook Records | Lanoka Harbor, NJ | Yes | ✓ |
-| squeezeboxrecords | SqueezeBox Records | Wilmington, DE | Yes | ✓ |
-| tunesonline | TunesOnline | Voorhees, NJ | Yes | ✓ |
-| goodboyvinyl | Good Boy Vinyl | Wilmington, DE | Yes | ✓ |
-| electric_avenue | Electric Avenue | West Chester, PA | Yes | ✓ |
-| hopfidelity | Hop Fidelity | West Chester, PA | Yes | ✓ |
-| sirenrecords | Siren Records | Doylestown, PA | Yes | ✓ |
+| black_gold_brooklyn | Black Gold Brooklyn | Brooklyn, NY | No | Jun 12 |
+| BKRecordExchange | Brooklyn Record Exchange | Greenpoint, Brooklyn | Yes | Jun 12 |
+| FaceRecordsNYC | Face Records NYC | Williamsburg, Brooklyn | Yes | Jun 12 |
+| themixtapeclub | The Mixtape Club | New York | Yes | Jun 12 |
+| SecondHandRecordNYC | Second Hand Records NYC | Brooklyn, NY | No | Jun 12 |
+| superior-elevation | Superior Elevation Records | Williamsburg, Brooklyn | Yes | Jun 12 |
+| freakbeatrecords | Freak Beat Records | Unknown | No | Jun 12 |
+| rockawayrecords | Rockaway Records | Silver Lake, LA | Yes | Jun 12 |
+| amoebamusic | Amoeba Music | Hollywood, CA | Yes | Jun 12 |
+| AmoebaMusic | Amoeba Music | Hollywood, CA | Yes | Jun 12 |
+| AmoebaSF | Amoeba Music | San Francisco | Yes | Jun 13 |
+| MountAnalog | Mount Analog | Los Angeles | Yes | Jun 12 |
+| SpinaRecords | Spina Records | Princeton Junction, NJ | No | Jun 12 |
+| TheRockShopNJ | The Rock Shop | PA/NJ | Yes | Jun 12 |
+| PrincetonRecordEx | Princeton Record Exchange | Princeton, NJ | Yes | Jun 12 |
+| SkyValley420 | Sky Valley Records | Somerdale, NJ | Yes | Jun 12 |
+| shadydog | Shady Dog Records | Berwyn, PA | Yes | Jun 12 |
+| yearbookrecords | Yearbook Records | Lanoka Harbor, NJ | Yes | Jun 12 + Jun 13 |
+| Squeezeboxrecords | SqueezeBox Records | Wilmington, DE | Yes | Jun 12 |
+| TunesOnline | TunesOnline | Voorhees, NJ | Yes | Jun 12 |
+| goodboyvinyl | Good Boy Vinyl | Wilmington, DE | Yes | Jun 12 |
+| electric_avenue | Electric Avenue | West Chester, PA | Yes | Jun 12 |
+| Hopfidelity | Hop Fidelity | Greater Philadelphia | Yes | Jun 12 |
+| sirenrecords | Siren Records | Doylestown, PA | Yes | Jun 13 |
+| TheWaxHut | The Wax Hut | Ewing, NJ | Yes | Jun 13 |
+| rainbowrecordsde | Rainbow Records | Newark, DE | Yes | Jun 13 |
+| BetterNowRecords | Better Now Records | Philadelphia | Yes | Jun 13 |
+| CTshop | Captured Tracks Shop | Brooklyn, NY | Yes | Jun 13 |
+| humanheadnyc | Human Head | Brooklyn, NY | Yes | Jun 13 |
+| oldtimeways | Janis Devlin | Philly | Yes | Jun 13 |
+| ryvvolte_records | Jay Collins | Philadelphia | No | Jun 13 |
+| MilkcrateCafe | Milkcrate Cafe | Philadelphia, PA | Yes | Jun 13 |
+| mtheorymusic | mtheorymusic | San Diego | No | Jun 13 |
+| RecordExchangeofMD | Record Exchange of MD | Frederick, MD | Yes | Jun 13 |
+| bordentownrecords | The Record Collector | Bordentown, NJ | Yes | Jun 13 |
 
-## Messages Ready (not yet sent due to rate limit)
+## Not on Explore Page (skipped)
 
-| Username | Store | Location | Physical |
-|----------|-------|----------|----------|
-| thewaxhut | The Wax Hut | Ewing, NJ | Yes |
-| rainbowrecordsde | Rainbow Records | Newark, DE | Yes |
+| Username | Store | Reason |
+|----------|-------|--------|
+| tremendousmids | tremendousmids | Skipped per Patrick |
+| supermica | Mica | Skipped per Patrick |
+| sitandspinrecords | Sit & Spin Records | Skipped per Patrick |
+| philadelphiamusic | Philadelphia Music | Demo store |
+
+## Onboarding in Progress
+
+| Username | Store | Location | Physical | Started |
+|----------|-------|----------|----------|----------|
+| vinyltreasuresonline | | | | 2026-06-12 |
