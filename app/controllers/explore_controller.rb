@@ -3,10 +3,12 @@ class ExploreController < ApplicationController
   layout "inertia_application"
 
   FEATURED_COUNT = 3
+  EXPLORE_CACHE_TTL = 24.hours
+  EXPLORE_CACHE_KEY = "explore/v1/%<date>s/%<store_count>s"
 
   def index
     set_explore_seo
-    render inertia: "explore", props: { stores: stores_data, featured_stores: featured_stores_data, copy: t("pages.explore").to_h, error: nil }
+    render inertia: "explore", props: { stores: cached_stores_data, featured_stores: cached_featured_data, copy: t("pages.explore").to_h, error: nil }
   rescue ActiveRecord::QueryCanceled, ActiveRecord::ConnectionNotEstablished, ActiveRecord::StatementInvalid => e
     Rails.logger.warn("[ExploreController] Query failed: #{e.message}")
     render_explore_error
@@ -19,8 +21,7 @@ class ExploreController < ApplicationController
   end
 
   def explore_json_ld_html
-    stores = stores_data
-    %(<script type="application/ld+json">#{seo_explore_json_ld(stores)}</script>)
+    %(<script type="application/ld+json">#{seo_explore_json_ld(cached_stores_data)}</script>)
   end
 
   def render_explore_error
@@ -28,13 +29,19 @@ class ExploreController < ApplicationController
     render inertia: "explore", props: { stores: [], featured_stores: [], copy: t("pages.explore").to_h, error: "We couldn't load the store directory right now. Please try again shortly." }
   end
 
-  def stores_data
-    ready_stores.order(:name).map do |store|
-      store_props(store)
-    end
+  def cached_stores_data
+    Rails.cache.fetch(explore_cache_key, expires_in: EXPLORE_CACHE_TTL) { build_stores_data }
   end
 
-  def featured_stores_data
+  def cached_featured_data
+    Rails.cache.fetch(featured_cache_key, expires_in: EXPLORE_CACHE_TTL) { build_featured_data }
+  end
+
+  def build_stores_data
+    ready_stores.order(:name).map { |store| store_props(store) }
+  end
+
+  def build_featured_data
     all_ready = ready_stores.to_a
     return [] if all_ready.empty?
 
@@ -59,7 +66,12 @@ class ExploreController < ApplicationController
     @ready_stores ||= Store.ready
   end
 
-  def daily_seed
-    Date.current.jd.to_f / 1000
+  def explore_cache_key
+    store_count = Store.ready.count
+    EXPLORE_CACHE_KEY % { date: Date.current.iso8601, store_count: }
+  end
+
+  def featured_cache_key
+    "explore/featured/v1/#{Date.current.iso8601}"
   end
 end

@@ -114,5 +114,28 @@ RSpec.describe "Explore", type: :request do
         expect(inertia.props[:featured_stores]).to eq([])
       end
     end
+
+    describe "caching" do
+      it "caches explore data" do
+        create_list(:store, 3, last_synced_at: 1.day.ago, last_enriched_at: 1.day.ago)
+
+        expect(Rails.cache).to receive(:fetch).at_least(:once).and_call_original
+
+        get "/explore"
+        expect(response).to have_http_status(:ok)
+      end
+
+      it "returns consistent data on subsequent requests" do
+        create_list(:store, 2, last_synced_at: 1.day.ago, last_enriched_at: 1.day.ago)
+
+        get "/explore"
+        first_names = inertia.props[:stores].map { |s| s[:name] }
+
+        get "/explore"
+        second_names = inertia.props[:stores].map { |s| s[:name] }
+
+        expect(first_names).to eq(second_names)
+      end
+    end
   end
 end
