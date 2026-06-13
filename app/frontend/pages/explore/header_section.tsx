@@ -7,8 +7,8 @@ export default function HeaderSection() {
         Explore Record Stores
       </h1>
       <p className="mx-auto mt-3 max-w-lg text-sm text-mc-text-dim sm:text-base">
-        Discover independent record stores powered by MilkCrate. Browse their collections and find
-        your next favorite crate.
+        Discover independent record stores powered by MilkCrate. Browse their inventory like a real
+        record store.
       </p>
     </section>
   );
