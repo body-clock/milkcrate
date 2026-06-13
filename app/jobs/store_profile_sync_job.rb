@@ -41,10 +41,6 @@ class StoreProfileSyncJob < ApplicationJob
     client.seller_profile(store.discogs_username)
   end
 
-  def log_warning(store, error)
-    Rails.logger.warn("[StoreProfileSyncJob] store=#{store&.discogs_username} failed: #{error.message}")
-  end
-
   def log_failure(store_id, error)
     Rails.logger.error("[StoreProfileSyncJob] store=#{store_id} failed: #{error.message}")
   end

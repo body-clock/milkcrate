@@ -35,12 +35,11 @@ class ExploreController < ApplicationController
   end
 
   def featured_stores_data
-    return [] if ready_stores.count < 1
+    all_ready = ready_stores.to_a
+    return [] if all_ready.empty?
 
-    count = [ FEATURED_COUNT, ready_stores.count ].min
-    ready_stores.order(Arel.sql("RANDOM() + #{daily_seed}")).limit(count).map do |store|
-      store_props(store)
-    end
+    count = [ FEATURED_COUNT, all_ready.length ].min
+    all_ready.sample(count).map { |store| store_props(store) }
   end
 
   def store_props(store)

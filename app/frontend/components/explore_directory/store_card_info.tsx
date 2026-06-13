@@ -1,11 +1,5 @@
+import { storeListingText } from "@/lib/format_listings";
 import type { ExploreStoreData } from "@/pages/explore";
-
-function storeListingText(total: number | null): string {
-  if (total == null) {
-    return "Listings coming soon";
-  }
-  return `${total.toLocaleString()} listing${total === 1 ? "" : "s"}`;
-}
 
 export default function StoreCardInfo({ store }: { store: ExploreStoreData }) {
   const listingText = storeListingText(store.total_listings);

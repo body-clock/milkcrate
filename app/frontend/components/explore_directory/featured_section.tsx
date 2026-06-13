@@ -22,7 +22,7 @@ export default function FeaturedSection({ stores }: FeaturedSectionProps) {
     <section>
       <div className="mc-section-header">
         <h2 className="mc-section-name">Featured Stores</h2>
-        {stores.length > 0 && <span className="mc-section-count">{stores.length}</span>}
+        <span className="mc-section-count">{stores.length}</span>
       </div>
       <motion.div
         initial="hidden"
