@@ -44,11 +44,11 @@
 # Ignore git worktree directories.
 /.worktrees/
 
-# Experiment pipeline artifacts (per-session seed data, labels, results)
-/experiments/*
-!/experiments/.gitkeep
-!/experiments/score-registry.yml
-!/experiments/server.ru
+# AI agent context and planning docs (kept locally, not committed)
+context.md
+STRATEGY.md
+compound-engineering.local.md
+docs/
 
 # Vite Ruby
 /public/vite*
