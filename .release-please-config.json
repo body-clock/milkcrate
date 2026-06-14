@@ -17,7 +17,7 @@
         { "type": "test", "section": "Tests", "hidden": true },
         { "type": "ci", "section": "Continuous Integration", "hidden": true }
       ],
-      "extra-files": ["config/initializers/app_version.rb"]
+      "extra-files": ["VERSION", "config/initializers/app_version.rb"]
     }
   }
 }
