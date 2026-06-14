@@ -27,6 +27,7 @@ interface AppLayoutState {
   autoOpenPile: boolean;
   flashMsg: string | undefined;
   hasNotice: boolean;
+  appVersion?: string;
 }
 
 type AppPageProps = {
@@ -34,6 +35,7 @@ type AppPageProps = {
   alert?: string;
   store?: Pick<Store, "name" | "discogs_username">;
   shopper?: { discogs_username: string } | null;
+  app_version?: string;
 };
 
 function autoOpenPileFromUrl(): boolean {
@@ -51,7 +53,7 @@ function usePileState() {
 
 function useAppLayoutState(): AppLayoutState {
   const page = usePage<AppPageProps>();
-  const { notice, alert: alertMsg, store, shopper } = page.props;
+  const { notice, alert: alertMsg, store, shopper, app_version } = page.props;
   const { theme, toggle } = useTheme();
   const { isCompact } = useViewport();
   const { pile } = usePileContext();
@@ -59,7 +61,7 @@ function useAppLayoutState(): AppLayoutState {
   const contextFocusRef = useRef<HTMLElement>(null);
   return { storeName: store?.name, discogsUsername: store?.discogs_username,
     theme, toggle, isCompact, pile, shopper, ...pileState, contextFocusRef,
-    flashMsg: notice || alertMsg, hasNotice: !!notice };
+    flashMsg: notice || alertMsg, hasNotice: !!notice, appVersion: app_version };
 }
 
 export function AppLayoutContent({ children }: AppLayoutProps) {

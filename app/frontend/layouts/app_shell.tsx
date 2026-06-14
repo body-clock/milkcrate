@@ -18,6 +18,7 @@ interface AppShellProps {
   contextFocusRef: React.RefObject<HTMLElement | null>;
   flashMsg: string | undefined;
   hasNotice: boolean;
+  appVersion?: string;
 }
 
 export function AppShell(p: AppShellProps) {
@@ -30,7 +31,7 @@ export function AppShell(p: AppShellProps) {
             toggle={p.toggle} setPileOpen={p.setPileOpen} contextFocusRef={p.contextFocusRef} />
         }
         afterHeader={<AppContentFlashBanner flashMsg={p.flashMsg} hasNotice={p.hasNotice} />}
-        footer={p.isCompact ? undefined : <AppFooter shopper={p.shopper} />}
+        footer={p.isCompact ? undefined : <AppFooter shopper={p.shopper} appVersion={p.appVersion} />}
         contentWidth="max-w-6xl" contentPadding="px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         {p.children}
       </MilkcrateShell>

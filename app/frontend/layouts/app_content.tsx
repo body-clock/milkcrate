@@ -17,6 +17,7 @@ interface AppContentProps {
   autoOpenPile: boolean;
   flashMsg: string | undefined;
   hasNotice: boolean;
+  appVersion?: string;
 }
 
 export function AppContent(props: AppContentProps) {
