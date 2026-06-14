@@ -2,9 +2,10 @@ import { DiscogsDisconnectForm } from "@/components/discogs_connection_controls"
 
 interface AppFooterProps {
   shopper?: { discogs_username: string } | null;
+  appVersion?: string;
 }
 
-export function AppFooter({ shopper }: AppFooterProps) {
+export function AppFooter({ shopper, appVersion }: AppFooterProps) {
   return (
     <footer className="flex flex-col items-center gap-3 px-4 py-4 border-t border-mc-border text-center">
       {shopper && (
@@ -15,6 +16,9 @@ export function AppFooter({ shopper }: AppFooterProps) {
       )}
       <span className="text-[11px] text-mc-text-dim tracking-wide">
         Powered by <span className="font-medium">Milkcrate.</span>
+        {appVersion && (
+          <span className="ml-1.5 opacity-60">v{appVersion}</span>
+        )}
       </span>
     </footer>
   );
