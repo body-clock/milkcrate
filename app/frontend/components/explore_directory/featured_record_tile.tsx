@@ -8,7 +8,7 @@ export default function FeaturedRecordTile({ record }: { record: FeaturedRecord 
   return (
     <Link
       href={`/${record.store_slug}`}
-      className="snap-start shrink-0 w-[45vw] sm:w-[200px] lg:w-[220px] flex flex-col group"
+      className="shrink-0 w-[45vw] sm:w-[200px] lg:w-[220px] flex flex-col group"
     >
       <div className="w-full aspect-square">
         <RecordTile listing={record} tactileHover imageLoading="lazy" />
