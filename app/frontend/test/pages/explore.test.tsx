@@ -26,6 +26,15 @@ vi.mock("../../pages/explore/page_head", () => ({
   default: () => <title>Explore</title>,
 }));
 
+vi.mock("../../components/explore_directory/featured_records_rail", () => ({
+  default: ({ records, label }: { records: any[]; label: string }) => (
+    <div data-testid="featured-records-rail">
+      <h2>{label}</h2>
+      <span>{records.length}</span>
+    </div>
+  ),
+}));
+
 function makeStore(overrides: Partial<ExploreStoreData> = {}): ExploreStoreData {
   return {
     id: 1,
@@ -44,6 +53,7 @@ const defaultCopy: ExploreCopy = {
   headline: "Explore Record Stores",
   subhead: "Discover independent record stores powered by MilkCrate.",
   featured_label: "Featured Stores",
+  featured_records_label: "Featured Records",
   all_stores_label: "All Stores",
   empty_state: "No stores have joined yet. Check back soon!",
 };
@@ -52,6 +62,7 @@ function makeProps(overrides: Partial<ExploreDirectoryProps> = {}): ExploreDirec
   return {
     stores: [],
     featured_stores: [],
+    featured_records: [],
     copy: defaultCopy,
     error: null,
     ...overrides,

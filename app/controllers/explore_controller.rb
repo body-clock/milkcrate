@@ -8,7 +8,13 @@ class ExploreController < ApplicationController
 
   def index
     set_explore_seo
-    render inertia: "explore", props: { stores: cached_stores_data, featured_stores: cached_featured_data, copy: t("pages.explore").to_h, error: nil }
+    render inertia: "explore", props: {
+      stores: cached_stores_data,
+      featured_stores: cached_featured_data,
+      featured_records: cached_featured_records,
+      copy: t("pages.explore").to_h,
+      error: nil
+    }
   rescue ActiveRecord::QueryCanceled, ActiveRecord::ConnectionNotEstablished, ActiveRecord::StatementInvalid => e
     Rails.logger.warn("[ExploreController] Query failed: #{e.message}")
     render_explore_error
@@ -26,7 +32,13 @@ class ExploreController < ApplicationController
 
   def render_explore_error
     @page_seo = I18n.t("pages.seo.explore")
-    render inertia: "explore", props: { stores: [], featured_stores: [], copy: t("pages.explore").to_h, error: "We couldn't load the store directory right now. Please try again shortly." }
+    render inertia: "explore", props: {
+      stores: [],
+      featured_stores: [],
+      featured_records: [],
+      copy: t("pages.explore").to_h,
+      error: "We couldn't load the store directory right now. Please try again shortly."
+    }
   end
 
   def cached_stores_data
@@ -73,5 +85,19 @@ class ExploreController < ApplicationController
 
   def featured_cache_key
     "explore/featured/v1/#{Date.current.iso8601}"
+  end
+
+  def cached_featured_records
+    Rails.cache.fetch(featured_records_cache_key, expires_in: EXPLORE_CACHE_TTL) do
+      CrossStoreWallCuration.call(limit: 24)
+    end
+  rescue => e
+    Rails.logger.warn("[ExploreController] Featured records query failed: #{e.message}")
+    []
+  end
+
+  def featured_records_cache_key
+    store_count = Store.ready.count
+    "explore/featured_records/v1/#{Date.current.iso8601}/#{store_count}"
   end
 end
