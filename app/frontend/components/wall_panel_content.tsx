@@ -33,9 +33,9 @@ function useWallPanelData(crate: Crate) {
 function usePeekSheet(records: Listing[]) {
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
   const returnFocusRef = useRef<HTMLButtonElement | null>(null);
+  const skipAnimation = useRef(false);
 
   // Auto-open peek panel from ?highlight=:id URL param
-  // Wait for layout to fully settle before opening
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
@@ -46,33 +46,29 @@ function usePeekSheet(records: Listing[]) {
     const listing = records.find((r) => r.id === id);
     if (!listing) return;
 
-    // Clear the param from URL immediately
+    // Clear the param from URL
     params.delete("highlight");
     const newUrl = `${window.location.pathname}${params.toString() ? `?${params}` : ""}`;
     window.history.replaceState({}, "", newUrl);
 
-    // Wait for viewport and layout to stabilize using double rAF
-    let cancelled = false;
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        if (!cancelled) setSelectedListing(listing);
-      });
-    });
-    return () => { cancelled = true; };
+    // Skip animation for highlight opens to avoid visual glitch
+    skipAnimation.current = true;
+    setSelectedListing(listing);
   }, [records]);
 
   const handleTileTap = (event: React.MouseEvent<HTMLButtonElement>, listing: Listing) => {
     returnFocusRef.current = event.currentTarget;
+    skipAnimation.current = false;
     setSelectedListing(listing);
   };
   const closePeekSheet = useCallback(() => setSelectedListing(null), []);
   const isOpen = Boolean(selectedListing);
-  return { selectedListing, returnFocusRef, handleTileTap, isOpen, closePeekSheet };
+  return { selectedListing, returnFocusRef, handleTileTap, isOpen, closePeekSheet, skipAnimation: skipAnimation.current };
 }
 
 export default function WallPanelContent({ crate }: { crate: Crate }) {
   const { gridCols, isCompact, prefersReducedMotion, nav } = useWallPanelData(crate);
-  const { selectedListing, returnFocusRef, handleTileTap, isOpen, closePeekSheet } = usePeekSheet(crate.records);
+  const { selectedListing, returnFocusRef, handleTileTap, isOpen, closePeekSheet, skipAnimation } = usePeekSheet(crate.records);
   return (
     <section role="region" aria-label={COPY.wall.regionLabel} className="space-y-1 md:space-y-3">
       <WallPanelHeading isCompact={isCompact} />
@@ -88,6 +84,7 @@ export default function WallPanelContent({ crate }: { crate: Crate }) {
         listing={selectedListing}
         onClose={closePeekSheet}
         returnFocusRef={returnFocusRef}
+        skipAnimation={skipAnimation}
       />
     </section>
   );

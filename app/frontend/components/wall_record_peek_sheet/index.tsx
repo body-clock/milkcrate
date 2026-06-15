@@ -16,6 +16,7 @@ interface Props {
   listing: Listing | null;
   onClose: () => void;
   returnFocusRef?: RefObject<HTMLElement | null>;
+  skipAnimation?: boolean;
 }
 
 function computeMeta(listing: Listing | null): string {
@@ -42,22 +43,24 @@ function usePeekSheet(
   listing: Listing | null,
   onClose: () => void,
   returnFocusRef?: RefObject<HTMLElement | null>,
+  skipAnimation?: boolean,
 ) {
   const { isCompact } = useViewport();
   const prefersReducedMotion = useReducedMotionContext();
   const { dialogRef } = useDialogFocusTrap(open, onClose, { returnFocusRef });
+  const transition = skipAnimation ? { duration: 0 } : (prefersReducedMotion ? reducedMotionTransition : springDrawer);
   return {
     isCompact,
     prefersReducedMotion,
     dialogRef,
     meta: computeMeta(listing),
     allTags: computeAllTags(listing),
-    transition: prefersReducedMotion ? reducedMotionTransition : springDrawer,
+    transition,
   };
 }
 
-export default function WallRecordPeekSheet({ open, listing, onClose, returnFocusRef }: Props) {
-  const peek = usePeekSheet(open, listing, onClose, returnFocusRef);
+export default function WallRecordPeekSheet({ open, listing, onClose, returnFocusRef, skipAnimation }: Props) {
+  const peek = usePeekSheet(open, listing, onClose, returnFocusRef, skipAnimation);
   return (
     <AnimatePresence>
       {open && listing && <PeekContent peek={peek} listing={listing} onClose={onClose} />}
