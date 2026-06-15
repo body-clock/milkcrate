@@ -1,5 +1,6 @@
 {
   "private": true,
+  "packageManager": "pnpm@11.3.0",
   "type": "module",
   "scripts": {
     "test:frontend": "node --experimental-webstorage --test --import tsx app/frontend/lib/*.test.ts",
