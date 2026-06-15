@@ -16,35 +16,28 @@ interface Props {
   label: string;
 }
 
-const BASE_SPEED = 0.3; // pixels per frame
+const SPEED = 0.3; // pixels per frame
 
 export default function FeaturedRecordsRail({ records, label }: Props) {
   const trackRef = useRef<HTMLDivElement>(null);
   const posRef = useRef(0);
-  const velocity = useRef(BASE_SPEED);
-  const targetVelocity = useRef(BASE_SPEED);
+  const isPaused = useRef(false);
   const animFrame = useRef<number | null>(null);
   const trackWidth = useRef(0);
 
   const animate = useCallback(() => {
     const track = trackRef.current;
-    if (!track) {
+    if (!track || isPaused.current) {
       animFrame.current = requestAnimationFrame(animate);
       return;
     }
 
-    // Measure half the track (one set of records) for looping
     if (trackWidth.current === 0) {
       trackWidth.current = track.scrollWidth / 2;
     }
 
-    // Ease velocity toward target
-    velocity.current += (targetVelocity.current - velocity.current) * 0.05;
+    posRef.current -= SPEED;
 
-    // Move
-    posRef.current -= velocity.current;
-
-    // Loop: reset when we've scrolled one full set
     if (trackWidth.current > 0 && posRef.current <= -trackWidth.current) {
       posRef.current += trackWidth.current;
     }
@@ -61,8 +54,8 @@ export default function FeaturedRecordsRail({ records, label }: Props) {
     };
   }, [animate]);
 
-  const handleMouseEnter = () => { targetVelocity.current = 0; };
-  const handleMouseLeave = () => { targetVelocity.current = BASE_SPEED; };
+  const handleMouseEnter = () => { isPaused.current = true; };
+  const handleMouseLeave = () => { isPaused.current = false; };
 
   if (records.length === 0) {
     return null;
