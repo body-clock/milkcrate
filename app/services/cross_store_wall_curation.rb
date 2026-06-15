@@ -37,6 +37,7 @@ class CrossStoreWallCuration
       .joins(:store)
       .merge(Store.ready)
       .where.not(cover_image_url: nil)
+      .where.not(last_surfaced_at: nil)
       .where("listed_at > ?", 1.year.ago)
       .lp_only
       .to_a

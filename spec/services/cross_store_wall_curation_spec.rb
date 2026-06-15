@@ -11,7 +11,8 @@ RSpec.describe CrossStoreWallCuration do
       genres: [ "Jazz" ],
       cover_image_url: "https://example.com/cover.jpg",
       listed_at: 1.month.ago,
-      last_seen_at: Time.current
+      last_seen_at: Time.current,
+      last_surfaced_at: 1.day.ago
     }.merge(overrides))
   end
 
