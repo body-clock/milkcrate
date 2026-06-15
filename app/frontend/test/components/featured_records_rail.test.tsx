@@ -89,7 +89,7 @@ describe("FeaturedRecordsRail", () => {
   it("renders scrollable container", () => {
     const records = [makeRecord()];
     const { container } = render(<FeaturedRecordsRail records={records} label="Featured Records" />);
-    const scrollContainer = container.querySelector("div[style*=\"overflow\"]");
+    const scrollContainer = container.querySelector(".overflow-hidden");
     expect(scrollContainer).toBeTruthy();
   });
 

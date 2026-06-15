@@ -16,48 +16,40 @@ interface Props {
   label: string;
 }
 
-const TARGET_SPEED = 0.5; // pixels per frame at full speed
-const EASE_IN = 0.95; // velocity multiplier when hovering (approaches 0)
-const EASE_OUT = 0.98; // velocity multiplier when leaving (approaches target)
+const BASE_SPEED = 0.3; // pixels per frame
 
 export default function FeaturedRecordsRail({ records, label }: Props) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const velocity = useRef(TARGET_SPEED);
-  const isHovering = useRef(false);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const posRef = useRef(0);
+  const velocity = useRef(BASE_SPEED);
+  const targetVelocity = useRef(BASE_SPEED);
   const animFrame = useRef<number | null>(null);
-  const accumulator = useRef(0);
+  const trackWidth = useRef(0);
 
   const animate = useCallback(() => {
-    const container = containerRef.current;
-    if (!container) {
+    const track = trackRef.current;
+    if (!track) {
       animFrame.current = requestAnimationFrame(animate);
       return;
     }
 
-    // Ease velocity toward target or zero
-    if (isHovering.current) {
-      velocity.current *= EASE_IN;
-    } else {
-      velocity.current += (TARGET_SPEED - velocity.current) * (1 - EASE_OUT);
+    // Measure half the track (one set of records) for looping
+    if (trackWidth.current === 0) {
+      trackWidth.current = track.scrollWidth / 2;
     }
 
-    // Stop updating when velocity is negligible
-    if (velocity.current > 0.01) {
-      const { scrollLeft, scrollWidth, clientWidth } = container;
-      const maxScroll = scrollWidth - clientWidth;
+    // Ease velocity toward target
+    velocity.current += (targetVelocity.current - velocity.current) * 0.05;
 
-      // Reset for seamless loop
-      if (scrollLeft >= maxScroll) {
-        container.scrollLeft = 0;
-        accumulator.current = 0;
-      } else {
-        accumulator.current += velocity.current;
-        if (accumulator.current >= 1) {
-          container.scrollLeft += Math.floor(accumulator.current);
-          accumulator.current -= Math.floor(accumulator.current);
-        }
-      }
+    // Move
+    posRef.current -= velocity.current;
+
+    // Loop: reset when we've scrolled one full set
+    if (trackWidth.current > 0 && posRef.current <= -trackWidth.current) {
+      posRef.current += trackWidth.current;
     }
+
+    track.style.transform = `translateX(${posRef.current}px)`;
 
     animFrame.current = requestAnimationFrame(animate);
   }, []);
@@ -68,6 +60,9 @@ export default function FeaturedRecordsRail({ records, label }: Props) {
       if (animFrame.current) cancelAnimationFrame(animFrame.current);
     };
   }, [animate]);
+
+  const handleMouseEnter = () => { targetVelocity.current = 0; };
+  const handleMouseLeave = () => { targetVelocity.current = BASE_SPEED; };
 
   if (records.length === 0) {
     return null;
@@ -82,15 +77,19 @@ export default function FeaturedRecordsRail({ records, label }: Props) {
         <span className="mc-section-count">{records.length}</span>
       </div>
       <div
-        ref={containerRef}
-        className="flex gap-3 pb-4 -mx-4 px-4 sm:-mx-0 sm:px-0"
-        style={{ overflowX: "auto", scrollbarWidth: "none" }}
-        onMouseEnter={() => { isHovering.current = true; }}
-        onMouseLeave={() => { isHovering.current = false; }}
+        className="overflow-hidden"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
       >
-        {loopRecords.map((record, index) => (
-          <FeaturedRecordTile key={`${record.id}-${index}`} record={record} />
-        ))}
+        <div
+          ref={trackRef}
+          className="flex gap-3 will-change-transform"
+          style={{ width: "max-content" }}
+        >
+          {loopRecords.map((record, index) => (
+            <FeaturedRecordTile key={`${record.id}-${index}`} record={record} />
+          ))}
+        </div>
       </div>
     </section>
   );
