@@ -34,33 +34,32 @@ function usePeekSheet(records: Listing[]) {
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
   const returnFocusRef = useRef<HTMLButtonElement | null>(null);
 
-  // Auto-open peek panel by clicking the tile element
+  // Auto-open peek panel from ?highlight=:id URL param
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
     const highlightId = params.get("highlight");
     if (!highlightId) return;
 
+    const id = Number(highlightId);
+    const listing = records.find((r) => r.id === id);
+    if (!listing) return;
+
     // Clear the param from URL
     params.delete("highlight");
     const newUrl = `${window.location.pathname}${params.toString() ? `?${params}` : ""}`;
     window.history.replaceState({}, "", newUrl);
 
-    // Wait for hydration and layout to fully stabilize
-    const clickTile = () => {
-      const tile = document.querySelector(`[data-listing-id="${highlightId}"]`);
-      if (tile instanceof HTMLElement) {
-        console.log("[highlight] clicking tile");
-        tile.click();
-      }
+    // Wait for page to be ready before opening panel
+    const openPanel = () => {
+      returnFocusRef.current = null;
+      setSelectedListing(listing);
     };
 
-    // Wait for load + extra time for hydration to complete
-    const delay = 500; // 0.5 seconds for hydration + layout
     if (document.readyState === "complete") {
-      setTimeout(clickTile, delay);
+      setTimeout(openPanel, 500);
     } else {
-      window.addEventListener("load", () => setTimeout(clickTile, delay), { once: true });
+      window.addEventListener("load", () => setTimeout(openPanel, 500), { once: true });
     }
   }, [records]);
 
