@@ -35,7 +35,7 @@ function usePeekSheet(records: Listing[]) {
   const returnFocusRef = useRef<HTMLButtonElement | null>(null);
 
   // Auto-open peek panel from ?highlight=:id URL param
-  // Delay slightly to let page layout settle before opening
+  // Wait for layout to fully settle before opening
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
@@ -51,9 +51,14 @@ function usePeekSheet(records: Listing[]) {
     const newUrl = `${window.location.pathname}${params.toString() ? `?${params}` : ""}`;
     window.history.replaceState({}, "", newUrl);
 
-    // Wait for layout to settle before opening panel
-    const timer = setTimeout(() => setSelectedListing(listing), 100);
-    return () => clearTimeout(timer);
+    // Wait for viewport and layout to stabilize using double rAF
+    let cancelled = false;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (!cancelled) setSelectedListing(listing);
+      });
+    });
+    return () => { cancelled = true; };
   }, [records]);
 
   const handleTileTap = (event: React.MouseEvent<HTMLButtonElement>, listing: Listing) => {
