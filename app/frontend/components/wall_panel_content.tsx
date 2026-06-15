@@ -46,14 +46,27 @@ function usePeekSheet(records: Listing[]) {
     const newUrl = `${window.location.pathname}${params.toString() ? `?${params}` : ""}`;
     window.history.replaceState({}, "", newUrl);
 
-    // Find and click the tile element with this listing ID
-    const timer = setTimeout(() => {
+    // Wait for the tile to appear in DOM, then click it
+    let cancelled = false;
+    let attempts = 0;
+    const maxAttempts = 50; // 5 seconds max
+    
+    const findAndClick = () => {
+      if (cancelled || attempts >= maxAttempts) return;
+      attempts++;
+      
       const tile = document.querySelector(`[data-listing-id="${highlightId}"]`);
       if (tile instanceof HTMLElement) {
         tile.click();
+        return;
       }
-    }, 50);
-    return () => clearTimeout(timer);
+      // Tile not found yet, try again in 100ms
+      setTimeout(findAndClick, 100);
+    };
+    
+    // Start checking after initial render
+    setTimeout(findAndClick, 100);
+    return () => { cancelled = true; };
   }, [records]);
 
   const handleTileTap = (event: React.MouseEvent<HTMLButtonElement>, listing: Listing) => {
