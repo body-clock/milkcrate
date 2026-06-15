@@ -10,9 +10,11 @@ function panelClass(isCompact: boolean): string {
   return "fixed top-0 right-0 bottom-0 z-50 w-96 overflow-hidden border-l border-mc-border bg-mc-bg shadow-2xl flex flex-col";
 }
 
-function animationValues(isCompact: boolean) {
+function animationValues(isCompact: boolean, skipAnimation?: boolean) {
   const slide = isCompact ? { y: "100%" } : { x: "100%" };
   const center = isCompact ? { y: 0 } : { x: 0 };
+  // When skipping animation, start at final position (no initial offset)
+  if (skipAnimation) return { initial: center, animate: center, exit: slide };
   return { initial: slide, animate: center, exit: slide };
 }
 
@@ -23,12 +25,13 @@ interface PanelProps {
   onClose: () => void;
   children: React.ReactNode;
   meta: string;
+  skipAnimation?: boolean;
 }
 
 export function PeekSheetPanel({
-  dialogRef, isCompact, transition, onClose, children, meta,
+  dialogRef, isCompact, transition, onClose, children, meta, skipAnimation,
 }: PanelProps) {
-  const anim = animationValues(isCompact);
+  const anim = animationValues(isCompact, skipAnimation);
   return (
     <motion.div ref={dialogRef} role="dialog" aria-modal="true" tabIndex={-1}
       aria-label="Record peek"

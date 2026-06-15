@@ -14,6 +14,7 @@ interface PeekContentProps {
     meta: string;
     allTags: { label: string; dim: boolean }[];
     transition: Record<string, unknown>;
+    skipAnimation?: boolean;
   };
   listing: Listing;
   onClose: () => void;
@@ -30,6 +31,7 @@ export function PeekContent({ peek, listing, onClose }: PeekContentProps) {
         transition={peek.transition}
         onClose={onClose}
         meta={peek.meta}
+        skipAnimation={peek.skipAnimation}
       >
         <PeekSheetContent listing={listing} meta={peek.meta} allTags={peek.allTags} />
       </PeekSheetPanel>

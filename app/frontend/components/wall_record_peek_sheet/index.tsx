@@ -56,6 +56,7 @@ function usePeekSheet(
     meta: computeMeta(listing),
     allTags: computeAllTags(listing),
     transition,
+    skipAnimation,
   };
 }
 
