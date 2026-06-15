@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 
 import FeaturedRecordTile from "./featured_record_tile";
 
@@ -16,102 +16,82 @@ interface Props {
   label: string;
 }
 
+const TARGET_SPEED = 0.5; // pixels per frame at full speed
+const EASE_IN = 0.95; // velocity multiplier when hovering (approaches 0)
+const EASE_OUT = 0.98; // velocity multiplier when leaving (approaches target)
+
 export default function FeaturedRecordsRail({ records, label }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const isDragging = useRef(false);
-  const startX = useRef(0);
-  const scrollStart = useRef(0);
-  const resumeTimeout = useRef<NodeJS.Timeout | null>(null);
+  const velocity = useRef(TARGET_SPEED);
+  const isHovering = useRef(false);
+  const animFrame = useRef<number | null>(null);
+  const accumulator = useRef(0);
 
-  const pauseAnimation = useCallback(() => {
-    if (resumeTimeout.current) clearTimeout(resumeTimeout.current);
-    containerRef.current?.classList.add("paused");
-  }, []);
-
-  const resumeAnimation = useCallback(() => {
-    resumeTimeout.current = setTimeout(() => {
-      containerRef.current?.classList.remove("paused");
-    }, 2000);
-  }, []);
-
-  const handlePointerDown = useCallback((e: React.PointerEvent) => {
-    isDragging.current = true;
-    startX.current = e.clientX;
-    scrollStart.current = containerRef.current?.scrollLeft ?? 0;
-    pauseAnimation();
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
-  }, [pauseAnimation]);
-
-  const handlePointerMove = useCallback((e: React.PointerEvent) => {
-    if (!isDragging.current) return;
-    const dx = e.clientX - startX.current;
-    if (containerRef.current) {
-      containerRef.current.scrollLeft = scrollStart.current - dx;
+  const animate = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) {
+      animFrame.current = requestAnimationFrame(animate);
+      return;
     }
+
+    // Ease velocity toward target or zero
+    if (isHovering.current) {
+      velocity.current *= EASE_IN;
+    } else {
+      velocity.current += (TARGET_SPEED - velocity.current) * (1 - EASE_OUT);
+    }
+
+    // Stop updating when velocity is negligible
+    if (velocity.current > 0.01) {
+      const { scrollLeft, scrollWidth, clientWidth } = container;
+      const maxScroll = scrollWidth - clientWidth;
+
+      // Reset for seamless loop
+      if (scrollLeft >= maxScroll) {
+        container.scrollLeft = 0;
+        accumulator.current = 0;
+      } else {
+        accumulator.current += velocity.current;
+        if (accumulator.current >= 1) {
+          container.scrollLeft += Math.floor(accumulator.current);
+          accumulator.current -= Math.floor(accumulator.current);
+        }
+      }
+    }
+
+    animFrame.current = requestAnimationFrame(animate);
   }, []);
 
-  const handlePointerUp = useCallback(() => {
-    isDragging.current = false;
-    resumeAnimation();
-  }, [resumeAnimation]);
+  useEffect(() => {
+    animFrame.current = requestAnimationFrame(animate);
+    return () => {
+      if (animFrame.current) cancelAnimationFrame(animFrame.current);
+    };
+  }, [animate]);
 
   if (records.length === 0) {
     return null;
   }
 
-  // Duplicate records for seamless loop
   const loopRecords = [...records, ...records];
 
   return (
     <section>
-      <style>{scrollKeyframes}</style>
       <div className="mc-section-header">
         <h2 className="mc-section-name">{label}</h2>
         <span className="mc-section-count">{records.length}</span>
       </div>
       <div
         ref={containerRef}
-        className="rail-container group"
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onPointerLeave={handlePointerUp}
-        style={{ touchAction: "pan-y" }}
+        className="flex gap-3 pb-4 -mx-4 px-4 sm:-mx-0 sm:px-0"
+        style={{ overflowX: "auto", scrollbarWidth: "none" }}
+        onMouseEnter={() => { isHovering.current = true; }}
+        onMouseLeave={() => { isHovering.current = false; }}
       >
-        <div className="rail-track">
-          {loopRecords.map((record, index) => (
-            <FeaturedRecordTile key={`${record.id}-${index}`} record={record} />
-          ))}
-        </div>
+        {loopRecords.map((record, index) => (
+          <FeaturedRecordTile key={`${record.id}-${index}`} record={record} />
+        ))}
       </div>
     </section>
   );
 }
-
-const scrollKeyframes = `
-  .rail-container {
-    overflow-x: hidden;
-    scrollbar-width: none;
-    cursor: grab;
-  }
-  .rail-container:active {
-    cursor: grabbing;
-  }
-  .rail-container::-webkit-scrollbar {
-    display: none;
-  }
-  .rail-track {
-    display: flex;
-    gap: 0.75rem;
-    width: max-content;
-    animation: scroll-rail 60s linear infinite;
-  }
-  .rail-container:hover .rail-track,
-  .rail-container.paused .rail-track {
-    animation-play-state: paused;
-  }
-  @keyframes scroll-rail {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-50%); }
-  }
-`;

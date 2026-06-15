@@ -86,13 +86,11 @@ describe("FeaturedRecordsRail", () => {
     expect(betaElements.length).toBe(2);
   });
 
-  it("renders rail container with animation", () => {
+  it("renders scrollable container", () => {
     const records = [makeRecord()];
-    render(<FeaturedRecordsRail records={records} label="Featured Records" />);
-    const container = document.querySelector(".rail-container");
-    expect(container).toBeTruthy();
-    const track = document.querySelector(".rail-track");
-    expect(track).toBeTruthy();
+    const { container } = render(<FeaturedRecordsRail records={records} label="Featured Records" />);
+    const scrollContainer = container.querySelector("div[style*=\"overflow\"]");
+    expect(scrollContainer).toBeTruthy();
   });
 
   it("duplicates records for infinite loop", () => {
