@@ -7,7 +7,7 @@ import type { FeaturedRecord } from "./featured_records_rail";
 export default function FeaturedRecordTile({ record }: { record: FeaturedRecord }) {
   return (
     <Link
-      href={`/${record.store_slug}`}
+      href={`/${record.store_slug}?highlight=${record.id}`}
       className="shrink-0 w-[45vw] sm:w-[200px] lg:w-[220px] flex flex-col group"
     >
       <div className="w-full aspect-square">

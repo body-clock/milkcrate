@@ -67,10 +67,10 @@ describe("FeaturedRecordsRail", () => {
     const links = screen.getAllByRole("link");
     // Duplicated for infinite loop, so 4 links total
     expect(links).toHaveLength(4);
-    expect(links[0]).toHaveAttribute("href", "/store1");
-    expect(links[1]).toHaveAttribute("href", "/store2");
-    expect(links[2]).toHaveAttribute("href", "/store1");
-    expect(links[3]).toHaveAttribute("href", "/store2");
+    expect(links[0]).toHaveAttribute("href", "/store1?highlight=1");
+    expect(links[1]).toHaveAttribute("href", "/store2?highlight=2");
+    expect(links[2]).toHaveAttribute("href", "/store1?highlight=1");
+    expect(links[3]).toHaveAttribute("href", "/store2?highlight=2");
   });
 
   it("displays store name below each record", () => {
