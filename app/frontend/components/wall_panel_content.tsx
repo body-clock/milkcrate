@@ -33,42 +33,41 @@ function useWallPanelData(crate: Crate) {
 function usePeekSheet(records: Listing[]) {
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
   const returnFocusRef = useRef<HTMLButtonElement | null>(null);
-  const skipAnimation = useRef(false);
 
-  // Auto-open peek panel from ?highlight=:id URL param
+  // Auto-open peek panel by clicking the tile element
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
     const highlightId = params.get("highlight");
     if (!highlightId) return;
 
-    const id = Number(highlightId);
-    const listing = records.find((r) => r.id === id);
-    if (!listing) return;
-
     // Clear the param from URL
     params.delete("highlight");
     const newUrl = `${window.location.pathname}${params.toString() ? `?${params}` : ""}`;
     window.history.replaceState({}, "", newUrl);
 
-    // Skip animation for highlight opens to avoid visual glitch
-    skipAnimation.current = true;
-    setSelectedListing(listing);
+    // Find and click the tile element with this listing ID
+    const timer = setTimeout(() => {
+      const tile = document.querySelector(`[data-listing-id="${highlightId}"]`);
+      if (tile instanceof HTMLElement) {
+        tile.click();
+      }
+    }, 50);
+    return () => clearTimeout(timer);
   }, [records]);
 
   const handleTileTap = (event: React.MouseEvent<HTMLButtonElement>, listing: Listing) => {
     returnFocusRef.current = event.currentTarget;
-    skipAnimation.current = false;
     setSelectedListing(listing);
   };
   const closePeekSheet = useCallback(() => setSelectedListing(null), []);
   const isOpen = Boolean(selectedListing);
-  return { selectedListing, returnFocusRef, handleTileTap, isOpen, closePeekSheet, skipAnimation: skipAnimation.current };
+  return { selectedListing, returnFocusRef, handleTileTap, isOpen, closePeekSheet };
 }
 
 export default function WallPanelContent({ crate }: { crate: Crate }) {
   const { gridCols, isCompact, prefersReducedMotion, nav } = useWallPanelData(crate);
-  const { selectedListing, returnFocusRef, handleTileTap, isOpen, closePeekSheet, skipAnimation } = usePeekSheet(crate.records);
+  const { selectedListing, returnFocusRef, handleTileTap, isOpen, closePeekSheet } = usePeekSheet(crate.records);
   return (
     <section role="region" aria-label={COPY.wall.regionLabel} className="space-y-1 md:space-y-3">
       <WallPanelHeading isCompact={isCompact} />
@@ -84,7 +83,6 @@ export default function WallPanelContent({ crate }: { crate: Crate }) {
         listing={selectedListing}
         onClose={closePeekSheet}
         returnFocusRef={returnFocusRef}
-        skipAnimation={skipAnimation}
       />
     </section>
   );
