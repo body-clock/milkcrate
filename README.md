@@ -22,7 +22,7 @@ Copy `.env.example` to `.env` and fill in:
 cp .env.example .env
 ```
 
-Required: `DISCOGS_TOKEN`, `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `MILKCRATE_USER`, `MILKCRATE_PASSWORD`. Optional: `TURNSTILE_ENABLED`, `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`, `PLAUSIBLE_DOMAIN`.
+Required: `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`. Secrets (Discogs API, Turnstile, SMTP) live in `config/credentials.yml.enc` — edit with `bin/rails credentials:edit`.
 
 ## Local Setup
 
@@ -73,8 +73,6 @@ bin/rails tools:capture   # Capture sample data from a synced store
 ```
 
 ## Architecture
-
-See `docs/solutions/` for documented patterns and solutions.
 
 Key directories:
 
