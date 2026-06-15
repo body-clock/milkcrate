@@ -54,7 +54,7 @@ const scrollKeyframes = `
     display: flex;
     gap: 0.75rem;
     width: max-content;
-    animation: scroll-rail 30s linear infinite;
+    animation: scroll-rail 60s linear infinite;
   }
   .rail-container:hover .rail-track {
     animation-play-state: paused;
