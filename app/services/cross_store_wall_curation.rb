@@ -25,8 +25,9 @@ class CrossStoreWallCuration
     listings = fetch_eligible_listings
     return [] if listings.empty?
 
-    scored = score_listings(listings)
-    diverse = apply_diversity_cap(scored)
+    curation_axis = determine_curation_axis(listings)
+    scored = score_listings(listings, curation_axis)
+    diverse = apply_diversity_cap(scored, curation_axis)
 
     diverse.map { |listing, _score| serialize_record(listing) }
   end
@@ -41,16 +42,11 @@ class CrossStoreWallCuration
       .to_a
   end
 
-  def score_listings(listings)
-    genre_counts = tally_genres(listings)
+  def score_listings(listings, curation_axis)
+    genre_counts = curation_axis.tally_from(listings)
     scorer = build_scorer(genre_counts)
 
     listings.map { |listing| [ listing, scorer.score(listing) ] }
-  end
-
-  def tally_genres(listings)
-    curation_axis = determine_curation_axis(listings)
-    curation_axis.tally_from(listings)
   end
 
   def determine_curation_axis(listings)
@@ -69,9 +65,8 @@ class CrossStoreWallCuration
     )
   end
 
-  def apply_diversity_cap(scored)
+  def apply_diversity_cap(scored, curation_axis)
     policy = WallPolicy.new
-    curation_axis = determine_curation_axis(scored.map(&:first))
     genre_cap = policy.genre_cap(@limit)
     genre_seen = Hash.new(0)
     shuffle_seed = Date.today.to_s.sum
