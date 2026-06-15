@@ -1,4 +1,4 @@
-# Milkcrate
+# [milkcrate.fm](https://milkcrate.fm/explore)
 
 A Rails app for browsing a Discogs seller's vinyl inventory as curated crates. Syncs listings from Discogs, enriches releases with community and metadata signals, scores every record through a shared scoring engine, and presents the catalog through an Inertia React interface.
 
