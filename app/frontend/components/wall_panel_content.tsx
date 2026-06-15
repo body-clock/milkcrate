@@ -33,8 +33,12 @@ function useWallPanelData(crate: Crate) {
 function usePeekSheet(records: Listing[]) {
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
   const returnFocusRef = useRef<HTMLButtonElement | null>(null);
+  const { tier } = useViewport();
+  const lastTierRef = useRef(tier);
+  const stableCountRef = useRef(0);
 
   // Auto-open peek panel by clicking the tile element
+  // Wait for viewport tier to stabilize (indicates hydration complete)
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
@@ -46,23 +50,29 @@ function usePeekSheet(records: Listing[]) {
     const newUrl = `${window.location.pathname}${params.toString() ? `?${params}` : ""}`;
     window.history.replaceState({}, "", newUrl);
 
-    // Wait for hydration and layout to fully stabilize
-    const clickTile = () => {
-      const tile = document.querySelector(`[data-listing-id="${highlightId}"]`);
-      if (tile instanceof HTMLElement) {
-        console.log("[highlight] clicking tile");
-        tile.click();
+    // Wait for viewport tier to stabilize (3 consecutive same values)
+    const checkStability = () => {
+      if (tier === lastTierRef.current) {
+        stableCountRef.current++;
+      } else {
+        lastTierRef.current = tier;
+        stableCountRef.current = 1;
       }
+
+      if (stableCountRef.current >= 3) {
+        // Tier is stable, click the tile
+        const tile = document.querySelector(`[data-listing-id="${highlightId}"]`);
+        if (tile instanceof HTMLElement) {
+          tile.click();
+        }
+        return;
+      }
+
+      setTimeout(checkStability, 50);
     };
 
-    // Wait for load + extra time for hydration to complete
-    const delay = 500; // 0.5 seconds for hydration + layout
-    if (document.readyState === "complete") {
-      setTimeout(clickTile, delay);
-    } else {
-      window.addEventListener("load", () => setTimeout(clickTile, delay), { once: true });
-    }
-  }, [records]);
+    setTimeout(checkStability, 50);
+  }, [records, tier]);
 
   const handleTileTap = (event: React.MouseEvent<HTMLButtonElement>, listing: Listing) => {
     returnFocusRef.current = event.currentTarget;
