@@ -56,7 +56,7 @@ function usePeekSheet(records: Listing[]) {
     };
 
     // Wait for load + extra time for hydration to complete
-    const delay = 350; // 0.35 seconds for hydration + layout
+    const delay = 500; // 0.5 seconds for hydration + layout
     if (document.readyState === "complete") {
       setTimeout(clickTile, delay);
     } else {
