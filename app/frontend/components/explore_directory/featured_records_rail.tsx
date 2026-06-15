@@ -16,13 +16,14 @@ interface Props {
   label: string;
 }
 
-const SCROLL_SPEED = 0.3; // pixels per frame
+const SCROLL_SPEED = 0.5; // pixels per frame (accumulated for smooth sub-pixel scroll)
 const PAUSE_ON_HOVER = true;
 
 export default function FeaturedRecordsRail({ records, label }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const isPaused = useRef(false);
   const animationRef = useRef<number | null>(null);
+  const accumulator = useRef(0);
 
   const scroll = useCallback(() => {
     const container = scrollRef.current;
@@ -37,8 +38,15 @@ export default function FeaturedRecordsRail({ records, label }: Props) {
     // Reset to start when we reach the end (seamless loop)
     if (scrollLeft >= maxScroll) {
       container.scrollLeft = 0;
+      accumulator.current = 0;
     } else {
-      container.scrollLeft += SCROLL_SPEED;
+      // Accumulate fractional pixels before applying
+      accumulator.current += SCROLL_SPEED;
+      if (accumulator.current >= 1) {
+        const pixels = Math.floor(accumulator.current);
+        container.scrollLeft += pixels;
+        accumulator.current -= pixels;
+      }
     }
 
     animationRef.current = requestAnimationFrame(scroll);
