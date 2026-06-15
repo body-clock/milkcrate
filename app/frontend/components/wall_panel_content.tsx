@@ -46,7 +46,7 @@ function usePeekSheet(records: Listing[]) {
     const newUrl = `${window.location.pathname}${params.toString() ? `?${params}` : ""}`;
     window.history.replaceState({}, "", newUrl);
 
-    // Wait for page to be fully loaded, then click
+    // Wait for hydration and layout to fully stabilize
     const clickTile = () => {
       const tile = document.querySelector(`[data-listing-id="${highlightId}"]`);
       if (tile instanceof HTMLElement) {
@@ -55,12 +55,12 @@ function usePeekSheet(records: Listing[]) {
       }
     };
 
-    // Wait for load event if not already loaded
+    // Wait for load + extra time for hydration to complete
+    const delay = 1000; // 1 second for hydration
     if (document.readyState === "complete") {
-      // Page already loaded, wait a bit for layout to stabilize
-      setTimeout(clickTile, 200);
+      setTimeout(clickTile, delay);
     } else {
-      window.addEventListener("load", () => setTimeout(clickTile, 200), { once: true });
+      window.addEventListener("load", () => setTimeout(clickTile, delay), { once: true });
     }
   }, [records]);
 
