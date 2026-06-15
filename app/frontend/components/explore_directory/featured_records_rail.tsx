@@ -16,7 +16,7 @@ interface Props {
   label: string;
 }
 
-const SCROLL_SPEED = 0.15; // pixels per frame
+const SCROLL_SPEED = 0.3; // pixels per frame
 const PAUSE_ON_HOVER = true;
 
 export default function FeaturedRecordsRail({ records, label }: Props) {
@@ -76,10 +76,10 @@ export default function FeaturedRecordsRail({ records, label }: Props) {
       </div>
       <div
         ref={scrollRef}
-        className="flex overflow-x-hidden gap-3 pb-4 -mx-4 px-4 sm:-mx-0 sm:px-0"
+        className="flex gap-3 pb-4 -mx-4 px-4 sm:-mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden"
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        style={{ scrollbarWidth: "none" }}
+        style={{ overflowX: "auto", scrollbarWidth: "none" }}
       >
         {loopRecords.map((record, index) => (
           <FeaturedRecordTile key={`${record.id}-${index}`} record={record} />
