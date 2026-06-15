@@ -16,7 +16,7 @@ interface Props {
   label: string;
 }
 
-const SCROLL_SPEED = 0.25; // pixels per frame
+const SCROLL_SPEED = 0.15; // pixels per frame
 const PAUSE_ON_HOVER = true;
 
 export default function FeaturedRecordsRail({ records, label }: Props) {
