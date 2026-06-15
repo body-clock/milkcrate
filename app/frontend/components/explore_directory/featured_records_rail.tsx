@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React from "react";
 
 import FeaturedRecordTile from "./featured_record_tile";
 
@@ -16,59 +16,7 @@ interface Props {
   label: string;
 }
 
-const SCROLL_SPEED = 0.5; // pixels per frame (accumulated for smooth sub-pixel scroll)
-const PAUSE_ON_HOVER = true;
-
 export default function FeaturedRecordsRail({ records, label }: Props) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const isPaused = useRef(false);
-  const animationRef = useRef<number | null>(null);
-  const accumulator = useRef(0);
-
-  const scroll = useCallback(() => {
-    const container = scrollRef.current;
-    if (!container || isPaused.current) {
-      animationRef.current = requestAnimationFrame(scroll);
-      return;
-    }
-
-    const { scrollLeft, scrollWidth, clientWidth } = container;
-    const maxScroll = scrollWidth - clientWidth;
-
-    // Reset to start when we reach the end (seamless loop)
-    if (scrollLeft >= maxScroll) {
-      container.scrollLeft = 0;
-      accumulator.current = 0;
-    } else {
-      // Accumulate fractional pixels before applying
-      accumulator.current += SCROLL_SPEED;
-      if (accumulator.current >= 1) {
-        const pixels = Math.floor(accumulator.current);
-        container.scrollLeft += pixels;
-        accumulator.current -= pixels;
-      }
-    }
-
-    animationRef.current = requestAnimationFrame(scroll);
-  }, []);
-
-  useEffect(() => {
-    animationRef.current = requestAnimationFrame(scroll);
-    return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-    };
-  }, [scroll]);
-
-  const handleMouseEnter = () => {
-    if (PAUSE_ON_HOVER) isPaused.current = true;
-  };
-
-  const handleMouseLeave = () => {
-    isPaused.current = false;
-  };
-
   if (records.length === 0) {
     return null;
   }
@@ -78,21 +26,41 @@ export default function FeaturedRecordsRail({ records, label }: Props) {
 
   return (
     <section>
+      <style>{scrollKeyframes}</style>
       <div className="mc-section-header">
         <h2 className="mc-section-name">{label}</h2>
         <span className="mc-section-count">{records.length}</span>
       </div>
-      <div
-        ref={scrollRef}
-        className="flex gap-3 pb-4 -mx-4 px-4 sm:-mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden"
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        style={{ overflowX: "auto", scrollbarWidth: "none" }}
-      >
-        {loopRecords.map((record, index) => (
-          <FeaturedRecordTile key={`${record.id}-${index}`} record={record} />
-        ))}
+      <div className="rail-container group">
+        <div className="rail-track">
+          {loopRecords.map((record, index) => (
+            <FeaturedRecordTile key={`${record.id}-${index}`} record={record} />
+          ))}
+        </div>
       </div>
     </section>
   );
 }
+
+const scrollKeyframes = `
+  .rail-container {
+    overflow-x: hidden;
+    scrollbar-width: none;
+  }
+  .rail-container::-webkit-scrollbar {
+    display: none;
+  }
+  .rail-track {
+    display: flex;
+    gap: 0.75rem;
+    width: max-content;
+    animation: scroll-rail 30s linear infinite;
+  }
+  .rail-container:hover .rail-track {
+    animation-play-state: paused;
+  }
+  @keyframes scroll-rail {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+`;
