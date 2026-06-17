@@ -1,5 +1,6 @@
 {
   "private": true,
+  "packageManager": "pnpm@11.3.0",
   "type": "module",
   "scripts": {
     "test:frontend": "node --experimental-webstorage --test --import tsx app/frontend/lib/*.test.ts",
@@ -25,7 +26,6 @@
     "@vitejs/plugin-react": "^6.0.1",
     "@vitest/coverage-v8": "^4.1.5",
     "jsdom": "^27.0.1",
-    "oxfmt": "^0.52.0",
     "oxlint": "^1.67.0",
     "tsx": "^4.21.0",
     "typescript": "^6.0.3",

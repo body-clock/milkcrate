@@ -37,11 +37,13 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v6
         with:
-          node-version-file: .node-version
-          cache: npm
+          node-version-file: .tool-versions
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
 
       - name: Scan for security vulnerabilities in JavaScript dependencies
-        run: npm audit --audit-level=high
+        run: pnpm audit --audit-level=high
 
   lint:
     runs-on: ubuntu-latest
@@ -59,7 +61,7 @@ jobs:
       - name: Prepare RuboCop cache
         uses: actions/cache@v5
         env:
-          DEPENDENCIES_HASH: ${{ hashFiles('.ruby-version', '**/.rubocop.yml', '**/.rubocop_todo.yml', 'Gemfile.lock') }}
+          DEPENDENCIES_HASH: ${{ hashFiles('.tool-versions', '**/.rubocop.yml', '**/.rubocop_todo.yml', 'Gemfile.lock') }}
         with:
           path: ${{ env.RUBOCOP_CACHE_ROOT }}
           key: rubocop-${{ runner.os }}-${{ env.DEPENDENCIES_HASH }}-${{ github.ref_name == github.event.repository.default_branch && github.run_id || 'default' }}
@@ -79,17 +81,19 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v6
         with:
-          node-version-file: .node-version
-          cache: npm
+          node-version-file: .tool-versions
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
 
       - name: Install JS dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Run frontend lib tests
-        run: npm run test:frontend
+        run: pnpm run test:frontend
 
       - name: Run component tests
-        run: npm run test:components
+        run: pnpm run test:components
 
   test:
     runs-on: ubuntu-latest
@@ -126,11 +130,13 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v6
         with:
-          node-version-file: .node-version
-          cache: npm
+          node-version-file: .tool-versions
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
 
       - name: Install JS dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Build Vite assets
         run: bin/vite build --mode=test

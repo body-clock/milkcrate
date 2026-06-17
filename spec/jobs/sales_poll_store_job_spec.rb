@@ -99,6 +99,25 @@ RSpec.describe SalesPollStoreJob do
         }.not_to raise_error
       end
     end
+
+    context "when Discogs returns 401 unauthorized" do
+      before do
+        allow(poller).to receive(:call).and_raise(
+          Discogs::Errors::AuthError,
+          "Discogs API error: 401 — {\"message\":\"You must authenticate to access this resource.\"}"
+        )
+      end
+
+      it "logs the auth failure without raising" do
+        expect(Rails.logger).to receive(:warn).with(
+          /OAuth auth failure for store #{store.id}/
+        )
+
+        expect {
+          described_class.new.perform(store.id)
+        }.not_to raise_error
+      end
+    end
   end
 
   describe "concurrency key" do

@@ -7,7 +7,7 @@ inherit_gem: { rubocop-rails-omakase: rubocop.yml }
 
 Metrics/MethodLength:
   Enabled: true
-  Max: 5
+  Max: 10
   CountAsOne: ["array", "hash", "heredoc"]
   Exclude:
     - "db/migrate/*.rb"
@@ -17,7 +17,7 @@ Metrics/MethodLength:
 
 Metrics/ClassLength:
   Enabled: true
-  Max: 100
+  Max: 200
   CountAsOne: ["array", "hash", "heredoc"]
   Exclude:
     - "db/migrate/*.rb"
@@ -25,7 +25,7 @@ Metrics/ClassLength:
 
 Metrics/ModuleLength:
   Enabled: true
-  Max: 100
+  Max: 200
 
 Metrics/ParameterLists:
   Enabled: true

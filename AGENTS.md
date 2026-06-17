@@ -36,39 +36,10 @@ Plan new features or architectural changes: use `layered-rails` skill for analys
 
 ## Code Review Extensions
 
-Beyond standard ce-code-review persona catalog, always dispatch these reviewers
-in parallel with standard persona agents. Output unstructured, synthesize into
-final report (same treatment as `ce-agent-native-reviewer` and
-`ce-learnings-researcher`).
-
-### Always-on extension reviewers
-
-| Agent                  | Focus                                                                                                                                                                                                                                                                                                                                                                                                              | Output       |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------ |
-| `layered-rails`        | Architecture layer violations, reverse dependencies, Current in models, fat controllers, anemic models, mis-layered abstractions. Pass `task: "Review this diff for layered architecture violations per the layered-rails skill. Check for: reverse dependencies between layers, domain code in presentation layer, Current in models, business logic in controllers. Report findings with file:line references."` | Unstructured |
-| `ce-security-sentinel` | OWASP Top 10, hardcoded secrets, input validation gaps, auth/authz bypasses, SQL injection, XSS. Pass `task: "Audit this diff for security vulnerabilities. Check: input validation on all params, SQL injection via raw queries, XSS in views, hardcoded secrets/keys, missing auth on endpoints, unsafe redirects. Report findings with file:line references and severity (Critical/High/Medium/Low)."`          | Unstructured |
-
-### Always-on extension reviewers (continued)
-
-| Agent                    | Focus                                                                                                                                                                                                                                                                                                                                                         | Output       |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
-| `ce-sandi-metz-reviewer` | Ruby/Rails classes, methods, parameters, object composition, dependency injection patterns, or any OO design choices. Pass `task: "Review this diff through Sandi Metz's POODR lens. Check: small objects, small methods, dependency injection, duck typing, composition over inheritance, message-based design. Report findings with file:line references."` | Unstructured |
-
-### Conditional extension reviewers
-
-| Agent                      | Select when diff touches...                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sandi-metz-js-reviewer`   | JavaScript/TypeScript files (`*.js`, `*.jsx`, `*.ts`, `*.tsx`) with React components, hooks, or module-level abstractions. Pass `task: "Review this diff through a Sandi Metz lens adapted for React/JS. Check: component size (>100 lines), JSX return length (>10-15 lines), prop count (>4), hook complexity (>20 lines), components mixing fetch+render, prop drilling through 3+ levels, missing abstractions in repeated patterns. Report findings with file:line references."` |
-| `ce-dhh-rails-reviewer`    | Rails architecture, service objects, session/auth choices, Hotwire-vs-SPA boundaries, abstractions that fight Rails conventions                                                                                                                                                                                                                                                                                                                                                       |
-| `ce-kieran-rails-reviewer` | Rails controllers, models, views, jobs, components, routes, or other application-layer Ruby code where clarity and conventions matter                                                                                                                                                                                                                                                                                                                                                 |
-
-On-demand Sandi Metz review (outside code review pipeline): use `/ce-sandi-metz-review`
-for Ruby/Rails code, or `/sandi-metz-js-review` for JavaScript/React/TypeScript code —
-each dispatches respective reviewer to analyze specific file, directory, or current diff.
-
-Rails reviewers complement standard persona catalog. Opinionated lenses on
-Rails-specific patterns — dispatch in addition to (not instead of) standard
-`ce-correctness-reviewer`, `ce-testing-reviewer`, etc.
+Always dispatch `layered-rails` and `ce-sandi-metz-reviewer` in parallel with
+standard ce-code-review personas. For JS/React/TS, use `sandi-metz-js-reviewer`.
+Other checks (security, correctness, testing) are handled by agent hooks running
+linters — no need to dispatch separate reviewer agents for those.
 
 ### Reviewer config
 
@@ -81,16 +52,6 @@ Developer runs `bin/dev` in tmux session. Never start or stop `bin/dev`,
 `bin/rails server`, `bin/vite`, `bin/jobs`, or any background process. Task needs
 running server (testing pages, verifying UI changes): ask developer to start it,
 paste output, or use `curl` against running server for quick checks.
-
-## Server Logs Panel
-
-`.pi/extensions/server-logs.ts` provides toggleable server log panel inside pi.
-
-- **Usage:** Type `/logs` to open, `Escape` to close
-- Reads last 40 lines from `log/development.log`
-- Auto-refreshes via file watcher
-- Colorized output (red=errors, yellow=warnings, green=success, accent=requests)
-- Close with `Escape`
 
 ## Context7 (Accurate Documentation)
 

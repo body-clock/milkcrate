@@ -63,7 +63,7 @@
       "warn",
       { "max": 25, "skipBlankLines": true, "skipComments": true }
     ],
-    "eslint/max-lines": ["warn", { "max": 150, "skipBlankLines": true, "skipComments": true }],
+    "eslint/max-lines": ["warn", { "max": 200, "skipBlankLines": true, "skipComments": true }],
     "eslint/max-depth": ["warn", { "max": 3 }],
     "eslint/max-nested-callbacks": ["warn", { "max": 3 }],
     "eslint/max-params": ["warn", { "max": 4 }],

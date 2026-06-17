@@ -7,7 +7,7 @@
 
 # For a containerized dev environment, see Dev Containers: https://guides.rubyonrails.org/getting_started_with_devcontainer.html
 
-# Make sure RUBY_VERSION matches the Ruby version in .ruby-version
+# Make sure RUBY_VERSION matches the Ruby version in .tool-versions
 ARG RUBY_VERSION=3.4.8
 FROM docker.io/library/ruby:$RUBY_VERSION-slim AS base
 
@@ -35,9 +35,10 @@ RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y build-essential git libpq-dev libyaml-dev pkg-config curl && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
-# Install Node.js for Vite asset compilation
+# Install Node.js and pnpm for Vite asset compilation
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
     apt-get install --no-install-recommends -y nodejs && \
+    corepack enable && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 # Install application gems
@@ -52,8 +53,8 @@ RUN bundle install && \
 # Copy application code
 COPY . .
 
-# Install npm dependencies for Vite
-RUN npm ci
+# Install JS dependencies for Vite
+RUN pnpm install --frozen-lockfile
 
 # Precompile bootsnap code for faster boot times.
 # -j 1 disable parallel compilation to avoid a QEMU bug: https://github.com/rails/bootsnap/issues/495
@@ -75,9 +76,10 @@ FROM base
 RUN groupadd --system --gid 1000 rails && \
     useradd rails --uid 1000 --gid 1000 --create-home --shell /bin/bash
 
-# Install Node.js for Inertia SSR server
+# Install Node.js and pnpm for Inertia SSR server
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
     apt-get install --no-install-recommends -y nodejs && \
+    corepack enable && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 USER 1000:1000
