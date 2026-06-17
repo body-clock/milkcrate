@@ -19,7 +19,10 @@ module Discogs
     private
 
     def error_class
-      code.between?(500, 599) ? Errors::TransientApiError : Errors::ApiError
+      return Errors::TransientApiError if code.between?(500, 599)
+      return Errors::AuthError if code == 401
+
+      Errors::ApiError
     end
 
     def code

@@ -190,6 +190,16 @@ RSpec.describe Discogs::Marketplace do
         }
     end
 
+    it "classifies 401 responses as auth errors" do
+      response = oauth_response(code: 401, body: '{"message":"You must authenticate to access this resource."}')
+      allow(oauth_access_token).to receive(:get).and_return(response)
+
+      expect { client.list_orders }
+        .to raise_error(Discogs::Errors::AuthError) { |error|
+          expect(error.message).to include("Discogs API error: 401")
+        }
+    end
+
     it "returns parsed orders on success" do
       response = oauth_response(code: 200, body: '{"orders":[]}')
       allow(oauth_access_token).to receive(:get).and_return(response)
