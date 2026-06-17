@@ -115,6 +115,40 @@ RSpec.describe "Explore", type: :request do
       end
     end
 
+    describe "featured records" do
+      it "returns featured_records prop" do
+        get "/explore"
+        expect(inertia.props).to have_key(:featured_records)
+      end
+
+      it "returns an array" do
+        get "/explore"
+        expect(inertia.props[:featured_records]).to be_an(Array)
+      end
+
+      it "returns featured records with required keys when listings exist" do
+        store = create(:store, last_synced_at: 1.day.ago, last_enriched_at: 1.day.ago)
+        create(:listing, store: store, format: "LP", cover_image_url: "https://example.com/cover.jpg",
+          genres: [ "Jazz" ], listed_at: 1.month.ago, last_seen_at: 1.day.ago)
+
+        get "/explore"
+
+        records = inertia.props[:featured_records]
+        expect(records.length).to be <= 24
+        records.each do |record|
+          expect(record).to include(:id, :title, :artist, :cover_image_url, :store_slug, :store_name)
+        end
+      end
+
+      it "returns empty array when curation fails" do
+        allow(CrossStoreWallCuration).to receive(:call).and_raise(StandardError)
+
+        get "/explore"
+
+        expect(inertia.props[:featured_records]).to eq([])
+      end
+    end
+
     describe "caching" do
       it "caches explore data" do
         create_list(:store, 3, last_synced_at: 1.day.ago, last_enriched_at: 1.day.ago)

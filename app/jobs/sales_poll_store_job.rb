@@ -10,6 +10,8 @@ class SalesPollStoreJob < ApplicationJob
     log_missing_store(store_id)
   rescue Discogs::Errors::TransientApiError => error
     log_transient_failure(store_id, error)
+  rescue Discogs::Errors::AuthError => error
+    log_auth_failure(store_id, error)
   end
 
   private
@@ -26,6 +28,12 @@ class SalesPollStoreJob < ApplicationJob
   def log_transient_failure(store_id, error)
     Rails.logger.warn(
       "[SalesPollStoreJob] transient Discogs failure for store #{store_id}: #{error.message}"
+    )
+  end
+
+  def log_auth_failure(store_id, error)
+    Rails.logger.warn(
+      "[SalesPollStoreJob] OAuth auth failure for store #{store_id}: #{error.message}"
     )
   end
 
