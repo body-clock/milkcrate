@@ -129,7 +129,7 @@ RSpec.describe "Explore", type: :request do
       it "returns featured records with required keys when listings exist" do
         store = create(:store, last_synced_at: 1.day.ago, last_enriched_at: 1.day.ago)
         create(:listing, store: store, format: "LP", cover_image_url: "https://example.com/cover.jpg",
-          genres: ["Jazz"], listed_at: 1.month.ago, last_seen_at: 1.day.ago)
+          genres: [ "Jazz" ], listed_at: 1.month.ago, last_seen_at: 1.day.ago)
 
         get "/explore"
 
