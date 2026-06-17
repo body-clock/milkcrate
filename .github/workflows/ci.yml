@@ -34,14 +34,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
-
       - name: Set up Node
         uses: actions/setup-node@v6
         with:
           node-version-file: .tool-versions
-          cache: pnpm
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
 
       - name: Scan for security vulnerabilities in JavaScript dependencies
         run: pnpm audit --audit-level=high
@@ -79,14 +78,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
-
       - name: Set up Node
         uses: actions/setup-node@v6
         with:
           node-version-file: .tool-versions
-          cache: pnpm
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
 
       - name: Install JS dependencies
         run: pnpm install --frozen-lockfile
@@ -129,14 +127,13 @@ jobs:
         with:
           bundler-cache: true
 
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
-
       - name: Set up Node
         uses: actions/setup-node@v6
         with:
           node-version-file: .tool-versions
-          cache: pnpm
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
 
       - name: Install JS dependencies
         run: pnpm install --frozen-lockfile
