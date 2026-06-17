@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.3](https://github.com/body-clock/milkcrate/compare/v0.1.2...v0.1.3) (2026-06-17)
+
+
+### Features
+
+* **explore:** Add horizontal scroll rail of curated records ([#271](https://github.com/body-clock/milkcrate/issues/271)) ([801f76a](https://github.com/body-clock/milkcrate/commit/801f76a96fba1cde3286b75b47d6c5c39fc3f932))
+
+
+### Bug Fixes
+
+* **ci:** reorder pnpm setup after node setup to fix cache path error ([4366b1f](https://github.com/body-clock/milkcrate/commit/4366b1fbab9ffb367a1502ec76bf6f8c274b2c9a))
+
 ## [0.1.2](https://github.com/body-clock/milkcrate/compare/v0.1.1...v0.1.2) (2026-06-17)
 
 
