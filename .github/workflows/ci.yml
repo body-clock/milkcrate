@@ -40,7 +40,7 @@ jobs:
           node-version-file: .tool-versions
 
       - name: Set up pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Scan for security vulnerabilities in JavaScript dependencies
         run: pnpm audit --audit-level=high
@@ -84,7 +84,7 @@ jobs:
           node-version-file: .tool-versions
 
       - name: Set up pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Install JS dependencies
         run: pnpm install --frozen-lockfile
@@ -133,7 +133,7 @@ jobs:
           node-version-file: .tool-versions
 
       - name: Set up pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Install JS dependencies
         run: pnpm install --frozen-lockfile
