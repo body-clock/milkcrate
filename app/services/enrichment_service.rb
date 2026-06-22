@@ -79,13 +79,13 @@ class EnrichmentService
   def enrich_release_safely(release_id, store)
     with_rate_limit_retries { enrich_release(release_id, store) }
     @progress&.increment
-  rescue DiscogsClient::ApiError => e
+  rescue DiscogsClient::ApiError, Faraday::Error => e
     Rails.logger.warn "[EnrichmentService] API error for release #{release_id}: #{e.message}"
   end
 
   def with_rate_limit_retries(retries = 0, &block)
     block.call
-  rescue Discogs::Errors::RateLimitError
+  rescue Discogs::Errors::RateLimitError, Faraday::TimeoutError, Faraday::ConnectionFailed
     raise if retries >= RATE_LIMIT_MAX_RETRIES
 
     sleep(RATE_LIMIT_BASE_DELAY * (retries + 1))

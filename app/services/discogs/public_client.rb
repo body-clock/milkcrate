@@ -56,7 +56,8 @@ module Discogs
     def configure_faraday(f)
       set_faraday_defaults(f)
       f.use DiscogsRateLimitMiddleware
-      f.request :retry, max: 3, interval: 2.0, retry_statuses: [ 503 ]
+      f.request :retry, max: 3, interval: 2.0, retry_statuses: [ 503 ],
+                exceptions: [ Faraday::TimeoutError, Faraday::ConnectionFailed ]
       f.headers.merge!(faraday_headers)
     end
 
