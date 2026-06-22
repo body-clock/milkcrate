@@ -12,7 +12,10 @@ module AppVersion
 
   class << self
     def current
-      @current ||= VERSION_FILE.read.strip
+      @current ||= VERSION_FILE.read.lines
+        .grep_v(/^\s*#/)
+        .first
+        &.strip
     end
 
     def display
