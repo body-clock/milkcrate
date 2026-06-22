@@ -1,12 +1,5 @@
 # Changelog
 
-## [0.1.4](https://github.com/body-clock/milkcrate/compare/v0.1.3...v0.1.4) (2026-06-17)
-
-
-### Bug Fixes
-
-* **ci:** set default-branch: main for release-please ([11ebd9d](https://github.com/body-clock/milkcrate/commit/11ebd9d383e5c65abd279ceba166b666dd617b05))
-
 ## [0.1.3](https://github.com/body-clock/milkcrate/compare/v0.1.2...v0.1.3) (2026-06-17)
 
 
