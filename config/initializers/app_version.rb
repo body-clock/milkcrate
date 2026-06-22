@@ -16,11 +16,12 @@ module AppVersion
     end
 
     def display
-      "#{current} (#{ViteRuby.digest.first(7)})"
+      @display ||= "#{current} (#{ViteRuby.digest.first(7)})"
     end
 
     def reset!
       @current = nil
+      @display = nil
     end
   end
 end
