@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.1.4](https://github.com/body-clock/milkcrate/compare/v0.1.3...v0.1.4) (2026-06-22)
+
+
+### Bug Fixes
+
+* bump nokogiri to 1.19.4 for CVE patches ([c710797](https://github.com/body-clock/milkcrate/commit/c710797d6d9df2c34e42e95c93d2abfc9e20c7ce))
+* cache AppVersion.display to avoid Dir.chdir conflicts ([3102d53](https://github.com/body-clock/milkcrate/commit/3102d53e22f191fb897b02b249bb9571cd21432a))
+* **ci:** remove invalid default-branch parameter from release-please workflow ([1b177aa](https://github.com/body-clock/milkcrate/commit/1b177aa7573ca915cb8e2807f414671c7a5822b2))
+* **ci:** set default-branch: main for release-please ([11ebd9d](https://github.com/body-clock/milkcrate/commit/11ebd9d383e5c65abd279ceba166b666dd617b05))
+* nullify click_events before deleting stale listings ([0f620cd](https://github.com/body-clock/milkcrate/commit/0f620cdf32bafd698ac92160350ca0ab053dce30))
+* **release:** add version marker and sync VERSION to 0.1.3 ([fae1132](https://github.com/body-clock/milkcrate/commit/fae1132c81cc192a92f8648a20659f8e2ada11c4))
+* **release:** sync manifest to 0.1.3 and add version markers ([e4a47ea](https://github.com/body-clock/milkcrate/commit/e4a47eada0dca1b0bc7d06c0ad47c6f86a77ed36))
+* **release:** use block markers for VERSION to keep AppVersion parsing clean ([dcedb80](https://github.com/body-clock/milkcrate/commit/dcedb804185c0c70ab87230bfc82c9be79418327))
+* resolve 5 Honeybadger production errors ([f5837d8](https://github.com/body-clock/milkcrate/commit/f5837d8c839dd31c46a9df21bc83c5dd36300d54))
+* retry Discogs API network errors (timeout/connection) ([1b1ad6d](https://github.com/body-clock/milkcrate/commit/1b1ad6d468af048263497bc18ddb8bf1af101443))
+
+
+### Miscellaneous
+
+* **deps:** bump faraday from 2.14.2 to 2.14.3 ([20c0fcb](https://github.com/body-clock/milkcrate/commit/20c0fcbfac7bc100e61d30b196213ba82ea32735))
+* **deps:** bump googleapis/release-please-action from 4 to 5 ([296c2c4](https://github.com/body-clock/milkcrate/commit/296c2c406b0699110c00a3bad49c40aa52a638b5))
+* **deps:** bump kamal from 2.11.0 to 2.12.0 ([2fb364f](https://github.com/body-clock/milkcrate/commit/2fb364f1e73b70fb7b6eb96e96830e78e1cd7c6b))
+* **deps:** bump oauth from 1.1.6 to 1.1.7 ([23aeb96](https://github.com/body-clock/milkcrate/commit/23aeb96684e4b5ce00857391e64dd76fe7074c01))
+* **deps:** bump pnpm/action-setup from 4 to 6 ([ccac678](https://github.com/body-clock/milkcrate/commit/ccac6785a0dd9ff16a93c3858604d3bb6471f2f5))
+* **deps:** bump rubyzip from 3.3.1 to 3.4.0 ([584726e](https://github.com/body-clock/milkcrate/commit/584726ebfe715258a5b4d0dcd75a218fd25e185a))
+* **deps:** bump tailwindcss-rails from 4.4.0 to 4.6.0 ([995ddc2](https://github.com/body-clock/milkcrate/commit/995ddc237b93bc8512de6a297b890300dfee3856))
+* **development:** release 0.1.4 ([#276](https://github.com/body-clock/milkcrate/issues/276)) ([9a8475f](https://github.com/body-clock/milkcrate/commit/9a8475f97dc70b101c980991eefc6ecae15f2736))
+
 ## [0.1.3](https://github.com/body-clock/milkcrate/compare/v0.1.2...v0.1.3) (2026-06-17)
 
 
