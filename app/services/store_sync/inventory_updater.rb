@@ -25,7 +25,18 @@ module StoreSync
 
     def delete_stale_listings(listings)
       current_ids = listings.map { |r| r[:discogs_listing_id] }
-      current_ids.empty? ? @store.listings.delete_all : @store.listings.where.not(discogs_listing_id: current_ids).delete_all
+      if current_ids.empty?
+        nullify_click_events
+        @store.listings.delete_all
+      else
+        stale = @store.listings.where.not(discogs_listing_id: current_ids)
+        ClickEvent.where(listing_id: stale.select(:id)).update_all(listing_id: nil)
+        stale.delete_all
+      end
+    end
+
+    def nullify_click_events
+      ClickEvent.where(listing_id: @store.listings.select(:id)).update_all(listing_id: nil)
     end
 
     def persist_listings(records)
