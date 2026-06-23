@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.6](https://github.com/body-clock/milkcrate/compare/v0.1.5...v0.1.6) (2026-06-23)
+
+
+### Bug Fixes
+
+* **ci:** add checkout step before trigger deploy ([d13ba1a](https://github.com/body-clock/milkcrate/commit/d13ba1a864c1b5e4fa17b2262b326c052f8cc55d))
+
 ## [0.1.5](https://github.com/body-clock/milkcrate/compare/v0.1.4...v0.1.5) (2026-06-22)
 
 
