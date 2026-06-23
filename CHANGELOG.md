@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.5](https://github.com/body-clock/milkcrate/compare/v0.1.4...v0.1.5) (2026-06-22)
+
+
+### Bug Fixes
+
+* **ci:** trigger deploy from release-please step output instead of PAT ([d63fe95](https://github.com/body-clock/milkcrate/commit/d63fe9516e678903d1b525009479eb1e8f7dc0d1))
+* **ci:** use PAT for release-please to trigger downstream workflows ([0567704](https://github.com/body-clock/milkcrate/commit/056770476fd86c136f1bc2711cfad57ce24d647d))
+
 ## [0.1.4](https://github.com/body-clock/milkcrate/compare/v0.1.3...v0.1.4) (2026-06-22)
 
 
